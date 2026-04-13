@@ -4,6 +4,8 @@
 
 TypeScript library to read and write AutoCAD DWG and DXF files. Ported from the C# [ACadSharp](https://github.com/DomCR/ACadSharp) library.
 
+Based on commit: https://github.com/DomCR/ACadSharp/commit/3010994939c1bc21df0c9e2931e9baee4564815a
+
 ## Features
 
 - Read/Write DXF files (ASCII and binary)
