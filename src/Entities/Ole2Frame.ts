@@ -1,0 +1,43 @@
+import { Entity } from './Entity.js';
+import { DxfFileToken } from '../DxfFileToken.js';
+import { DxfSubclassMarker } from '../DxfSubclassMarker.js';
+import { ObjectType } from '../Types/ObjectType.js';
+import { OleObjectType } from './OleObjectType.js';
+import { XYZ } from '../Math/XYZ.js';
+
+export class Ole2Frame extends Entity {
+	binaryData: Uint8Array = new Uint8Array(0);
+
+	isPaperSpace: boolean = false;
+
+	lowerRightCorner: XYZ = new XYZ(0, 0, 0);
+
+	override get objectName(): string {
+		return DxfFileToken.EntityOle2Frame;
+	}
+
+	override get objectType(): ObjectType {
+		return ObjectType.OLE2FRAME;
+	}
+
+	oleObjectType: OleObjectType = OleObjectType.Embedded;
+
+	sourceApplication: string = '';
+
+	override get subclassMarker(): string {
+		return DxfSubclassMarker.Ole2Frame;
+	}
+
+	upperLeftCorner: XYZ = new XYZ(1, 1, 0);
+
+	version: number = 2;
+
+	override applyTransform(transform: any): void {
+		// TODO: transform operations not available
+	}
+
+	override getBoundingBox(): any {
+		// TODO: BoundingBox.FromPoints not available
+		return null;
+	}
+}

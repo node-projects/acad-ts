@@ -1,0 +1,55 @@
+{
+  "name": "@node-projects/acad-ts",
+  "version": "1.0.0",
+  "description": "TypeScript library to read and write AutoCAD DWG and DXF files",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/node-projects/acad-ts.git"
+  },
+  "author": "Jochen Kühner <jochen.kuehner@gmx.de>",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/node-projects/acad-ts/issues"
+  },
+  "homepage": "https://github.com/node-projects/acad-ts#readme",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist",
+    "LICENSE",
+    "README.md"
+  ],
+  "keywords": [
+    "autocad",
+    "dwg",
+    "dxf",
+    "cad",
+    "reader",
+    "writer",
+    "typescript"
+  ],
+  "directories": {
+    "doc": "docs"
+  },
+  "scripts": {
+    "build": "tsc",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "prepublishOnly": "npm run build && npm run bundle",
+    "bundle": "esbuild ./dist/index.js --format=esm --minify --external:fs --platform=neutral --bundle --outfile=./dist/index-min.js"
+  
+  },
+  "devDependencies": {
+    "@types/node": "^25.6.0",
+    "esbuild": "^0.28.0",
+    "typescript": "^6.0.2",
+    "vitest": "^4.1.4"
+  }
+}

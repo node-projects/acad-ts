@@ -1,0 +1,17 @@
+export enum BoundaryPathFlags {
+	Default = 0,
+	External = 1,
+	Polyline = 2,
+	Derived = 4,
+	Textbox = 8,
+	Outermost = 16,
+	NotClosed = 32,
+	SelfIntersecting = 64,
+	TextIsland = 128,
+	Duplicate = 256,
+	IsAnnotative = 512,
+	DoesNotSupportScale = 1024,
+	ForceAnnoAllVisible = 2048,
+	OrientToPaper = 4096,
+	IsAnnotativeBlock = 8192,
+}

@@ -1,0 +1,27 @@
+import { AttributeBase } from './AttributeBase.js';
+import { DxfFileToken } from '../DxfFileToken.js';
+import { DxfSubclassMarker } from '../DxfSubclassMarker.js';
+import { ObjectType } from '../Types/ObjectType.js';
+
+export class AttributeDefinition extends AttributeBase {
+	override get objectType(): ObjectType {
+		return ObjectType.ATTDEF;
+	}
+
+	override get objectName(): string {
+		return DxfFileToken.EntityAttributeDefinition;
+	}
+
+	override get subclassMarker(): string {
+		return DxfSubclassMarker.AttributeDefinition;
+	}
+
+	prompt: string = '';
+
+	constructor(entity?: any /* AttributeEntity */) {
+		super();
+		if (entity) {
+			this.matchAttributeProperties(entity);
+		}
+	}
+}

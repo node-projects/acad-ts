@@ -1,0 +1,17 @@
+export enum ProxyFlags {
+	None = 0,
+	EraseAllowed = 1,
+	TransformAllowed = 2,
+	ColorChangeAllowed = 4,
+	LayerChangeAllowed = 8,
+	LinetypeChangeAllowed = 16,
+	LinetypeScaleChangeAllowed = 32,
+	VisibilityChangeAllowed = 64,
+	CloningAllowed = 128,
+	LineweightChangeAllowed = 256,
+	PlotStyleNameChangeAllowed = 512,
+	AllOperationsExceptCloningAllowed = 895,
+	AllOperationsAllowed = 1023,
+	DisablesProxyWarningDialog = 1024,
+	R13FormatProxy = 32768,
+}
