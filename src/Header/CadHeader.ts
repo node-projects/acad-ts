@@ -34,6 +34,8 @@ import { SplineType } from './SplineType.js';
 import { XClipFrameType } from './XClipFrameType.js';
 import { XYZ } from '../Math/XYZ.js';
 import { XY } from '../Math/XY.js';
+import { CadSystemVariable } from '../CadSystemVariable.js';
+import { getSystemVariableMetadataMap } from '../Metadata/MetadataStore.js';
 
 // TODO: MLineStyle, VerticalAlignmentType not yet converted
 export enum VerticalAlignmentType {
@@ -43,6 +45,8 @@ export enum VerticalAlignmentType {
 }
 
 export class CadHeader {
+	private static _headerMapCache: Map<string, CadSystemVariable> | null = null;
+
 	// --- Simple properties ---
 
 	public angleBase: number = 0.0;
@@ -400,6 +404,12 @@ export class CadHeader {
 	public displaySilhouetteCurves: boolean = false;
 
 	public document: any /* CadDocument */ = null;
+	public get Document(): any {
+		return this.document;
+	}
+	public set Document(value: any) {
+		this.document = value;
+	}
 
 	public draftAngleFirstCrossSection: number = 0;
 	public draftAngleSecondCrossSection: number = 0;
@@ -433,6 +443,12 @@ export class CadHeader {
 	public fingerPrintGuid: string = crypto.randomUUID?.() ?? '';
 	public haloGapPercentage: number = 0;
 	public handleSeed: number = 0x01;
+	public get HandleSeed(): number {
+		return this.handleSeed;
+	}
+	public set HandleSeed(value: number) {
+		this.handleSeed = value;
+	}
 	public hideText: number = 0;
 	public hyperLinkBase: string | null = null;
 	public indexCreationFlags: IndexCreationFlags = IndexCreationFlags.NoIndex;
@@ -608,6 +624,12 @@ export class CadHeader {
 			default: this.maintenanceVersion = 0; break;
 		}
 	}
+	public get Version(): ACadVersion {
+		return this.version;
+	}
+	public set Version(value: ACadVersion) {
+		this.version = value;
+	}
 
 	public versionGuid: string = crypto.randomUUID?.() ?? '';
 
@@ -616,6 +638,12 @@ export class CadHeader {
 	}
 	public set versionString(value: string) {
 		this.version = CadUtils.getVersionFromName(value);
+	}
+	public get VersionString(): string {
+		return this.versionString;
+	}
+	public set VersionString(value: string) {
+		this.versionString = value;
 	}
 
 	public viewportDefaultViewScaleFactor: number = 0;
@@ -650,8 +678,6 @@ export class CadHeader {
 		}
 	}
 
-	// TODO: GetHeaderMap, GetValues, SetValue - require reflection which doesn't exist in TS
-
 	requiredVersions: number = 0;
 	DIMSAV: number = 0;
 	polylineLineTypeGeneration: boolean = false;
@@ -682,13 +708,54 @@ export class CadHeader {
 	shadowPlaneLocation: number = 0;
 	dimensionMzf: number = 0;
 
-	static GetHeaderMap(): Map<string, any> {
-		// TODO: Implement header map based on decorators/metadata
-		return new Map();
+	public GetValue(systemvar: string): any {
+		return CadHeader.GetHeaderMap().get(systemvar)?.getValue(this);
+	}
+
+	public GetValues(systemvar: string): Map<number, any> {
+		const values = new Map<number, any>();
+		const metadata = CadHeader.GetHeaderMap().get(systemvar);
+		if (!metadata) {
+			return values;
+		}
+
+		for (const code of metadata.DxfCodes) {
+			const value = metadata.getSystemValue(code, this);
+			if (value !== null && value !== undefined) {
+				values.set(code, value);
+			}
+		}
+
+		return values;
+	}
+
+	static GetHeaderMap(): Map<string, CadSystemVariable> {
+		if (!CadHeader._headerMapCache) {
+			CadHeader._headerMapCache = new Map<string, CadSystemVariable>();
+			for (const metadata of getSystemVariableMetadataMap(CadHeader).values()) {
+				CadHeader._headerMapCache.set(metadata.name, new CadSystemVariable(metadata));
+			}
+		}
+
+		return new Map(CadHeader._headerMapCache);
 	}
 
 	SetValue(variable: any, parameters: any[]): void {
-		// TODO: Implement SetValue based on metadata
+		const property = CadHeader.GetHeaderMap().get(String(variable));
+		if (!property) {
+			return;
+		}
+
+		const values = Array.isArray(parameters) ? parameters : [parameters];
+		if (values.length === 0) {
+			return;
+		}
+
+		if (property.isName && typeof values[0] === 'string' && values[0].length === 0) {
+			return;
+		}
+
+		property.applyValues(this, values);
 	}
 
 	public toString(): string {

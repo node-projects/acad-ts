@@ -1,5 +1,6 @@
 import { DxfMapBase } from './DxfMapBase.js';
 import { DxfProperty } from './DxfProperty.js';
+import { getClassMetadata } from './Metadata/MetadataStore.js';
 
 export class DxfClassMap extends DxfMapBase {
 	private static readonly _cache: Map<string, DxfClassMap> = new Map();
@@ -18,15 +19,25 @@ export class DxfClassMap extends DxfMapBase {
 		}
 	}
 
-	// TODO: create requires C# reflection
 	public static createFromType(typeName: string, name?: string): DxfClassMap {
 		if (DxfClassMap._cache.has(typeName)) {
 			return new DxfClassMap(DxfClassMap._cache.get(typeName)!);
 		}
 
 		const classMap = new DxfClassMap();
-		classMap.name = name ?? typeName;
-		// TODO: Reflection-based property mapping
+		const metadata = getClassMetadata(typeName);
+		if (!name && metadata?.dxfSubClassName == null) {
+			throw new Error(`${typeName} is not a DXF subclass`);
+		}
+
+		classMap.name = name ?? metadata?.dxfSubClassName ?? typeName;
+		DxfClassMap.addClassProperties(classMap, typeName);
+
+		const baseMetadata = metadata?.baseTypeName ? getClassMetadata(metadata.baseTypeName) : undefined;
+		if (baseMetadata?.dxfSubClassIsEmpty) {
+			DxfClassMap.addClassProperties(classMap, baseMetadata.typeName);
+		}
+
 		DxfClassMap._cache.set(typeName, classMap);
 		return new DxfClassMap(classMap);
 	}

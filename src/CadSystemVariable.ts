@@ -1,37 +1,47 @@
-// TODO: CadSystemVariable relies heavily on C# reflection (PropertyInfo, Attributes)
-// This is a simplified TypeScript version
+import { DxfPropertyBase } from './DxfPropertyBase.js';
+import { DxfReferenceType } from './Types/DxfReferenceType.js';
+import { SystemVariableMetadata } from './Metadata/MetadataTypes.js';
 
-export class CadSystemVariable {
+export class CadSystemVariable extends DxfPropertyBase {
 	public name: string;
 	public DxfCodes: number[] = [];
-	private _propertyName: string;
-	private _referenceType: number = 0;
+	public isName: boolean = false;
 
-	public get referenceType(): number {
-		return this._referenceType;
-	}
-
-	public set referenceType(value: number) {
-		this._referenceType = value;
-	}
-
-	constructor(propertyName: string, name: string) {
-		this._propertyName = propertyName;
-		this.name = name;
+	constructor(metadata: SystemVariableMetadata);
+	constructor(propertyName: string, name: string, dxfCodes?: number[]);
+	constructor(propertyNameOrMetadata: string | SystemVariableMetadata, name?: string, dxfCodes: number[] = []) {
+		if (typeof propertyNameOrMetadata === 'string') {
+			super(propertyNameOrMetadata, dxfCodes);
+			this.name = name ?? propertyNameOrMetadata;
+			this.DxfCodes = [...dxfCodes];
+			this.isName = false;
+			this.referenceType = 0;
+		} else {
+			super(propertyNameOrMetadata);
+			this.name = propertyNameOrMetadata.name;
+			this.DxfCodes = [...propertyNameOrMetadata.valueCodes];
+			this.isName = propertyNameOrMetadata.isName;
+			this.referenceType = propertyNameOrMetadata.referenceType;
+		}
 	}
 
 	public getSystemValue(code: number, header: any): any {
-		// TODO: Full implementation requires reflection
-		if (header && this._propertyName) {
-			return header[this._propertyName];
+		switch (this.referenceType) {
+			case DxfReferenceType.Unprocess:
+				return this.getValue(header);
+			case DxfReferenceType.Handle:
+				return this.getHandledValue(header);
+			case DxfReferenceType.Name:
+				return this.getNamedValue(header);
+			case DxfReferenceType.Count:
+				return this.getCounterValue(header);
+			case DxfReferenceType.None:
+			default:
+				return this.getRawValueByCode(code, header);
 		}
-		return null;
 	}
 
 	public getValue(header: any): any {
-		if (header && this._propertyName) {
-			return header[this._propertyName];
-		}
-		return null;
+		return this.getPropertyValue(header);
 	}
 }

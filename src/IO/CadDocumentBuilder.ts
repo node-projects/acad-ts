@@ -224,12 +224,22 @@ export abstract class CadDocumentBuilder {
 	}
 
 	protected createMissingHandles(): void {
-		for (const template of this.unassignedObjects) {
-			template.CadObject.handle = this.InitialHandSeed + 1;
-			this.AddTemplate(template);
+		let nextHandle = Number.isFinite(this.InitialHandSeed) ? this.InitialHandSeed : 0;
+		let pending = this.unassignedObjects;
+		this.unassignedObjects = [];
+
+		while (pending.length > 0) {
+			for (const template of pending) {
+				nextHandle += 1;
+				template.CadObject.handle = nextHandle;
+				this.AddTemplate(template);
+			}
+
+			pending = this.unassignedObjects;
+			this.unassignedObjects = [];
 		}
 
-		this.unassignedObjects = [];
+		this.InitialHandSeed = nextHandle;
 	}
 
 	protected registerTable<T extends TableEntry>(table: Table<T> | null, tableConstructor: new () => Table<T>): void {

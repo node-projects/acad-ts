@@ -36,6 +36,34 @@ Based on commit: https://github.com/DomCR/ACadSharp/commit/3010994939c1bc21df0c9
 npm install @node-projects/acad-ts
 ```
 
+## Metadata-backed DXF mapping
+
+The original C# ACadSharp implementation relies on reflection and attributes such as `DxfCodeValue`, `DxfCollectionCodeValue`, `CadSystemVariable`, `DxfName`, and `DxfSubClass` to build DXF maps and header-variable tables at runtime. TypeScript does not have the same runtime reflection model, so acad-ts now uses a checked-in metadata lookup table instead.
+
+This metadata is what powers the rebuilt `CadHeader.GetHeaderMap()` / `SetValue()` path, `DxfMap` / `DxfClassMap` creation, DXF subclass lookup, and property conversions for dates, time spans, vectors, colors, reference types, and collection-coded values.
+
+The metadata system has four parts:
+
+- `src/Metadata/MetadataLookupTable.ts`: a small aggregator that preserves a stable runtime import path.
+- `src/Metadata/LookupTables/*.ts`: the hand-maintained domain lookup tables for DXF names, subclass markers, property codes, collection codes, system variables, and reference semantics.
+- `src/Metadata/MetadataStore.ts`: runtime lookup helpers that expose cloned metadata for maps, properties, and system variables.
+- Runtime consumers such as `src/DxfMap.ts`, `src/DxfClassMap.ts`, `src/DxfPropertyBase.ts`, and `src/Header/CadHeader.ts`.
+
+Why this exists:
+
+- It restores the C# mapping behavior with an explicit TypeScript source of truth that lives in this repo.
+- It avoids a build-time or maintenance dependency on the upstream C# source tree.
+- It avoids shipping a decorator or reflection dependency just to emulate ACadSharp's attribute model.
+
+How the lookup table is maintained:
+
+1. The current lookup table was bootstrapped from the earlier generated metadata so the repo keeps the same runtime behavior without reintroducing the C# fetch step.
+2. Ongoing changes should be made directly in the matching file under `src/Metadata/LookupTables/` when a newly ported type, DXF code, collection code, subclass marker, or system variable needs to be added or corrected.
+3. `src/Metadata/MetadataLookupTable.ts` aggregates those domain files into one array so the runtime import path stays stable.
+4. `src/Metadata/MetadataStore.ts` clones that table before exposing entries so runtime consumers do not mutate the source data.
+
+The lookup table is committed. Normal builds and tests consume the checked-in metadata and do not require network access or any external source tree.
+
 ## Usage
 
 ### Reading a DWG file
@@ -158,6 +186,8 @@ The compiled output will be in the `dist/` directory.
 ```bash
 npm test
 ```
+
+The focused metadata regression coverage lives in `tests/MetadataMappings.test.ts`. It verifies lookup-table collection codes, reference-type handling, `CadHeader` variable application, and metadata-backed `DxfMap` / `DxfClassMap` creation.
 
 ## Documentation
 

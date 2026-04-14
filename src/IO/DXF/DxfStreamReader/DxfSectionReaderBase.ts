@@ -1053,6 +1053,7 @@ export abstract class DxfSectionReaderBase {
       this.readEntityCodes(vertexTemplate, this.readVertex.bind(this), Vertex2D);
 
       if (vertexTemplate.Vertex.handle === 0) {
+        v.owner = polyline;
         polyline.vertices.push(v);
       } else {
         template.OwnedObjectsHandlers.add(vertexTemplate.Vertex.handle);
@@ -1065,6 +1066,7 @@ export abstract class DxfSectionReaderBase {
       const seqendTemplate = new CadEntityTemplate(seqend);
       this.readEntityCodes(seqendTemplate, this.readEntitySubclassMap.bind(this), Seqend);
 
+      seqend.owner = polyline;
       polyline.vertices.Seqend = seqend;
     }
 
