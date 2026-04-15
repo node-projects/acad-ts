@@ -1,7 +1,6 @@
 import { ACadVersion } from './ACadVersion.js';
 import { LineWeightType } from './Types/LineWeightType.js';
 
-// TODO: CodePage enum needs to be defined or imported from a utility library
 export enum CodePage {
 	Unknown = 0,
 	Usascii = 20127,

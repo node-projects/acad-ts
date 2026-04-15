@@ -22,11 +22,6 @@ import { UCSTable } from './Tables/Collections/UCSTable.js';
 import { ViewsTable } from './Tables/Collections/ViewsTable.js';
 import { VPortsTable } from './Tables/Collections/VPortsTable.js';
 
-// TODO: These imports reference types that need to be converted
-// import { CadHeader } from './Header/CadHeader.js';
-// import { CadDictionary } from './Objects/CadDictionary.js';
-// import { BlockRecord } from './Tables/BlockRecord.js';
-// ... and many more table/collection types
 import { DxfClassCollection } from './Classes/DxfClassCollection.js';
 
 export class CadDocument implements IHandledCadObject {
@@ -298,7 +293,56 @@ export class CadDocument implements IHandledCadObject {
 
 	/** @internal */
 	unregisterCollection(collection: any): void {
-		// TODO: Implement when collection types are converted
+		if (collection == null) {
+			return;
+		}
+
+		if (
+			collection instanceof AppIdsTable ||
+			collection instanceof BlockRecordsTable ||
+			collection instanceof DimensionStylesTable ||
+			collection instanceof LayersTable ||
+			collection instanceof LineTypesTable ||
+			collection instanceof TextStylesTable ||
+			collection instanceof UCSTable ||
+			collection instanceof ViewsTable ||
+			collection instanceof VPortsTable
+		) {
+			throw new Error(`The collection ${collection.constructor?.name ?? typeof collection} cannot be removed from a document.`);
+		}
+
+		if ('onAdd' in collection) {
+			collection.onAdd = null;
+		}
+		if ('onRemove' in collection) {
+			collection.onRemove = null;
+		}
+
+		if (collection instanceof CadObject) {
+			this.removeCadObject(collection);
+		}
+
+		if ('onSeqendAdded' in collection) {
+			collection.onSeqendAdded = null;
+		}
+		if ('onSeqendRemoved' in collection) {
+			collection.onSeqendRemoved = null;
+		}
+		if ('seqend' in collection && collection.seqend instanceof CadObject) {
+			this.removeCadObject(collection.seqend);
+		}
+
+		if (typeof collection[Symbol.iterator] !== 'function') {
+			return;
+		}
+
+		for (const item of collection as Iterable<any>) {
+			if (item instanceof CadDictionary) {
+				this.unregisterCollection(item);
+			} else if (item instanceof CadObject) {
+				this.removeCadObject(item);
+			}
+		}
 	}
 
 	private addCadObject(cadObject: CadObject): void {

@@ -65,4 +65,35 @@ describe('CadDocumentTests', () => {
     expect(doc.header.handleSeed).toBe(Math.max(...handles) + 1);
     expect(doc.header.handleSeed).not.toBe(9999);
   });
+
+  it('UnregisterCollectionDetachesEntityCollections', () => {
+    const doc = new CadDocument();
+    const line = new Line();
+
+    doc.modelSpace.entities.add(line);
+
+    const originalHandle = line.handle;
+    expect(line.document).toBe(doc);
+    expect(doc.getCadObject(originalHandle)).toBe(line);
+
+    (doc as any).unregisterCollection(doc.modelSpace.entities);
+
+    expect(line.document).toBeNull();
+    expect(line.handle).toBe(0);
+    expect(doc.getCadObject(originalHandle)).toBeNull();
+
+    const cadObjectCount = (doc as any)._cadObjects.size;
+    const detachedLine = new Line();
+    doc.modelSpace.entities.add(detachedLine);
+
+    expect(detachedLine.document).toBeNull();
+    expect(detachedLine.handle).toBe(0);
+    expect((doc as any)._cadObjects.size).toBe(cadObjectCount);
+  });
+
+  it('UnregisterCollectionRejectsCoreTables', () => {
+    const doc = new CadDocument();
+
+    expect(() => (doc as any).unregisterCollection(doc.layers)).toThrow(/cannot be removed from a document/i);
+  });
 });
