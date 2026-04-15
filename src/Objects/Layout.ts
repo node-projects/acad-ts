@@ -4,6 +4,7 @@ import { DxfFileToken } from '../DxfFileToken.js';
 import { DxfSubclassMarker } from '../DxfSubclassMarker.js';
 import { ObjectType } from '../Types/ObjectType.js';
 import { LayoutFlags } from './LayoutFlags.js';
+import { Viewport } from '../Entities/Viewport.js';
 import { XYZ } from '../Math/XYZ.js';
 import { XY } from '../Math/XY.js';
 
@@ -29,6 +30,9 @@ export class Layout extends PlotSettings {
 
 	get isPaperSpace(): boolean {
 		return this.name?.toLowerCase() !== Layout.ModelLayoutName.toLowerCase();
+	}
+	get IsPaperSpace(): boolean {
+		return this.isPaperSpace;
 	}
 
 	get lastActiveViewport(): any {
@@ -75,7 +79,7 @@ export class Layout extends PlotSettings {
 	}
 
 	addViewport(viewport: any): void {
-		this.associatedBlock?.entities?.push(viewport);
+		this.associatedBlock?.entities?.add(viewport);
 	}
 
 	override clone(): CadObject {
@@ -93,7 +97,16 @@ export class Layout extends PlotSettings {
 			return;
 		}
 
-		// TODO: find or create viewport in associated block
+		const paperViewport = this.viewports?.find((viewport: Viewport) => viewport.representsPaper) ?? null;
+		if (paperViewport != null) {
+			this.lastActiveViewport ??= paperViewport;
+			return;
+		}
+
+		const viewport = new Viewport();
+		viewport.id = Viewport.PaperViewId;
+		this.addViewport(viewport);
+		this.lastActiveViewport = viewport;
 	}
 }
 

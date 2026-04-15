@@ -45,7 +45,7 @@ export class SvgDocumentBuilder extends SvgXmlWriter {
     const translation = SvgConverter.vectorToPixelSize(lowerMargin, this.Units);
     const scale: XYZ = new XYZ(layout.printScale, layout.printScale, layout.printScale);
 
-    for (const e of layout.associatedBlock.Entities) {
+    for (const e of layout.associatedBlock.entities) {
       this.writeEntity(e as Entity);
     }
 

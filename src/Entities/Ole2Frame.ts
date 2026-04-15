@@ -1,6 +1,7 @@
 import { Entity } from './Entity.js';
 import { DxfFileToken } from '../DxfFileToken.js';
 import { DxfSubclassMarker } from '../DxfSubclassMarker.js';
+import { BoundingBox } from '../Math/BoundingBox.js';
 import { ObjectType } from '../Types/ObjectType.js';
 import { OleObjectType } from './OleObjectType.js';
 import { XYZ } from '../Math/XYZ.js';
@@ -37,7 +38,6 @@ export class Ole2Frame extends Entity {
 	}
 
 	override getBoundingBox(): any {
-		// TODO: BoundingBox.FromPoints not available
-		return null;
+		return BoundingBox.FromPoints([this.upperLeftCorner, this.lowerRightCorner]);
 	}
 }

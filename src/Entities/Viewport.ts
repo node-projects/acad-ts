@@ -41,8 +41,29 @@ export class Viewport extends Entity {
 	height: number = 0;
 
 	get id(): number {
-		// TODO: Owner-based sequential ID calculation
+		if (this._id !== 0) {
+			return this._id;
+		}
+
+		const entities = (this.owner as { entities?: Iterable<Entity> } | null)?.entities;
+		if (entities == null) {
+			return 0;
+		}
+
+		let viewportIndex = 0;
+		for (const entity of entities) {
+			if (entity instanceof Viewport) {
+				viewportIndex++;
+				if (entity === this) {
+					return viewportIndex;
+				}
+			}
+		}
+
 		return 0;
+	}
+	set id(value: number) {
+		this._id = value;
 	}
 
 	lensLength: number = 0;
@@ -170,6 +191,8 @@ export class Viewport extends Entity {
 		super.unassignDocument();
 		this.scale = this.scale?.clone?.() ?? null;
 	}
+
+	private _id: number = 0;
 }
 
 export { ViewportStatusFlags } from './ViewportStatusFlags.js';

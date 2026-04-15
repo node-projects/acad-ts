@@ -1,11 +1,7 @@
 import { CadObject } from '../CadObject.js';
+import type { AppId } from '../Tables/AppId.js';
 import { ExtendedData } from './ExtendedData.js';
 import { ExtendedDataRecord } from './ExtendedDataRecord.js';
-
-// TODO: AppId from Tables not yet converted, using a placeholder type
-export interface AppId {
-	name: string;
-}
 
 export class ExtendedDataDictionary implements Iterable<[AppId, ExtendedData]> {
 	public get document(): any /* CadDocument */ | null {
@@ -25,13 +21,19 @@ export class ExtendedDataDictionary implements Iterable<[AppId, ExtendedData]> {
 			extendedData = new ExtendedData();
 		}
 
-		const doc = this.document;
-		if (doc != null) {
-			// TODO: Integrate with document's AppIds table once Tables are converted
-			this._data.set(app, extendedData);
-		} else {
-			this._data.set(app, extendedData);
+		const appTable = this.document?.appIds;
+		let appId = appTable?.tryGetValue?.(app.name) ?? null;
+		if (appId == null && appTable != null) {
+			const seedApp = appTable.tryGetValue('ACAD') ?? [...appTable][0] ?? null;
+			if (seedApp != null) {
+				appId = seedApp.clone() as AppId;
+				appId.name = app.name;
+				appId = appTable.tryAdd(appId);
+			}
 		}
+
+		appId ??= app;
+		this._data.set(appId, extendedData);
 	}
 
 	public addByName(appName: string, extendedData?: ExtendedData): void {

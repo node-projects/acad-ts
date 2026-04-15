@@ -37,7 +37,6 @@ import { XY } from '../Math/XY.js';
 import { CadSystemVariable } from '../CadSystemVariable.js';
 import { getSystemVariableMetadataMap } from '../Metadata/MetadataStore.js';
 
-// TODO: MLineStyle, VerticalAlignmentType not yet converted
 export enum VerticalAlignmentType {
 	Top = 0,
 	Middle = 1,
@@ -122,7 +121,6 @@ export class CadHeader {
 	public currentMultiLineJustification: VerticalAlignmentType = VerticalAlignmentType.Top;
 	public currentMultilineScale: number = 20.0;
 
-	// TODO: MLineStyle not yet converted
 	public currentMLineStyleName: string = 'Standard';
 
 	public get currentTextStyle(): TextStyle {

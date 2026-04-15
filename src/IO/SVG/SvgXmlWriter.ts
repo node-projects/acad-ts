@@ -125,7 +125,7 @@ export class SvgXmlWriter {
       new XYZ(0, 0, 0)
     );
 
-    for (const e of layout.associatedBlock.Entities) {
+    for (const e of layout.associatedBlock.entities) {
       this.writeEntity(e as Entity, transform);
     }
 

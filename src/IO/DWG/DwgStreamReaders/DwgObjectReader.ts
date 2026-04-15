@@ -144,7 +144,7 @@ import { ModelerGeometry , ModelerGeometryWire, ModelerGeometrySilhouette} from 
 import { Region } from '../../../Entities/Region.js';
 import { CadBody } from '../../../Entities/CadBody.js';
 import { UnknownEntity } from '../../../Entities/UnknownEntity.js';
-import { TableEntity, CellType, CellContent, CellContentGeometry, CellRange, CustomDataEntry, CellStyle, CellStyleType, TableCellContentType, TableCellStateFlags, ContentFormat, CellEdgeFlags, CellBorder, TableEntityBorderType, TableCellContentLayoutFlags, TableCellStylePropertyFlags, MarginFlags, TableBorderPropertyFlags, TableCellStylePropertyFlags as TCFlags, TableOverrideFlags, BorderOverrideFlags, TableAttribute, BreakOptionFlags, BreakFlowDirection, BreakHeight, BreakRowRange, BreakData, TableEntityColumn, TableEntityRow, TableEntityCell, CellAlignmentType , CellStyleClass} from '../../../Entities/TableEntity.js';
+import { TableEntity, CellType, CellContent, CellContentGeometry, CellRange, CustomDataEntry, CellStyle, CellStyleType, TableCellContentType, TableCellStateFlags, ContentFormat, CellEdgeFlags, CellBorder, TableEntityBorderType, TableCellContentLayoutFlags, TableCellStylePropertyFlags, MarginFlags, TableBorderPropertyFlags, TableCellStylePropertyFlags as TCFlags, TableOverrideFlags, BorderOverrideFlags, TableAttribute, BreakOptionFlags, BreakFlowDirection, BreakHeight, BreakRowRange, BreakData, TableEntityColumn, TableEntityRow, TableEntityCell, CellAlignmentType , CellStyleClass, CellOverrideFlags } from '../../../Entities/TableEntity.js';
 import { Block } from '../../../Blocks/Block.js';
 import { BlockEnd } from '../../../Blocks/BlockEnd.js';
 import { BlockRecord, BlockTypeFlags } from '../../../Tables/BlockRecord.js';
@@ -4050,7 +4050,34 @@ export class DwgObjectReader extends DwgSectionIO {
         }
       }
     }
-    // TODO: Has border visibility overrides section (matching C# patterns)
+    if (this._mergedReaders.readBit()) {
+      const flags = this._mergedReaders.readBitLong() as BorderOverrideFlags;
+      const borderVisibilityToRead: BorderOverrideFlags[] = [
+        BorderOverrideFlags.TitleHorizontalTop,
+        BorderOverrideFlags.TitleHorizontalInsert,
+        BorderOverrideFlags.TitleHorizontalBottom,
+        BorderOverrideFlags.TitleVerticalLeft,
+        BorderOverrideFlags.TitleVerticalInsert,
+        BorderOverrideFlags.TitleVerticalRight,
+        BorderOverrideFlags.HeaderHorizontalTop,
+        BorderOverrideFlags.HeaderHorizontalInsert,
+        BorderOverrideFlags.HeaderHorizontalBottom,
+        BorderOverrideFlags.HeaderVerticalLeft,
+        BorderOverrideFlags.HeaderVerticalInsert,
+        BorderOverrideFlags.HeaderVerticalRight,
+        BorderOverrideFlags.DataHorizontalTop,
+        BorderOverrideFlags.DataHorizontalInsert,
+        BorderOverrideFlags.DataHorizontalBottom,
+        BorderOverrideFlags.DataVerticalLeft,
+        BorderOverrideFlags.DataVerticalInsert,
+        BorderOverrideFlags.DataVerticalRight,
+      ];
+      for (const flag of borderVisibilityToRead) {
+        if ((flags & flag) !== 0) {
+          this._mergedReaders.readBitShortAsBool();
+        }
+      }
+    }
     return template;
   }
 
@@ -4316,7 +4343,85 @@ export class DwgObjectReader extends DwgSectionIO {
   }
 
   private readCellStyle(template: CadCellStyleTemplate): void {
-    // TODO: readCellStyle for R2007+ table styles
+    const cellStyle = template.Format as CellStyle;
+
+    cellStyle.cellStyleType = this._mergedReaders.readBitLong() as CellStyleType;
+    cellStyle.hasData = this._mergedReaders.readBitShortAsBool();
+    if (!cellStyle.hasData) {
+      return;
+    }
+
+    cellStyle.propertyOverrideFlags = this._mergedReaders.readBitLong() as TableCellStylePropertyFlags;
+    cellStyle.tableCellStylePropertyFlags = this._mergedReaders.readBitLong() as TableCellStylePropertyFlags;
+    cellStyle.backgroundColor = this._mergedReaders.readCmColor(this.R2004Pre);
+    cellStyle.contentLayoutFlags = this._mergedReaders.readBitLong() as TableCellContentLayoutFlags;
+
+    this.readCellContentFormat(template, cellStyle);
+
+    cellStyle.marginOverrideFlags = this._mergedReaders.readBitShort() as MarginFlags;
+    if ((cellStyle.marginOverrideFlags & MarginFlags.Override) !== 0) {
+      cellStyle.verticalMargin = this._mergedReaders.readBitDouble();
+      cellStyle.horizontalMargin = this._mergedReaders.readBitDouble();
+      cellStyle.bottomMargin = this._mergedReaders.readBitDouble();
+      cellStyle.rightMargin = this._mergedReaders.readBitDouble();
+      cellStyle.marginHorizontalSpacing = this._mergedReaders.readBitDouble();
+      cellStyle.marginVerticalSpacing = this._mergedReaders.readBitDouble();
+    }
+
+    const nborders = this._mergedReaders.readBitLong();
+    for (let i = 0; i < nborders; i++) {
+      const edgeFlags = this._mergedReaders.readBitLong() as CellEdgeFlags;
+      switch (edgeFlags) {
+        case CellEdgeFlags.Top:
+          this.readBorder(template, cellStyle.topBorder);
+          break;
+        case CellEdgeFlags.Right:
+          this.readBorder(template, cellStyle.rightBorder);
+          break;
+        case CellEdgeFlags.Bottom:
+          this.readBorder(template, cellStyle.bottomBorder);
+          break;
+        case CellEdgeFlags.Left:
+          this.readBorder(template, cellStyle.leftBorder);
+          break;
+        case CellEdgeFlags.InsideVertical:
+          this.readBorder(template, cellStyle.verticalInsideBorder);
+          break;
+        case CellEdgeFlags.InsideHorizontal:
+          this.readBorder(template, cellStyle.horizontalInsideBorder);
+          break;
+        case CellEdgeFlags.Unknown:
+        default:
+          continue;
+      }
+    }
+  }
+
+  private readBorder(template: CadCellStyleTemplate, border: CellBorder): void {
+    border.propertyOverrideFlags = this._mergedReaders.readBitLong() as TableBorderPropertyFlags;
+    border.type = this._mergedReaders.readBitLong() as TableEntityBorderType;
+    border.color = this._mergedReaders.readCmColor(this.R2004Pre);
+    border.lineWeight = this._mergedReaders.readBitLong() as LineWeightType;
+    template.BorderLinetypePairs.push([border, this.handleReference()]);
+    border.isInvisible = this._mergedReaders.readBitLong() === 1;
+    border.doubleLineSpacing = this._mergedReaders.readBitDouble();
+  }
+
+  private readCellContentFormat(template: CadTableCellContentFormatTemplate, format: ContentFormat): void {
+    format.propertyOverrideFlags = this._mergedReaders.readBitLong() as TableCellStylePropertyFlags;
+    format.propertyFlags = this._mergedReaders.readBitLong();
+    format.valueDataType = this._mergedReaders.readBitLong();
+    format.valueUnitType = this._mergedReaders.readBitLong();
+    format.valueFormatString = this._mergedReaders.readVariableText();
+    format.rotation = this._mergedReaders.readBitDouble();
+    format.scale = this._mergedReaders.readBitDouble();
+    format.alignment = this._mergedReaders.readBitLong();
+    format.color = this._mergedReaders.readCmColor(this.R2004Pre);
+    template.TextStyleHandle = this.handleReference();
+    if (template instanceof CadCellStyleTemplate) {
+      template.textStyleHandle = template.TextStyleHandle;
+    }
+    format.textHeight = this._mergedReaders.readBitDouble();
   }
 
   private readTableContent(content: TableContent, template: CadTableEntityTemplate): void {
@@ -4324,7 +4429,109 @@ export class DwgObjectReader extends DwgSectionIO {
   }
 
   private readTableCellData(template: CadTableCellTemplate): void {
-    // TODO: readTableCellData for pre-R2010 tables
+    const cell = template.Cell;
+
+    cell.type = this._mergedReaders.readBitShort() as CellType;
+    cell.edgeFlags = this._mergedReaders.readByte();
+    cell.mergedValue = this._mergedReaders.readBit() ? 1 : 0;
+    cell.autoFit = this._mergedReaders.readBit();
+    cell.borderWidth = this._mergedReaders.readBitLong();
+    cell.borderHeight = this._mergedReaders.readBitLong();
+    cell.rotation = this._mergedReaders.readBitDouble();
+
+    template.ValueHandle = this.handleReference();
+
+    switch (cell.type) {
+      case CellType.Text:
+        if (template.ValueHandle === 0 && this._version < ACadVersion.AC1021) {
+          const content = new CellContent();
+          content.cadValue.setValue(this._mergedReaders.readVariableText(), CadValueType.String);
+          cell.contents.push(content);
+        }
+        break;
+      case CellType.Block:
+        cell.blockScale = this._mergedReaders.readBitDouble();
+        if (this._mergedReaders.readBit()) {
+          const natts = this._mergedReaders.readBitShort();
+          for (let i = 0; i < natts; i++) {
+            const attHandle = this.handleReference();
+            this._mergedReaders.readBitShort();
+            const text = this._mergedReaders.readVariableText();
+            template.AttributeHandles.add([attHandle, text]);
+          }
+        }
+        break;
+    }
+
+    if (this._mergedReaders.readBit()) {
+      const flags = this._mergedReaders.readBitLong() as CellOverrideFlags;
+      cell.virtualEdgeFlag = this._mergedReaders.readByte();
+
+      if ((flags & CellOverrideFlags.CellAlignment) !== 0) {
+        cell.styleOverride.cellAlignment = this._mergedReaders.readBitShort() as CellAlignmentType;
+      }
+      if ((flags & CellOverrideFlags.BackgroundFillNone) !== 0) {
+        cell.styleOverride.isFillColorOn = this._mergedReaders.readBit();
+      }
+      if ((flags & CellOverrideFlags.BackgroundColor) !== 0) {
+        cell.styleOverride.backgroundColor = this._mergedReaders.readCmColor(this.R2004Pre);
+      }
+      if ((flags & CellOverrideFlags.ContentColor) !== 0) {
+        cell.styleOverride.contentColor = this._mergedReaders.readCmColor(this.R2004Pre);
+      }
+      if ((flags & CellOverrideFlags.TextStyle) !== 0) {
+        template.TextStyleOverrideHandle = this.handleReference();
+      }
+      if ((flags & CellOverrideFlags.TextHeight) !== 0) {
+        cell.styleOverride.textHeight = this._mergedReaders.readBitDouble();
+      }
+
+      if ((flags & CellOverrideFlags.TopGridColor) !== 0) {
+        cell.styleOverride.topBorder.color = this._mergedReaders.readCmColor(this.R2004Pre);
+      }
+      if ((flags & CellOverrideFlags.TopGridLineWeight) !== 0) {
+        cell.styleOverride.topBorder.lineWeight = this._mergedReaders.readBitShort() as LineWeightType;
+      }
+      if ((flags & CellOverrideFlags.TopVisibility) !== 0) {
+        cell.styleOverride.topBorder.isInvisible = !this._mergedReaders.readBitShortAsBool();
+      }
+
+      if ((flags & CellOverrideFlags.RightGridColor) !== 0) {
+        cell.styleOverride.rightBorder.color = this._mergedReaders.readCmColor(this.R2004Pre);
+      }
+      if ((flags & CellOverrideFlags.RightGridLineWeight) !== 0) {
+        cell.styleOverride.rightBorder.lineWeight = this._mergedReaders.readBitShort() as LineWeightType;
+      }
+      if ((flags & CellOverrideFlags.RightVisibility) !== 0) {
+        cell.styleOverride.rightBorder.isInvisible = !this._mergedReaders.readBitShortAsBool();
+      }
+
+      if ((flags & CellOverrideFlags.BottomGridColor) !== 0) {
+        cell.styleOverride.bottomBorder.color = this._mergedReaders.readCmColor(this.R2004Pre);
+      }
+      if ((flags & CellOverrideFlags.BottomGridLineWeight) !== 0) {
+        cell.styleOverride.bottomBorder.lineWeight = this._mergedReaders.readBitShort() as LineWeightType;
+      }
+      if ((flags & CellOverrideFlags.BottomVisibility) !== 0) {
+        cell.styleOverride.bottomBorder.isInvisible = !this._mergedReaders.readBitShortAsBool();
+      }
+
+      if ((flags & CellOverrideFlags.LeftGridColor) !== 0) {
+        cell.styleOverride.leftBorder.color = this._mergedReaders.readCmColor(this.R2004Pre);
+      }
+      if ((flags & CellOverrideFlags.LeftGridLineWeight) !== 0) {
+        cell.styleOverride.leftBorder.lineWeight = this._mergedReaders.readBitShort() as LineWeightType;
+      }
+      if ((flags & CellOverrideFlags.LeftVisibility) !== 0) {
+        cell.styleOverride.leftBorder.isInvisible = !this._mergedReaders.readBitShortAsBool();
+      }
+    }
+
+    if (this.R2007Plus) {
+      this._mergedReaders.readBitLong();
+      cell.contents.push(new CellContent());
+      this.readCadValue(cell.content!.cadValue);
+    }
   }
 
   private readCadValue(value: CadValue): CadValueTemplate {

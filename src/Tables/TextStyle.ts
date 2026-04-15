@@ -1,17 +1,11 @@
 import { DxfFileToken } from '../DxfFileToken.js';
 import { DxfSubclassMarker } from '../DxfSubclassMarker.js';
+import { TextMirrorFlag } from '../Entities/TextMirrorFlag.js';
 import { ObjectType } from '../Types/ObjectType.js';
 import { TableEntry } from './TableEntry.js';
 import { StyleFlags } from './StyleFlags.js';
 import { FontFlags } from './FontFlags.js';
 import { StandardFlags } from './StandardFlags.js';
-
-// TODO: TextMirrorFlag from Entities not yet converted
-export enum TextMirrorFlag {
-	None = 0,
-	FlipX = 2,
-	FlipY = 4,
-}
 
 export class TextStyle extends TableEntry {
 	public static readonly DefaultName: string = 'Standard';
@@ -65,3 +59,4 @@ export class TextStyle extends TableEntry {
 }
 
 export { StyleFlags } from './StyleFlags.js';
+export { TextMirrorFlag } from '../Entities/TextMirrorFlag.js';

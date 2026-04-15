@@ -1,6 +1,5 @@
 import { UnitsType } from '../Types/Units/UnitsType.js';
 
-// TODO: PlotPaperUnits from Objects not yet converted
 export enum PlotPaperUnits {
 	Inches = 0,
 	Millimeters = 1,

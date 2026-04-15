@@ -1,9 +1,8 @@
 import { DxfCode } from '../DxfCode.js';
 import { ExtendedDataReference } from './ExtendedDataReference.js';
-import { CadObject } from '../CadObject.js';
+import { Layer } from '../Tables/Layer.js';
 
-// TODO: Layer type from Tables not yet converted, using CadObject as placeholder
-export class ExtendedDataLayer extends ExtendedDataReference<CadObject /* Layer */> {
+export class ExtendedDataLayer extends ExtendedDataReference<Layer> {
 	public constructor(handle: number) {
 		super(DxfCode.ExtendedDataLayerName, handle);
 	}

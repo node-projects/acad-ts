@@ -8,6 +8,7 @@ import { DimensionStyle } from '../Tables/DimensionStyle.js';
 import { LeaderCreationType } from './LeaderCreationType.js';
 import { LeaderPathType } from './LeaderPathType.js';
 import { HookLineDirection } from './HookLineDirection.js';
+import { BoundingBox } from '../Math/BoundingBox.js';
 import { CollectionChangedEventArgs } from '../CollectionChangedEventArgs.js';
 import { XYZ } from '../Math/XYZ.js';
 
@@ -83,8 +84,7 @@ export class Leader extends Entity {
 	}
 
 	override getBoundingBox(): any {
-		// TODO: BoundingBox.FromPoints not available
-		return null;
+		return BoundingBox.FromPoints(this.vertices);
 	}
 
 	/** @internal */

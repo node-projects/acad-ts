@@ -13,6 +13,7 @@ import { Mesh } from '../../src/Entities/Mesh.js';
 import { PdfUnderlay } from '../../src/Entities/PdfUnderlay.js';
 import { RasterImage } from '../../src/Entities/RasterImage.js';
 import { Wipeout } from '../../src/Entities/Wipeout.js';
+import { TableEntity } from '../../src/Entities/TableEntity.js';
 import { TableStyle } from '../../src/Objects/TableStyle.js';
 import { Layout } from '../../src/Objects/Layout.js';
 
@@ -128,6 +129,22 @@ describe('Roundtrip Tests', () => {
 
       const modelLayout = doc2.getCadObject(34) as Layout;
       expect(modelLayout.lastActiveViewport).toBeNull();
+    });
+
+    it('reads AC1018 table cell contents before roundtrip', () => {
+      const sample = dwgFiles.find(f => f.fileName === 'sample_AC1018.dwg');
+      expect(sample).toBeDefined();
+
+      const data = readFileAsArrayBuffer(sample!.path);
+      const doc = new DwgReader(data).Read();
+      const tables = [...doc.entities].filter((entity): entity is TableEntity => entity instanceof TableEntity);
+      const contentCount = tables.reduce(
+        (sum, table) => sum + table.rows.reduce((rowSum, row) => rowSum + row.cells.reduce((cellSum, cell) => cellSum + cell.contents.length, 0), 0),
+        0,
+      );
+
+      expect(tables).toHaveLength(2);
+      expect(contentCount).toBeGreaterThan(0);
     });
 
     describe.each(dwgFiles.map(f => [f.fileName, f]))('%s', (_name, test) => {

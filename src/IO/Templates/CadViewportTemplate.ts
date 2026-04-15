@@ -29,6 +29,10 @@ export class CadViewportTemplate extends CadEntityTemplateT<Viewport> {
 	protected override build(builder: CadDocumentBuilder): void {
 		super.build(builder);
 
+		if (this.ViewportId != null) {
+			this.CadObject.id = this.ViewportId;
+		}
+
 		const entity = builder.TryGetCadObject<Entity>(this.BoundaryHandle);
 		if (entity) {
 			this.CadObject.boundary = entity;
