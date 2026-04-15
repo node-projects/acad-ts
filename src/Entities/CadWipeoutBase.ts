@@ -5,8 +5,11 @@ import { ClipMode } from './ClipMode.js';
 import { ClipType } from './ClipType.js';
 import { ImageDisplayFlags } from './ImageDisplayFlags.js';
 import { CollectionChangedEventArgs } from '../CollectionChangedEventArgs.js';
+import { BoundingBox } from '../Math/BoundingBox.js';
 import { XYZ } from '../Math/XYZ.js';
 import { XY } from '../Math/XY.js';
+import type { ImageDefinition } from '../Objects/ImageDefinition.js';
+import type { ImageDefinitionReactor } from '../Objects/ImageDefinitionReactor.js';
 
 export abstract class CadWipeoutBase extends Entity {
 	get brightness(): number {
@@ -39,12 +42,12 @@ export abstract class CadWipeoutBase extends Entity {
 		this._contrast = value;
 	}
 
-	get definition(): any /* ImageDefinition */ {
+	get definition(): ImageDefinition | null {
 		return this._definition;
 	}
-	set definition(value: any /* ImageDefinition */) {
+	set definition(value: ImageDefinition | null) {
 		if (this.document != null) {
-			this._definition = CadObject.updateCollection(value, (this.document as any).imageDefinitions);
+			this._definition = CadObject.updateCollection(value, this.document.imageDefinitions);
 		} else {
 			this._definition = value;
 		}
@@ -87,11 +90,11 @@ export abstract class CadWipeoutBase extends Entity {
 	vVector: XYZ = new XYZ(0, 1, 0);
 
 	/** @internal */
-	definitionReactor: any /* ImageDefinitionReactor */ = null;
+	definitionReactor: ImageDefinitionReactor | null = null;
 
 	private _brightness: number = 50;
 	private _contrast: number = 50;
-	private _definition: any /* ImageDefinition */ = null;
+	private _definition: ImageDefinition | null = null;
 	private _fade: number = 0;
 	private _flags: ImageDisplayFlags = ImageDisplayFlags.None;
 
@@ -101,11 +104,11 @@ export abstract class CadWipeoutBase extends Entity {
 
 	override clone(): CadObject {
 		const clone = super.clone() as CadWipeoutBase;
-		clone._definition = this._definition?.clone?.() ?? null;
+		clone._definition = this._definition?.clone() as ImageDefinition | null ?? null;
 		return clone;
 	}
 
-	override getBoundingBox(): any {
+	override getBoundingBox(): BoundingBox | null {
 		if (this.clipBoundaryVertices.length === 0) {
 			return null;
 		}
@@ -122,19 +125,19 @@ export abstract class CadWipeoutBase extends Entity {
 		const min: XYZ = new XYZ(minX + this.insertPoint.x, minY + this.insertPoint.y, this.insertPoint.z,);
 		const max: XYZ = new XYZ(maxX + this.insertPoint.x, maxY + this.insertPoint.y, this.insertPoint.z,);
 
-		return { min, max };
+		return new BoundingBox(min, max);
 	}
 
 	/** @internal */
 	assignDocument(doc: CadDocument): void {
 		super.assignDocument(doc);
-		this._definition = CadObject.updateCollection(this._definition, (doc as any).imageDefinitions);
+		this._definition = CadObject.updateCollection(this._definition, doc.imageDefinitions);
 	}
 
 	/** @internal */
 	unassignDocument(): void {
 		super.unassignDocument();
-		this._definition = this._definition?.clone?.() ?? null;
+		this._definition = this._definition?.clone() as ImageDefinition | null ?? null;
 	}
 
 	private imageDefinitionsOnRemove(sender: any, e: CollectionChangedEventArgs): void {

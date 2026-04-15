@@ -1,18 +1,22 @@
 import { Entity } from './Entity.js';
 import { CadObject } from '../CadObject.js';
 import { CadDocument } from '../CadDocument.js';
+import { Color } from '../Color.js';
 import { DxfFileToken } from '../DxfFileToken.js';
 import { DxfSubclassMarker } from '../DxfSubclassMarker.js';
 import { ObjectType } from '../Types/ObjectType.js';
 import { ViewportStatusFlags } from './ViewportStatusFlags.js';
 import { LightingType } from './LightingType.js';
+import { BoundingBox } from '../Math/BoundingBox.js';
 import { Layer } from '../Tables/Layer.js';
 import { CollectionChangedEventArgs } from '../CollectionChangedEventArgs.js';
+import type { Scale } from '../Objects/Scale.js';
+import type { VisualStyle } from '../Objects/VisualStyle.js';
 import { XYZ } from '../Math/XYZ.js';
 import { XY } from '../Math/XY.js';
 
 export class Viewport extends Entity {
-	ambientLightColor: any = null;
+	ambientLightColor: Color | null = null;
 
 	backClipPlane: number = 0;
 
@@ -84,7 +88,7 @@ export class Viewport extends Entity {
 		return this.id === Viewport.PaperViewId;
 	}
 
-	scale: any = null;
+	scale: Scale | null = null;
 
 	get scaleFactor(): number {
 		if (this.height === 0) return 1;
@@ -134,7 +138,7 @@ export class Viewport extends Entity {
 		return this.viewHeight / this.height * this.width;
 	}
 
-	visualStyle: any = null;
+	visualStyle: VisualStyle | null = null;
 
 	width: number = 0;
 
@@ -153,24 +157,24 @@ export class Viewport extends Entity {
 	override clone(): CadObject {
 		const clone = super.clone() as Viewport;
 		clone.boundary = this.boundary?.clone() as Entity ?? null;
-		clone.visualStyle = this.visualStyle?.clone?.() ?? null;
-		clone.scale = this.scale?.clone?.() ?? null;
+		clone.visualStyle = this.visualStyle?.clone() as VisualStyle | null ?? null;
+		clone.scale = this.scale?.clone() as Scale | null ?? null;
 		clone.frozenLayers = this.frozenLayers.map(l => l.clone() as Layer);
 		return clone;
 	}
 
-	override getBoundingBox(): any {
-		return {
-			min: new XYZ(this.center.x - this.width / 2, this.center.y - this.height / 2, this.center.z,),
-			max: new XYZ(this.center.x + this.width / 2, this.center.y + this.height / 2, this.center.z,),
-		};
+	override getBoundingBox(): BoundingBox {
+		return new BoundingBox(
+			new XYZ(this.center.x - this.width / 2, this.center.y - this.height / 2, this.center.z,),
+			new XYZ(this.center.x + this.width / 2, this.center.y + this.height / 2, this.center.z,),
+		);
 	}
 
-	getModelBoundingBox(): any {
-		return {
-			min: new XYZ(this.viewCenter.x - this.viewWidth / 2, this.viewCenter.y - this.viewHeight / 2, 0,),
-			max: new XYZ(this.viewCenter.x + this.viewWidth / 2, this.viewCenter.y + this.viewHeight / 2, 0,),
-		};
+	getModelBoundingBox(): BoundingBox {
+		return new BoundingBox(
+			new XYZ(this.viewCenter.x - this.viewWidth / 2, this.viewCenter.y - this.viewHeight / 2, 0,),
+			new XYZ(this.viewCenter.x + this.viewWidth / 2, this.viewCenter.y + this.viewHeight / 2, 0,),
+		);
 	}
 
 	selectEntities(includePartial: boolean = true): Entity[] {
@@ -189,7 +193,7 @@ export class Viewport extends Entity {
 	/** @internal */
 	unassignDocument(): void {
 		super.unassignDocument();
-		this.scale = this.scale?.clone?.() ?? null;
+		this.scale = this.scale?.clone() as Scale | null ?? null;
 	}
 
 	private _id: number = 0;

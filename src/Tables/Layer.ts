@@ -4,7 +4,9 @@ import { ObjectType } from '../Types/ObjectType.js';
 import { Color } from '../Color.js';
 import { LineWeightType } from '../Types/LineWeightType.js';
 import { CadObject } from '../CadObject.js';
+import type { CadDocument } from '../CadDocument.js';
 import { CollectionChangedEventArgs } from '../CollectionChangedEventArgs.js';
+import type { Material } from '../Objects/Material.js';
 import { TableEntry } from './TableEntry.js';
 import { LayerFlags } from './LayerFlags.js';
 import { LineType } from './LineType.js';
@@ -40,11 +42,11 @@ export class Layer extends TableEntry {
 
 	public isOn: boolean = true;
 
-	public lineType: any /* LineType */ = null;
+	public lineType: LineType | null = null;
 
 	public lineWeight: LineWeightType = LineWeightType.Default;
 
-	public material: any /* Material */ = null;
+	public material: Material | null = null;
 
 	public override get objectName(): string {
 		return DxfFileToken.TableLayer;
@@ -82,21 +84,23 @@ export class Layer extends TableEntry {
 
 	public override clone(): CadObject {
 		const clone = super.clone() as Layer;
-		// TODO: clone.lineType = this.lineType?.clone();
-		// TODO: clone.material = this.material?.clone();
+		clone.lineType = this.lineType?.clone() as LineType | null ?? null;
+		clone.material = this.material?.clone() as Material | null ?? null;
 		return clone;
 	}
 
 	/** @internal */
-	assignDocument(doc: any): void {
+	assignDocument(doc: CadDocument): void {
 		super.assignDocument(doc);
 		this.lineType = CadObject.updateCollection(this.lineType ?? LineType.Continuous, doc.lineTypes);
+		this.material = CadObject.updateCollection(this.material, doc.materials);
 	}
 
 	/** @internal */
 	unassignDocument(): void {
 		super.unassignDocument();
-		this.lineType = this.lineType?.clone?.() ?? LineType.Continuous;
+		this.lineType = this.lineType?.clone() as LineType | null ?? LineType.Continuous;
+		this.material = this.material?.clone() as Material | null ?? null;
 	}
 }
 

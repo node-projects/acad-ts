@@ -1,11 +1,16 @@
 import { Entity } from './Entity.js';
+import { IPolyline, IVertex } from './IPolyline.js';
 import { SeqendCollection } from './SeqendCollection.js';
 import { CadObject } from '../CadObject.js';
 import { DxfFileToken } from '../DxfFileToken.js';
 import { DxfSubclassMarker } from '../DxfSubclassMarker.js';
 import { PolylineFlags } from './PolylineFlags.js';
 import { SmoothSurfaceType } from './SmoothSurfaceType.js';
+import { Layer } from '../Tables/Layer.js';
+import { LineType } from '../Tables/LineType.js';
+import { BoundingBox } from '../Math/BoundingBox.js';
 import { XYZ } from '../Math/XYZ.js';
+import { PolylineExtensions } from '../Extensions/PolylineExtensions.js';
 
 export abstract class Polyline extends Entity {
 	static matchVerticesEntityProperties: boolean = false;
@@ -29,8 +34,8 @@ export abstract class Polyline extends Entity {
 		}
 	}
 
-	override get layer(): any { return super.layer; }
-	override set layer(value: any) {
+	override get layer(): Layer { return super.layer; }
+	override set layer(value: Layer) {
 		super.layer = value;
 		if (Polyline.matchVerticesEntityProperties) {
 			for (const v of this.vertices) {
@@ -41,8 +46,8 @@ export abstract class Polyline extends Entity {
 		}
 	}
 
-	override get lineType(): any { return super.lineType; }
-	override set lineType(value: any) {
+	override get lineType(): LineType { return super.lineType; }
+	override set lineType(value: LineType) {
 		super.lineType = value;
 		if (Polyline.matchVerticesEntityProperties) {
 			for (const v of this.vertices) {
@@ -76,13 +81,32 @@ export abstract class Polyline extends Entity {
 		// TODO: Transform with world matrix
 	}
 
+	public getPoints(precision: number = 256): XYZ[] {
+		return PolylineExtensions.getPoints(this as unknown as IPolyline, precision);
+	}
+
+	override getBoundingBox(): BoundingBox | null {
+		const points = this.getPoints();
+		return points.length > 0 ? BoundingBox.FromPoints(points) : null;
+	}
+
 	override clone(): CadObject {
 		const clone = super.clone() as Polyline;
 		clone.vertices = new SeqendCollection<Entity>(...this.vertices.map(v => v.clone() as Entity));
 		return clone;
 	}
 
-	static *explode(vertices: any[], isClosed: boolean): IterableIterator<Entity> {
-		// TODO: Explode vertices to lines/arcs
+	static *explode(vertices: IVertex[], isClosed: boolean): IterableIterator<Entity> {
+		const polyline: IPolyline = {
+			elevation: 0,
+			isClosed,
+			normal: XYZ.AxisZ,
+			thickness: 0,
+			vertices,
+		} as unknown as IPolyline;
+
+		for (const entity of PolylineExtensions.explode(polyline)) {
+			yield entity;
+		}
 	}
 }

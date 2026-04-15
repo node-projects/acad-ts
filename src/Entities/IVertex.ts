@@ -1,4 +1,6 @@
+import type { IVector } from '../Math/IVector.js';
+
 export interface IVertex {
-	location: any; // IVector
+	location: IVector;
 	bulge: number;
 }

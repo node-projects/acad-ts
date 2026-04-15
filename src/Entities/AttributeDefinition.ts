@@ -1,4 +1,5 @@
 import { AttributeBase } from './AttributeBase.js';
+import type { AttributeEntity } from './AttributeEntity.js';
 import { DxfFileToken } from '../DxfFileToken.js';
 import { DxfSubclassMarker } from '../DxfSubclassMarker.js';
 import { ObjectType } from '../Types/ObjectType.js';
@@ -18,7 +19,7 @@ export class AttributeDefinition extends AttributeBase {
 
 	prompt: string = '';
 
-	constructor(entity?: any /* AttributeEntity */) {
+	constructor(entity?: AttributeEntity) {
 		super();
 		if (entity) {
 			this.matchAttributeProperties(entity);

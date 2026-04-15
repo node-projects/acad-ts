@@ -4,6 +4,7 @@ import { DxfFileToken } from '../DxfFileToken.js';
 import { DxfSubclassMarker } from '../DxfSubclassMarker.js';
 import { ObjectType } from '../Types/ObjectType.js';
 import { OrthographicType } from '../Types/OrthographicType.js';
+import type { VisualStyle } from '../Objects/VisualStyle.js';
 import { RenderMode } from '../Types/RenderMode.js';
 import { DefaultLightingType } from './DefaultLightingType.js';
 import { GridFlags } from './GridFlags.js';
@@ -108,7 +109,7 @@ export class VPort extends TableEntry {
 
 	public minorGridLinesPerMajorGridLine: number = 5;
 
-	public visualStyle: any /* VisualStyle */ = null;
+	public visualStyle: VisualStyle | null = null;
 
 	public useDefaultLighting: boolean = true;
 

@@ -4,8 +4,10 @@ import { CadDocument } from '../CadDocument.js';
 import { DxfSubclassMarker } from '../DxfSubclassMarker.js';
 import { UnderlayDisplayFlags } from './UnderlayDisplayFlags.js';
 import { CollectionChangedEventArgs } from '../CollectionChangedEventArgs.js';
+import type { BoundingBox } from '../Math/BoundingBox.js';
 import { XYZ } from '../Math/XYZ.js';
 import { XY } from '../Math/XY.js';
+import type { UnderlayDefinition } from '../Objects/UnderlayDefinition.js';
 
 export abstract class UnderlayEntity extends Entity {
 	clipBoundaryVertices: XY[] = [];
@@ -20,7 +22,7 @@ export abstract class UnderlayEntity extends Entity {
 		this._contrast = value;
 	}
 
-	definition: any = null;
+	definition: UnderlayDefinition | null = null;
 
 	get fade(): number {
 		return this._fade;
@@ -80,7 +82,7 @@ export abstract class UnderlayEntity extends Entity {
 	private _yscale: number = 1;
 	private _zscale: number = 1;
 
-	constructor(definition?: any) {
+	constructor(definition?: UnderlayDefinition) {
 		super();
 		if (definition) {
 			this.definition = definition;
@@ -93,12 +95,12 @@ export abstract class UnderlayEntity extends Entity {
 
 	override clone(): CadObject {
 		const clone = super.clone() as UnderlayEntity;
-		clone.definition = this.definition?.clone?.() ?? null;
+		clone.definition = this.definition?.clone() as UnderlayDefinition | null ?? null;
 		clone.clipBoundaryVertices = [...this.clipBoundaryVertices];
 		return clone;
 	}
 
-	override getBoundingBox(): any {
+	override getBoundingBox(): BoundingBox | null {
 		return null;
 	}
 
@@ -110,6 +112,6 @@ export abstract class UnderlayEntity extends Entity {
 	/** @internal */
 	unassignDocument(): void {
 		super.unassignDocument();
-		this.definition = this.definition?.clone?.() ?? null;
+		this.definition = this.definition?.clone() as UnderlayDefinition | null ?? null;
 	}
 }

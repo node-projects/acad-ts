@@ -3,6 +3,7 @@ import { DxfFileToken } from '../DxfFileToken.js';
 import { DxfSubclassMarker } from '../DxfSubclassMarker.js';
 import { ObjectType } from '../Types/ObjectType.js';
 import { OrthographicType } from '../Types/OrthographicType.js';
+import type { VisualStyle } from '../Objects/VisualStyle.js';
 import { RenderMode } from '../Types/RenderMode.js';
 import { TableEntry } from './TableEntry.js';
 import { ViewModeType } from './ViewModeType.js';
@@ -48,7 +49,7 @@ export class View extends TableEntry {
 
 	public target: XYZ = new XYZ(0, 0, 0);
 
-	public visualStyle: any /* VisualStyle */ = null;
+	public visualStyle: VisualStyle | null = null;
 
 	public ucsOrigin: XYZ = new XYZ(0, 0, 0);
 
@@ -66,7 +67,7 @@ export class View extends TableEntry {
 
 	public override clone(): CadObject {
 		const clone = super.clone() as View;
-		clone.visualStyle = this.visualStyle?.clone?.() ?? null;
+		clone.visualStyle = this.visualStyle?.clone() as VisualStyle | null ?? null;
 		return clone;
 	}
 }

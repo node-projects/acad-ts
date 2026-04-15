@@ -5,6 +5,7 @@ import { ObjectType } from '../Types/ObjectType.js';
 import { PolylineFlags } from './PolylineFlags.js';
 import { Entity } from './Entity.js';
 import { SeqendCollection } from './SeqendCollection.js';
+import type { BoundingBox } from '../Math/BoundingBox.js';
 import { Vertex3D } from './Vertex3D.js';
 import { XYZ } from '../Math/XYZ.js';
 
@@ -39,5 +40,5 @@ export class Polyline3D extends Polyline {
 		}
 	}
 
-  getBoundingBox(): any { return null; }
+	override getBoundingBox(): BoundingBox | null { return super.getBoundingBox(); }
 }

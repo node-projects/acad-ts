@@ -7,10 +7,13 @@ import { ObjectType } from '../Types/ObjectType.js';
 import { AppId } from '../Tables/AppId.js';
 import { DimensionStyle } from '../Tables/DimensionStyle.js';
 import { BlockRecord } from '../Tables/BlockRecord.js';
+import { Layer } from '../Tables/Layer.js';
 import { DimensionType } from './DimensionType.js';
 import { AttachmentPointType } from './AttachmentPointType.js';
 import { LineSpacingStyleType } from './LineSpacingStyleType.js';
 import { CollectionChangedEventArgs } from '../CollectionChangedEventArgs.js';
+import { MText } from './MText.js';
+import { Point } from './Point.js';
 import { XYZ } from '../Math/XYZ.js';
 
 export abstract class Dimension extends Entity {
@@ -133,11 +136,17 @@ export abstract class Dimension extends Entity {
 	}
 
 	getMeasurementText(style?: DimensionStyle): string {
-		// TODO: Complex measurement text formatting not available
-		return this.measurement.toString();
+		const activeStyle = style ?? this.getActiveDimensionStyle();
+		const measurement = this.formatMeasurement(this.measurement, activeStyle);
+
+		if (this.text.length > 0) {
+			return this.text.includes('<>') ? this.text.replace(/<>/g, measurement) : this.text;
+		}
+
+		return `${activeStyle.prefix}${measurement}${activeStyle.suffix}`;
 	}
 
-	getStyleOverrideMap(): any {
+	getStyleOverrideMap(): Map<number, unknown> | null {
 		// TODO: DxfClassMap not available
 		return null;
 	}
@@ -146,7 +155,8 @@ export abstract class Dimension extends Entity {
 		// TODO: DxfClassMap not available
 	}
 
-	setStyleOverrideMap(map: any): void {
+	setStyleOverrideMap(map: Map<number, unknown> | null): void {
+		void map;
 		// TODO: ExtendedData not available
 	}
 
@@ -187,14 +197,29 @@ export abstract class Dimension extends Entity {
 		this._block.entities.clear();
 	}
 
-	protected createDefinitionPoint(location: XYZ): any {
-		// TODO: Point with Defpoints layer
-		return null;
+	protected createDefinitionPoint(location: XYZ): Point {
+		const point = new Point(new XYZ(location.x, location.y, location.z));
+		point.layer = this.document?.layers.get(Layer.DefpointsName) ?? Layer.Defpoints;
+		point.normal = this.normal;
+		return point;
 	}
 
-	protected createTextEntity(insertPoint: XYZ, text: string): any {
-		// TODO: MText creation
-		return null;
+	protected createTextEntity(insertPoint: XYZ, text: string): MText {
+		const style = this.getActiveDimensionStyle();
+		const entity = new MText();
+		entity.insertPoint = new XYZ(insertPoint.x, insertPoint.y, insertPoint.z);
+		entity.alignmentPoint = new XYZ(Math.cos(this.textRotation), Math.sin(this.textRotation), 0);
+		entity.attachmentPoint = this.attachmentPoint;
+		entity.color = style.textColor;
+		entity.height = style.textHeight;
+		entity.layer = this.layer;
+		entity.lineSpacing = this.lineSpacingFactor === 0 ? entity.lineSpacing : this.lineSpacingFactor;
+		entity.lineSpacingStyle = this.lineSpacingStyle;
+		entity.normal = this.normal;
+		entity.rotation = this.textRotation;
+		entity.style = style.style;
+		entity.value = text;
+		return entity;
 	}
 
 	protected static angleBetweenVectors(first: XYZ, second: XYZ): number {
@@ -252,6 +277,19 @@ export abstract class Dimension extends Entity {
 
 	private generateBlockName(): string {
 		return `*D${this.handle}`;
+	}
+
+	private formatMeasurement(value: number, style: DimensionStyle): string {
+		if (!Number.isFinite(value)) {
+			return '';
+		}
+
+		let measurement = value;
+		if (style.rounding > 0) {
+			measurement = Math.round(measurement / style.rounding) * style.rounding;
+		}
+
+		return measurement.toFixed(style.decimalPlaces);
 	}
 }
 

@@ -2,6 +2,7 @@ import { NonGraphicalObject } from './NonGraphicalObject.js';
 import { DxfFileToken } from '../DxfFileToken.js';
 import { DxfSubclassMarker } from '../DxfSubclassMarker.js';
 import { ObjectType } from '../Types/ObjectType.js';
+import type { RasterImage } from '../Entities/RasterImage.js';
 
 export class ImageDefinitionReactor extends NonGraphicalObject {
 	override get objectType(): ObjectType {
@@ -17,5 +18,5 @@ export class ImageDefinitionReactor extends NonGraphicalObject {
 	}
 
 	classVersion: number = 2;
-	image: any = null;
+	image: RasterImage | null = null;
 }

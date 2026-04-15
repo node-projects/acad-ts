@@ -5,8 +5,10 @@ import { DxfSubclassMarker } from '../DxfSubclassMarker.js';
 import { ObjectType } from '../Types/ObjectType.js';
 import { LwPolylineFlags } from './LwPolylineFlags.js';
 import { VertexFlags } from './VertexFlags.js';
+import { BoundingBox } from '../Math/BoundingBox.js';
 import { XYZ } from '../Math/XYZ.js';
 import { XY } from '../Math/XY.js';
+import { PolylineExtensions } from '../Extensions/PolylineExtensions.js';
 
 export class LwPolylineVertex {
 	location: XY = new XY(0, 0);
@@ -82,6 +84,10 @@ export class LwPolyline extends Entity {
 		// TODO: Transform with world matrix
 	}
 
+	public getPoints(precision: number = 256): XYZ[] {
+		return PolylineExtensions.getPoints(this, precision);
+	}
+
 	override clone(): CadObject {
 		const clone = super.clone() as LwPolyline;
 		clone.vertices = this.vertices.map(v => {
@@ -98,8 +104,9 @@ export class LwPolyline extends Entity {
 		return clone;
 	}
 
-	override getBoundingBox(): any {
-		return null;
+	override getBoundingBox(): BoundingBox | null {
+		const points = this.getPoints();
+		return points.length > 0 ? BoundingBox.FromPoints(points) : null;
 	}
 }
 

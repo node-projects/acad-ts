@@ -2,6 +2,7 @@ import { DxfFileToken } from '../DxfFileToken.js';
 import { DxfSubclassMarker } from '../DxfSubclassMarker.js';
 import { ObjectType } from '../Types/ObjectType.js';
 import { CadObject } from '../CadObject.js';
+import type { TextStyle } from './TextStyle.js';
 import { TableEntry } from './TableEntry.js';
 import { LineTypeShapeFlags } from './LinetypeShapeFlags.js';
 
@@ -13,7 +14,7 @@ export class LineTypeSegment {
 	public rotation: number = 0;
 	public scale: number = 0;
 	public text: string = '';
-	public style: any /* TextStyle */ = null;
+	public style: TextStyle | null = null;
 	public owner: LineType | null = null;
 
 	public get isShape(): boolean {
@@ -100,7 +101,7 @@ export class LineType extends TableEntry {
 
 	public override clone(): CadObject {
 		const clone = super.clone() as LineType;
-		(clone as any)._segments = [];
+		clone._segments = [];
 		for (const segment of this._segments) {
 			clone.addSegment(segment.clone());
 		}

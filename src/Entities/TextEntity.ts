@@ -10,6 +10,7 @@ import { TextVerticalAlignmentType } from './TextVerticalAlignmentType.js';
 import { TextMirrorFlag } from './TextMirrorFlag.js';
 import { CollectionChangedEventArgs } from '../CollectionChangedEventArgs.js';
 import { IText } from './IText.js';
+import type { BoundingBox } from '../Math/BoundingBox.js';
 import { XYZ } from '../Math/XYZ.js';
 import { Transform } from '../Math/Transform.js';
 
@@ -117,7 +118,7 @@ export class TextEntity extends Entity implements IText {
 		return clone;
 	}
 
-	override getBoundingBox(): any {
+	override getBoundingBox(): BoundingBox | null {
 		return null;
 	}
 

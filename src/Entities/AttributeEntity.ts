@@ -1,4 +1,5 @@
 import { AttributeBase } from './AttributeBase.js';
+import type { AttributeDefinition } from './AttributeDefinition.js';
 import { DxfFileToken } from '../DxfFileToken.js';
 import { DxfSubclassMarker } from '../DxfSubclassMarker.js';
 import { ObjectType } from '../Types/ObjectType.js';
@@ -16,7 +17,7 @@ export class AttributeEntity extends AttributeBase {
 		return DxfSubclassMarker.Attribute;
 	}
 
-	constructor(definition?: any /* AttributeDefinition */) {
+	constructor(definition?: AttributeDefinition) {
 		super();
 		if (definition) {
 			this.matchAttributeProperties(definition);

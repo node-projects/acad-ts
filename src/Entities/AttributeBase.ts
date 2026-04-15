@@ -1,8 +1,10 @@
 import { TextEntity } from './TextEntity.js';
+import type { MText } from './MText.js';
 import { AttributeType } from './AttributeType.js';
 import { AttributeFlags } from './AttributeFlags.js';
 import { TextVerticalAlignmentType } from './TextVerticalAlignmentType.js';
 import { IEntity } from './IEntity.js';
+import { TextStyle } from '../Tables/TextStyle.js';
 
 export abstract class AttributeBase extends TextEntity {
 	attributeType: AttributeType = AttributeType.SingleLine;
@@ -11,7 +13,7 @@ export abstract class AttributeBase extends TextEntity {
 
 	isReallyLocked: boolean = false;
 
-	mText: any /* MText */ = null;
+	mText: MText | null = null;
 
 	get tag(): string {
 		return this._tag;
@@ -41,8 +43,8 @@ export abstract class AttributeBase extends TextEntity {
 		this.widthFactor = src.widthFactor;
 		this.obliqueAngle = src.obliqueAngle;
 
-		if ((this.style as any).document !== (src.style as any).document) {
-			this.style = src.style.clone() as any;
+		if (this.style.document !== src.style.document) {
+			this.style = src.style.clone() as TextStyle;
 		} else {
 			this.style = src.style;
 		}
