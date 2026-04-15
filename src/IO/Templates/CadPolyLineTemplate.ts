@@ -13,6 +13,7 @@ import { VertexFaceMesh } from '../../Entities/VertexFaceMesh.js';
 import { VertexFaceRecord } from '../../Entities/VertexFaceRecord.js';
 import { ObjectType } from '../../Types/ObjectType.js';
 import { Polyline } from '../../Entities/Polyline.js';
+import { BoundingBox } from '../../Math/BoundingBox.js';
 import { CadDocumentBuilder } from '../CadDocumentBuilder.js';
 import { NotificationType } from '../NotificationEventHandler.js';
 import { CadEntityTemplate } from './CadEntityTemplate.js';
@@ -144,5 +145,5 @@ export class CadPolyLineTemplate extends CadEntityTemplate implements ICadOwnerT
 class PolyLinePlaceholder extends Polyline {
 	override get objectType(): ObjectType { return ObjectType.INVALID; }
 	override get subclassMarker(): string { return 'PolyLinePlaceholder'; }
-	getBoundingBox(): any { return null; }
+	override getBoundingBox(): BoundingBox | null { return null; }
 }

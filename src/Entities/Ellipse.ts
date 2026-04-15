@@ -83,7 +83,7 @@ export class Ellipse extends Entity {
 
 	private _radiusRatio: number = 1.0;
 
-	override applyTransform(transform: any): void {
+	override applyTransform(transform: unknown): void {
 		if (!(transform instanceof Transform)) {
 			return;
 		}

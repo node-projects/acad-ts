@@ -46,7 +46,7 @@ export class DimensionDiameter extends Dimension {
 		super(DimensionType.Diameter);
 	}
 
-	override applyTransform(transform: any): void {
+	override applyTransform(transform: unknown): void {
 		super.applyTransform(transform);
 		this.angleVertex = this.applyTransformToPoint(transform, this.angleVertex);
 	}

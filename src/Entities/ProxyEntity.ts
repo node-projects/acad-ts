@@ -37,7 +37,7 @@ export class ProxyEntity extends Entity {
 
 	version: ACadVersion = ACadVersion.Unknown;
 
-	override applyTransform(transform: any): void {
+	override applyTransform(transform: unknown): void {
 		// No-op
 	}
 

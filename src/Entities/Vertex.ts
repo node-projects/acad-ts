@@ -39,7 +39,7 @@ export abstract class Vertex extends Entity implements IVertex {
 		}
 	}
 
-	override applyTransform(transform: any): void {
+	override applyTransform(transform: unknown): void {
 		this.location = this.applyTransformToPoint(transform, this.location);
 	}
 

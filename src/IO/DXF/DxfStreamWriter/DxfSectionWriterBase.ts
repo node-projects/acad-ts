@@ -225,8 +225,8 @@ export abstract class DxfSectionWriterBase {
           this._writer.WriteVector(record.code, record.value as IVector);
         } else if (record instanceof ExtendedDataWorldCoordinate) {
           this._writer.WriteVector(record.code, record.value as IVector);
-        } else if (typeof (record as any).resolveReference === 'function') {
-          const handle = record as unknown as IExtendedDataHandleReference;
+        } else if (typeof (record as Partial<IExtendedDataHandleReference>).resolveReference === 'function') {
+          const handle = record as Partial<IExtendedDataHandleReference>;
           let h = handle.value;
           if (handle.resolveReference(this._document) === null) {
             h = 0;

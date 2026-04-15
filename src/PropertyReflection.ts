@@ -17,9 +17,9 @@ export class PropertyExpression<TClass, TAttribute> {
 		const prop = new PropertyExpression.Prop<TClass, TAttribute>();
 		prop.propertyName = propertyName;
 		prop.attribute = attribute;
-		prop.getter = (instance: TClass) => (instance as any)[propertyName];
-		prop.setter = (instance: TClass, value: any) => {
-			(instance as any)[propertyName] = value;
+		prop.getter = (instance: TClass) => (instance as unknown as Record<string, unknown>)[propertyName];
+		prop.setter = (instance: TClass, value: unknown) => {
+			(instance as unknown as Record<string, unknown>)[propertyName] = value;
 		};
 		this.cache.set(this._keySelector(propertyName, attribute), prop);
 	}
@@ -49,8 +49,8 @@ export class PropertyExpression<TClass, TAttribute> {
 
 export namespace PropertyExpression {
 	export class Prop<TClass, TAttribute> {
-		public getter: ((instance: TClass) => any) | null = null;
-		public setter: ((instance: TClass, value: any) => void) | null = null;
+		public getter: ((instance: TClass) => unknown) | null = null;
+		public setter: ((instance: TClass, value: unknown) => void) | null = null;
 		public attribute: TAttribute | null = null;
 		public propertyName: string = "";
 	}

@@ -4,6 +4,7 @@ import { DimensionLinear } from '../../Entities/DimensionLinear.js';
 import { DimensionStyle } from '../../Tables/DimensionStyle.js';
 import { BlockRecord } from '../../Tables/BlockRecord.js';
 import { ObjectType } from '../../Types/ObjectType.js';
+import { BoundingBox } from '../../Math/BoundingBox.js';
 import { CadDocumentBuilder } from '../CadDocumentBuilder.js';
 import { CadEntityTemplate } from './CadEntityTemplate.js';
 
@@ -88,7 +89,7 @@ export class DimensionPlaceholder extends Dimension {
 
 	override get measurement(): number { return 0; }
 
-	getBoundingBox(): any { return null; }
+	getBoundingBox(): BoundingBox | null { return null; }
 
 	constructor() {
 		super(DimensionType.Linear);

@@ -36,6 +36,7 @@ import { XYZ } from '../Math/XYZ.js';
 import { XY } from '../Math/XY.js';
 import { CadSystemVariable } from '../CadSystemVariable.js';
 import { getSystemVariableMetadataMap } from '../Metadata/MetadataStore.js';
+import type { CadDocument } from '../CadDocument.js';
 
 export enum VerticalAlignmentType {
 	Top = 0,
@@ -401,11 +402,11 @@ export class CadHeader {
 	public displayLineWeight: boolean = false;
 	public displaySilhouetteCurves: boolean = false;
 
-	public document: any /* CadDocument */ = null;
-	public get Document(): any {
+	public document: CadDocument | null = null;
+	public get Document(): CadDocument | null {
 		return this.document;
 	}
-	public set Document(value: any) {
+	public set Document(value: CadDocument | null) {
 		this.document = value;
 	}
 
@@ -665,7 +666,7 @@ export class CadHeader {
 	private _version: ACadVersion = ACadVersion.AC1032;
 	private _shadeEdge: number = 0;
 
-	public constructor(versionOrDocument?: ACadVersion | any) {
+	public constructor(versionOrDocument?: ACadVersion | CadDocument) {
 		if (typeof versionOrDocument === 'number') {
 			this.version = versionOrDocument;
 		} else if (versionOrDocument && typeof versionOrDocument === 'object') {
@@ -706,12 +707,12 @@ export class CadHeader {
 	shadowPlaneLocation: number = 0;
 	dimensionMzf: number = 0;
 
-	public GetValue(systemvar: string): any {
+	public GetValue(systemvar: string): unknown {
 		return CadHeader.GetHeaderMap().get(systemvar)?.getValue(this);
 	}
 
-	public GetValues(systemvar: string): Map<number, any> {
-		const values = new Map<number, any>();
+	public GetValues(systemvar: string): Map<number, unknown> {
+		const values = new Map<number, unknown>();
 		const metadata = CadHeader.GetHeaderMap().get(systemvar);
 		if (!metadata) {
 			return values;
@@ -738,7 +739,7 @@ export class CadHeader {
 		return new Map(CadHeader._headerMapCache);
 	}
 
-	SetValue(variable: any, parameters: any[]): void {
+	SetValue(variable: string | number, parameters: unknown[] | unknown): void {
 		const property = CadHeader.GetHeaderMap().get(String(variable));
 		if (!property) {
 			return;

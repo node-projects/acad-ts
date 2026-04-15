@@ -90,7 +90,7 @@ export abstract class UnderlayEntity extends Entity {
 		}
 	}
 
-	override applyTransform(transform: any): void {
+	override applyTransform(transform: unknown): void {
 		this.insertPoint = this.applyTransformToPoint(transform, this.insertPoint);
 		this.normal = this.transformNormal(transform, this.normal);
 

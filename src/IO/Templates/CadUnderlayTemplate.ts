@@ -4,7 +4,7 @@ import { NotificationType } from '../NotificationEventHandler.js';
 import { CadDocumentBuilder } from '../CadDocumentBuilder.js';
 import { CadEntityTemplate } from './CadEntityTemplate.js';
 
-export class CadUnderlayTemplate<T extends UnderlayDefinition = any> extends CadEntityTemplate {
+export class CadUnderlayTemplate<T extends UnderlayDefinition = UnderlayDefinition> extends CadEntityTemplate {
 	DefinitionHandle: number | null = null;
 
 	constructor(entity: UnderlayEntity) {

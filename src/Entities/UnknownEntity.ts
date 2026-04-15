@@ -35,7 +35,7 @@ export class UnknownEntity extends Entity {
 		}
 	}
 
-	override applyTransform(transform: any): void {
+	override applyTransform(transform: unknown): void {
 		// No-op
 	}
 

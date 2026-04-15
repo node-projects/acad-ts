@@ -24,7 +24,7 @@ export class Seqend extends Entity {
 		return null;
 	}
 
-	override applyTransform(transform: any): void {
+	override applyTransform(transform: unknown): void {
 		// No-op
 	}
 }

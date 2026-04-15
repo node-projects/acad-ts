@@ -50,7 +50,7 @@ export class DxfBinaryWriter extends DxfStreamWriterBase {
     this._position += 2;
   }
 
-  protected override writeValue(code: number, value: any): void {
+  protected override writeValue(code: number, value: unknown): void {
     const type = GroupCodeValue.transformValue(code);
 
     switch (type) {

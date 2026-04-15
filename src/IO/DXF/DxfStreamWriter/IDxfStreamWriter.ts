@@ -12,7 +12,7 @@ export interface IDxfStreamWriter {
 
   Flush(): void;
 
-  Write(code: DxfCode | number, value: any, map?: DxfClassMap | null): void;
+  Write(code: DxfCode | number, value: unknown, map?: DxfClassMap | null): void;
 
   WriteVector(code: DxfCode | number, value: IVector, map?: DxfClassMap | null): void;
 

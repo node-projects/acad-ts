@@ -5,7 +5,7 @@ export abstract class DxfMapBase {
 	public name: string = "";
 	public dxfProperties: Map<number, DxfProperty> = new Map();
 
-	protected static addClassProperties(map: DxfMapBase, type: Function | string, obj?: any): void {
+	protected static addClassProperties(map: DxfMapBase, type: Function | string, obj?: object): void {
 		for (const [code, property] of DxfMapBase.cadObjectMapDxf(type)) {
 			map.dxfProperties.set(code, property);
 			if (obj != null) {

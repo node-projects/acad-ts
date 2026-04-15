@@ -119,7 +119,7 @@ export class MultiLeader extends Entity {
 
 	textAligninIPE: boolean = false;
 
-	override applyTransform(transform: any): void {
+	override applyTransform(transform: unknown): void {
 		// No-op
 	}
 

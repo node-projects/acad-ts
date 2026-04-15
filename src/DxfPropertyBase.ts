@@ -17,6 +17,8 @@ function toNumber(value: unknown): number {
 	return typeof value === 'number' ? value : Number(value);
 }
 
+type PropertyBag = Record<string, unknown>;
+
 export abstract class DxfPropertyBase {
 	public get assignedCode(): number {
 		if (this._assignedCode !== null) return this._assignedCode;
@@ -27,10 +29,10 @@ export abstract class DxfPropertyBase {
 	public dxfCodes: number[] = [];
 	public referenceType: number = 0; // DxfReferenceType
 
-	public get storedValue(): any {
+	public get storedValue(): unknown {
 		return this._storedValue;
 	}
-	public set storedValue(value: any) {
+	public set storedValue(value: unknown) {
 		this._storedValue = this.normalizeStoredValue(value);
 	}
 
@@ -40,7 +42,7 @@ export abstract class DxfPropertyBase {
 	}
 
 	protected _assignedCode: number | null = null;
-	protected _storedValue: any = null;
+	protected _storedValue: unknown = null;
 	protected _propertyName: string = "";
 	protected _collectionCodes: number[] | null = null;
 	protected _valueKind: PropertyMetadata['valueKind'];
@@ -62,7 +64,7 @@ export abstract class DxfPropertyBase {
 		}
 	}
 
-	public setValue(code: number, obj: any, value: any): void {
+	public setValue(code: number, obj: object | null | undefined, value: unknown): void {
 		if (!obj || !this._propertyName) {
 			return;
 		}
@@ -148,7 +150,7 @@ export abstract class DxfPropertyBase {
 		this.setPropertyValue(obj, value);
 	}
 
-	public applyValues(obj: any, values: any[]): void {
+	public applyValues(obj: object | null | undefined, values: unknown[]): void {
 		if (!obj || !this._propertyName || values.length === 0) {
 			return;
 		}
@@ -170,19 +172,19 @@ export abstract class DxfPropertyBase {
 		this.setValue(assignedCode, obj, values[0]);
 	}
 
-	public getRawValue(obj: any): any {
+	public getRawValue(obj: object): unknown {
 		return this.getRawValueByCode(this.assignedCode, obj);
 	}
 
-	protected getPropertyValue(obj: any): any {
-		return obj?.[this._propertyName];
+	protected getPropertyValue(obj: object | null | undefined): unknown {
+		return (obj as PropertyBag | null | undefined)?.[this._propertyName];
 	}
 
-	protected setPropertyValue(obj: any, value: any): void {
-		obj[this._propertyName] = value;
+	protected setPropertyValue(obj: object, value: unknown): void {
+		(obj as PropertyBag)[this._propertyName] = value;
 	}
 
-	protected getRawValueByCode(code: number, obj: any): any {
+	protected getRawValueByCode(code: number, obj: object): unknown {
 		const value = this.getPropertyValue(obj);
 		if (value == null) {
 			return value;
@@ -202,7 +204,7 @@ export abstract class DxfPropertyBase {
 		}
 
 		if (this._valueKind === 'date' || value instanceof Date) {
-			return CadUtils.toJulianCalendar(value);
+			return CadUtils.toJulianCalendar(value instanceof Date ? value : new Date(toNumber(value)));
 		}
 
 		if (this._valueKind === 'timespan') {
@@ -243,14 +245,21 @@ export abstract class DxfPropertyBase {
 		return value;
 	}
 
-	protected getCounterValue(obj: any): number {
+	protected getCounterValue(obj: object): number {
 		const collection = this.getPropertyValue(obj);
 		if (collection == null) {
 			return 0;
 		}
 
-		if (typeof collection.length === 'number') {
+		if (Array.isArray(collection) || typeof collection === 'string') {
 			return collection.length;
+		}
+
+		if (typeof collection === 'object' && collection !== null && 'length' in collection) {
+			const length = (collection as { length?: unknown }).length;
+			if (typeof length === 'number') {
+				return length;
+			}
 		}
 
 		let count = 0;
@@ -260,23 +269,33 @@ export abstract class DxfPropertyBase {
 		return count;
 	}
 
-	protected getHandledValue(obj: any): number | null {
+	protected getHandledValue(obj: object): number | null {
 		const handled = this.getPropertyValue(obj);
-		if (handled == null) {
+		if (handled == null || typeof handled !== 'object') {
 			return null;
 		}
-		return handled.handle ?? handled.Handle ?? null;
+		const candidate = handled as { handle?: unknown; Handle?: unknown };
+		return typeof candidate.handle === 'number'
+			? candidate.handle
+			: typeof candidate.Handle === 'number'
+				? candidate.Handle
+				: null;
 	}
 
-	protected getNamedValue(obj: any): string | null {
+	protected getNamedValue(obj: object): string | null {
 		const named = this.getPropertyValue(obj);
-		if (named == null) {
+		if (named == null || typeof named !== 'object') {
 			return null;
 		}
-		return named.name ?? named.Name ?? null;
+		const candidate = named as { name?: unknown; Name?: unknown };
+		return typeof candidate.name === 'string'
+			? candidate.name
+			: typeof candidate.Name === 'string'
+				? candidate.Name
+				: null;
 	}
 
-	protected normalizeStoredValue(value: any): any {
+	protected normalizeStoredValue(value: unknown): unknown {
 		if (value == null) {
 			return value;
 		}
@@ -302,7 +321,19 @@ export abstract class DxfPropertyBase {
 				return Boolean(value);
 			case GroupCodeValueType.Chunk:
 			case GroupCodeValueType.ExtendedDataChunk:
-				return value instanceof Uint8Array ? value : new Uint8Array(value);
+				if (value instanceof Uint8Array) {
+					return value;
+				}
+				if (value instanceof ArrayBuffer) {
+					return new Uint8Array(value);
+				}
+				if (ArrayBuffer.isView(value)) {
+					return new Uint8Array(value.buffer, value.byteOffset, value.byteLength);
+				}
+				if (Array.isArray(value)) {
+					return new Uint8Array(value);
+				}
+				return new Uint8Array();
 			default:
 				return value;
 		}

@@ -146,7 +146,7 @@ export class Viewport extends Entity {
 
 	static readonly PaperViewId = 1;
 
-	override applyTransform(transform: any): void {
+	override applyTransform(transform: unknown): void {
 		if (this.boundary != null) {
 			this.boundary.applyTransform(transform);
 			const bounds = this.boundary.getBoundingBox();

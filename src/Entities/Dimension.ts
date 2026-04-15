@@ -121,13 +121,14 @@ export abstract class Dimension extends Entity {
 		this._flags |= DimensionType.BlockReference;
 	}
 
-	override applyTransform(transform: any): void {
+	override applyTransform(transform: unknown): void {
 		this.definitionPoint = this.applyTransformToPoint(transform, this.definitionPoint);
 		this.insertionPoint = this.applyTransformToPoint(transform, this.insertionPoint);
 		this.textMiddlePoint = this.applyTransformToPoint(transform, this.textMiddlePoint);
 		this.normal = this.applyTransformToVector(transform, this.normal).normalize();
-		if (typeof transform?.eulerRotation?.z === 'number') {
-			this.textRotation += transform.eulerRotation.z;
+		const rotation = (transform as { eulerRotation?: { z?: unknown } } | null)?.eulerRotation?.z;
+		if (typeof rotation === 'number') {
+			this.textRotation += rotation;
 		}
 	}
 

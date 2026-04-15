@@ -11,7 +11,7 @@ import { encodeCadString } from '../../TextEncoding.js';
 
 // Factory registration for breaking circular dependency
 type WriterFactory = new (stream: Uint8Array, encoding: string) => IDwgStreamWriter;
-type MergedWriterFactory = new (...args: any[]) => IDwgStreamWriter;
+type MergedWriterFactory = new (...args: unknown[]) => IDwgStreamWriter;
 const _writerFactories: Map<string, WriterFactory> = new Map();
 const _mergedWriterFactories: Map<string, MergedWriterFactory> = new Map();
 

@@ -17,7 +17,7 @@ export abstract class DxfStreamReaderBase implements IDxfStreamReader {
     return this.DxfCode as number;
   }
 
-  public Value: any = '';
+  public Value: unknown = '';
 
   public Position: number = 0;
 
@@ -134,7 +134,7 @@ export abstract class DxfStreamReaderBase implements IDxfStreamReader {
     return decodeCadString(bytes, this.encoding);
   }
 
-  private transformValue(code: GroupCodeValueType): any {
+  private transformValue(code: GroupCodeValueType): unknown {
     switch (code) {
       case GroupCodeValueType.String:
       case GroupCodeValueType.Comment:

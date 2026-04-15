@@ -76,7 +76,7 @@ export abstract class CadTemplate<T extends CadObject = CadObject> implements IC
 		}
 	}
 
-	protected *getEntitiesCollection<T extends Entity = any>(builder: CadDocumentBuilder, firstHandle: number, endHandle: number): IterableIterator<T> {
+	protected *getEntitiesCollection<T extends Entity = Entity>(builder: CadDocumentBuilder, firstHandle: number, endHandle: number): IterableIterator<T> {
 		const getEntityTemplate = (handle: number | null | undefined): CadEntityTemplate | null => {
 			const candidate = builder.TryGetObjectTemplate<ICadObjectTemplate>(handle);
 			if (candidate && candidate.CadObject instanceof Entity && 'NextEntity' in candidate) {
@@ -114,7 +114,7 @@ export abstract class CadTemplate<T extends CadObject = CadObject> implements IC
 		}
 	}
 
-	protected getTableReference<T extends TableEntry = any>(builder: CadDocumentBuilder, handle: number | null, name: string): T | null {
+	protected getTableReference<T extends TableEntry = TableEntry>(builder: CadDocumentBuilder, handle: number | null, name: string): T | null {
 		const byHandleCandidate = builder.TryGetCadObject<CadObject>(handle);
 		const byHandle = byHandleCandidate instanceof TableEntry ? byHandleCandidate as T : null;
 		if (byHandle) {

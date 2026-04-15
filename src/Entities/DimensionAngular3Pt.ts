@@ -44,7 +44,7 @@ export class DimensionAngular3Pt extends Dimension {
 		super(DimensionType.Angular3Point);
 	}
 
-	override applyTransform(transform: any): void {
+	override applyTransform(transform: unknown): void {
 		super.applyTransform(transform);
 		this.angleVertex = this.applyTransformToPoint(transform, this.angleVertex);
 		this.firstPoint = this.applyTransformToPoint(transform, this.firstPoint);

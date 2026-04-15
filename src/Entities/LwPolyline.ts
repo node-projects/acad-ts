@@ -80,7 +80,7 @@ export class LwPolyline extends Entity {
 		}
 	}
 
-	override applyTransform(transform: any): void {
+	override applyTransform(transform: unknown): void {
 		for (const vertex of this.vertices) {
 			const point = this.applyTransformToPoint(transform, new XYZ(vertex.location.x, vertex.location.y, this.elevation));
 			vertex.location = new XY(point.x, point.y);

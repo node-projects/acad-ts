@@ -2,6 +2,7 @@ import { NonGraphicalObject } from './NonGraphicalObject.js';
 import { DxfFileToken } from '../DxfFileToken.js';
 import { DxfSubclassMarker } from '../DxfSubclassMarker.js';
 import { ACadVersion } from '../ACadVersion.js';
+import { DxfClass } from '../Classes/DxfClass.js';
 
 export class ProxyObject extends NonGraphicalObject {
 	get classId(): number {
@@ -12,7 +13,7 @@ export class ProxyObject extends NonGraphicalObject {
 		return (this.version as number) | (this.maintenanceVersion << 16);
 	}
 
-	dxfClass: any = null;
+	dxfClass: DxfClass | null = null;
 	maintenanceVersion: number = 0;
 
 	override get objectName(): string {

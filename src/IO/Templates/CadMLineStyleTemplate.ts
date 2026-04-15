@@ -63,8 +63,8 @@ export namespace CadMLineStyleTemplate {
 									this.Element.lineType = arr[this.LinetypeIndex];
 								}
 							}
-						} catch (ex: any) {
-							builder.Notify(`Linetype not assigned, index ${this.LinetypeIndex}`, NotificationType.Error, ex);
+						} catch (ex: unknown) {
+							builder.Notify(`Linetype not assigned, index ${this.LinetypeIndex}`, NotificationType.Error, ex instanceof Error ? ex : null);
 						}
 					}
 				}

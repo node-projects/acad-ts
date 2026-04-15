@@ -17,13 +17,14 @@ export class CadXRecordTemplate extends CadTemplate<XRecord> {
 
 	protected override build(builder: CadDocumentBuilder): void {
 		super.build(builder);
+		const xrecord = this.CadObject as XRecord;
 
 		for (const entry of this._entries) {
 			const obj = builder.TryGetCadObject<CadObject>(entry[1]);
 			if (obj) {
-				(this.CadObject as any).createEntry(entry[0], obj);
+				xrecord.createEntry(entry[0], obj);
 			} else {
-				(this.CadObject as any).createEntry(entry[0], entry[1]);
+				xrecord.createEntry(entry[0], entry[1]);
 				builder.Notify(`XRecord reference not found ${entry[0]}|${entry[1]}`, NotificationType.Warning);
 			}
 		}

@@ -118,7 +118,7 @@ export class DwgHeaderReader extends DwgSectionIO {
 		}
 
 		this._header.userTimer = this._reader.readBit();
-		this._header.sketchPolylineType = (this._reader.readBit() ? 1 : 0) as any;
+		this._header.sketchPolylineType = (this._reader.readBit() ? 1 : 0) as SplineType;
 		this._header.angularDirection = this._reader.readBitAsShort() as AngularDirection;
 		this._header.showSplineControlPoints = this._reader.readBit();
 

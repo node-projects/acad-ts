@@ -38,7 +38,7 @@ export class DxfAsciiWriter extends DxfStreamWriterBase {
     this._writer.write(line + '\n');
   }
 
-  protected override writeValue(code: number, value: any): void {
+  protected override writeValue(code: number, value: unknown): void {
     const type = GroupCodeValue.transformValue(code);
     let line: string;
 

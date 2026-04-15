@@ -8,6 +8,7 @@ import { ObjectOsnapType } from './ObjectOsnapType.js';
 import { RotatedDimensionType } from './RotatedDimensionType.js';
 import { SubentType } from './SubentType.js';
 import { XYZ } from '../Math/XYZ.js';
+import { Dimension } from '../Entities/Dimension.js';
 
 export class OsnapPointRef {
 	geometryParameter: number = 0;
@@ -23,7 +24,7 @@ export class OsnapPointRef {
 
 export class DimensionAssociation extends NonGraphicalObject {
 	associativityFlags: AssociativityFlags = AssociativityFlags.None;
-	dimension: any = null;
+	dimension: Dimension | null = null;
 	firstPointRef: OsnapPointRef | null = null;
 	fourthPointRef: OsnapPointRef | null = null;
 	isTransSpace: boolean = false;

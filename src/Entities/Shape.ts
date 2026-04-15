@@ -85,7 +85,7 @@ export class Shape extends Entity {
 		return BoundingBox.FromPoints(corners);
 	}
 
-	override applyTransform(transform: any): void {
+	override applyTransform(transform: unknown): void {
 		this.insertionPoint = this.applyTransformToPoint(transform, this.insertionPoint);
 		this.normal = this.transformNormal(transform, this.normal);
 

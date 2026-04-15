@@ -20,7 +20,7 @@ export abstract class DxfStreamWriterBase implements IDxfStreamWriter {
 
   public abstract Flush(): void;
 
-  public Write(code: DxfCode | number, value: any, map?: DxfClassMap | null): void {
+  public Write(code: DxfCode | number, value: unknown, map?: DxfClassMap | null): void {
     if (value === null || value === undefined) {
       return;
     }
@@ -107,5 +107,5 @@ export abstract class DxfStreamWriterBase implements IDxfStreamWriter {
 
   protected abstract writeDxfCode(code: number): void;
 
-  protected abstract writeValue(code: number, value: any): void;
+  protected abstract writeValue(code: number, value: unknown): void;
 }

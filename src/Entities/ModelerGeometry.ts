@@ -49,7 +49,7 @@ export abstract class ModelerGeometry extends Entity {
 
 	proprietaryData: string = '';
 
-	override applyTransform(transform: any): void {
+	override applyTransform(transform: unknown): void {
 		this.point = this.applyTransformToPoint(transform, this.point);
 		for (const wire of this.wires) {
 			wire.points = wire.points.map((point) => this.applyTransformToPoint(transform, point));

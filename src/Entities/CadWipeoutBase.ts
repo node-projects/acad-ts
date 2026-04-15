@@ -98,7 +98,7 @@ export abstract class CadWipeoutBase extends Entity {
 	private _fade: number = 0;
 	private _flags: ImageDisplayFlags = ImageDisplayFlags.None;
 
-	override applyTransform(transform: any): void {
+	override applyTransform(transform: unknown): void {
 		this.insertPoint = this.applyTransformToPoint(transform, this.insertPoint);
 		this.uVector = this.applyTransformToVector(transform, this.uVector);
 		this.vVector = this.applyTransformToVector(transform, this.vVector);

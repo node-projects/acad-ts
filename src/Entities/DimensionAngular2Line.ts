@@ -76,7 +76,7 @@ export class DimensionAngular2Line extends Dimension {
 		super(DimensionType.Angular);
 	}
 
-	override applyTransform(transform: any): void {
+	override applyTransform(transform: unknown): void {
 		super.applyTransform(transform);
 		this.angleVertex = this.applyTransformToPoint(transform, this.angleVertex);
 		this.dimensionArc = this.applyTransformToPoint(transform, this.dimensionArc);

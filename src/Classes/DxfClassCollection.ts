@@ -3,6 +3,7 @@ import { ProxyFlags } from './ProxyFlags.js';
 import { ACadVersion } from '../ACadVersion.js';
 import { DxfSubclassMarker } from '../DxfSubclassMarker.js';
 import { DxfFileToken } from '../DxfFileToken.js';
+import type { CadDocument } from '../CadDocument.js';
 
 export class DxfClassCollection implements Iterable<DxfClass> {
 	public get count(): number {
@@ -15,7 +16,7 @@ export class DxfClassCollection implements Iterable<DxfClass> {
 
 	public _entries: Map<string, DxfClass> = new Map<string, DxfClass>();
 
-	public static updateDxfClasses(doc: any /* CadDocument */): void {
+	public static updateDxfClasses(doc: CadDocument): void {
 		// AcDbDictionaryWithDefault
 		doc.classes.addOrUpdate(Object.assign(new DxfClass(), {
 			cppClassName: DxfSubclassMarker.DictionaryWithDefault,

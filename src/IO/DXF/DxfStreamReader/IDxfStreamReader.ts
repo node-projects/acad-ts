@@ -10,7 +10,7 @@ export interface IDxfStreamReader {
 
   Code: number;
 
-  Value: any;
+  Value: unknown;
 
   Position: number;
 

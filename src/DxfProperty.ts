@@ -30,7 +30,7 @@ export class DxfProperty extends DxfPropertyBase {
 		return this._collectionCodes ? [...this._collectionCodes] : null;
 	}
 
-	public getValue(obj: any): any {
+	public getValue(obj: object): unknown {
 		return this.getPropertyValue(obj);
 	}
 

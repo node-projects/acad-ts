@@ -12,5 +12,5 @@ registerStreamWriter('AC15', DwgStreamWriterAC15);
 registerStreamWriter('AC18', DwgStreamWriterAC18);
 registerStreamWriter('AC21', DwgStreamWriterAC21);
 registerStreamWriter('AC24', DwgStreamWriterAC24);
-registerMergedWriter('MergedAC14', DwgmMergedStreamWriterAC14 as any);
-registerMergedWriter('Merged', DwgMergedStreamWriter as any);
+registerMergedWriter('MergedAC14', DwgmMergedStreamWriterAC14);
+registerMergedWriter('Merged', DwgMergedStreamWriter);

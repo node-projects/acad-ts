@@ -22,8 +22,8 @@ export class CadGroupTemplate extends CadTemplateT<Group> {
 
 				try {
 					this.CadObject.add(e.CadObject);
-				} catch (ex: any) {
-					builder.Notify(`Entity with handle ${handle} could not be added to group ${this.CadObject.handle}`, NotificationType.Error, ex);
+				} catch (ex: unknown) {
+					builder.Notify(`Entity with handle ${handle} could not be added to group ${this.CadObject.handle}`, NotificationType.Error, ex instanceof Error ? ex : null);
 				}
 			} else {
 				builder.Notify(`Entity with handle ${handle} not found for group ${this.CadObject.handle}`, NotificationType.Warning);

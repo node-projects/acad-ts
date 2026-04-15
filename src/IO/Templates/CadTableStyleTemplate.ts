@@ -20,9 +20,10 @@ export class CadTableStyleTemplate extends CadTemplate<TableStyle> {
 
 	protected override build(builder: CadDocumentBuilder): void {
 		super.build(builder);
+		const tableStyle = this.CadObject as TableStyle;
 
 		for (const item of this.CellStyleTemplates) {
-			(this.CadObject as any).cellStyles.push(item.CellStyle);
+			tableStyle.cellStyles.push(item.CellStyle);
 		}
 	}
 }

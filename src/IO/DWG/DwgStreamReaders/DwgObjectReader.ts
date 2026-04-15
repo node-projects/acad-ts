@@ -109,6 +109,7 @@ import { MultiLeader, MultiLeaderPropertyOverrideFlags, MultiLeaderPathType, Lea
 import { MultiLeaderObjectContextData, LeaderRoot, LeaderLine, StartEndPointPair } from '../../../Objects/MultiLeaderObjectContextData.js';
 import { Hatch, HatchPattern, HatchStyleType, HatchPatternType, BoundaryPathFlags, HatchBoundaryPathLine, HatchBoundaryPathArc, HatchBoundaryPathEllipse, HatchBoundaryPathSpline, HatchBoundaryPathPolyline } from '../../../Entities/Hatch.js';
 import { LwPolyline, LwPolylineFlags } from '../../../Entities/LwPolyline.js';
+import { IPolyline } from '../../../Entities/IPolyline.js';
 import { Polyline2D } from '../../../Entities/Polyline2D.js';
 import { Polyline3D } from '../../../Entities/Polyline3D.js';
 import { PolygonMesh } from '../../../Entities/PolygonMesh.js';
@@ -320,14 +321,14 @@ export class DwgObjectReader extends DwgSectionIO {
 
       try {
         template = this.readObject(type);
-      } catch (ex: any) {
+      } catch (ex: unknown) {
         if (!this._builder.Configuration.Failsafe) throw ex;
 
         const dxf = this._classes.get(type as number);
         if (dxf) {
-          this._builder.Notify(`Could not read ${dxf.dxfName} number ${dxf.classNumber} with handle: ${handle}`, NotificationType.Error, ex);
+          this._builder.Notify(`Could not read ${dxf.dxfName} number ${dxf.classNumber} with handle: ${handle}`, NotificationType.Error, ex instanceof Error ? ex : null);
         } else {
-          this._builder.Notify(`Could not read ${type} with handle: ${handle}`, NotificationType.Error, ex);
+          this._builder.Notify(`Could not read ${type} with handle: ${handle}`, NotificationType.Error, ex instanceof Error ? ex : null);
         }
         continue;
       }
@@ -1169,14 +1170,14 @@ export class DwgObjectReader extends DwgSectionIO {
 
   // ==================== TABLE READERS ====================
 
-  private readDocumentTable(template: CadTableTemplate<any>): CadTemplate {
+  private readDocumentTable<T extends TableEntry>(template: CadTableTemplate<T>): CadTemplate {
     this.readCommonNonEntityData(template);
     const numentries = this._objectReader.readBitLong();
     for (let i = 0; i < numentries; ++i) template.EntryHandles.add(this.handleReference());
     return template;
   }
 
-  private readDocumentTableGeneric(table: Table<any>): CadTemplate {
+  private readDocumentTableGeneric<T extends TableEntry>(table: Table<T>): CadTemplate {
     const template = new CadTableTemplate(table);
     return this.readDocumentTable(template);
   }
@@ -1671,7 +1672,7 @@ export class DwgObjectReader extends DwgSectionIO {
 
   private readPolyline2D(): CadTemplate {
     const pline = new Polyline2D();
-    const template = new CadPolyLineTemplate(pline as unknown as any);
+    const template = new CadPolyLineTemplate(pline as IPolyline);
     this.readCommonEntityData(template);
     pline.flags = this._objectReader.readBitShort() as PolylineFlags;
     pline.smoothSurface = this._objectReader.readBitShort() as SmoothSurfaceType;
@@ -1694,7 +1695,7 @@ export class DwgObjectReader extends DwgSectionIO {
 
   private readPolyline3D(): CadTemplate {
     const pline = new Polyline3D();
-    const template = new CadPolyLineTemplate(pline as unknown as any);
+    const template = new CadPolyLineTemplate(pline as IPolyline);
     this.readCommonEntityData(template);
     const flags = this._objectReader.readByte();
     const splined = (flags & 0b1) > 0;
@@ -1715,7 +1716,7 @@ export class DwgObjectReader extends DwgSectionIO {
   }
 
   private readPolyfaceMesh(): CadTemplate {
-    const template = new CadPolyLineTemplate(new PolyfaceMesh() as unknown as any);
+    const template = new CadPolyLineTemplate(new PolyfaceMesh() as IPolyline);
     this.readCommonEntityData(template);
     this._objectReader.readBitShort();
     this._objectReader.readBitShort();
@@ -1733,7 +1734,7 @@ export class DwgObjectReader extends DwgSectionIO {
 
   private readPolylineMesh(): CadTemplate {
     const pline = new PolygonMesh();
-    const template = new CadPolyLineTemplate(pline as unknown as any);
+    const template = new CadPolyLineTemplate(pline as IPolyline);
     this.readCommonEntityData(template);
     pline.flags = this._objectReader.readBitShort() as PolylineFlags;
     pline.smoothSurface = this._objectReader.readBitShort() as SmoothSurfaceType;
@@ -1793,8 +1794,9 @@ export class DwgObjectReader extends DwgSectionIO {
         vertex.startWidth = this._objectReader.readBitDouble();
         vertex.endWidth = this._objectReader.readBitDouble();
       }
-    } catch (ex: any) {
-      this._builder.Notify(`Exception while reading LwPolyline: ${ex.constructor?.name || 'Error'}`, NotificationType.Error, ex);
+    } catch (ex: unknown) {
+	  const errorName = ex instanceof Error ? ex.constructor.name : 'Error';
+	  this._builder.Notify(`Exception while reading LwPolyline: ${errorName}`, NotificationType.Error, ex instanceof Error ? ex : null);
       return template;
     }
     return template;
@@ -3781,11 +3783,12 @@ export class DwgObjectReader extends DwgSectionIO {
           cleanupGroup.rawData = this._mergedReaders.readBytes(remainingBytes);
         }
       }
-    } catch (ex: any) {
+    } catch (ex: unknown) {
+      const message = ex instanceof Error ? ex.message : String(ex);
       this._builder.Notify(
-        `Error reading AEC_CLEANUP_GROUP [Handle: ${cleanupGroup.handle.toString(16)}]: ${ex.message}`,
+        `Error reading AEC_CLEANUP_GROUP [Handle: ${cleanupGroup.handle.toString(16)}]: ${message}`,
         NotificationType.Error,
-        ex);
+        ex instanceof Error ? ex : null);
     }
     return template;
   }
@@ -3871,7 +3874,7 @@ export class DwgObjectReader extends DwgSectionIO {
       } else {
         this._mergedReaders.readBit();
       }
-      this.readTableContent(table.content as any, template as CadTableEntityTemplate);
+      this.readTableContent(table.content as unknown as TableContent, template as CadTableEntityTemplate);
       void longZero;
       return template;
     }

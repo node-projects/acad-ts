@@ -20,10 +20,10 @@ export class CadValue {
 	}
 
 	public units: CadValueUnitType = CadValueUnitType.NoUnits;
-	public value: any = null;
+	public value: unknown = null;
 	public valueType: CadValueType = CadValueType.Unknown;
 
-	public setValue(value: any, valueType?: CadValueType): void {
+	public setValue(value: unknown, valueType?: CadValueType): void {
 		if (valueType !== undefined) {
 			this.valueType = valueType;
 		}

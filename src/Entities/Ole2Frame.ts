@@ -33,7 +33,7 @@ export class Ole2Frame extends Entity {
 
 	version: number = 2;
 
-	override applyTransform(transform: any): void {
+	override applyTransform(transform: unknown): void {
 		this.upperLeftCorner = this.applyTransformToPoint(transform, this.upperLeftCorner);
 		this.lowerRightCorner = this.applyTransformToPoint(transform, this.lowerRightCorner);
 	}

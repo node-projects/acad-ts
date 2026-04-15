@@ -41,8 +41,8 @@ export class CadDictionaryTemplate extends CadTemplateT<CadDictionary> implement
 
 				try {
 					this.CadObject.add(entry);
-				} catch (ex: any) {
-					builder.Notify(`Error when trying to add the entry ${entry.name} to ${this.CadObject.name}|${this.CadObject.handle}`, NotificationType.Error, ex);
+				} catch (ex: unknown) {
+					builder.Notify(`Error when trying to add the entry ${entry.name} to ${this.CadObject.name}|${this.CadObject.handle}`, NotificationType.Error, ex instanceof Error ? ex : null);
 				}
 			} else {
 				builder.Notify(`Entry not found ${key}|${value} for dictionary ${this.CadObject.name}|${this.CadObject.handle}`, NotificationType.Warning);

@@ -143,7 +143,7 @@ export class DxfObjectsSectionWriter extends DxfSectionWriterBase {
     }
 
     if (geodata.hostBlock !== null) {
-      this._writer.Write(330, geodata.hostBlock.Handle, map);
+      this._writer.Write(330, geodata.hostBlock.handle, map);
     }
 
     this._writer.Write(70, geodata.coordinatesType, map);
@@ -541,7 +541,8 @@ export class DxfObjectsSectionWriter extends DxfSectionWriterBase {
         case GroupCodeValueType.None:
           break;
         case GroupCodeValueType.Point3D:
-          if (e.value && typeof (e.value as any).X === 'number' && typeof (e.value as any).Y === 'number') {
+          const point = e.value as { X?: unknown; Y?: unknown } | null;
+          if (point && typeof point.X === 'number' && typeof point.Y === 'number') {
             this._writer.WriteVector(e.code, e.value as IVector);
           } else {
             this._writer.Write(e.code, e.value);

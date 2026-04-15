@@ -96,7 +96,7 @@ export class Color {
 		[153, 153, 153], [204, 204, 204], [255, 255, 255],
 	];
 
-	private readonly _color: number;
+	private _color: number;
 
 	constructor(index: number);
 	constructor(r: number, g: number, b: number);
@@ -119,13 +119,13 @@ export class Color {
 
 	private static fromIndex(index: number): Color {
 		const c = new Color(0);
-		(c as any)._color = index;
+		c._color = index;
 		return c;
 	}
 
 	public static fromTrueColor(color: number): Color {
 		const c = new Color(0);
-		(c as any)._color = (color | Color._trueColorFlag) >>> 0;
+		c._color = (color | Color._trueColorFlag) >>> 0;
 		return c;
 	}
 

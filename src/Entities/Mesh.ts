@@ -46,7 +46,7 @@ export class Mesh extends Entity {
 
 	vertices: XYZ[] = [];
 
-	override applyTransform(transform: any): void {
+	override applyTransform(transform: unknown): void {
 		this.vertices = this.vertices.map((vertex) => this.applyTransformToPoint(transform, vertex));
 	}
 

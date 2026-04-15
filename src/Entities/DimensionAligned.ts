@@ -67,7 +67,7 @@ export class DimensionAligned extends Dimension {
 		return d;
 	}
 
-	override applyTransform(transform: any): void {
+	override applyTransform(transform: unknown): void {
 		super.applyTransform(transform);
 		this.firstPoint = this.applyTransformToPoint(transform, this.firstPoint);
 		this.secondPoint = this.applyTransformToPoint(transform, this.secondPoint);

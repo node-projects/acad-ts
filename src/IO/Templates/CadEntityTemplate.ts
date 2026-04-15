@@ -82,7 +82,7 @@ export class CadEntityTemplate extends CadTemplateT<Entity> {
 	}
 }
 
-export class CadEntityTemplateT<T extends Entity = any> extends CadEntityTemplate {
+export class CadEntityTemplateT<T extends Entity = Entity> extends CadEntityTemplate {
 	declare CadObject: T;
 
 	constructor(entity: T) {

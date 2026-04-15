@@ -117,12 +117,12 @@ export class DxfObjectsSectionReader extends DxfSectionReaderBase {
 
       try {
         template = this.readObject();
-      } catch (ex: any) {
+      } catch (ex: unknown) {
         if (!this._builder.Configuration.Failsafe) {
           throw ex;
         }
 
-        this._builder.Notify(`Error while reading an object at line ${this._reader.Position}`, NotificationType.Error, ex);
+        this._builder.Notify(`Error while reading an object at line ${this._reader.Position}`, NotificationType.Error, ex instanceof Error ? ex : null);
 
         while (this._reader.DxfCode !== DxfCode.Start) {
           this._reader.ReadNext();
@@ -348,8 +348,8 @@ export class DxfObjectsSectionReader extends DxfSectionReaderBase {
       case 91: {
         const classId = this._reader.ValueAsShort;
         const dxfClass = this._builder.DocumentToBuild.classes.tryGetByClassNumber(classId);
-        if (dxfClass) {
-          proxy.dxfClass = dxfClass;
+        if (dxfClass.found && dxfClass.result) {
+          proxy.dxfClass = dxfClass.result;
         }
         return true;
       }

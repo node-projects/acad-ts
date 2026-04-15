@@ -36,7 +36,7 @@ export class Line extends Entity {
 		}
 	}
 
-	override applyTransform(transform: any): void {
+	override applyTransform(transform: unknown): void {
 		this.startPoint = this.applyTransformToPoint(transform, this.startPoint);
 		this.endPoint = this.applyTransformToPoint(transform, this.endPoint);
 		this.normal = this.applyTransformToVector(transform, this.normal).normalize();

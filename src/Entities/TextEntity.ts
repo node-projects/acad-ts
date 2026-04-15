@@ -95,7 +95,7 @@ export class TextEntity extends Entity implements IText {
 		super();
 	}
 
-	override applyTransform(transform: any): void {
+	override applyTransform(transform: unknown): void {
 		if (!(transform instanceof Transform)) {
 			return;
 		}

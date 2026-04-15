@@ -45,7 +45,7 @@ export class Circle extends Entity {
 		super();
 	}
 
-	override applyTransform(transform: any): void {
+	override applyTransform(transform: unknown): void {
 		if (!(transform instanceof Transform)) {
 			return;
 		}

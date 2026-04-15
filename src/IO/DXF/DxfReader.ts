@@ -155,7 +155,7 @@ export class DxfReader extends CadReaderBase<DxfReaderConfiguration> {
 
       const data = headerMap.get(currVar)!;
 
-      const parameters: any[] = new Array(data.DxfCodes.length);
+      const parameters: unknown[] = new Array(data.DxfCodes.length);
       for (let i = 0; i < data.DxfCodes.length; i++) {
         this._reader.ReadNext();
 
@@ -421,5 +421,5 @@ export class DxfReader extends CadReaderBase<DxfReaderConfiguration> {
     return reader;
   }
 
-  protected createDefaultConfiguration(): any { return {}; }
+  protected createDefaultConfiguration(): DxfReaderConfiguration { return new DxfReaderConfiguration(); }
 }

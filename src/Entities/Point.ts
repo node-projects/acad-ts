@@ -33,7 +33,7 @@ export class Point extends Entity {
 		}
 	}
 
-	override applyTransform(transform: any): void {
+	override applyTransform(transform: unknown): void {
 		this.location = this.applyTransformToPoint(transform, this.location);
 		this.normal = this.applyTransformToVector(transform, this.normal).normalize();
 	}

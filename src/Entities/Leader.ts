@@ -72,7 +72,7 @@ export class Leader extends Entity {
 
 	private _style: DimensionStyle = DimensionStyle.Default;
 
-	override applyTransform(transform: any): void {
+	override applyTransform(transform: unknown): void {
 		this.annotationOffset = this.applyTransformToVector(transform, this.annotationOffset);
 		this.blockOffset = this.applyTransformToVector(transform, this.blockOffset);
 		this.horizontalDirection = this.applyTransformToVector(transform, this.horizontalDirection);

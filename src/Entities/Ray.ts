@@ -22,7 +22,7 @@ export class Ray extends Entity {
 		return DxfSubclassMarker.Ray;
 	}
 
-	override applyTransform(transform: any): void {
+	override applyTransform(transform: unknown): void {
 		this.startPoint = this.applyTransformToPoint(transform, this.startPoint);
 		const direction = this.applyTransformToVector(transform, this.direction);
 		if (direction.getLength() > 0) {

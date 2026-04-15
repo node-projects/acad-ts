@@ -25,7 +25,7 @@ export class CadSystemVariable extends DxfPropertyBase {
 		}
 	}
 
-	public getSystemValue(code: number, header: any): any {
+	public getSystemValue(code: number, header: object): unknown {
 		switch (this.referenceType) {
 			case DxfReferenceType.Unprocess:
 				return this.getValue(header);
@@ -41,7 +41,7 @@ export class CadSystemVariable extends DxfPropertyBase {
 		}
 	}
 
-	public getValue(header: any): any {
+	public getValue(header: object): unknown {
 		return this.getPropertyValue(header);
 	}
 }

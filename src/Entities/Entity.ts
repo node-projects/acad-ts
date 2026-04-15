@@ -75,7 +75,7 @@ export abstract class Entity extends CadObject implements IEntity {
 		this.applyTransform(Transform.CreateScaling(scale, origin));
 	}
 
-	abstract applyTransform(transform: any /* Transform */): void;
+	abstract applyTransform(transform: unknown): void;
 
 	applyTranslation(translation: XYZ): void {
 		this.applyTransform(Transform.CreateTranslation(translation));

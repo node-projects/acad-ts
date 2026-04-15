@@ -22,7 +22,7 @@ export class XLine extends Entity {
 		return DxfSubclassMarker.XLine;
 	}
 
-	override applyTransform(transform: any): void {
+	override applyTransform(transform: unknown): void {
 		this.firstPoint = this.applyTransformToPoint(transform, this.firstPoint);
 		const direction = this.applyTransformToVector(transform, this.direction);
 		if (direction.getLength() > 0) {

@@ -38,7 +38,7 @@ export class DimensionRadius extends Dimension {
 		super(DimensionType.Radius);
 	}
 
-	override applyTransform(transform: any): void {
+	override applyTransform(transform: unknown): void {
 		super.applyTransform(transform);
 		this.angleVertex = this.applyTransformToPoint(transform, this.angleVertex);
 	}

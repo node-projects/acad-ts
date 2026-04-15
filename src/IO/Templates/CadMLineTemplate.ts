@@ -21,7 +21,7 @@ export class CadMLineTemplate extends CadEntityTemplateT<MLine> {
 		super(mline ?? new MLine());
 	}
 
-	TryReadVertex(dxfcode: number, value: any): boolean {
+	TryReadVertex(dxfcode: number, value: unknown): boolean {
 		const mline = this.CadObject as MLine;
 
 		switch (dxfcode) {

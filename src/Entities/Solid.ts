@@ -30,7 +30,7 @@ export class Solid extends Entity {
 
 	thirdCorner: XYZ = new XYZ(0, 0, 0);
 
-	override applyTransform(transform: any): void {
+	override applyTransform(transform: unknown): void {
 		this.firstCorner = this.applyTransformToPoint(transform, this.firstCorner);
 		this.secondCorner = this.applyTransformToPoint(transform, this.secondCorner);
 		this.thirdCorner = this.applyTransformToPoint(transform, this.thirdCorner);

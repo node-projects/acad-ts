@@ -50,6 +50,6 @@ export class Matrix4 {
 
   setElement(row: number, col: number, value: number): void {
     const key = `m${row}${col}` as keyof Matrix4;
-    (this as any)[key] = value;
+    (this as unknown as Record<string, number>)[key] = value;
   }
 }

@@ -42,7 +42,7 @@ export class Face3D extends Entity {
 		]);
 	}
 
-	override applyTransform(transform: any): void {
+	override applyTransform(transform: unknown): void {
 		this.firstCorner = this.applyTransformToPoint(transform, this.firstCorner);
 		this.secondCorner = this.applyTransformToPoint(transform, this.secondCorner);
 		this.thirdCorner = this.applyTransformToPoint(transform, this.thirdCorner);

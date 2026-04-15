@@ -1,6 +1,6 @@
 import type { BoundingBox } from '../Math/BoundingBox.js';
 
 export interface IGeometricEntity {
-	applyTransform(transform: any /* Transform */): void;
+	applyTransform(transform: unknown): void;
 	getBoundingBox(): BoundingBox | null;
 }

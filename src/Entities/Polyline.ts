@@ -77,7 +77,7 @@ export abstract class Polyline extends Entity {
 		}
 	}
 
-	override applyTransform(transform: any): void {
+	override applyTransform(transform: unknown): void {
 		for (const vertex of this.vertices) {
 			if (vertex instanceof Entity) {
 				vertex.applyTransform(transform);

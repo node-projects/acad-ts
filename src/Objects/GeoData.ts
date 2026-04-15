@@ -7,6 +7,7 @@ import { GeoDataVersion } from './GeoDataVersion.js';
 import { ScaleEstimationType } from './ScaleEstimationType.js';
 import { XYZ } from '../Math/XYZ.js';
 import { XY } from '../Math/XY.js';
+import { BlockRecord } from '../Tables/BlockRecord.js';
 
 export class GeoMeshFace {
 	index1: number = 0;
@@ -30,7 +31,7 @@ export class GeoData extends NonGraphicalObject {
 
 	version: GeoDataVersion = GeoDataVersion.R2013;
 	coordinatesType: DesignCoordinatesType = DesignCoordinatesType.LocalGrid;
-	hostBlock: any = null;
+	hostBlock: BlockRecord | null = null;
 	designPoint: XYZ = new XYZ(0, 0, 0);
 	referencePoint: XYZ = new XYZ(0, 0, 0);
 	northDirection: XY = new XY(0, 1);

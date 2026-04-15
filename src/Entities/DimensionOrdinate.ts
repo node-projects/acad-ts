@@ -54,7 +54,7 @@ export class DimensionOrdinate extends Dimension {
 		super(DimensionType.Ordinate);
 	}
 
-	override applyTransform(transform: any): void {
+	override applyTransform(transform: unknown): void {
 		super.applyTransform(transform);
 		this.featureLocation = this.applyTransformToPoint(transform, this.featureLocation);
 		this.leaderEndpoint = this.applyTransformToPoint(transform, this.leaderEndpoint);

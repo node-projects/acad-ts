@@ -44,7 +44,7 @@ export class Tolerance extends Entity {
 
 	private _style: DimensionStyle = DimensionStyle.Default;
 
-	override applyTransform(transform: any): void {
+	override applyTransform(transform: unknown): void {
 		this.direction = this.applyTransformToVector(transform, this.direction);
 		if (this.direction.getLength() > 0) {
 			this.direction = this.direction.normalize();

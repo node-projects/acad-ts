@@ -30,6 +30,22 @@ import { XYZ } from '../../Math/XYZ.js';
 import { XY } from '../../Math/XY.js';
 
 interface BoundingBox { Min: XYZ; Max: XYZ; Width: number; Height: number; }
+type BoundingBoxLike = {
+  Min?: { x?: number; y?: number; z?: number } | null;
+  Max?: { x?: number; y?: number; z?: number } | null;
+  min?: { x?: number; y?: number; z?: number } | null;
+  max?: { x?: number; y?: number; z?: number } | null;
+};
+type PolylineVertexLike = {
+  getLocation3D?: () => XYZ;
+  location?: unknown;
+};
+type StyledSvgEntity = {
+  color?: Color;
+  getActiveColor?: () => Color;
+  getActiveLineType?: () => LineType;
+  getActiveLineWeightType?: () => LineWeightType;
+};
 
 class Transform {
   Translation: XYZ = new XYZ(0, 0, 0);
@@ -257,8 +273,8 @@ export class SvgXmlWriter {
       this.writeInsert(entity as Insert, transform);
     } else if ('isClosed' in entity && 'vertices' in entity) {
       this.writePolyline(entity as unknown as IPolyline, transform);
-    } else if ('Value' in entity && 'InsertPoint' in entity) {
-      this.writeText(entity as any, transform);
+    } else if (entity instanceof TextEntity || entity instanceof MText) {
+      this.writeText(entity, transform);
     } else if (entity instanceof Solid) {
       this.writeSolid(entity as Solid, transform);
     } else {
@@ -335,13 +351,15 @@ export class SvgXmlWriter {
     return { Min: min, Max: max, Width: max.x - min.x, Height: max.y - min.y };
   }
 
-  private normalizeBoundingBox(box: any): BoundingBox | null {
-    if (!box) {
+  private normalizeBoundingBox(box: unknown): BoundingBox | null {
+    if (!box || typeof box !== 'object') {
       return null;
     }
 
-    const min = box.Min ?? box.min;
-    const max = box.Max ?? box.max;
+    const candidate = box as BoundingBoxLike;
+
+    const min = candidate.Min ?? candidate.min;
+    const max = candidate.Max ?? candidate.max;
 
     if (!min || !max) {
       return null;
@@ -357,7 +375,7 @@ export class SvgXmlWriter {
     };
   }
 
-  private getPolylinePoints(polyline: { getPoints?: (precision: number) => XYZ[] | XY[]; vertices?: Iterable<any>; }): Array<XY | XYZ> {
+  private getPolylinePoints(polyline: { getPoints?: (precision: number) => XYZ[] | XY[]; vertices?: Iterable<PolylineVertexLike>; }): Array<XY | XYZ> {
     if (typeof polyline.getPoints === 'function') {
       return polyline.getPoints(this.Configuration.ArcPoints);
     }
@@ -372,8 +390,13 @@ export class SvgXmlWriter {
         ? vertex.getLocation3D()
         : vertex.location;
 
-      if (location) {
-        points.push(location as XY | XYZ);
+      if (typeof location === 'object' && location !== null) {
+        const vector = location as { x?: number; y?: number; z?: number };
+        if (typeof vector.x === 'number' && typeof vector.y === 'number' && typeof vector.z === 'number') {
+          points.push(new XYZ(vector.x, vector.y, vector.z));
+        } else if (typeof vector.x === 'number' && typeof vector.y === 'number') {
+          points.push(new XY(vector.x, vector.y));
+        }
       }
     }
 
@@ -408,7 +431,7 @@ export class SvgXmlWriter {
     return lineType.isComplex && !lineType.hasShapes;
   }
 
-  private getPointSize(entity: any): number {
+  private getPointSize(entity: StyledSvgEntity): number {
     const lw = entity.getActiveLineWeightType ? entity.getActiveLineWeightType() : LineWeightType.Default;
     return SvgConverter.toPixelSize(
       this.Configuration.GetLineWeightValue(lw, this.Units),
@@ -577,8 +600,8 @@ export class SvgXmlWriter {
     }
   }
 
-  private writeEntityHeader(entity: any, transform: Transform, drawStroke: boolean = true): void {
-    const color = entity.getActiveColor ? entity.getActiveColor() : entity.Color ?? Color.Default;
+  private writeEntityHeader(entity: StyledSvgEntity, transform: Transform, drawStroke: boolean = true): void {
+    const color = entity.getActiveColor ? entity.getActiveColor() : entity.color ?? Color.Default;
 
     this.WriteAttributeString('vector-effect', 'non-scaling-stroke');
 
@@ -794,7 +817,7 @@ export class SvgXmlWriter {
     this.WriteEndElement();
   }
 
-  private writeText(text: any, transform: Transform): void {
+  private writeText(text: TextEntity | MText, transform: Transform): void {
     let insert: XYZ;
 
     if (text instanceof TextEntity
@@ -804,7 +827,7 @@ export class SvgXmlWriter {
         || text.horizontalAlignment === TextHorizontalAlignment.Aligned)) {
       insert = text.alignmentPoint;
     } else {
-      insert = text.InsertPoint;
+      insert = text.insertPoint;
     }
 
     this.WriteStartElement('g');
@@ -816,29 +839,29 @@ export class SvgXmlWriter {
       'transform',
       SvgConverter.vectorToPixelSize(insert, this.Units),
       new XYZ(1, -1, 0),
-      text.Rotation !== 0 ? text.Rotation : undefined
+      text.rotation !== 0 ? text.rotation : undefined
     );
 
-    this.WriteAttributeString('fill', this.colorSvg(text.Color ?? Color.Default));
+    this.WriteAttributeString('fill', this.colorSvg(text.color ?? Color.Default));
 
     let style = 'font:';
-    style += SvgConverter.toSvgWithUnits(text.Height, this.Units);
+    style += SvgConverter.toSvgWithUnits(text.height, this.Units);
     if (this.Units === UnitsType.Unitless) {
       style += 'px';
     }
 
-    if (text.Style?.TrueType !== undefined) {
-      if (text.Style.TrueType & FontFlags.Bold) {
+    if (text.style?.trueType !== undefined) {
+      if (text.style.trueType & FontFlags.Bold) {
         style += 'bold';
       }
-      if (text.Style.TrueType & FontFlags.Italic) {
+      if (text.style.trueType & FontFlags.Italic) {
         style += 'italic';
       }
     }
 
     style += ' ';
-    if (text.Style?.Filename) {
-      const filename = text.Style.Filename;
+    if (text.style?.filename) {
+      const filename = text.style.filename;
       const nameWithoutExt = filename.replace(/\.[^/.]+$/, '');
       style += nameWithoutExt;
     }

@@ -98,7 +98,7 @@ export class Spline extends Entity {
 		super();
 	}
 
-	override applyTransform(transform: any): void {
+	override applyTransform(transform: unknown): void {
 		this.controlPoints = this.controlPoints.map((point) => this.applyTransformToPoint(transform, point));
 		this.fitPoints = this.fitPoints.map((point) => this.applyTransformToPoint(transform, point));
 		this.startTangent = this.applyTransformToVector(transform, this.startTangent);
