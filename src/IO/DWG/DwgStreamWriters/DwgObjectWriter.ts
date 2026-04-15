@@ -367,6 +367,7 @@ export class DwgObjectWriter extends DwgSectionIO {
 	}
 
 	private isEntitySupported(entity: Entity): boolean {
+		if (entity instanceof Seqend) return false;
 		if (entity instanceof UnknownEntity) return false;
 		if (entity instanceof Shape) return this.WriteShapes;
 		if (entity instanceof Wall
@@ -1401,6 +1402,11 @@ export class DwgObjectWriter extends DwgSectionIO {
 	// ==================== Entity Writers ====================
 
 	private writeEntity(entity: Entity): void {
+		if (entity instanceof Seqend) {
+			this.writeSeqend(entity);
+			return;
+		}
+
 		const children: Entity[] = [];
 		let seqend: Seqend | null = null;
 

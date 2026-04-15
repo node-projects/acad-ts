@@ -30,7 +30,7 @@ const dwgFiles = getDwgFiles();
 const dxfAsciiFiles = getDxfAsciiFiles();
 
 function isWritableDwgVersion(version: ACadVersion): boolean {
-  return version >= ACadVersion.AC1014 && version !== ACadVersion.AC1021;
+  return version >= ACadVersion.AC1014;
 }
 
 function isAc1009Sample(filePath: string): boolean {
