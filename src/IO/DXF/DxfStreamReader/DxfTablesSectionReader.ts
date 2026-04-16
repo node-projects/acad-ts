@@ -66,28 +66,28 @@ export class DxfTablesSectionReader extends DxfSectionReaderBase {
     super(reader, builder);
   }
 
-  public Read(): void {
-    this._reader.ReadNext();
+  public read(): void {
+    this._reader.readNext();
 
-    while (this._reader.ValueAsString !== DxfFileToken.EndSection) {
-      if (this._reader.ValueAsString === DxfFileToken.TableEntry) {
-        this.readTable();
+    while (this._reader.valueAsString !== DxfFileToken.endSection) {
+      if (this._reader.valueAsString === DxfFileToken.tableEntry) {
+        this._readTable();
       } else {
-        throw new DxfException(`Unexpected token at the beginning of a table: ${this._reader.ValueAsString}`, this._reader.Position);
+        throw new DxfException(`Unexpected token at the beginning of a table: ${this._reader.valueAsString}`, this._reader.position);
       }
 
-      if ((this._reader.ValueAsString as string) === DxfFileToken.EndTable) {
-        this._reader.ReadNext();
+      if ((this._reader.valueAsString as string) === DxfFileToken.endTable) {
+        this._reader.readNext();
       } else {
-        throw new DxfException(`Unexpected token at the end of a table: ${this._reader.ValueAsString}`, this._reader.Position);
+        throw new DxfException(`Unexpected token at the end of a table: ${this._reader.valueAsString}`, this._reader.position);
       }
     }
   }
 
-  private readTable(): void {
+  private _readTable(): void {
     // Debug.Assert(this._reader.ValueAsString == DxfFileToken.TableEntry);
 
-    this._reader.ReadNext();
+    this._reader.readNext();
 
     let nentries = 0;
     let template: CadTemplate | null = null;
@@ -96,16 +96,16 @@ export class DxfTablesSectionReader extends DxfSectionReaderBase {
     const commonData = this.readCommonObjectData() as { name: string | null, handle: number, ownerHandle: number | null, xdictHandle: number | null, reactors: Set<number> };
     const { name, handle, ownerHandle, xdictHandle, reactors } = commonData;
 
-    if (this._reader.DxfCode === DxfCode.Subclass) {
-      while (this._reader.Code !== DxfCode.Start) {
-        switch (this._reader.Code as number) {
+    if (this._reader.dxfCode === DxfCode.Subclass) {
+      while (this._reader.code !== DxfCode.Start) {
+        switch (this._reader.code as number) {
           case 70:
-            nentries = this._reader.ValueAsInt;
+            nentries = this._reader.valueAsInt;
             break;
           case 100:
-            if (this._reader.ValueAsString === DxfSubclassMarker.DimensionStyleTable) {
-              while (this._reader.Code !== DxfCode.Start) {
-                this._reader.ReadNext();
+            if (this._reader.valueAsString === DxfSubclassMarker.dimensionStyleTable) {
+              while (this._reader.code !== DxfCode.Start) {
+                this._reader.readNext();
               }
               break;
             }
@@ -115,76 +115,76 @@ export class DxfTablesSectionReader extends DxfSectionReaderBase {
             this.readExtendedData(edata);
             break;
           default:
-            this._builder.Notify(`[AcDbSymbolTable] Unhandled dxf code ${this._reader.Code} at line ${this._reader.Position}.`);
+            this._builder.notify(`[AcDbSymbolTable] Unhandled dxf code ${this._reader.code} at line ${this._reader.position}.`);
             break;
         }
 
-        if (this._reader.Code === DxfCode.Start) {
+        if (this._reader.code === DxfCode.Start) {
           break;
         }
 
-        this._reader.ReadNext();
+        this._reader.readNext();
       }
-    } else if (this._reader.ValueAsString === DxfFileToken.EndTable) {
+    } else if (this._reader.valueAsString === DxfFileToken.endTable) {
       return;
     } else {
-      this._reader.ReadNext();
+      this._reader.readNext();
     }
 
     switch (name) {
-      case DxfFileToken.TableAppId:
+      case DxfFileToken.tableAppId:
         template = new CadTableTemplate(new AppIdsTable());
-        this.readEntries(template as CadTableTemplate<AppId>);
-        template.CadObject.handle = handle;
-        this._builder.AppIds = template.CadObject as AppIdsTable;
+        this._readEntries(template as CadTableTemplate<AppId>);
+        template.cadObject.handle = handle;
+        this._builder.appIds = template.cadObject as AppIdsTable;
         break;
-      case DxfFileToken.TableBlockRecord:
+      case DxfFileToken.tableBlockRecord:
         template = new CadBlockCtrlObjectTemplate(new BlockRecordsTable());
-        this.readEntries(template as CadBlockCtrlObjectTemplate);
-        template.CadObject.handle = handle;
-        this._builder.BlockRecords = template.CadObject as BlockRecordsTable;
+        this._readEntries(template as CadBlockCtrlObjectTemplate);
+        template.cadObject.handle = handle;
+        this._builder.blockRecords = template.cadObject as BlockRecordsTable;
         break;
-      case DxfFileToken.TableVport:
+      case DxfFileToken.tableVport:
         template = new CadTableTemplate(new VPortsTable());
-        this.readEntries(template as CadTableTemplate<VPort>);
-        template.CadObject.handle = handle;
-        this._builder.VPorts = template.CadObject as VPortsTable;
+        this._readEntries(template as CadTableTemplate<VPort>);
+        template.cadObject.handle = handle;
+        this._builder.vPorts = template.cadObject as VPortsTable;
         break;
-      case DxfFileToken.TableLinetype:
+      case DxfFileToken.tableLinetype:
         template = new CadTableTemplate(new LineTypesTable());
-        this.readEntries(template as CadTableTemplate<LineType>);
-        template.CadObject.handle = handle;
-        this._builder.LineTypesTable = template.CadObject as LineTypesTable;
+        this._readEntries(template as CadTableTemplate<LineType>);
+        template.cadObject.handle = handle;
+        this._builder.lineTypesTable = template.cadObject as LineTypesTable;
         break;
-      case DxfFileToken.TableLayer:
+      case DxfFileToken.tableLayer:
         template = new CadTableTemplate(new LayersTable());
-        this.readEntries(template as CadTableTemplate<Layer>);
-        template.CadObject.handle = handle;
-        this._builder.Layers = template.CadObject as LayersTable;
+        this._readEntries(template as CadTableTemplate<Layer>);
+        template.cadObject.handle = handle;
+        this._builder.layers = template.cadObject as LayersTable;
         break;
-      case DxfFileToken.TableStyle:
+      case DxfFileToken.tableStyle:
         template = new CadTableTemplate(new TextStylesTable());
-        this.readEntries(template as CadTableTemplate<TextStyle>);
-        template.CadObject.handle = handle;
-        this._builder.TextStyles = template.CadObject as TextStylesTable;
+        this._readEntries(template as CadTableTemplate<TextStyle>);
+        template.cadObject.handle = handle;
+        this._builder.textStyles = template.cadObject as TextStylesTable;
         break;
-      case DxfFileToken.TableView:
+      case DxfFileToken.tableView:
         template = new CadTableTemplate(new ViewsTable());
-        this.readEntries(template as CadTableTemplate<View>);
-        template.CadObject.handle = handle;
-        this._builder.Views = template.CadObject as ViewsTable;
+        this._readEntries(template as CadTableTemplate<View>);
+        template.cadObject.handle = handle;
+        this._builder.views = template.cadObject as ViewsTable;
         break;
-      case DxfFileToken.TableUcs:
+      case DxfFileToken.tableUcs:
         template = new CadTableTemplate(new UCSTable());
-        this.readEntries(template as CadTableTemplate<UCS>);
-        template.CadObject.handle = handle;
-        this._builder.UCSs = template.CadObject as UCSTable;
+        this._readEntries(template as CadTableTemplate<UCS>);
+        template.cadObject.handle = handle;
+        this._builder.ucSs = template.cadObject as UCSTable;
         break;
-      case DxfFileToken.TableDimstyle:
+      case DxfFileToken.tableDimstyle:
         template = new CadTableTemplate(new DimensionStylesTable());
-        this.readEntries(template as CadTableTemplate<DimensionStyle>);
-        template.CadObject.handle = handle;
-        this._builder.DimensionStyles = template.CadObject as DimensionStylesTable;
+        this._readEntries(template as CadTableTemplate<DimensionStyle>);
+        template.cadObject.handle = handle;
+        this._builder.dimensionStyles = template.cadObject as DimensionStylesTable;
         break;
       default:
         throw new DxfException(`Unknown table name ${name}`);
@@ -192,53 +192,53 @@ export class DxfTablesSectionReader extends DxfSectionReaderBase {
 
     // Debug.Assert(ownerHandle == null || ownerHandle === 0);
 
-    template.OwnerHandle = ownerHandle ?? null;
-    template.XDictHandle = xdictHandle;
-    template.ReactorsHandles = reactors;
-    template.EDataTemplateByAppName = edata;
+    template.ownerHandle = ownerHandle ?? null;
+    template.xDictHandle = xdictHandle;
+    template.reactorsHandles = reactors;
+    template.eDataTemplateByAppName = edata;
 
-    this._builder.AddTemplate(template);
+    this._builder.addTemplate(template);
   }
 
-  private readEntries<T extends TableEntry>(tableTemplate: CadTableTemplate<T>): void {
-    while (this._reader.ValueAsString !== DxfFileToken.EndTable) {
-      this._reader.ReadNext();
+  private _readEntries<T extends TableEntry>(tableTemplate: CadTableTemplate<T>): void {
+    while (this._reader.valueAsString !== DxfFileToken.endTable) {
+      this._reader.readNext();
 
       let template: ICadTableEntryTemplate | null = null;
 
-      switch (tableTemplate.CadObject.objectName) {
-        case DxfFileToken.TableAppId:
-          template = this.readTableEntry(new CadTableEntryTemplate(new AppId()), this.readAppId.bind(this));
+      switch (tableTemplate.cadObject.objectName) {
+        case DxfFileToken.tableAppId:
+          template = this._readTableEntry(new CadTableEntryTemplate(new AppId()), this._readAppId.bind(this));
           break;
-        case DxfFileToken.TableBlockRecord: {
+        case DxfFileToken.tableBlockRecord: {
           const block = new CadBlockRecordTemplate();
-          template = this.readTableEntry(block, this.readBlockRecord.bind(this));
+          template = this._readTableEntry(block, this._readBlockRecord.bind(this));
 
-          if (block.CadObject.name.toUpperCase() === BlockRecord.ModelSpaceName.toUpperCase()) {
-            this._builder.ModelSpaceTemplate = block;
+          if (block.cadObject.name.toUpperCase() === BlockRecord.modelSpaceName.toUpperCase()) {
+            this._builder.modelSpaceTemplate = block;
           }
           break;
         }
-        case DxfFileToken.TableDimstyle:
-          template = this.readTableEntry(new CadDimensionStyleTemplate(), this.readDimensionStyle.bind(this));
+        case DxfFileToken.tableDimstyle:
+          template = this._readTableEntry(new CadDimensionStyleTemplate(), this._readDimensionStyle.bind(this));
           break;
-        case DxfFileToken.TableLayer:
-          template = this.readTableEntry(new CadLayerTemplate(), this.readLayer.bind(this));
+        case DxfFileToken.tableLayer:
+          template = this._readTableEntry(new CadLayerTemplate(), this._readLayer.bind(this));
           break;
-        case DxfFileToken.TableLinetype:
-          template = this.readTableEntry(new CadLineTypeTemplate(), this.readLineType.bind(this));
+        case DxfFileToken.tableLinetype:
+          template = this._readTableEntry(new CadLineTypeTemplate(), this._readLineType.bind(this));
           break;
-        case DxfFileToken.TableStyle:
-          template = this.readTableEntry(new CadTableEntryTemplate(new TextStyle()), this.readTextStyle.bind(this));
+        case DxfFileToken.tableStyle:
+          template = this._readTableEntry(new CadTableEntryTemplate(new TextStyle()), this._readTextStyle.bind(this));
           break;
-        case DxfFileToken.TableUcs:
-          template = this.readTableEntry(new CadUcsTemplate(), this.readUcs.bind(this));
+        case DxfFileToken.tableUcs:
+          template = this._readTableEntry(new CadUcsTemplate(), this._readUcs.bind(this));
           break;
-        case DxfFileToken.TableView:
-          template = this.readTableEntry(new CadViewTemplate(), this.readView.bind(this));
+        case DxfFileToken.tableView:
+          template = this._readTableEntry(new CadViewTemplate(), this._readView.bind(this));
           break;
-        case DxfFileToken.TableVport:
-          template = this.readTableEntry(new CadVPortTemplate(), this.readVPort.bind(this));
+        case DxfFileToken.tableVport:
+          template = this._readTableEntry(new CadVPortTemplate(), this._readVPort.bind(this));
           break;
         default:
           // Debug.Fail
@@ -246,49 +246,51 @@ export class DxfTablesSectionReader extends DxfSectionReaderBase {
       }
 
       if (template !== null) {
-        const entry = template.CadObject as T;
-        if (tableTemplate.CadObject.contains(template.Name) && this._builder.Configuration.Failsafe) {
-          this._builder.Notify(`Duplicated entry with name ${template.Name} found in ${template.CadObject.objectName}`, NotificationType.Warning);
+        const entry = template.cadObject as T;
+        if (tableTemplate.cadObject.contains(template.name) && this._builder.configuration.failsafe) {
+          this._builder.notify(`Duplicated entry with name ${template.name} found in ${template.cadObject.objectName}`, NotificationType.Warning);
 
-          tableTemplate.CadObject.remove(template.Name);
-          tableTemplate.CadObject.add(entry);
+          tableTemplate.cadObject.remove(template.name);
+          tableTemplate.cadObject.add(entry);
         } else {
-          tableTemplate.CadObject.add(entry);
+          tableTemplate.cadObject.add(entry);
         }
 
-        this._builder.AddTemplate(template);
+        this._builder.addTemplate(template);
       }
     }
   }
 
-  private readTableEntry<TTemplate extends CadTableEntryTemplate>(template: TTemplate, readEntry: ReadEntryDelegate<TTemplate>): ICadTableEntryTemplate {
-    const map = DxfMap.create(template.CadObject.constructor);
+  private _readTableEntry<TTemplate extends CadTableEntryTemplate>(template: TTemplate, readEntry: ReadEntryDelegate<TTemplate>): ICadTableEntryTemplate {
+    const map = DxfMap.create(template.cadObject.constructor);
 
-    while (this._reader.DxfCode !== DxfCode.Start) {
-      if (!readEntry(template, map.subClasses.get(template.CadObject.subclassMarker)!)) {
+    while (this._reader.dxfCode !== DxfCode.Start) {
+      if (!readEntry(template, map.subClasses.get(template.cadObject.subclassMarker)!)) {
         const isExtendedData = { value: false };
-        this.readCommonTableEntryCodes(template, isExtendedData, map);
+        this._readCommonTableEntryCodes(template, isExtendedData, map);
         if (isExtendedData.value) {
           continue;
         }
       }
 
-      if (this._reader.Code !== DxfCode.Start) {
-        this._reader.ReadNext();
+      if (this._reader.code !== DxfCode.Start) {
+        this._reader.readNext();
       }
     }
 
     return template;
   }
 
-  private readCommonTableEntryCodes<T extends TableEntry>(template: CadTableEntryTemplate<T>, isExtendedData: { value: boolean }, map?: DxfMap): void {
+  private _readCommonTableEntryCodes<T extends TableEntry>(template: CadTableEntryTemplate<T>, isExtendedData: { value: boolean }, map?: DxfMap): void {
     isExtendedData.value = false;
-    switch (this._reader.Code as number) {
-      case 2:
-        template.CadObject.name = this._reader.ValueAsString;
+    switch (this._reader.code as number) {
+      case 2: {
+        const name = this._reader.valueAsString || (template.cadObject instanceof VPort ? VPort.defaultName : '');
+        template.cadObject.name = name;
         break;
+      }
       case 70:
-        template.CadObject.flags = this._reader.ValueAsUShort as StandardFlags;
+        template.cadObject.flags = this._reader.valueAsUShort as StandardFlags;
         break;
       case 100:
         // Debug.Assert
@@ -299,300 +301,300 @@ export class DxfTablesSectionReader extends DxfSectionReaderBase {
     }
   }
 
-  private readAppId(template: CadTableEntryTemplate<AppId>, map: DxfClassMap): boolean {
-    switch (this._reader.Code as number) {
+  private _readAppId(template: CadTableEntryTemplate<AppId>, map: DxfClassMap): boolean {
+    switch (this._reader.code as number) {
       default:
-        return this.tryAssignCurrentValue(template.CadObject, map);
+        return this.tryAssignCurrentValue(template.cadObject, map);
     }
   }
 
-  private readBlockRecord(template: CadBlockRecordTemplate, map: DxfClassMap): boolean {
-    switch (this._reader.Code as number) {
+  private _readBlockRecord(template: CadBlockRecordTemplate, map: DxfClassMap): boolean {
+    switch (this._reader.code as number) {
       case 340:
-        template.LayoutHandle = this._reader.ValueAsHandle;
+        template.layoutHandle = this._reader.valueAsHandle;
         return true;
       default:
-        return this.tryAssignCurrentValue(template.CadObject, map);
+        return this.tryAssignCurrentValue(template.cadObject, map);
     }
   }
 
-  private readDimensionStyle(template: CadDimensionStyleTemplate, map: DxfClassMap): boolean {
-    const dimensionStyle = template.CadObject;
+  private _readDimensionStyle(template: CadDimensionStyleTemplate, map: DxfClassMap): boolean {
+    const dimensionStyle = template.cadObject;
 
-    switch (this._reader.Code as number) {
+    switch (this._reader.code as number) {
       case 3:
-        dimensionStyle.postFix = this._reader.ValueAsString;
+        dimensionStyle.postFix = this._reader.valueAsString;
         return true;
       case 4:
-        dimensionStyle.alternateDimensioningSuffix = this._reader.ValueAsString;
+        dimensionStyle.alternateDimensioningSuffix = this._reader.valueAsString;
         return true;
       case 5:
-        template.DIMBL_Name = this._reader.ValueAsString;
+        template.dimbL_Name = this._reader.valueAsString;
         return true;
       case 6:
-        template.DIMBLK1_Name = this._reader.ValueAsString;
+        template.dimblK1_Name = this._reader.valueAsString;
         return true;
       case 7:
-        template.DIMBLK2_Name = this._reader.ValueAsString;
+        template.dimblK2_Name = this._reader.valueAsString;
         return true;
       case 40:
         try {
-          dimensionStyle.scaleFactor = this._reader.ValueAsDouble;
+          dimensionStyle.scaleFactor = this._reader.valueAsDouble;
         } catch (ex: unknown) {
-          dimensionStyle.scaleFactor = MathHelper.Epsilon;
-          this._builder.Notify(`[${dimensionStyle.subclassMarker}] Assignation error for scaleFactor.`, NotificationType.Warning, ex instanceof Error ? ex : null);
+          dimensionStyle.scaleFactor = MathHelper.epsilon;
+          this._builder.notify(`[${dimensionStyle.subclassMarker}] Assignation error for scaleFactor.`, NotificationType.Warning, ex instanceof Error ? ex : null);
         }
         return true;
       case 41:
         try {
-          dimensionStyle.arrowSize = this._reader.ValueAsDouble;
+          dimensionStyle.arrowSize = this._reader.valueAsDouble;
         } catch (ex: unknown) {
-          this._builder.Notify(`[${dimensionStyle.subclassMarker}] Assignation error for arrowSize.`, NotificationType.Warning, ex instanceof Error ? ex : null);
+          this._builder.notify(`[${dimensionStyle.subclassMarker}] Assignation error for arrowSize.`, NotificationType.Warning, ex instanceof Error ? ex : null);
         }
         return true;
       case 42:
-        dimensionStyle.extensionLineOffset = this._reader.ValueAsDouble;
+        dimensionStyle.extensionLineOffset = this._reader.valueAsDouble;
         return true;
       case 43:
-        dimensionStyle.dimensionLineIncrement = this._reader.ValueAsDouble;
+        dimensionStyle.dimensionLineIncrement = this._reader.valueAsDouble;
         return true;
       case 44:
-        dimensionStyle.extensionLineExtension = this._reader.ValueAsDouble;
+        dimensionStyle.extensionLineExtension = this._reader.valueAsDouble;
         return true;
       case 45:
-        dimensionStyle.rounding = this._reader.ValueAsDouble;
+        dimensionStyle.rounding = this._reader.valueAsDouble;
         return true;
       case 46:
-        dimensionStyle.dimensionLineExtension = this._reader.ValueAsDouble;
+        dimensionStyle.dimensionLineExtension = this._reader.valueAsDouble;
         return true;
       case 47:
-        dimensionStyle.plusTolerance = this._reader.ValueAsDouble;
+        dimensionStyle.plusTolerance = this._reader.valueAsDouble;
         return true;
       case 48:
-        dimensionStyle.minusTolerance = this._reader.ValueAsDouble;
+        dimensionStyle.minusTolerance = this._reader.valueAsDouble;
         return true;
       case 49:
-        dimensionStyle.fixedExtensionLineLength = this._reader.ValueAsDouble;
+        dimensionStyle.fixedExtensionLineLength = this._reader.valueAsDouble;
         return true;
       case 50:
         try {
-          dimensionStyle.joggedRadiusDimensionTransverseSegmentAngle = this._reader.ValueAsAngle;
+          dimensionStyle.joggedRadiusDimensionTransverseSegmentAngle = this._reader.valueAsAngle;
         } catch (ex: unknown) {
-          this._builder.Notify(`[${dimensionStyle.subclassMarker}] Assignation error for joggedRadiusDimensionTransverseSegmentAngle.`, NotificationType.Warning, ex instanceof Error ? ex : null);
+          this._builder.notify(`[${dimensionStyle.subclassMarker}] Assignation error for joggedRadiusDimensionTransverseSegmentAngle.`, NotificationType.Warning, ex instanceof Error ? ex : null);
         }
         return true;
       case 69:
-        dimensionStyle.textBackgroundFillMode = this._reader.ValueAsShort as DimensionTextBackgroundFillMode;
+        dimensionStyle.textBackgroundFillMode = this._reader.valueAsShort as DimensionTextBackgroundFillMode;
         return true;
       case 70:
-        if (!template.DxfFlagsAssigned) {
-          template.DxfFlagsAssigned = true;
+        if (!template.dxfFlagsAssigned) {
+          template.dxfFlagsAssigned = true;
           return true;
-        } else if (this._reader.ValueAsShort >= 0) {
-          dimensionStyle.textBackgroundColor = new Color(this._reader.ValueAsShort);
+        } else if (this._reader.valueAsShort >= 0) {
+          dimensionStyle.textBackgroundColor = new Color(this._reader.valueAsShort);
         }
         return true;
       case 71:
-        dimensionStyle.generateTolerances = this._reader.ValueAsBool;
+        dimensionStyle.generateTolerances = this._reader.valueAsBool;
         return true;
       case 72:
-        dimensionStyle.limitsGeneration = this._reader.ValueAsBool;
+        dimensionStyle.limitsGeneration = this._reader.valueAsBool;
         return true;
       case 73:
-        dimensionStyle.textInsideHorizontal = this._reader.ValueAsBool;
+        dimensionStyle.textInsideHorizontal = this._reader.valueAsBool;
         return true;
       case 74:
-        dimensionStyle.textOutsideHorizontal = this._reader.ValueAsBool;
+        dimensionStyle.textOutsideHorizontal = this._reader.valueAsBool;
         return true;
       case 75:
-        dimensionStyle.suppressFirstExtensionLine = this._reader.ValueAsBool;
+        dimensionStyle.suppressFirstExtensionLine = this._reader.valueAsBool;
         return true;
       case 76:
-        dimensionStyle.suppressSecondExtensionLine = this._reader.ValueAsBool;
+        dimensionStyle.suppressSecondExtensionLine = this._reader.valueAsBool;
         return true;
       case 77:
-        dimensionStyle.textVerticalAlignment = this._reader.ValueAsShort as DimensionTextVerticalAlignment;
+        dimensionStyle.textVerticalAlignment = this._reader.valueAsShort as DimensionTextVerticalAlignment;
         return true;
       case 78:
-        dimensionStyle.zeroHandling = this._reader.ValueAsShort as ZeroHandling;
+        dimensionStyle.zeroHandling = this._reader.valueAsShort as ZeroHandling;
         return true;
       case 79:
-        dimensionStyle.angularZeroHandling = this._reader.ValueAsShort as AngularZeroHandling;
+        dimensionStyle.angularZeroHandling = this._reader.valueAsShort as AngularZeroHandling;
         return true;
       case 90:
-        dimensionStyle.arcLengthSymbolPosition = this._reader.ValueAsShort as ArcLengthSymbolPosition;
+        dimensionStyle.arcLengthSymbolPosition = this._reader.valueAsShort as ArcLengthSymbolPosition;
         return true;
       case 105:
-        dimensionStyle.handle = this._reader.ValueAsHandle;
+        dimensionStyle.handle = this._reader.valueAsHandle;
         return true;
       case 140:
         try {
-          dimensionStyle.textHeight = this._reader.ValueAsDouble;
+          dimensionStyle.textHeight = this._reader.valueAsDouble;
         } catch (ex: unknown) {
-          this._builder.Notify(`[${dimensionStyle.subclassMarker}] Assignation error for textHeight.`, NotificationType.Warning, ex instanceof Error ? ex : null);
+          this._builder.notify(`[${dimensionStyle.subclassMarker}] Assignation error for textHeight.`, NotificationType.Warning, ex instanceof Error ? ex : null);
         }
         return true;
       case 141:
-        dimensionStyle.centerMarkSize = this._reader.ValueAsDouble;
+        dimensionStyle.centerMarkSize = this._reader.valueAsDouble;
         return true;
       case 142:
-        dimensionStyle.tickSize = this._reader.ValueAsDouble;
+        dimensionStyle.tickSize = this._reader.valueAsDouble;
         return true;
       case 143:
-        dimensionStyle.alternateUnitScaleFactor = this._reader.ValueAsDouble;
+        dimensionStyle.alternateUnitScaleFactor = this._reader.valueAsDouble;
         return true;
       case 144:
-        dimensionStyle.linearScaleFactor = this._reader.ValueAsDouble;
+        dimensionStyle.linearScaleFactor = this._reader.valueAsDouble;
         return true;
       case 145:
-        dimensionStyle.textVerticalPosition = this._reader.ValueAsDouble;
+        dimensionStyle.textVerticalPosition = this._reader.valueAsDouble;
         return true;
       case 146:
-        dimensionStyle.toleranceScaleFactor = this._reader.ValueAsDouble;
+        dimensionStyle.toleranceScaleFactor = this._reader.valueAsDouble;
         return true;
       case 147:
-        dimensionStyle.dimensionLineGap = this._reader.ValueAsDouble;
+        dimensionStyle.dimensionLineGap = this._reader.valueAsDouble;
         return true;
       case 148:
-        dimensionStyle.alternateUnitRounding = this._reader.ValueAsDouble;
+        dimensionStyle.alternateUnitRounding = this._reader.valueAsDouble;
         return true;
       case 170:
-        dimensionStyle.alternateUnitDimensioning = this._reader.ValueAsBool;
+        dimensionStyle.alternateUnitDimensioning = this._reader.valueAsBool;
         return true;
       case 171:
-        dimensionStyle.alternateUnitDecimalPlaces = this._reader.ValueAsShort;
+        dimensionStyle.alternateUnitDecimalPlaces = this._reader.valueAsShort;
         return true;
       case 172:
-        dimensionStyle.textOutsideExtensions = this._reader.ValueAsBool;
+        dimensionStyle.textOutsideExtensions = this._reader.valueAsBool;
         return true;
       case 173:
-        dimensionStyle.separateArrowBlocks = this._reader.ValueAsBool;
+        dimensionStyle.separateArrowBlocks = this._reader.valueAsBool;
         return true;
       case 174:
-        dimensionStyle.textInsideExtensions = this._reader.ValueAsBool;
+        dimensionStyle.textInsideExtensions = this._reader.valueAsBool;
         return true;
       case 175:
-        dimensionStyle.suppressOutsideExtensions = this._reader.ValueAsBool;
+        dimensionStyle.suppressOutsideExtensions = this._reader.valueAsBool;
         return true;
       case 176:
-        dimensionStyle.dimensionLineColor = new Color(this._reader.ValueAsShort);
+        dimensionStyle.dimensionLineColor = new Color(this._reader.valueAsShort);
         return true;
       case 177:
-        dimensionStyle.extensionLineColor = new Color(this._reader.ValueAsShort);
+        dimensionStyle.extensionLineColor = new Color(this._reader.valueAsShort);
         return true;
       case 178:
-        dimensionStyle.textColor = new Color(this._reader.ValueAsShort);
+        dimensionStyle.textColor = new Color(this._reader.valueAsShort);
         return true;
       case 179:
-        dimensionStyle.angularDecimalPlaces = this._reader.ValueAsShort;
+        dimensionStyle.angularDecimalPlaces = this._reader.valueAsShort;
         return true;
       case 270:
-        dimensionStyle.linearUnitFormat = this._reader.ValueAsShort as LinearUnitFormat;
+        dimensionStyle.linearUnitFormat = this._reader.valueAsShort as LinearUnitFormat;
         return true;
       case 271:
-        dimensionStyle.decimalPlaces = this._reader.ValueAsShort;
+        dimensionStyle.decimalPlaces = this._reader.valueAsShort;
         return true;
       case 272:
-        dimensionStyle.toleranceDecimalPlaces = this._reader.ValueAsShort;
+        dimensionStyle.toleranceDecimalPlaces = this._reader.valueAsShort;
         return true;
       case 273:
-        dimensionStyle.alternateUnitFormat = this._reader.ValueAsShort as LinearUnitFormat;
+        dimensionStyle.alternateUnitFormat = this._reader.valueAsShort as LinearUnitFormat;
         return true;
       case 274:
-        dimensionStyle.alternateUnitToleranceDecimalPlaces = this._reader.ValueAsShort;
+        dimensionStyle.alternateUnitToleranceDecimalPlaces = this._reader.valueAsShort;
         return true;
       case 275:
-        dimensionStyle.angularUnit = this._reader.ValueAsShort as AngularUnitFormat;
+        dimensionStyle.angularUnit = this._reader.valueAsShort as AngularUnitFormat;
         return true;
       case 276:
-        dimensionStyle.fractionFormat = this._reader.ValueAsShort as FractionFormat;
+        dimensionStyle.fractionFormat = this._reader.valueAsShort as FractionFormat;
         return true;
       case 277:
-        dimensionStyle.linearUnitFormat = this._reader.ValueAsShort as LinearUnitFormat;
+        dimensionStyle.linearUnitFormat = this._reader.valueAsShort as LinearUnitFormat;
         return true;
       case 278:
-        dimensionStyle.decimalSeparator = String.fromCharCode(this._reader.ValueAsShort);
+        dimensionStyle.decimalSeparator = String.fromCharCode(this._reader.valueAsShort);
         return true;
       case 279:
-        dimensionStyle.textMovement = this._reader.ValueAsShort as TextMovement;
+        dimensionStyle.textMovement = this._reader.valueAsShort as TextMovement;
         return true;
       case 280:
-        dimensionStyle.textHorizontalAlignment = this._reader.ValueAsShort as DimensionTextHorizontalAlignment;
+        dimensionStyle.textHorizontalAlignment = this._reader.valueAsShort as DimensionTextHorizontalAlignment;
         return true;
       case 281:
-        dimensionStyle.suppressFirstDimensionLine = this._reader.ValueAsBool;
+        dimensionStyle.suppressFirstDimensionLine = this._reader.valueAsBool;
         return true;
       case 282:
-        dimensionStyle.suppressSecondDimensionLine = this._reader.ValueAsBool;
+        dimensionStyle.suppressSecondDimensionLine = this._reader.valueAsBool;
         return true;
       case 283:
-        dimensionStyle.toleranceAlignment = this._reader.ValueAsShort as ToleranceAlignment;
+        dimensionStyle.toleranceAlignment = this._reader.valueAsShort as ToleranceAlignment;
         return true;
       case 284:
-        dimensionStyle.toleranceZeroHandling = this._reader.ValueAsShort as ZeroHandling;
+        dimensionStyle.toleranceZeroHandling = this._reader.valueAsShort as ZeroHandling;
         return true;
       case 285:
-        dimensionStyle.alternateUnitZeroHandling = this._reader.ValueAsShort as ZeroHandling;
+        dimensionStyle.alternateUnitZeroHandling = this._reader.valueAsShort as ZeroHandling;
         return true;
       case 286:
-        dimensionStyle.alternateUnitToleranceZeroHandling = this._reader.ValueAsShort as ZeroHandling;
+        dimensionStyle.alternateUnitToleranceZeroHandling = this._reader.valueAsShort as ZeroHandling;
         return true;
       case 287:
-        dimensionStyle.dimensionFit = this._reader.ValueAsShort;
+        dimensionStyle.dimensionFit = this._reader.valueAsShort;
         return true;
       case 288:
-        dimensionStyle.cursorUpdate = this._reader.ValueAsBool;
+        dimensionStyle.cursorUpdate = this._reader.valueAsBool;
         return true;
       case 289:
-        dimensionStyle.dimensionTextArrowFit = this._reader.ValueAsShort as TextArrowFitType;
+        dimensionStyle.dimensionTextArrowFit = this._reader.valueAsShort as TextArrowFitType;
         return true;
       case 290:
-        dimensionStyle.isExtensionLineLengthFixed = this._reader.ValueAsBool;
+        dimensionStyle.isExtensionLineLengthFixed = this._reader.valueAsBool;
         return true;
       case 340:
-        template.TextStyleHandle = this._reader.ValueAsHandle;
+        template.textStyleHandle = this._reader.valueAsHandle;
         return true;
       case 341:
-        template.DIMLDRBLK = this._reader.ValueAsHandle;
+        template.dimldrblk = this._reader.valueAsHandle;
         return true;
       case 342:
-        template.DIMBLK = this._reader.ValueAsHandle;
+        template.dimblk = this._reader.valueAsHandle;
         return true;
       case 343:
-        template.DIMBLK1 = this._reader.ValueAsHandle;
+        template.dimblk1 = this._reader.valueAsHandle;
         return true;
       case 344:
-        template.DIMBLK2 = this._reader.ValueAsHandle;
+        template.dimblk2 = this._reader.valueAsHandle;
         return true;
       case 345:
-        template.Dimltype = this._reader.ValueAsHandle;
+        template.dimltype = this._reader.valueAsHandle;
         return true;
       case 346:
-        template.Dimltex1 = this._reader.ValueAsHandle;
+        template.dimltex1 = this._reader.valueAsHandle;
         return true;
       case 347:
-        template.Dimltex2 = this._reader.ValueAsHandle;
+        template.dimltex2 = this._reader.valueAsHandle;
         return true;
       case 371:
-        dimensionStyle.dimensionLineWeight = this._reader.ValueAsShort as LineWeightType;
+        dimensionStyle.dimensionLineWeight = this._reader.valueAsShort as LineWeightType;
         return true;
       case 372:
-        dimensionStyle.extensionLineWeight = this._reader.ValueAsShort as LineWeightType;
+        dimensionStyle.extensionLineWeight = this._reader.valueAsShort as LineWeightType;
         return true;
       default:
         return false;
     }
   }
 
-  private readLayer(template: CadLayerTemplate, map: DxfClassMap): boolean {
-    const layer = template.CadObject;
+  private _readLayer(template: CadLayerTemplate, map: DxfClassMap): boolean {
+    const layer = template.cadObject;
 
-    switch (this._reader.Code as number) {
+    switch (this._reader.code as number) {
       case 6:
-        template.LineTypeName = this._reader.ValueAsString;
+        template.lineTypeName = this._reader.valueAsString;
         return true;
       case 62: {
-        let index = this._reader.ValueAsShort;
+        let index = this._reader.valueAsShort;
         if (index < 0) {
           layer.isOn = false;
           index = Math.abs(index);
@@ -600,126 +602,126 @@ export class DxfTablesSectionReader extends DxfSectionReaderBase {
 
         const color = new Color(index);
         if (color.isByBlock || color.isByLayer) {
-          this._builder.Notify(`Wrong index ${index} for layer ${layer.name}`, NotificationType.Warning);
+          this._builder.notify(`Wrong index ${index} for layer ${layer.name}`, NotificationType.Warning);
         } else {
           layer.color = new Color(index);
         }
         return true;
       }
       case 347:
-        template.MaterialHandle = this._reader.ValueAsHandle;
+        template.materialHandle = this._reader.valueAsHandle;
         return true;
       case 348:
         return true;
       case 390:
-        layer.plotStyleName = this._reader.ValueAsHandle;
+        layer.plotStyleName = this._reader.valueAsHandle;
         return true;
       case 430:
-        template.TrueColorName = this._reader.ValueAsString;
+        template.trueColorName = this._reader.valueAsString;
         return true;
       default:
-        return this.tryAssignCurrentValue(template.CadObject, map);
+        return this.tryAssignCurrentValue(template.cadObject, map);
     }
   }
 
-  private readLineType(template: CadLineTypeTemplate, map: DxfClassMap): boolean {
-    switch (this._reader.Code as number) {
+  private _readLineType(template: CadLineTypeTemplate, map: DxfClassMap): boolean {
+    switch (this._reader.code as number) {
       case 40:
-        template.TotalLen = this._reader.ValueAsDouble;
+        template.totalLen = this._reader.valueAsDouble;
         return true;
       case 49:
         do {
-          template.SegmentTemplates.push(this.readLineTypeSegment());
-        } while (this._reader.Code === 49);
+          template.segmentTemplates.push(this._readLineTypeSegment());
+        } while (this._reader.code === 49);
         return true;
       case 73:
         return true;
       default:
-        return this.tryAssignCurrentValue(template.CadObject, map);
+        return this.tryAssignCurrentValue(template.cadObject, map);
     }
   }
 
-  private readLineTypeSegment(): CadLineTypeTemplate.SegmentTemplate {
+  private _readLineTypeSegment(): CadLineTypeTemplate.SegmentTemplate {
     const template = new CadLineTypeTemplate.SegmentTemplate();
-    template.Segment.length = this._reader.ValueAsDouble;
+    template.segment.length = this._reader.valueAsDouble;
 
-    this._reader.ReadNext();
+    this._reader.readNext();
 
-    while (this._reader.Code !== 49 && this._reader.Code !== 0) {
-      switch (this._reader.Code as number) {
+    while (this._reader.code !== 49 && this._reader.code !== 0) {
+      switch (this._reader.code as number) {
         case 9:
-          template.Segment.text = this._reader.ValueAsString;
+          template.segment.text = this._reader.valueAsString;
           break;
         case 44:
-          template.Segment.offset = new XY(this._reader.ValueAsDouble, template.Segment.offset.y);
+          template.segment.offset = new XY(this._reader.valueAsDouble, template.segment.offset.y);
           break;
         case 45:
-          template.Segment.offset = new XY(template.Segment.offset.x, this._reader.ValueAsDouble);
+          template.segment.offset = new XY(template.segment.offset.x, this._reader.valueAsDouble);
           break;
         case 46:
-          template.Segment.scale = this._reader.ValueAsDouble;
+          template.segment.scale = this._reader.valueAsDouble;
           break;
         case 50:
-          template.Segment.rotation = this._reader.ValueAsAngle;
+          template.segment.rotation = this._reader.valueAsAngle;
           break;
         case 74:
-          template.Segment.shapeFlags = this._reader.ValueAsUShort as LineTypeShapeFlags;
+          template.segment.shapeFlags = this._reader.valueAsUShort as LineTypeShapeFlags;
           break;
         case 75:
-          template.Segment.shapeNumber = this._reader.ValueAsInt;
+          template.segment.shapeNumber = this._reader.valueAsInt;
           break;
         case 340:
           break;
         default:
-          this._builder.Notify(`[LineTypeSegment] Unhandled dxf code ${this._reader.Code} with value ${this._reader.ValueAsString}, position ${this._reader.Position}`, NotificationType.None);
+          this._builder.notify(`[LineTypeSegment] Unhandled dxf code ${this._reader.code} with value ${this._reader.valueAsString}, position ${this._reader.position}`, NotificationType.None);
           break;
       }
 
-      this._reader.ReadNext();
+      this._reader.readNext();
     }
 
     return template;
   }
 
-  private readTextStyle(template: CadTableEntryTemplate<TextStyle>, map: DxfClassMap): boolean {
-    switch (this._reader.Code as number) {
+  private _readTextStyle(template: CadTableEntryTemplate<TextStyle>, map: DxfClassMap): boolean {
+    switch (this._reader.code as number) {
       case 2:
-        if (this._reader.ValueAsString) {
-          template.CadObject.name = this._reader.ValueAsString;
+        if (this._reader.valueAsString) {
+          template.cadObject.name = this._reader.valueAsString;
         }
         return true;
       default:
-        return this.tryAssignCurrentValue(template.CadObject, map);
+        return this.tryAssignCurrentValue(template.cadObject, map);
     }
   }
 
-  private readUcs(template: CadUcsTemplate, map: DxfClassMap): boolean {
-    switch (this._reader.Code as number) {
+  private _readUcs(template: CadUcsTemplate, map: DxfClassMap): boolean {
+    switch (this._reader.code as number) {
       default:
-        return this.tryAssignCurrentValue(template.CadObject, map);
+        return this.tryAssignCurrentValue(template.cadObject, map);
     }
   }
 
-  private readView(template: CadViewTemplate, map: DxfClassMap): boolean {
-    switch (this._reader.Code as number) {
+  private _readView(template: CadViewTemplate, map: DxfClassMap): boolean {
+    switch (this._reader.code as number) {
       case 348:
-        template.VisualStyleHandle = this._reader.ValueAsHandle;
+        template.visualStyleHandle = this._reader.valueAsHandle;
         return true;
       default:
-        return this.tryAssignCurrentValue(template.CadObject, map);
+        return this.tryAssignCurrentValue(template.cadObject, map);
     }
   }
 
-  private readVPort(template: CadVPortTemplate, map: DxfClassMap): boolean {
-    switch (this._reader.Code as number) {
+  private _readVPort(template: CadVPortTemplate, map: DxfClassMap): boolean {
+    switch (this._reader.code as number) {
       case 65:
       case 73:
         return true;
       case 348:
-        template.StyleHandle = this._reader.ValueAsHandle;
+        template.styleHandle = this._reader.valueAsHandle;
         return true;
       default:
-        return this.tryAssignCurrentValue(template.CadObject, map);
+        return this.tryAssignCurrentValue(template.cadObject, map);
     }
   }
 }

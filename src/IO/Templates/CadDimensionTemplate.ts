@@ -9,52 +9,52 @@ import { CadDocumentBuilder } from '../CadDocumentBuilder.js';
 import { CadEntityTemplate } from './CadEntityTemplate.js';
 
 export class CadDimensionTemplate extends CadEntityTemplate {
-	StyleHandle: number | null = null;
+	styleHandle: number | null = null;
 
-	BlockHandle: number | null = null;
+	blockHandle: number | null = null;
 
-	BlockName: string | null = null;
+	blockName: string | null = null;
 
-	StyleName: string | null = null;
+	styleName: string | null = null;
 
 	constructor(dimension?: Dimension) {
 		super(dimension ?? new DimensionPlaceholder());
 	}
 
-	protected override build(builder: CadDocumentBuilder): void {
-		super.build(builder);
+	protected override _build(builder: CadDocumentBuilder): void {
+		super._build(builder);
 
-		const dimension = this.CadObject as Dimension;
+		const dimension = this.cadObject as Dimension;
 
-		const style = this.getTableReference<DimensionStyle>(builder, this.StyleHandle, this.StyleName ?? '');
+		const style = this.getTableReference<DimensionStyle>(builder, this.styleHandle, this.styleName ?? '');
 		if (style) {
 			dimension.style = style;
 		}
 
-		const block = this.getTableReference<BlockRecord>(builder, this.BlockHandle, this.BlockName ?? '');
+		const block = this.getTableReference<BlockRecord>(builder, this.blockHandle, this.blockName ?? '');
 		if (block) {
 			dimension.block = block;
 		}
 	}
 
-	SetDimensionFlags(flags: DimensionType): void {
-		const dimension = this.CadObject as Dimension;
+	setDimensionFlags(flags: DimensionType): void {
+		const dimension = this.cadObject as Dimension;
 		dimension.flags = flags;
 	}
 
-	SetDimensionObject(dimension: Dimension): void {
-		dimension.handle = this.CadObject.handle;
-		dimension.owner = this.CadObject.owner;
+	setDimensionObject(dimension: Dimension): void {
+		dimension.handle = this.cadObject.handle;
+		dimension.owner = this.cadObject.owner;
 
-		dimension.xDictionary = this.CadObject.xDictionary;
+		dimension.xDictionary = this.cadObject.xDictionary;
 
-		dimension.color = this.CadObject.color;
-		dimension.lineWeight = this.CadObject.lineWeight;
-		dimension.lineTypeScale = this.CadObject.lineTypeScale;
-		dimension.isInvisible = this.CadObject.isInvisible;
-		dimension.transparency = this.CadObject.transparency;
+		dimension.color = this.cadObject.color;
+		dimension.lineWeight = this.cadObject.lineWeight;
+		dimension.lineTypeScale = this.cadObject.lineTypeScale;
+		dimension.isInvisible = this.cadObject.isInvisible;
+		dimension.transparency = this.cadObject.transparency;
 
-		const source = this.CadObject as Dimension;
+		const source = this.cadObject as Dimension;
 
 		dimension.version = source.version;
 		dimension.definitionPoint = source.definitionPoint;
@@ -71,16 +71,16 @@ export class CadDimensionTemplate extends CadEntityTemplate {
 
 		dimension.flags = source.flags;
 
-		if (this.CadObject instanceof DimensionAligned &&
+		if (this.cadObject instanceof DimensionAligned &&
 			dimension instanceof DimensionLinear) {
-			const aligned = this.CadObject as DimensionAligned;
+			const aligned = this.cadObject as DimensionAligned;
 			const linear = dimension as DimensionLinear;
 			linear.firstPoint = aligned.firstPoint;
 			linear.secondPoint = aligned.secondPoint;
 			linear.extLineRotation = aligned.extLineRotation;
 		}
 
-		this.CadObject = dimension;
+		this.cadObject = dimension;
 	}
 }
 

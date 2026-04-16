@@ -17,28 +17,28 @@ export class CadDictionary extends NonGraphicalObject implements Iterable<NonGra
 
 	hardOwnerFlag: boolean = false;
 
-	override get objectName(): string { return DxfFileToken.ObjectDictionary; }
+	override get objectName(): string { return DxfFileToken.objectDictionary; }
 	override get objectType(): ObjectType { return ObjectType.DICTIONARY; }
-	override get subclassMarker(): string { return DxfSubclassMarker.Dictionary; }
+	override get subclassMarker(): string { return DxfSubclassMarker.dictionary; }
 
-	static readonly AcadColor = 'ACAD_COLOR';
-	static readonly AcadFieldList = 'ACAD_FIELDLIST';
-	static readonly AcadGroup = 'ACAD_GROUP';
-	static readonly AcadImageDict = 'ACAD_IMAGE_DICT';
-	static readonly AcadLayout = 'ACAD_LAYOUT';
-	static readonly AcadMaterial = 'ACAD_MATERIAL';
-	static readonly AcadMLeaderStyle = 'ACAD_MLEADERSTYLE';
-	static readonly AcadMLineStyle = 'ACAD_MLINESTYLE';
-	static readonly AcadPdfDefinitions = 'ACAD_PDFDEFINITIONS';
-	static readonly AcadPlotSettings = 'ACAD_PLOTSETTINGS';
-	static readonly AcadPlotStyleName = 'ACAD_PLOTSTYLENAME';
-	static readonly AcadScaleList = 'ACAD_SCALELIST';
-	static readonly AcadSortEnts = 'ACAD_SORTENTS';
-	static readonly AcadTableStyle = 'ACAD_TABLESTYLE';
-	static readonly AcadVisualStyle = 'ACAD_VISUALSTYLE';
-	static readonly GeographicData = 'ACAD_GEOGRAPHICDATA';
-	static readonly Root = 'ROOT';
-	static readonly VariableDictionary = 'AcDbVariableDictionary';
+	static readonly acadColor = 'ACAD_COLOR';
+	static readonly acadFieldList = 'ACAD_FIELDLIST';
+	static readonly acadGroup = 'ACAD_GROUP';
+	static readonly acadImageDict = 'ACAD_IMAGE_DICT';
+	static readonly acadLayout = 'ACAD_LAYOUT';
+	static readonly acadMaterial = 'ACAD_MATERIAL';
+	static readonly acadMLeaderStyle = 'ACAD_MLEADERSTYLE';
+	static readonly acadMLineStyle = 'ACAD_MLINESTYLE';
+	static readonly acadPdfDefinitions = 'ACAD_PDFDEFINITIONS';
+	static readonly acadPlotSettings = 'ACAD_PLOTSETTINGS';
+	static readonly acadPlotStyleName = 'ACAD_PLOTSTYLENAME';
+	static readonly acadScaleList = 'ACAD_SCALELIST';
+	static readonly acadSortEnts = 'ACAD_SORTENTS';
+	static readonly acadTableStyle = 'ACAD_TABLESTYLE';
+	static readonly acadVisualStyle = 'ACAD_VISUALSTYLE';
+	static readonly geographicData = 'ACAD_GEOGRAPHICDATA';
+	static readonly root = 'ROOT';
+	static readonly variableDictionary = 'AcDbVariableDictionary';
 
 	private _entries: Map<string, NonGraphicalObject> = new Map();
 
@@ -47,24 +47,24 @@ export class CadDictionary extends NonGraphicalObject implements Iterable<NonGra
 	}
 
 	static createDefaultEntries(root: CadDictionary): void {
-		root.tryAdd(new CadDictionary(CadDictionary.AcadColor));
-		root.tryAdd(new CadDictionary(CadDictionary.AcadGroup));
-		root.tryAdd(new CadDictionary(CadDictionary.AcadLayout));
-		root.tryAdd(new CadDictionary(CadDictionary.AcadMaterial));
-		root.tryAdd(new CadDictionary(CadDictionary.AcadSortEnts));
-		root.tryAdd(new CadDictionary(CadDictionary.AcadMLeaderStyle));
-		root.tryAdd(new CadDictionary(CadDictionary.AcadMLineStyle));
-		root.tryAdd(new CadDictionary(CadDictionary.AcadTableStyle));
-		root.tryAdd(new CadDictionary(CadDictionary.AcadPlotSettings));
-		root.tryAdd(new CadDictionary(CadDictionary.VariableDictionary));
-		root.tryAdd(new CadDictionary(CadDictionary.AcadScaleList));
-		root.tryAdd(new CadDictionary(CadDictionary.AcadVisualStyle));
-		root.tryAdd(new CadDictionary(CadDictionary.AcadFieldList));
-		root.tryAdd(new CadDictionary(CadDictionary.AcadImageDict));
+		root.tryAdd(new CadDictionary(CadDictionary.acadColor));
+		root.tryAdd(new CadDictionary(CadDictionary.acadGroup));
+		root.tryAdd(new CadDictionary(CadDictionary.acadLayout));
+		root.tryAdd(new CadDictionary(CadDictionary.acadMaterial));
+		root.tryAdd(new CadDictionary(CadDictionary.acadSortEnts));
+		root.tryAdd(new CadDictionary(CadDictionary.acadMLeaderStyle));
+		root.tryAdd(new CadDictionary(CadDictionary.acadMLineStyle));
+		root.tryAdd(new CadDictionary(CadDictionary.acadTableStyle));
+		root.tryAdd(new CadDictionary(CadDictionary.acadPlotSettings));
+		root.tryAdd(new CadDictionary(CadDictionary.variableDictionary));
+		root.tryAdd(new CadDictionary(CadDictionary.acadScaleList));
+		root.tryAdd(new CadDictionary(CadDictionary.acadVisualStyle));
+		root.tryAdd(new CadDictionary(CadDictionary.acadFieldList));
+		root.tryAdd(new CadDictionary(CadDictionary.acadImageDict));
 	}
 
 	static createRoot(): CadDictionary {
-		const root = new CadDictionary(CadDictionary.Root);
+		const root = new CadDictionary(CadDictionary.root);
 		CadDictionary.createDefaultEntries(root);
 		return root;
 	}

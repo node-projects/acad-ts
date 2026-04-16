@@ -1,7 +1,7 @@
 export class Transparency {
-	public static get ByLayer(): Transparency { return new Transparency(-1); }
-	public static get ByBlock(): Transparency { return new Transparency(100); }
-	public static get Opaque(): Transparency { return new Transparency(0); }
+	public static get byLayer(): Transparency { return new Transparency(-1); }
+	public static get byBlock(): Transparency { return new Transparency(100); }
+	public static get opaque(): Transparency { return new Transparency(0); }
 
 	public get isByLayer(): boolean { return this._value === -1; }
 	public get isByBlock(): boolean { return this._value === 100; }
@@ -37,8 +37,8 @@ export class Transparency {
 		const alpha = value & 0xFF;
 		const t = Math.round(100 - (alpha / 255.0) * 100);
 
-		if (t === -1) return Transparency.ByLayer;
-		if (t === 100) return Transparency.ByBlock;
+		if (t === -1) return Transparency.byLayer;
+		if (t === 100) return Transparency.byBlock;
 		if (t < 0) return new Transparency(0);
 		if (t > 90) return new Transparency(90);
 		return new Transparency(t);

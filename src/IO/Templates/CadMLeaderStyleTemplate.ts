@@ -6,39 +6,39 @@ import { CadDocumentBuilder } from '../CadDocumentBuilder.js';
 import { CadTemplateT } from './CadTemplate[T].js';
 
 export class CadMLeaderStyleTemplate extends CadTemplateT<MultiLeaderStyle> {
-	ArrowheadHandle: number | null = null;
+	arrowheadHandle: number | null = null;
 
-	BlockContentHandle: number | null = null;
+	blockContentHandle: number | null = null;
 
-	LeaderLineTypeHandle: number | null = null;
+	leaderLineTypeHandle: number | null = null;
 
-	MTextStyleHandle: number | null = null;
+	mTextStyleHandle: number | null = null;
 
 	constructor(entry?: MultiLeaderStyle) {
 		super(entry ?? new MultiLeaderStyle());
 	}
 
-	protected override build(builder: CadDocumentBuilder): void {
-		super.build(builder);
+	protected override _build(builder: CadDocumentBuilder): void {
+		super._build(builder);
 
-		const lineType = builder.TryGetCadObject<LineType>(this.LeaderLineTypeHandle);
+		const lineType = builder.tryGetCadObject<LineType>(this.leaderLineTypeHandle);
 		if (lineType) {
-			this.CadObject.leaderLineType = lineType;
+			this.cadObject.leaderLineType = lineType;
 		}
 
-		const arrowhead = builder.TryGetCadObject<BlockRecord>(this.ArrowheadHandle);
+		const arrowhead = builder.tryGetCadObject<BlockRecord>(this.arrowheadHandle);
 		if (arrowhead) {
-			this.CadObject.arrowhead = arrowhead;
+			this.cadObject.arrowhead = arrowhead;
 		}
 
-		const textStyle = builder.TryGetCadObject<TextStyle>(this.MTextStyleHandle);
+		const textStyle = builder.tryGetCadObject<TextStyle>(this.mTextStyleHandle);
 		if (textStyle) {
-			this.CadObject.textStyle = textStyle;
+			this.cadObject.textStyle = textStyle;
 		}
 
-		const blockContent = builder.TryGetCadObject<BlockRecord>(this.BlockContentHandle);
+		const blockContent = builder.tryGetCadObject<BlockRecord>(this.blockContentHandle);
 		if (blockContent) {
-			this.CadObject.blockContent = blockContent;
+			this.cadObject.blockContent = blockContent;
 		}
 	}
 }

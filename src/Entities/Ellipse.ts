@@ -52,7 +52,7 @@ export class Ellipse extends Entity {
 	normal: XYZ = new XYZ(0, 0, 1);
 
 	override get objectName(): string {
-		return DxfFileToken.EntityEllipse;
+		return DxfFileToken.entityEllipse;
 	}
 
 	override get objectType(): ObjectType {
@@ -76,7 +76,7 @@ export class Ellipse extends Entity {
 	startParameter: number = 0.0;
 
 	override get subclassMarker(): string {
-		return DxfSubclassMarker.Ellipse;
+		return DxfSubclassMarker.ellipse;
 	}
 
 	thickness: number = 0.0;
@@ -122,7 +122,7 @@ export class Ellipse extends Entity {
 
 	override getBoundingBox(): BoundingBox | null {
 		const points = this.polygonalVertexes(64);
-		return points.length > 0 ? BoundingBox.FromPoints(points) : null;
+		return points.length > 0 ? BoundingBox.fromPoints(points) : null;
 	}
 
 	getEndVertices(): { start: XYZ; end: XYZ } {

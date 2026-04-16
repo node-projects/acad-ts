@@ -45,7 +45,7 @@ const outputDir = path.resolve(TestVariables.outputSamplesFolder, 'sample_output
 function writeDxfAscii(doc: CadDocument, filename: string): string {
   const stream = new InMemoryAsciiStream();
   const writer = new DxfWriter(stream as any, doc, false);
-  writer.Write();
+  writer.write();
   const data = stream.toUint8Array();
   const outPath = path.join(outputDir, filename);
   fs.writeFileSync(outPath, data);
@@ -55,7 +55,7 @@ function writeDxfAscii(doc: CadDocument, filename: string): string {
 function writeDxfBinary(doc: CadDocument, filename: string): string {
   const stream = new InMemoryBinaryStream();
   const writer = new DxfWriter(stream as any, doc, true);
-  writer.Write();
+  writer.write();
   const data = stream.toUint8Array();
   const outPath = path.join(outputDir, filename);
   fs.writeFileSync(outPath, data);

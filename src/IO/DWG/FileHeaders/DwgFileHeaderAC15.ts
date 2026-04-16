@@ -5,36 +5,36 @@ import { DwgSectionDescriptor } from './DwgSectionDescriptor.js';
 import { DwgSectionLocatorRecord } from './DwgSectionLocatorRecord.js';
 
 export class DwgFileHeaderAC15 extends DwgFileHeader {
-	static readonly EndSentinel: Uint8Array = new Uint8Array([0x95, 0xA0, 0x4E, 0x28, 0x99, 0x82, 0x1A, 0xE5, 0x5E, 0x41, 0xE0, 0x5F, 0x9D, 0x3A, 0x4D, 0x00]);
+	static readonly endSentinel: Uint8Array = new Uint8Array([0x95, 0xA0, 0x4E, 0x28, 0x99, 0x82, 0x1A, 0xE5, 0x5E, 0x41, 0xE0, 0x5F, 0x9D, 0x3A, 0x4D, 0x00]);
 
-	Records: Map<number, DwgSectionLocatorRecord> = new Map();
+	records: Map<number, DwgSectionLocatorRecord> = new Map();
 	private _descriptors: Map<string, DwgSectionDescriptor> = new Map();
 
 	constructor(version?: ACadVersion) {
 		super(version);
 	}
 
-	AddSection(name: string): void {
+	addSection(name: string): void {
 		if (!this._descriptors.has(name)) {
 			this._descriptors.set(name, new DwgSectionDescriptor(name));
 		}
 	}
 
-	GetDescriptor(name: string): DwgSectionDescriptor {
+	getDescriptor(name: string): DwgSectionDescriptor {
 		const existing = this._descriptors.get(name);
 		if (existing) {
 			return existing;
 		}
 
 		const descriptor = new DwgSectionDescriptor(name);
-		const sectionLocator = DwgSectionDefinition.GetSectionLocatorByName(name);
+		const sectionLocator = DwgSectionDefinition.getSectionLocatorByName(name);
 		if (sectionLocator !== null) {
-			const record = this.Records.get(sectionLocator);
+			const record = this.records.get(sectionLocator);
 			if (record) {
-				descriptor.CompressedSize = record.Size;
-				descriptor.DecompressedSize = record.Size;
-				descriptor.PageCount = 1;
-				descriptor.CompressedCode = 1;
+				descriptor.compressedSize = record.size;
+				descriptor.decompressedSize = record.size;
+				descriptor.pageCount = 1;
+				descriptor.compressedCode = 1;
 			}
 		}
 

@@ -12,18 +12,18 @@ export class DxfTextReader extends DxfStreamReaderBase {
   public constructor(stream: Uint8Array) {
     super();
     this._data = stream;
-    this.Start();
+    this.start();
   }
 
-  public override Start(): void {
-    super.Start();
+  public override start(): void {
+    super.start();
 
     this._bytePos = 0;
   }
 
-  public override ReadNext(): void {
-    super.ReadNext();
-    this.Position += 2;
+  public override readNext(): void {
+    super.readNext();
+    this.position += 2;
   }
 
   protected readStringLine(): string {
@@ -43,8 +43,8 @@ export class DxfTextReader extends DxfStreamReaderBase {
 
     // Trim whitespace like C# StreamReader.ReadLine()
     line = line.trim();
-    this.ValueRaw = line;
-    return this.ValueRaw;
+    this.valueRaw = line;
+    return this.valueRaw;
   }
 
   protected readCode(): DxfCode {
@@ -55,7 +55,7 @@ export class DxfTextReader extends DxfStreamReaderBase {
       return value as DxfCode;
     }
 
-    this.Position++;
+    this.position++;
 
     return DxfCode.Invalid;
   }

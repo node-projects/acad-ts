@@ -1,26 +1,26 @@
 export class DwgSectionLocatorRecord {
-	Number: number | null = null;
-	Seeker: number = 0;
-	Size: number = 0;
-	Stream: Uint8Array | null = null;
+	number: number | null = null;
+	seeker: number = 0;
+	size: number = 0;
+	stream: Uint8Array | null = null;
 
 	constructor(number?: number | null, seeker?: number, size?: number) {
 		if (number !== undefined) {
-			this.Number = number ?? null;
+			this.number = number ?? null;
 		}
 		if (seeker !== undefined) {
-			this.Seeker = seeker;
+			this.seeker = seeker;
 		}
 		if (size !== undefined) {
-			this.Size = size;
+			this.size = size;
 		}
 	}
 
-	IsInTheRecord(position: number): boolean {
-		return position >= this.Seeker && position < this.Seeker + this.Size;
+	isInTheRecord(position: number): boolean {
+		return position >= this.seeker && position < this.seeker + this.size;
 	}
 
 	toString(): string {
-		return `Number : ${this.Number} | Seeker : ${this.Seeker} | Size : ${this.Size}`;
+		return `Number : ${this.number} | Seeker : ${this.seeker} | Size : ${this.size}`;
 	}
 }

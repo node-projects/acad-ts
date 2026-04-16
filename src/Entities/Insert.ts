@@ -39,7 +39,7 @@ export class Insert extends Entity {
 	normal: XYZ = new XYZ(0, 0, 1);
 
 	override get objectName(): string {
-		return DxfFileToken.EntityInsert;
+		return DxfFileToken.entityInsert;
 	}
 
 	override get objectType(): ObjectType {
@@ -56,7 +56,7 @@ export class Insert extends Entity {
 	rowSpacing: number = 0;
 
 	override get subclassMarker(): string {
-		return this.isMultiple ? DxfSubclassMarker.MInsert : DxfSubclassMarker.Insert;
+		return this.isMultiple ? DxfSubclassMarker.mInsert : DxfSubclassMarker.insert;
 	}
 
 	get xScale(): number {
@@ -175,7 +175,7 @@ export class Insert extends Entity {
 				new XYZ(blockBounds.max.x, blockBounds.max.y, blockBounds.min.z),
 				new XYZ(blockBounds.max.x, blockBounds.max.y, blockBounds.max.z),
 			].map((corner) => transform.applyTransform(corner));
-			boxes.push(BoundingBox.FromPoints(corners));
+			boxes.push(BoundingBox.fromPoints(corners));
 		}
 
 		for (const attribute of this.attributes) {
@@ -186,7 +186,7 @@ export class Insert extends Entity {
 		}
 
 		return boxes.length > 0
-			? BoundingBox.FromPoints(boxes.flatMap((box) => [box.min, box.max]))
+			? BoundingBox.fromPoints(boxes.flatMap((box) => [box.min, box.max]))
 			: null;
 	}
 
@@ -209,7 +209,7 @@ export class Insert extends Entity {
 		const attTags = this.attributes.map(a => a.tag);
 
 		const filtered = new SeqendCollection<AttributeEntity>(...this.attributes.filter(att => defTags.includes(att.tag)));
-		filtered.Seqend = this.attributes.Seqend;
+		filtered.seqend = this.attributes.seqend;
 		this.attributes = filtered;
 
 		for (const attdef of attDefs) {

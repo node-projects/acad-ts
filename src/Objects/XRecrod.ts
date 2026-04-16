@@ -49,7 +49,7 @@ export class XRecord extends NonGraphicalObject {
 	get entries(): readonly XRecordEntry[] { return this._entries; }
 
 	override get objectName(): string {
-		return DxfFileToken.ObjectXRecord;
+		return DxfFileToken.objectXRecord;
 	}
 
 	override get objectType(): ObjectType {
@@ -57,7 +57,7 @@ export class XRecord extends NonGraphicalObject {
 	}
 
 	override get subclassMarker(): string {
-		return DxfSubclassMarker.XRecord;
+		return DxfSubclassMarker.xRecord;
 	}
 
 	private _entries: XRecordEntry[] = [];
@@ -68,9 +68,5 @@ export class XRecord extends NonGraphicalObject {
 
 	createEntry(code: number, value: unknown): void {
 		this._entries.push(new XRecordEntry(code, value, this));
-	}
-
-	CreateEntry(code: number, value: unknown): void {
-		this.createEntry(code, value);
 	}
 }

@@ -4,20 +4,20 @@ import { CadDocumentBuilder } from '../CadDocumentBuilder.js';
 import { CadEntityTemplate } from './CadEntityTemplate.js';
 
 export class CadToleranceTemplate extends CadEntityTemplate {
-	DimensionStyleHandle: number | null = null;
+	dimensionStyleHandle: number | null = null;
 
-	DimensionStyleName: string | null = null;
+	dimensionStyleName: string | null = null;
 
 	constructor(tolerance?: Tolerance) {
 		super(tolerance ?? new Tolerance());
 	}
 
-	protected override build(builder: CadDocumentBuilder): void {
-		super.build(builder);
+	protected override _build(builder: CadDocumentBuilder): void {
+		super._build(builder);
 
-		const style = this.getTableReference<DimensionStyle>(builder, this.DimensionStyleHandle, this.DimensionStyleName);
+		const style = this.getTableReference<DimensionStyle>(builder, this.dimensionStyleHandle, this.dimensionStyleName);
 		if (style) {
-			(this.CadObject as Tolerance).style = style;
+			(this.cadObject as Tolerance).style = style;
 		}
 	}
 }

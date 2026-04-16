@@ -37,10 +37,7 @@ export class Layout extends PlotSettings {
 	insertionBasePoint: XYZ = new XYZ(0, 0, 0);
 
 	get isPaperSpace(): boolean {
-		return this.name?.toLowerCase() !== Layout.ModelLayoutName.toLowerCase();
-	}
-	get IsPaperSpace(): boolean {
-		return this.isPaperSpace;
+		return this.name?.toLowerCase() !== Layout.modelLayoutName.toLowerCase();
 	}
 
 	get lastActiveViewport(): Viewport | null {
@@ -57,12 +54,12 @@ export class Layout extends PlotSettings {
 	minExtents: XYZ = new XYZ(25.7, 19.5, 0.0);
 	minLimits: XY = new XY(-20.0, -7.5);
 
-	override get objectName(): string { return DxfFileToken.ObjectLayout; }
+	override get objectName(): string { return DxfFileToken.objectLayout; }
 	override get objectType(): ObjectType { return ObjectType.LAYOUT; }
 
 	origin: XYZ = new XYZ(0, 0, 0);
 
-	override get subclassMarker(): string { return DxfSubclassMarker.Layout; }
+	override get subclassMarker(): string { return DxfSubclassMarker.layout; }
 
 	tabOrder: number = 0;
 	ucs: UCS | null = null;
@@ -75,8 +72,8 @@ export class Layout extends PlotSettings {
 	xAxis: XYZ = new XYZ(1, 0, 0);
 	yAxis: XYZ = new XYZ(0, 1, 0);
 
-	static readonly ModelLayoutName = 'Model';
-	static readonly PaperLayoutName = 'Layout1';
+	static readonly modelLayoutName = 'Model';
+	static readonly paperLayoutName = 'Layout1';
 
 	constructor(name?: string, blockName?: string) {
 		super();
@@ -92,11 +89,11 @@ export class Layout extends PlotSettings {
 	}
 
 	override clone(): CadObject {
-		return this.cloneCore(true);
+		return this._cloneCore(true);
 	}
 
 	cloneWithoutAssociatedBlock(): Layout {
-		return this.cloneCore(false);
+		return this._cloneCore(false);
 	}
 
 	override toString(): string {
@@ -115,12 +112,12 @@ export class Layout extends PlotSettings {
 		}
 
 		const viewport = new Viewport();
-		viewport.id = Viewport.PaperViewId;
+		viewport.id = Viewport.paperViewId;
 		this.addViewport(viewport);
 		this.lastActiveViewport = viewport;
 	}
 
-	private cloneCore(includeAssociatedBlock: boolean): Layout {
+	private _cloneCore(includeAssociatedBlock: boolean): Layout {
 		const clone = super.clone() as Layout;
 		clone._blockRecord = null;
 		clone._lastViewport = null;

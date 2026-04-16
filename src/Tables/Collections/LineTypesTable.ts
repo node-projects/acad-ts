@@ -9,23 +9,23 @@ export class LineTypesTable extends Table<LineType> {
 	}
 
 	public override get objectName(): string {
-		return DxfFileToken.TableLinetype;
+		return DxfFileToken.tableLinetype;
 	}
 
 	public get byLayer(): LineType {
-		return this.get(LineType.ByLayerName);
+		return this.get(LineType.byLayerName);
 	}
 
 	public get byBlock(): LineType {
-		return this.get(LineType.ByBlockName);
+		return this.get(LineType.byBlockName);
 	}
 
 	public get continuous(): LineType {
-		return this.get(LineType.ContinuousName);
+		return this.get(LineType.continuousName);
 	}
 
 	protected override get defaultEntries(): string[] {
-		return [LineType.ByLayerName, LineType.ByBlockName, LineType.ContinuousName];
+		return [LineType.byLayerName, LineType.byBlockName, LineType.continuousName];
 	}
 
 	public constructor() {
@@ -33,14 +33,14 @@ export class LineTypesTable extends Table<LineType> {
 	}
 
 	public override createDefaultEntries(): void {
-		if (!this.contains(LineType.ByLayerName)) {
-			this.add(LineType.ByLayer);
+		if (!this.contains(LineType.byLayerName)) {
+			this.add(LineType.byLayer);
 		}
-		if (!this.contains(LineType.ByBlockName)) {
-			this.add(LineType.ByBlock);
+		if (!this.contains(LineType.byBlockName)) {
+			this.add(LineType.byBlock);
 		}
-		if (!this.contains(LineType.ContinuousName)) {
-			this.add(LineType.Continuous);
+		if (!this.contains(LineType.continuousName)) {
+			this.add(LineType.continuous);
 		}
 	}
 }

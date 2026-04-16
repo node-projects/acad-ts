@@ -14,7 +14,7 @@ export class Ole2Frame extends Entity {
 	lowerRightCorner: XYZ = new XYZ(0, 0, 0);
 
 	override get objectName(): string {
-		return DxfFileToken.EntityOle2Frame;
+		return DxfFileToken.entityOle2Frame;
 	}
 
 	override get objectType(): ObjectType {
@@ -26,7 +26,7 @@ export class Ole2Frame extends Entity {
 	sourceApplication: string = '';
 
 	override get subclassMarker(): string {
-		return DxfSubclassMarker.Ole2Frame;
+		return DxfSubclassMarker.ole2Frame;
 	}
 
 	upperLeftCorner: XYZ = new XYZ(1, 1, 0);
@@ -39,6 +39,6 @@ export class Ole2Frame extends Entity {
 	}
 
 	override getBoundingBox(): BoundingBox {
-		return BoundingBox.FromPoints([this.upperLeftCorner, this.lowerRightCorner]);
+		return BoundingBox.fromPoints([this.upperLeftCorner, this.lowerRightCorner]);
 	}
 }

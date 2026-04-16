@@ -1,5 +1,5 @@
 export class CRC {
-	static readonly CrcTable: Uint16Array = new Uint16Array([
+	static readonly crcTable: Uint16Array = new Uint16Array([
 		0x0000,0xC0C1,0xC181,0x0140,0xC301,0x03C0,0x0280,0xC241,
 		0xC601,0x06C0,0x0780,0xC741,0x0500,0xC5C1,0xC481,0x0440,
 		0xCC01,0x0CC0,0x0D80,0xCD41,0x0F00,0xCFC1,0xCE81,0x0E40,
@@ -34,7 +34,7 @@ export class CRC {
 		0x8201,0x42C0,0x4380,0x8341,0x4100,0x81C1,0x8081,0x4040,
 	]);
 
-	static readonly Crc32Table: Uint32Array = new Uint32Array([
+	static readonly crc32Table: Uint32Array = new Uint32Array([
 		0x00000000, 0x77073096, 0xee0e612c, 0x990951ba,
 		0x076dc419, 0x706af48f, 0xe963a535, 0x9e6495a3,
 		0x0edb8832, 0x79dcb8a4, 0xe0d5e91e, 0x97d2d988,
@@ -101,11 +101,11 @@ export class CRC {
 		0xb40bbe37, 0xc30c8ea1, 0x5a05df1b, 0x2d02ef8d,
 	]);
 
-	static ApplyCrc8(dx: number, arr: Uint8Array): number {
+	static applyCrc8(dx: number, arr: Uint8Array): number {
 		let retval = dx;
 		for (let i = 0; i < arr.length; ++i) {
 			const al = (arr[i] ^ (retval & 0xFF)) & 0xFF;
-			retval = ((retval >> 8) & 0xFF) ^ CRC.CrcTable[al & 0xFF];
+			retval = ((retval >> 8) & 0xFF) ^ CRC.crcTable[al & 0xFF];
 		}
 		return retval;
 	}

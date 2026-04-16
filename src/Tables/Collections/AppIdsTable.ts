@@ -9,16 +9,16 @@ export class AppIdsTable extends Table<AppId> {
 	}
 
 	public override get objectName(): string {
-		return DxfFileToken.TableAppId;
+		return DxfFileToken.tableAppId;
 	}
 
 	protected override get defaultEntries(): string[] {
-		return [AppId.DefaultName];
+		return [AppId.defaultName];
 	}
 
 	public override createDefaultEntries(): void {
-		if (!this.contains(AppId.DefaultName)) {
-			this.add(AppId.Default);
+		if (!this.contains(AppId.defaultName)) {
+			this.add(AppId.default);
 		}
 	}
 

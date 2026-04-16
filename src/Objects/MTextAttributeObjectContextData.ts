@@ -9,7 +9,7 @@ export class MTextAttributeObjectContextData extends AnnotScaleObjectContextData
 	insertPoint: XYZ = new XYZ(0, 0, 0);
 
 	override get objectName(): string {
-		return DxfFileToken.MTextAttributeObjectContextData;
+		return DxfFileToken.mTextAttributeObjectContextData;
 	}
 
 	rotation: number = 0;

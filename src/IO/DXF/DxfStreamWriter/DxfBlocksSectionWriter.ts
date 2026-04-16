@@ -15,8 +15,8 @@ import { Entity } from '../../../Entities/Entity.js';
 import { Seqend } from '../../../Entities/Seqend.js';
 
 export class DxfBlocksSectionWriter extends DxfSectionWriterBase {
-  public get SectionName(): string {
-    return DxfFileToken.BlocksSection;
+  public get sectionName(): string {
+    return DxfFileToken.blocksSection;
   }
 
   public constructor(
@@ -30,47 +30,47 @@ export class DxfBlocksSectionWriter extends DxfSectionWriterBase {
 
   protected writeSection(): void {
     for (const b of this._document.blockRecords) {
-      this.writeBlock(b.blockEntity);
-      this.processEntities(b);
-      this.writeBlockEnd(b.blockEnd);
+      this._writeBlock(b.blockEntity);
+      this._processEntities(b);
+      this._writeBlockEnd(b.blockEnd);
     }
   }
 
-  private writeBlock(block: Block): void {
-    const map = DxfClassMap.Create(Block);
+  private _writeBlock(block: Block): void {
+    const map = DxfClassMap.create(Block);
 
-    this._writer.Write(DxfCode.Start, block.objectName);
+    this._writer.write(DxfCode.Start, block.objectName);
 
     this.writeCommonObjectData(block);
 
     this.writeCommonEntityData(block);
 
-    this._writer.Write(DxfCode.Subclass, DxfSubclassMarker.BlockBegin);
+    this._writer.write(DxfCode.Subclass, DxfSubclassMarker.blockBegin);
 
     if (block.xRefPath) {
-      this._writer.Write(1, block.xRefPath, map);
+      this._writer.write(1, block.xRefPath, map);
     }
-    this._writer.Write(2, block.name, map);
-    this._writer.Write(70, block.flags, map);
+    this._writer.write(2, block.name, map);
+    this._writer.write(70, block.flags, map);
 
-    if (this.Version >= ACadVersion.AC1015 && block.isUnloaded) {
-      this._writer.Write(71, block.isUnloaded ? 1 : 0, map);
+    if (this.version >= ACadVersion.AC1015 && block.isUnloaded) {
+      this._writer.write(71, block.isUnloaded ? 1 : 0, map);
     }
 
-    this._writer.WriteVector(10, block.basePoint, map);
+    this._writer.writeVector(10, block.basePoint, map);
 
-    this._writer.Write(3, block.name, map);
-    this._writer.Write(4, block.comments, map);
+    this._writer.write(3, block.name, map);
+    this._writer.write(4, block.comments, map);
   }
 
-  private processEntities(b: BlockRecord): void {
-    if (b.name === BlockRecord.ModelSpaceName || b.name === BlockRecord.PaperSpaceName) {
+  private _processEntities(b: BlockRecord): void {
+    if (b.name === BlockRecord.modelSpaceName || b.name === BlockRecord.paperSpaceName) {
       for (const e of b.entities) {
         if (e instanceof Seqend) {
           // skip
         }
 
-        this.Holder.Entities.push(e);
+        this.holder.entities.push(e);
       }
     } else {
       for (const e of b.entities) {
@@ -79,15 +79,15 @@ export class DxfBlocksSectionWriter extends DxfSectionWriterBase {
     }
   }
 
-  private writeBlockEnd(block: BlockEnd): void {
-    this._writer.Write(DxfCode.Start, block.objectName);
+  private _writeBlockEnd(block: BlockEnd): void {
+    this._writer.write(DxfCode.Start, block.objectName);
 
     this.writeCommonObjectData(block);
 
-    this._writer.Write(DxfCode.Subclass, DxfSubclassMarker.Entity);
+    this._writer.write(DxfCode.Subclass, DxfSubclassMarker.entity);
 
-    this._writer.Write(8, block.layer.name);
+    this._writer.write(8, block.layer.name);
 
-    this._writer.Write(DxfCode.Subclass, DxfSubclassMarker.BlockEnd);
+    this._writer.write(DxfCode.Subclass, DxfSubclassMarker.blockEnd);
   }
 }

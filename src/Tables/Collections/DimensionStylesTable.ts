@@ -9,16 +9,16 @@ export class DimensionStylesTable extends Table<DimensionStyle> {
 	}
 
 	public override get objectName(): string {
-		return DxfFileToken.TableDimstyle;
+		return DxfFileToken.tableDimstyle;
 	}
 
 	protected override get defaultEntries(): string[] {
-		return [DimensionStyle.DefaultName];
+		return [DimensionStyle.defaultName];
 	}
 
 	public override createDefaultEntries(): void {
-		if (!this.contains(DimensionStyle.DefaultName)) {
-			this.add(DimensionStyle.Default);
+		if (!this.contains(DimensionStyle.defaultName)) {
+			this.add(DimensionStyle.default);
 		}
 	}
 

@@ -12,27 +12,27 @@ export class DxfEntitiesSectionReader extends DxfSectionReaderBase {
     super(reader, builder);
   }
 
-  public override Read(): void {
-    this._reader.ReadNext();
+  public override read(): void {
+    this._reader.readNext();
 
-    while (this._reader.ValueAsString !== DxfFileToken.EndSection) {
+    while (this._reader.valueAsString !== DxfFileToken.endSection) {
       let template: CadEntityTemplate | null = null;
 
       try {
         template = this.readEntity();
       } catch (ex) {
-        if (!this._builder.Configuration.Failsafe) {
+        if (!this._builder.configuration.failsafe) {
           throw ex;
         }
 
-        this._builder.Notify(
-          `Error while reading an entity at line ${this._reader.Position}`,
+        this._builder.notify(
+          `Error while reading an entity at line ${this._reader.position}`,
           NotificationType.Error,
           ex instanceof Error ? ex : undefined
         );
 
-        while (this._reader.DxfCode !== DxfCode.Start) {
-          this._reader.ReadNext();
+        while (this._reader.dxfCode !== DxfCode.Start) {
+          this._reader.readNext();
         }
       }
 
@@ -40,16 +40,16 @@ export class DxfEntitiesSectionReader extends DxfSectionReaderBase {
         continue;
       }
 
-      this._builder.AddTemplate(template);
+      this._builder.addTemplate(template);
 
-      const owner = this._builder.TryGetObjectTemplate<ICadOwnerTemplate>(template.OwnerHandle);
+      const owner = this._builder.tryGetObjectTemplate<ICadOwnerTemplate>(template.ownerHandle);
 
-      if (template.OwnerHandle === null) {
-        this._builder.ModelSpaceEntities.add(template.CadObject);
+      if (template.ownerHandle === null) {
+        this._builder.modelSpaceEntities.add(template.cadObject);
       } else if (owner) {
-        owner.OwnedObjectsHandlers.add(template.CadObject.handle);
+        owner.ownedObjectsHandlers.add(template.cadObject.handle);
       } else {
-        this._builder.OrphanTemplates.push(template);
+        this._builder.orphanTemplates.push(template);
       }
     }
   }

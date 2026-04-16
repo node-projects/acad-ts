@@ -20,7 +20,7 @@ export class ProxyEntity extends Entity {
 	maintenanceVersion: number = 0;
 
 	override get objectName(): string {
-		return DxfFileToken.EntityProxyEntity;
+		return DxfFileToken.entityProxyEntity;
 	}
 
 	override get objectType(): ObjectType {
@@ -32,7 +32,7 @@ export class ProxyEntity extends Entity {
 	proxyClassId: number = 498;
 
 	override get subclassMarker(): string {
-		return DxfSubclassMarker.ProxyEntity;
+		return DxfSubclassMarker.proxyEntity;
 	}
 
 	version: ACadVersion = ACadVersion.Unknown;

@@ -75,7 +75,7 @@ export class Viewport extends Entity {
 	majorGridLineFrequency: number = 0;
 
 	override get objectName(): string {
-		return DxfFileToken.EntityViewport;
+		return DxfFileToken.entityViewport;
 	}
 
 	override get objectType(): ObjectType {
@@ -85,7 +85,7 @@ export class Viewport extends Entity {
 	renderMode: number = 0;
 
 	get representsPaper(): boolean {
-		return this.id === Viewport.PaperViewId;
+		return this.id === Viewport.paperViewId;
 	}
 
 	scale: Scale | null = null;
@@ -108,7 +108,7 @@ export class Viewport extends Entity {
 	styleSheetName: string = '';
 
 	override get subclassMarker(): string {
-		return DxfSubclassMarker.Viewport;
+		return DxfSubclassMarker.viewport;
 	}
 
 	twistAngle: number = 0;
@@ -142,9 +142,9 @@ export class Viewport extends Entity {
 
 	width: number = 0;
 
-	static readonly ASDK_XREC_ANNOTATION_SCALE_INFO = 'ASDK_XREC_ANNOTATION_SCALE_INFO';
+	static readonly asdk_xrec_annotation_scale_info = 'ASDK_XREC_ANNOTATION_SCALE_INFO';
 
-	static readonly PaperViewId = 1;
+	static readonly paperViewId = 1;
 
 	override applyTransform(transform: unknown): void {
 		if (this.boundary != null) {
@@ -163,7 +163,7 @@ export class Viewport extends Entity {
 				new XYZ(bounds.max.x, bounds.min.y, bounds.min.z),
 				new XYZ(bounds.max.x, bounds.max.y, bounds.min.z),
 			].map((corner) => this.applyTransformToPoint(transform, corner));
-			const transformedBounds = BoundingBox.FromPoints(corners);
+			const transformedBounds = BoundingBox.fromPoints(corners);
 			this.center = transformedBounds.center;
 			this.width = transformedBounds.width;
 			this.height = transformedBounds.height;

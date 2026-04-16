@@ -6,16 +6,16 @@ import { DwgStreamWriterBase } from './DwgStreamWriterBase.js';
 import { IDwgStreamWriter } from './IDwgStreamWriter.js';
 
 export class DwgPreviewWriter extends DwgSectionIO {
-	override get SectionName(): string { return DwgSectionDefinition.Preview; }
+	override get sectionName(): string { return DwgSectionDefinition.preview; }
 
 	get bytesWritten(): number { return Math.ceil(this._swriter.positionInBits / 8); }
 	get writerStream(): ArrayBuffer { return this._swriter.main.stream; }
 
 	private _swriter: IDwgStreamWriter;
 
-	private readonly _startSentinel: Uint8Array = DwgSectionDefinition.StartSentinels.get(DwgSectionDefinition.Preview)!;
+	private readonly _startSentinel: Uint8Array = DwgSectionDefinition.startSentinels.get(DwgSectionDefinition.preview)!;
 
-	private readonly _endSentinel: Uint8Array = DwgSectionDefinition.EndSentinels.get(DwgSectionDefinition.Preview)!;
+	private readonly _endSentinel: Uint8Array = DwgSectionDefinition.endSentinels.get(DwgSectionDefinition.preview)!;
 
 	constructor(version: ACadVersion, stream: Uint8Array) {
 		super(version);

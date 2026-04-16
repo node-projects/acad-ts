@@ -5,28 +5,28 @@ import { ObjectType } from '../../Types/ObjectType.js';
 import { CadEntityTemplate } from './CadEntityTemplate.js';
 
 export class CadVertexTemplate extends CadEntityTemplate {
-	get Vertex(): Vertex { return this.CadObject as Vertex; }
+	get vertex(): Vertex { return this.cadObject as Vertex; }
 
 	constructor(vertex?: Vertex) {
 		super(vertex ?? new CadVertexTemplate.VertexPlaceholder());
 	}
 
-	SetVertexObject(vertex: Vertex): void {
-		vertex.handle = this.CadObject.handle;
-		vertex.owner = this.CadObject.owner;
+	setVertexObject(vertex: Vertex): void {
+		vertex.handle = this.cadObject.handle;
+		vertex.owner = this.cadObject.owner;
 
-		vertex.xDictionary = (this.CadObject as Entity).xDictionary;
+		vertex.xDictionary = (this.cadObject as Entity).xDictionary;
 
 		//polyLine.Reactors = this.CadObject.Reactors;
 		//polyLine.ExtendedData = this.CadObject.ExtendedData;
 
-		vertex.color = (this.CadObject as Entity).color;
-		vertex.lineWeight = (this.CadObject as Entity).lineWeight;
-		vertex.lineTypeScale = (this.CadObject as Entity).lineTypeScale;
-		vertex.isInvisible = (this.CadObject as Entity).isInvisible;
-		vertex.transparency = (this.CadObject as Entity).transparency;
+		vertex.color = (this.cadObject as Entity).color;
+		vertex.lineWeight = (this.cadObject as Entity).lineWeight;
+		vertex.lineTypeScale = (this.cadObject as Entity).lineTypeScale;
+		vertex.isInvisible = (this.cadObject as Entity).isInvisible;
+		vertex.transparency = (this.cadObject as Entity).transparency;
 
-		const placeholder = this.CadObject as Vertex;
+		const placeholder = this.cadObject as Vertex;
 
 		vertex.location = placeholder.location;
 		vertex.startWidth = placeholder.startWidth;
@@ -36,13 +36,13 @@ export class CadVertexTemplate extends CadEntityTemplate {
 		vertex.curveTangent = placeholder.curveTangent;
 		vertex.id = placeholder.id;
 
-		this.CadObject = vertex;
+		this.cadObject = vertex;
 	}
 }
 
 export namespace CadVertexTemplate {
 	export class VertexPlaceholder extends Vertex {
 		override get objectType(): ObjectType { return ObjectType.INVALID; }
-		override get subclassMarker(): string { return DxfSubclassMarker.PolylineVertex; }
+		override get subclassMarker(): string { return DxfSubclassMarker.polylineVertex; }
 	}
 }

@@ -8,7 +8,7 @@ export class DwgStreamWriterAC15 extends DwgStreamWriterAC12 {
 
 	override writeBitExtrusion(normal: XYZ): void {
 		//For R2000, this is a single bit, followed optionally by 3BD.
-		if (normal.X === 0 && normal.Y === 0 && normal.Z === 1) {
+		if (normal.x === 0 && normal.y === 0 && normal.z === 1) {
 			//If the single bit is 1,
 			//the extrusion value is assumed to be 0,0,1 and no explicit extrusion is stored.
 			super.writeBit(true);

@@ -19,7 +19,7 @@ export class UnknownNonGraphicalObject extends NonGraphicalObject {
 
 	override get subclassMarker(): string {
 		if (!this.dxfClass) {
-			return DxfSubclassMarker.Entity;
+			return DxfSubclassMarker.entity;
 		}
 		return this.dxfClass.cppClassName;
 	}

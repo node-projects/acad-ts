@@ -5,11 +5,11 @@ import { DxfSubclassMarker } from '../DxfSubclassMarker.js';
 
 export class BookColor extends NonGraphicalObject {
 	override get objectName(): string {
-		return DxfFileToken.ObjectDBColor;
+		return DxfFileToken.objectDBColor;
 	}
 
 	override get subclassMarker(): string {
-		return DxfSubclassMarker.DbColor;
+		return DxfSubclassMarker.dbColor;
 	}
 
 	override get name(): string {
@@ -30,7 +30,7 @@ export class BookColor extends NonGraphicalObject {
 
 	colorName: string = '';
 	bookName: string = '';
-	color: Color = Color.ByBlock;
+	color: Color = Color.byBlock;
 
 	constructor(name?: string, bookName?: string) {
 		super(name);

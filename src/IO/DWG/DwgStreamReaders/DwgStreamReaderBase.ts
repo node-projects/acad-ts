@@ -112,7 +112,7 @@ export abstract class DwgStreamReaderBase implements IDwgStreamReader {
 
 	public readBytes(length: number): Uint8Array {
 		const numArray = new Uint8Array(length);
-		this.applyShiftToArr(length, numArray);
+		this._applyShiftToArr(length, numArray);
 		return numArray;
 	}
 
@@ -231,7 +231,7 @@ export abstract class DwgStreamReaderBase implements IDwgStreamReader {
 
 	public readBitLongLong(): number {
 		let value = 0;
-		const size = this.read3bits();
+		const size = this._read3bits();
 
 		for (let i = 0; i < size; ++i) {
 			const b = this.readByte();
@@ -416,16 +416,16 @@ export abstract class DwgStreamReaderBase implements IDwgStreamReader {
 		let initialPos: number;
 
 		if (code <= 0x5) {
-			initialPos = this.readHandle(counter);
+			initialPos = this._readHandle(counter);
 		} else if (code === 0x6) {
 			initialPos = referenceHandle + 1;
 		} else if (code === 0x8) {
 			initialPos = referenceHandle - 1;
 		} else if (code === 0xA) {
-			const offset = this.readHandle(counter);
+			const offset = this._readHandle(counter);
 			initialPos = referenceHandle + offset;
 		} else if (code === 0xC) {
-			const offset = this.readHandle(counter);
+			const offset = this._readHandle(counter);
 			initialPos = referenceHandle - offset;
 		} else {
 			throw new DwgException(`[HandleReference] invalid reference code with value: ${code}`);
@@ -434,7 +434,7 @@ export abstract class DwgStreamReaderBase implements IDwgStreamReader {
 		return { handle: initialPos, reference };
 	}
 
-	private readHandle(length: number): number {
+	private _readHandle(length: number): number {
 		const raw = new Uint8Array(length);
 		const arr = new Uint8Array(8);
 
@@ -477,7 +477,7 @@ export abstract class DwgStreamReaderBase implements IDwgStreamReader {
 		if (textLength === 0) {
 			value = '';
 		} else {
-			value = this.readStringEncoded(textLength, this.getEncodingFromCodePage(encodingKey));
+			value = this.readStringEncoded(textLength, this._getEncodingFromCodePage(encodingKey));
 		}
 
 		return value;
@@ -515,7 +515,7 @@ export abstract class DwgStreamReaderBase implements IDwgStreamReader {
 		const colorNumber = this.readBitShort();
 		return {
 			color: new Color(colorNumber),
-			transparency: Transparency.ByLayer,
+			transparency: Transparency.byLayer,
 			flag: false,
 		};
 	}
@@ -609,11 +609,11 @@ export abstract class DwgStreamReaderBase implements IDwgStreamReader {
 	// --- Date/Time ---
 
 	public read8BitJulianDate(): Date {
-		return this.julianToDate(this.readInt(), this.readInt());
+		return this._julianToDate(this.readInt(), this.readInt());
 	}
 
 	public readDateTime(): Date {
-		return this.julianToDate(this.readBitLong(), this.readBitLong());
+		return this._julianToDate(this.readBitLong(), this.readBitLong());
 	}
 
 	public readTimeSpan(): number {
@@ -773,7 +773,7 @@ export abstract class DwgStreamReaderBase implements IDwgStreamReader {
 		return new DwgException(`Failed to read ${callerName || 'unknown'}`);
 	}
 
-	private applyShiftToArr(length: number, arr: Uint8Array): void {
+	private _applyShiftToArr(length: number, arr: Uint8Array): void {
 		for (let i = 0; i < length; i++) {
 			arr[i] = this._stream[this._position++];
 		}
@@ -791,7 +791,7 @@ export abstract class DwgStreamReaderBase implements IDwgStreamReader {
 		}
 	}
 
-	private read3bits(): number {
+	private _read3bits(): number {
 		let b1 = 0;
 		if (this.readBit()) b1 = 1;
 		let b2 = (b1 << 1) & 0xFF;
@@ -801,7 +801,7 @@ export abstract class DwgStreamReaderBase implements IDwgStreamReader {
 		return b3;
 	}
 
-	private julianToDate(jdate: number, milliseconds: number): Date {
+	private _julianToDate(jdate: number, milliseconds: number): Date {
 		const unixTime = (jdate - 2440587.5) * 86400;
 
 		try {
@@ -812,7 +812,7 @@ export abstract class DwgStreamReaderBase implements IDwgStreamReader {
 		}
 	}
 
-	private getEncodingFromCodePage(codePage: number): string {
+	private _getEncodingFromCodePage(codePage: number): string {
 		// Map common Windows code pages to TextDecoder encoding labels
 		switch (codePage) {
 			case 0: return 'utf-8';

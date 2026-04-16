@@ -11,7 +11,7 @@ export class XLine extends Entity {
 	firstPoint: XYZ = new XYZ(0, 0, 0);
 
 	override get objectName(): string {
-		return DxfFileToken.EntityXline;
+		return DxfFileToken.entityXline;
 	}
 
 	override get objectType(): ObjectType {
@@ -19,7 +19,7 @@ export class XLine extends Entity {
 	}
 
 	override get subclassMarker(): string {
-		return DxfSubclassMarker.XLine;
+		return DxfSubclassMarker.xLine;
 	}
 
 	override applyTransform(transform: unknown): void {
@@ -31,6 +31,6 @@ export class XLine extends Entity {
 	}
 
 	override getBoundingBox(): BoundingBox {
-		return BoundingBox.Infinite;
+		return BoundingBox.infinite;
 	}
 }

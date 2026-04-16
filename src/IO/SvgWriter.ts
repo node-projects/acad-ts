@@ -17,26 +17,26 @@ export class SvgWriter extends CadWriterBase<SvgConfiguration> {
 		return new SvgConfiguration();
 	}
 
-	Dispose(): void {
+	dispose(): void {
 		// No-op in TS
 	}
 
-	override Write(): void {
-		this.WriteBlock(this._document.modelSpace);
+	override write(): void {
+		this.writeBlock(this._document.modelSpace);
 	}
 
-	WriteBlock(record: BlockRecord): void {
-		this.createWriter();
-		this._writer.WriteBlock(record);
+	writeBlock(record: BlockRecord): void {
+		this._createWriter();
+		this._writer.writeBlock(record);
 	}
 
-	WriteLayout(layout: Layout): void {
-		this.createWriter();
-		this._writer.WriteLayout(layout);
+	writeLayout(layout: Layout): void {
+		this._createWriter();
+		this._writer.writeLayout(layout);
 	}
 
-	private createWriter(): void {
-		this._writer = new SvgXmlWriter(this._stream, this._encoding, this.Configuration);
-		this._writer.OnNotification = (sender, e) => this.triggerNotification(sender, e);
+	private _createWriter(): void {
+		this._writer = new SvgXmlWriter(this._stream, this._encoding, this.configuration);
+		this._writer.onNotification = (sender, e) => this.triggerNotification(sender, e);
 	}
 }

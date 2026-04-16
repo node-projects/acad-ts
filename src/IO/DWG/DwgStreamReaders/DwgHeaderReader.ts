@@ -26,8 +26,8 @@ import { DwgStreamReaderBase } from './DwgStreamReaderBase.js';
 import { DwgMergedReader } from './DwgMergedReader.js';
 
 export class DwgHeaderReader extends DwgSectionIO {
-	override get SectionName(): string {
-		return DwgSectionDefinition.Header;
+	override get sectionName(): string {
+		return DwgSectionDefinition.header;
 	}
 
 	private _reader: IDwgStreamReader;
@@ -44,17 +44,17 @@ export class DwgHeaderReader extends DwgSectionIO {
 		const mainreader = this._reader;
 		const objectPointers = new DwgHeaderHandlesCollection();
 
-		this.checkSentinel(this._reader, DwgSectionDefinition.StartSentinels.get(this.SectionName)!);
+		this.checkSentinel(this._reader, DwgSectionDefinition.startSentinels.get(this.sectionName)!);
 
 		const size: number = this._reader.readRawLong();
 
-		if (this.R2010Plus && acadMaintenanceVersion > 3 || this.R2018Plus) {
+		if (this.r2010Plus && acadMaintenanceVersion > 3 || this.r2018Plus) {
 			const unknown: number = this._reader.readRawLong();
 		}
 
 		const initialPos: number = this._reader.positionInBits();
 
-		if (this.R2007Plus) {
+		if (this.r2007Plus) {
 			const sizeInBits: number = this._reader.readRawLong();
 			const lastPositionInBits: number = initialPos + sizeInBits - 1;
 
@@ -69,7 +69,7 @@ export class DwgHeaderReader extends DwgSectionIO {
 			this._reader = new DwgMergedReader(this._reader, textReader, referenceReader);
 		}
 
-		if (this.R2013Plus) {
+		if (this.r2013Plus) {
 			this._header.requiredVersions = this._reader.readBitLongLong();
 		}
 
@@ -85,11 +85,11 @@ export class DwgHeaderReader extends DwgSectionIO {
 		this._reader.readBitLong();
 		this._reader.readBitLong();
 
-		if (this.R13_14Only) {
+		if (this.r13_14Only) {
 			this._reader.readBitShort();
 		}
 
-		if (this.R2004Pre) {
+		if (this.r2004Pre) {
 			this._reader.handleReference();
 		}
 
@@ -97,8 +97,8 @@ export class DwgHeaderReader extends DwgSectionIO {
 		this._header.associatedDimensions = this._reader.readBit();
 		this._header.updateDimensionsWhileDragging = this._reader.readBit();
 
-		if (this.R13_14Only) {
-			this._header.DIMSAV = this._reader.readBit() ? 1 : 0;
+		if (this.r13_14Only) {
+			this._header.dimsav = this._reader.readBit() ? 1 : 0;
 		}
 
 		this._header.polylineLineTypeGeneration = this._reader.readBit();
@@ -109,11 +109,11 @@ export class DwgHeaderReader extends DwgSectionIO {
 		this._header.paperSpaceLineTypeScaling = this._reader.readBit() ? SpaceLineTypeScaling.Normal : SpaceLineTypeScaling.Viewport;
 		this._header.limitCheckingOn = this._reader.readBit();
 
-		if (this.R13_14Only) {
+		if (this.r13_14Only) {
 			this._header.blipMode = this._reader.readBit();
 		}
 
-		if (this.R2004Plus) {
+		if (this.r2004Plus) {
 			this._reader.readBit();
 		}
 
@@ -122,7 +122,7 @@ export class DwgHeaderReader extends DwgSectionIO {
 		this._header.angularDirection = this._reader.readBitAsShort() as AngularDirection;
 		this._header.showSplineControlPoints = this._reader.readBit();
 
-		if (this.R13_14Only) {
+		if (this.r13_14Only) {
 			this._reader.readBit();
 			this._reader.readBit();
 		}
@@ -130,7 +130,7 @@ export class DwgHeaderReader extends DwgSectionIO {
 		this._header.mirrorText = this._reader.readBit();
 		this._header.worldView = this._reader.readBit();
 
-		if (this.R13_14Only) {
+		if (this.r13_14Only) {
 			this._reader.readBit();
 		}
 
@@ -138,7 +138,7 @@ export class DwgHeaderReader extends DwgSectionIO {
 		this._header.paperSpaceLimitsChecking = this._reader.readBit();
 		this._header.retainXRefDependentVisibilitySettings = this._reader.readBit();
 
-		if (this.R13_14Only) {
+		if (this.r13_14Only) {
 			this._reader.readBit();
 		}
 
@@ -146,7 +146,7 @@ export class DwgHeaderReader extends DwgSectionIO {
 		this._header.createEllipseAsPolyline = this._reader.readBit();
 		this._header.proxyGraphics = this._reader.readBitShortAsBool();
 
-		if (this.R13_14Only) {
+		if (this.r13_14Only) {
 			this._reader.readBitShort();
 		}
 
@@ -162,23 +162,23 @@ export class DwgHeaderReader extends DwgSectionIO {
 			this._header.angularUnitPrecision = angularUnitPrecision;
 		}
 
-		if (this.R13_14Only) {
+		if (this.r13_14Only) {
 			this._header.objectSnapMode = this._reader.readBitShort() as ObjectSnapMode;
 		}
 
 		this._header.attributeVisibility = this._reader.readBitShort() as AttributeVisibilityMode;
 
-		if (this.R13_14Only) {
+		if (this.r13_14Only) {
 			this._reader.readBitShort();
 		}
 
 		this._header.pointDisplayMode = this._reader.readBitShort();
 
-		if (this.R13_14Only) {
+		if (this.r13_14Only) {
 			this._reader.readBitShort();
 		}
 
-		if (this.R2004Plus) {
+		if (this.r2004Plus) {
 			this._reader.readBitLong();
 			this._reader.readBitLong();
 			this._reader.readBitLong();
@@ -240,7 +240,7 @@ export class DwgHeaderReader extends DwgSectionIO {
 		this._header.createDateTime = this._reader.readDateTime();
 		this._header.updateDateTime = this._reader.readDateTime();
 
-		if (this.R2004Plus) {
+		if (this.r2004Plus) {
 			this._reader.readBitLong();
 			this._reader.readBitLong();
 			this._reader.readBitLong();
@@ -253,18 +253,18 @@ export class DwgHeaderReader extends DwgSectionIO {
 
 		this._header.handleSeed = mainreader.handleReference();
 
-		objectPointers.CLAYER = this._reader.handleReference();
-		objectPointers.TEXTSTYLE = this._reader.handleReference();
-		objectPointers.CELTYPE = this._reader.handleReference();
+		objectPointers.clayer = this._reader.handleReference();
+		objectPointers.textstyle = this._reader.handleReference();
+		objectPointers.celtype = this._reader.handleReference();
 
-		if (this.R2007Plus) {
-			objectPointers.CMATERIAL = this._reader.handleReference();
+		if (this.r2007Plus) {
+			objectPointers.cmaterial = this._reader.handleReference();
 		}
 
-		objectPointers.DIMSTYLE = this._reader.handleReference();
-		objectPointers.CMLSTYLE = this._reader.handleReference();
+		objectPointers.dimstyle = this._reader.handleReference();
+		objectPointers.cmlstyle = this._reader.handleReference();
 
-		if (this.R2000Plus) {
+		if (this.r2000Plus) {
 			this._header.viewportDefaultViewScaleFactor = this._reader.readBitDouble();
 		}
 
@@ -278,12 +278,12 @@ export class DwgHeaderReader extends DwgSectionIO {
 		this._header.paperSpaceXAxis = this._reader.read3BitDouble();
 		this._header.paperSpaceYAxis = this._reader.read3BitDouble();
 
-		objectPointers.UCSNAME_PSPACE = this._reader.handleReference();
+		objectPointers.ucsname_pspace = this._reader.handleReference();
 
-		if (this.R2000Plus) {
-			objectPointers.PUCSORTHOREF = this._reader.handleReference();
+		if (this.r2000Plus) {
+			objectPointers.pucsorthoref = this._reader.handleReference();
 			this._reader.readBitShort(); // PUCSORTHOVIEW
-			objectPointers.PUCSBASE = this._reader.handleReference();
+			objectPointers.pucsbase = this._reader.handleReference();
 
 			this._header.paperSpaceOrthographicTopDOrigin = this._reader.read3BitDouble();
 			this._header.paperSpaceOrthographicBottomDOrigin = this._reader.read3BitDouble();
@@ -303,12 +303,12 @@ export class DwgHeaderReader extends DwgSectionIO {
 		this._header.modelSpaceXAxis = this._reader.read3BitDouble();
 		this._header.modelSpaceYAxis = this._reader.read3BitDouble();
 
-		objectPointers.UCSNAME_MSPACE = this._reader.handleReference();
+		objectPointers.ucsname_mspace = this._reader.handleReference();
 
-		if (this.R2000Plus) {
-			objectPointers.UCSORTHOREF = this._reader.handleReference();
+		if (this.r2000Plus) {
+			objectPointers.ucsorthoref = this._reader.handleReference();
 			this._reader.readBitShort(); // UCSORTHOVIEW
-			objectPointers.UCSBASE = this._reader.handleReference();
+			objectPointers.ucsbase = this._reader.handleReference();
 
 			this._header.modelSpaceOrthographicTopDOrigin = this._reader.read3BitDouble();
 			this._header.modelSpaceOrthographicBottomDOrigin = this._reader.read3BitDouble();
@@ -321,7 +321,7 @@ export class DwgHeaderReader extends DwgSectionIO {
 			this._header.dimensionAlternateDimensioningSuffix = this._reader.readVariableText();
 		}
 
-		if (this.R13_14Only) {
+		if (this.r13_14Only) {
 			this._header.dimensionGenerateTolerances = this._reader.readBit();
 			this._header.dimensionLimitsGeneration = this._reader.readBit();
 			this._header.dimensionTextInsideHorizontal = this._reader.readBit();
@@ -351,7 +351,7 @@ export class DwgHeaderReader extends DwgSectionIO {
 			this._header.dimensionToleranceDecimalPlaces = this._reader.readBitShort();
 			this._header.dimensionAlternateUnitFormat = this._reader.readBitShort() as LinearUnitFormat;
 			this._header.dimensionAlternateUnitToleranceDecimalPlaces = this._reader.readBitShort();
-			objectPointers.DIMTXSTY = this._reader.handleReference();
+			objectPointers.dimtxsty = this._reader.handleReference();
 		}
 
 		// Common dimension variables
@@ -365,7 +365,7 @@ export class DwgHeaderReader extends DwgSectionIO {
 		this._header.dimensionPlusTolerance = this._reader.readBitDouble();
 		this._header.dimensionMinusTolerance = this._reader.readBitDouble();
 
-		if (this.R2007Plus) {
+		if (this.r2007Plus) {
 			this._header.dimensionFixedExtensionLineLength = this._reader.readBitDouble();
 			const dimJogAngle = this._reader.readBitDouble();
 			const rounded = Math.round(dimJogAngle * 1000000) / 1000000;
@@ -377,7 +377,7 @@ export class DwgHeaderReader extends DwgSectionIO {
 			this._header.dimensionTextBackgroundColor = this._reader.readCmColor();
 		}
 
-		if (this.R2000Plus) {
+		if (this.r2000Plus) {
 			this._header.dimensionGenerateTolerances = this._reader.readBit();
 			this._header.dimensionLimitsGeneration = this._reader.readBit();
 			this._header.dimensionTextInsideHorizontal = this._reader.readBit();
@@ -389,7 +389,7 @@ export class DwgHeaderReader extends DwgSectionIO {
 			this._header.dimensionAngularZeroHandling = this._reader.readBitShort();
 		}
 
-		if (this.R2007Plus) {
+		if (this.r2007Plus) {
 			this._header.dimensionArcLengthSymbolPosition = this._reader.readBitShort();
 		}
 
@@ -402,7 +402,7 @@ export class DwgHeaderReader extends DwgSectionIO {
 		this._header.dimensionToleranceScaleFactor = this._reader.readBitDouble();
 		this._header.dimensionLineGap = this._reader.readBitDouble();
 
-		if (this.R13_14Only) {
+		if (this.r13_14Only) {
 			this._header.dimensionPostFix = this._reader.readVariableText();
 			this._header.dimensionAlternateDimensioningSuffix = this._reader.readVariableText();
 			this._header.dimensionBlockName = this._reader.readVariableText();
@@ -410,7 +410,7 @@ export class DwgHeaderReader extends DwgSectionIO {
 			this._header.dimensionBlockNameSecond = this._reader.readVariableText();
 		}
 
-		if (this.R2000Plus) {
+		if (this.r2000Plus) {
 			this._header.dimensionAlternateUnitRounding = this._reader.readBitDouble();
 			this._header.dimensionAlternateUnitDimensioning = this._reader.readBit();
 			this._header.dimensionAlternateUnitDecimalPlaces = this._reader.readBitShort() & 0xFF;
@@ -424,7 +424,7 @@ export class DwgHeaderReader extends DwgSectionIO {
 		this._header.dimensionExtensionLineColor = this._reader.readCmColor();
 		this._header.dimensionTextColor = this._reader.readCmColor();
 
-		if (this.R2000Plus) {
+		if (this.r2000Plus) {
 			this._header.dimensionAngularDimensionDecimalPlaces = this._reader.readBitShort();
 			this._header.dimensionDecimalPlaces = this._reader.readBitShort();
 			this._header.dimensionToleranceDecimalPlaces = this._reader.readBitShort();
@@ -446,11 +446,11 @@ export class DwgHeaderReader extends DwgSectionIO {
 			this._header.dimensionDimensionTextArrowFit = this._reader.readBitShort();
 		}
 
-		if (this.R2007Plus) {
+		if (this.r2007Plus) {
 			this._header.dimensionIsExtensionLineLengthFixed = this._reader.readBit();
 		}
 
-		if (this.R2010Plus) {
+		if (this.r2010Plus) {
 			this._header.dimensionTextDirection = this._reader.readBit() ? 1 : 0;
 			this._header.dimensionAltMzf = this._reader.readBitDouble();
 			this._header.dimensionAltMzs = this._reader.readVariableText();
@@ -458,69 +458,69 @@ export class DwgHeaderReader extends DwgSectionIO {
 			this._header.dimensionMzs = this._reader.readVariableText();
 		}
 
-		if (this.R2000Plus) {
-			objectPointers.DIMTXSTY = this._reader.handleReference();
-			objectPointers.DIMLDRBLK = this._reader.handleReference();
-			objectPointers.DIMBLK = this._reader.handleReference();
-			objectPointers.DIMBLK1 = this._reader.handleReference();
-			objectPointers.DIMBLK2 = this._reader.handleReference();
+		if (this.r2000Plus) {
+			objectPointers.dimtxsty = this._reader.handleReference();
+			objectPointers.dimldrblk = this._reader.handleReference();
+			objectPointers.dimblk = this._reader.handleReference();
+			objectPointers.dimblk1 = this._reader.handleReference();
+			objectPointers.dimblk2 = this._reader.handleReference();
 		}
 
-		if (this.R2007Plus) {
-			objectPointers.DIMLTYPE = this._reader.handleReference();
-			objectPointers.DIMLTEX1 = this._reader.handleReference();
-			objectPointers.DIMLTEX2 = this._reader.handleReference();
+		if (this.r2007Plus) {
+			objectPointers.dimltype = this._reader.handleReference();
+			objectPointers.dimltex1 = this._reader.handleReference();
+			objectPointers.dimltex2 = this._reader.handleReference();
 		}
 
-		if (this.R2000Plus) {
+		if (this.r2000Plus) {
 			this._header.dimensionLineWeight = this._reader.readBitShort() as LineWeightType;
 			this._header.extensionLineWeight = this._reader.readBitShort() as LineWeightType;
 		}
 
 		// Table control object handles
-		objectPointers.BLOCK_CONTROL_OBJECT = this._reader.handleReference();
-		objectPointers.LAYER_CONTROL_OBJECT = this._reader.handleReference();
-		objectPointers.STYLE_CONTROL_OBJECT = this._reader.handleReference();
-		objectPointers.LINETYPE_CONTROL_OBJECT = this._reader.handleReference();
-		objectPointers.VIEW_CONTROL_OBJECT = this._reader.handleReference();
-		objectPointers.UCS_CONTROL_OBJECT = this._reader.handleReference();
-		objectPointers.VPORT_CONTROL_OBJECT = this._reader.handleReference();
-		objectPointers.APPID_CONTROL_OBJECT = this._reader.handleReference();
-		objectPointers.DIMSTYLE_CONTROL_OBJECT = this._reader.handleReference();
+		objectPointers.block_control_object = this._reader.handleReference();
+		objectPointers.layer_control_object = this._reader.handleReference();
+		objectPointers.style_control_object = this._reader.handleReference();
+		objectPointers.linetype_control_object = this._reader.handleReference();
+		objectPointers.view_control_object = this._reader.handleReference();
+		objectPointers.ucs_control_object = this._reader.handleReference();
+		objectPointers.vport_control_object = this._reader.handleReference();
+		objectPointers.appid_control_object = this._reader.handleReference();
+		objectPointers.dimstyle_control_object = this._reader.handleReference();
 
-		if (this.R13_15Only) {
-			objectPointers.VIEWPORT_ENTITY_HEADER_CONTROL_OBJECT = this._reader.handleReference();
+		if (this.r13_15Only) {
+			objectPointers.viewport_entity_header_control_object = this._reader.handleReference();
 		}
 
-		objectPointers.DICTIONARY_ACAD_GROUP = this._reader.handleReference();
-		objectPointers.DICTIONARY_ACAD_MLINESTYLE = this._reader.handleReference();
-		objectPointers.DICTIONARY_NAMED_OBJECTS = this._reader.handleReference();
+		objectPointers.dictionary_acad_group = this._reader.handleReference();
+		objectPointers.dictionary_acad_mlinestyle = this._reader.handleReference();
+		objectPointers.dictionary_named_objects = this._reader.handleReference();
 
-		if (this.R2000Plus) {
+		if (this.r2000Plus) {
 			this._header.stackedTextAlignment = this._reader.readBitShort();
 			this._header.stackedTextSizePercentage = this._reader.readBitShort();
 			this._header.hyperLinkBase = this._reader.readVariableText();
 			this._header.styleSheetName = this._reader.readVariableText();
 
-			objectPointers.DICTIONARY_LAYOUTS = this._reader.handleReference();
-			objectPointers.DICTIONARY_PLOTSETTINGS = this._reader.handleReference();
-			objectPointers.DICTIONARY_PLOTSTYLES = this._reader.handleReference();
+			objectPointers.dictionary_layouts = this._reader.handleReference();
+			objectPointers.dictionary_plotsettings = this._reader.handleReference();
+			objectPointers.dictionary_plotstyles = this._reader.handleReference();
 		}
 
-		if (this.R2004Plus) {
-			objectPointers.DICTIONARY_MATERIALS = this._reader.handleReference();
-			objectPointers.DICTIONARY_COLORS = this._reader.handleReference();
+		if (this.r2004Plus) {
+			objectPointers.dictionary_materials = this._reader.handleReference();
+			objectPointers.dictionary_colors = this._reader.handleReference();
 		}
 
-		if (this.R2007Plus) {
-			objectPointers.DICTIONARY_VISUALSTYLE = this._reader.handleReference();
+		if (this.r2007Plus) {
+			objectPointers.dictionary_visualstyle = this._reader.handleReference();
 
-			if (this.R2013Plus) {
-				objectPointers.DICTIONARY_VISUALSTYLE = this._reader.handleReference();
+			if (this.r2013Plus) {
+				objectPointers.dictionary_visualstyle = this._reader.handleReference();
 			}
 		}
 
-		if (this.R2000Plus) {
+		if (this.r2000Plus) {
 			const flags: number = this._reader.readBitLong();
 			this._header.currentEntityLineWeight = (flags & 0x1F) as LineWeightType;
 			this._header.endCaps = flags & 0x60;
@@ -535,14 +535,14 @@ export class DwgHeaderReader extends DwgSectionIO {
 			this._header.currentEntityPlotStyle = this._reader.readBitShort() as EntityPlotStyleType;
 
 			if (this._header.currentEntityPlotStyle === EntityPlotStyleType.ByObjectId) {
-				objectPointers.CPSNID = this._reader.handleReference();
+				objectPointers.cpsnid = this._reader.handleReference();
 			}
 
 			this._header.fingerPrintGuid = this._reader.readVariableText();
 			this._header.versionGuid = this._reader.readVariableText();
 		}
 
-		if (this.R2004Plus) {
+		if (this.r2004Plus) {
 			this._header.entitySortingFlags = this._reader.readByte() as ObjectSortingFlags;
 			this._header.indexCreationFlags = this._reader.readByte() as IndexCreationFlags;
 			this._header.hideText = this._reader.readByte();
@@ -556,13 +556,13 @@ export class DwgHeaderReader extends DwgSectionIO {
 			this._header.projectName = this._reader.readVariableText();
 		}
 
-		objectPointers.PAPER_SPACE = this._reader.handleReference();
-		objectPointers.MODEL_SPACE = this._reader.handleReference();
-		objectPointers.BYLAYER = this._reader.handleReference();
-		objectPointers.BYBLOCK = this._reader.handleReference();
-		objectPointers.CONTINUOUS = this._reader.handleReference();
+		objectPointers.paper_space = this._reader.handleReference();
+		objectPointers.model_space = this._reader.handleReference();
+		objectPointers.bylayer = this._reader.handleReference();
+		objectPointers.byblock = this._reader.handleReference();
+		objectPointers.continuous = this._reader.handleReference();
 
-		if (this.R2007Plus) {
+		if (this.r2007Plus) {
 			this._header.cameraDisplayObjects = this._reader.readBit();
 			this._reader.readBitLong();
 			this._reader.readBitLong();
@@ -598,9 +598,9 @@ export class DwgHeaderReader extends DwgSectionIO {
 
 			this._header.interfereColor = this._reader.readCmColor();
 
-			objectPointers.INTERFEREOBJVS = this._reader.handleReference();
-			objectPointers.INTERFEREVPVS = this._reader.handleReference();
-			objectPointers.DRAGVS = this._reader.handleReference();
+			objectPointers.interfereobjvs = this._reader.handleReference();
+			objectPointers.interferevpvs = this._reader.handleReference();
+			objectPointers.dragvs = this._reader.handleReference();
 
 			this._header.shadowMode = this._reader.readByte() as ShadowMode;
 			this._header.shadowPlaneLocation = this._reader.readBitDouble();
@@ -609,7 +609,7 @@ export class DwgHeaderReader extends DwgSectionIO {
 		try {
 			mainreader.setPositionInBits(initialPos + size * 8);
 			mainreader.resetShift();
-			this.checkSentinel(this._reader, DwgSectionDefinition.EndSentinels.get(this.SectionName)!);
+			this.checkSentinel(this._reader, DwgSectionDefinition.endSentinels.get(this.sectionName)!);
 		} catch (ex) {
 			this.notify('An error ocurred at the end of the Header reading',
 				NotificationType.Error, ex instanceof Error ? ex : undefined);

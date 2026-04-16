@@ -22,7 +22,7 @@ export class PolylineExtensions {
 		for (let index = 0; index < segmentCount; index++) {
 			const current = vertices[index];
 			const next = vertices[(index + 1) % vertices.length];
-			const entity = this.createSegment(polyline, current, next);
+			const entity = this._createSegment(polyline, current, next);
 			if (entity != null) {
 				entities.push(entity);
 			}
@@ -39,7 +39,7 @@ export class PolylineExtensions {
 			return [];
 		}
 		if (vertices.length === 1) {
-			return [this.toXYZ(vertices[0].location, polyline.elevation) as T];
+			return [this._toXYZ(vertices[0].location, polyline.elevation) as T];
 		}
 
 		const segmentCount = polyline.isClosed ? vertices.length : vertices.length - 1;
@@ -47,7 +47,7 @@ export class PolylineExtensions {
 		for (let index = 0; index < segmentCount; index++) {
 			const current = vertices[index];
 			const next = vertices[(index + 1) % vertices.length];
-			const segmentPoints = this.getSegmentPoints(polyline, current, next, precision);
+			const segmentPoints = this._getSegmentPoints(polyline, current, next, precision);
 			if (index > 0 && segmentPoints.length > 0) {
 				segmentPoints.shift();
 			}
@@ -55,7 +55,7 @@ export class PolylineExtensions {
 		}
 
 		if (points.length === 0) {
-			points.push(...vertices.map((vertex) => this.toXYZ(vertex.location, polyline.elevation)));
+			points.push(...vertices.map((vertex) => this._toXYZ(vertex.location, polyline.elevation)));
 		}
 
 		if (polyline.isClosed && points.length > 1 && XYZ.equals(points[0], points[points.length - 1])) {
@@ -65,11 +65,11 @@ export class PolylineExtensions {
 		return points as T[];
 	}
 
-	private static createSegment(polyline: IPolyline, current: IVertex, next: IVertex): Entity | null {
+	private static _createSegment(polyline: IPolyline, current: IVertex, next: IVertex): Entity | null {
 		const bulge = current.bulge ?? 0;
-		const elevation = this.getElevation(polyline, current, next);
-		const startPoint = this.toXYZ(current.location, elevation);
-		const endPoint = this.toXYZ(next.location, elevation);
+		const elevation = this._getElevation(polyline, current, next);
+		const startPoint = this._toXYZ(current.location, elevation);
+		const endPoint = this._toXYZ(next.location, elevation);
 
 		if (Math.abs(bulge) < 1e-12) {
 			const line = new Line(startPoint, endPoint);
@@ -81,7 +81,7 @@ export class PolylineExtensions {
 			return line;
 		}
 
-		const arc = Arc.createFromBulge(this.toXY(current.location), this.toXY(next.location), bulge);
+		const arc = Arc.createFromBulge(this._toXY(current.location), this._toXY(next.location), bulge);
 		arc.center.z = elevation;
 		arc.normal = polyline.normal;
 		arc.thickness = polyline.thickness;
@@ -91,18 +91,18 @@ export class PolylineExtensions {
 		return arc;
 	}
 
-	private static getSegmentPoints(polyline: IPolyline, current: IVertex, next: IVertex, precision: number): XYZ[] {
+	private static _getSegmentPoints(polyline: IPolyline, current: IVertex, next: IVertex, precision: number): XYZ[] {
 		const bulge = current.bulge ?? 0;
-		const elevation = this.getElevation(polyline, current, next);
-		const start = this.toXYZ(current.location, elevation);
-		const end = this.toXYZ(next.location, elevation);
+		const elevation = this._getElevation(polyline, current, next);
+		const start = this._toXYZ(current.location, elevation);
+		const end = this._toXYZ(next.location, elevation);
 
 		if (Math.abs(bulge) < 1e-12) {
 			return [start, end];
 		}
 
-		const startXY = this.toXY(current.location);
-		const endXY = this.toXY(next.location);
+		const startXY = this._toXY(current.location);
+		const endXY = this._toXY(next.location);
 		const { center, radius } = Arc.getCenter(startXY, endXY, bulge);
 		let startAngle = Math.atan2(startXY.y - center.y, startXY.x - center.x);
 		let endAngle = Math.atan2(endXY.y - center.y, endXY.x - center.x);
@@ -131,7 +131,7 @@ export class PolylineExtensions {
 		return points;
 	}
 
-	private static getElevation(polyline: IPolyline, current: IVertex, next: IVertex): number {
+	private static _getElevation(polyline: IPolyline, current: IVertex, next: IVertex): number {
 		if (isXYZ(current.location)) {
 			return current.location.z;
 		}
@@ -141,11 +141,11 @@ export class PolylineExtensions {
 		return polyline.elevation;
 	}
 
-	private static toXY(location: IVector): XY {
+	private static _toXY(location: IVector): XY {
 		return new XY((location as XY | XYZ).x, (location as XY | XYZ).y);
 	}
 
-	private static toXYZ(location: IVector, elevation: number): XYZ {
+	private static _toXYZ(location: IVector, elevation: number): XYZ {
 		const point = location as XY | XYZ;
 		return new XYZ(point.x, point.y, isXYZ(location) ? location.z : elevation);
 	}

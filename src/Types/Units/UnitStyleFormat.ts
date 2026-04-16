@@ -155,7 +155,7 @@ export class UnitStyleFormat {
 			return `${feet}${this.feetSymbol}${this.feetInchesSeparator}0${this.inchesSymbol}`;
 		}
 
-		const { numerator, denominator } = UnitStyleFormat.getFraction(inchesDec, Math.pow(2, this.linearDecimalPlaces));
+		const { numerator, denominator } = UnitStyleFormat._getFraction(inchesDec, Math.pow(2, this.linearDecimalPlaces));
 
 		if (numerator === 0) {
 			if (inches === 0) {
@@ -205,12 +205,12 @@ export class UnitStyleFormat {
 	}
 
 	public toDecimal(value: number, isAngular: boolean = false): string {
-		return UnitStyleFormat.formatNumber(value, this.getZeroHandlingFormat(isAngular), this.decimalSeparator);
+		return UnitStyleFormat._formatNumber(value, this.getZeroHandlingFormat(isAngular), this.decimalSeparator);
 	}
 
 	public toDegrees(angle: number): string {
 		const degrees = angle * (180.0 / Math.PI);
-		return UnitStyleFormat.formatNumber(degrees, this.getZeroHandlingFormat(true), this.decimalSeparator) + this.degreesSymbol;
+		return UnitStyleFormat._formatNumber(degrees, this.getZeroHandlingFormat(true), this.decimalSeparator) + this.degreesSymbol;
 	}
 
 	public toDegreesMinutesSeconds(angle: number): string {
@@ -231,7 +231,7 @@ export class UnitStyleFormat {
 		}
 
 		const f = '0.' + '0'.repeat(this.angularDecimalPlaces - 4);
-		return `${Math.trunc(degrees)}${this.degreesSymbol}${Math.trunc(minutes)}${this.minutesSymbol}${UnitStyleFormat.formatNumber(seconds, f, this.decimalSeparator)}${this.secondsSymbol}`;
+		return `${Math.trunc(degrees)}${this.degreesSymbol}${Math.trunc(minutes)}${this.minutesSymbol}${UnitStyleFormat._formatNumber(seconds, f, this.decimalSeparator)}${this.secondsSymbol}`;
 	}
 
 	public toEngineering(value: number): string {
@@ -254,7 +254,7 @@ export class UnitStyleFormat {
 			return `${feet}${this.feetSymbol}${this.feetInchesSeparator}0${this.inchesSymbol}`;
 		}
 
-		const inchesDec = UnitStyleFormat.formatNumber(inches, this.getZeroHandlingFormat(), this.decimalSeparator);
+		const inchesDec = UnitStyleFormat._formatNumber(inches, this.getZeroHandlingFormat(), this.decimalSeparator);
 		if (feet === 0) {
 			if (this.suppressZeroFeet) {
 				return `${inches}${this.inchesSymbol}`;
@@ -266,7 +266,7 @@ export class UnitStyleFormat {
 
 	public toFractional(value: number): string {
 		const num = Math.trunc(value);
-		const { numerator, denominator } = UnitStyleFormat.getFraction(value, Math.pow(2, this.linearDecimalPlaces));
+		const { numerator, denominator } = UnitStyleFormat._getFraction(value, Math.pow(2, this.linearDecimalPlaces));
 		if (numerator === 0) {
 			return `${Math.trunc(value)}`;
 		}
@@ -290,20 +290,20 @@ export class UnitStyleFormat {
 
 	public toGradians(angle: number): string {
 		const gradians = angle * (200.0 / Math.PI);
-		return UnitStyleFormat.formatNumber(gradians, this.getZeroHandlingFormat(true), this.decimalSeparator) + this.gradiansSymbol;
+		return UnitStyleFormat._formatNumber(gradians, this.getZeroHandlingFormat(true), this.decimalSeparator) + this.gradiansSymbol;
 	}
 
 	public toRadians(angle: number): string {
-		return UnitStyleFormat.formatNumber(angle, this.getZeroHandlingFormat(true), this.decimalSeparator) + this.radiansSymbol;
+		return UnitStyleFormat._formatNumber(angle, this.getZeroHandlingFormat(true), this.decimalSeparator) + this.radiansSymbol;
 	}
 
 	public toScientific(value: number): string {
 		return value.toExponential(this.linearDecimalPlaces).toUpperCase();
 	}
 
-	private static getFraction(number: number, precision: number): { numerator: number; denominator: number } {
+	private static _getFraction(number: number, precision: number): { numerator: number; denominator: number } {
 		let numerator = Math.round((number - Math.trunc(number)) * precision);
-		let commonFactor = UnitStyleFormat.getGCD(numerator, precision);
+		let commonFactor = UnitStyleFormat._getGCD(numerator, precision);
 		if (commonFactor <= 0) {
 			commonFactor = 1;
 		}
@@ -312,7 +312,7 @@ export class UnitStyleFormat {
 		return { numerator, denominator };
 	}
 
-	private static getGCD(number1: number, number2: number): number {
+	private static _getGCD(number1: number, number2: number): number {
 		let a = number1;
 		let b = number2;
 		while (b !== 0) {
@@ -323,7 +323,7 @@ export class UnitStyleFormat {
 		return a;
 	}
 
-	private static formatNumber(value: number, format: string, decimalSeparator: string): string {
+	private static _formatNumber(value: number, format: string, decimalSeparator: string): string {
 		// Parse format string like "0.00", "#.##", "0.##" etc.
 		const parts = format.split('.');
 		const intPart = parts[0] || '0';

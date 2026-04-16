@@ -11,7 +11,7 @@ export class Line extends Entity {
 	normal: XYZ = new XYZ(0, 0, 1);
 
 	override get objectName(): string {
-		return DxfFileToken.EntityLine;
+		return DxfFileToken.entityLine;
 	}
 
 	override get objectType(): ObjectType {
@@ -21,7 +21,7 @@ export class Line extends Entity {
 	startPoint: XYZ = new XYZ(0, 0, 0);
 
 	override get subclassMarker(): string {
-		return DxfSubclassMarker.Line;
+		return DxfSubclassMarker.line;
 	}
 
 	thickness: number = 0.0;
@@ -43,6 +43,6 @@ export class Line extends Entity {
 	}
 
 	override getBoundingBox(): BoundingBox {
-		return BoundingBox.FromPoints([this.startPoint, this.endPoint]);
+		return BoundingBox.fromPoints([this.startPoint, this.endPoint]);
 	}
 }

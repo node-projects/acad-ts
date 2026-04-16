@@ -16,7 +16,7 @@ function transformPoint(transform: Transform, point: XYZ): XYZ {
 }
 
 function transformVector(transform: Transform, vector: XYZ): XYZ {
-	const origin = transform.applyTransform(XYZ.Zero);
+	const origin = transform.applyTransform(XYZ.zero);
 	const transformed = transform.applyTransform(vector);
 	return new XYZ(
 		transformed.x - origin.x,
@@ -92,7 +92,7 @@ export class MLine extends Entity {
 	normal: XYZ = new XYZ(0, 0, 1);
 
 	override get objectName(): string {
-		return DxfFileToken.EntityMLine;
+		return DxfFileToken.entityMLine;
 	}
 
 	override get objectType(): ObjectType {
@@ -110,7 +110,7 @@ export class MLine extends Entity {
 	}
 
 	override get subclassMarker(): string {
-		return DxfSubclassMarker.MLine;
+		return DxfSubclassMarker.mLine;
 	}
 
 	vertices: MLineVertex[] = [];
@@ -138,7 +138,7 @@ export class MLine extends Entity {
 
 	override getBoundingBox(): BoundingBox {
 		const points = [this.startPoint, ...this.vertices.map((vertex) => vertex.position)];
-		return BoundingBox.FromPoints(points);
+		return BoundingBox.fromPoints(points);
 	}
 
 	/** @internal */

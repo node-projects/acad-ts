@@ -110,7 +110,7 @@ describe('EntityHelpersTests', () => {
 		shape.relativeXScale = 1.5;
 
 		const tolerance = new Tolerance();
-		const style = DimensionStyle.Default;
+		const style = DimensionStyle.default;
 		style.textHeight = 2;
 		tolerance.style = style;
 		tolerance.insertionPoint = new XYZ(10, 1, 0);

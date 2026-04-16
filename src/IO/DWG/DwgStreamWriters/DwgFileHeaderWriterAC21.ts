@@ -5,7 +5,7 @@ import { DwgFileHeaderWriterAC18 } from './DwgFileHeaderWriterAC18.js';
 import { DwgSectionDescriptor } from '../FileHeaders/DwgSectionDescriptor.js';
 
 export class DwgFileHeaderWriterAC21 extends DwgFileHeaderWriterAC18 {
-	override get FileHeaderSize(): number { return 0x480; }
+	override get fileHeaderSize(): number { return 0x480; }
 
 	protected override get compressor(): ICompressor { return new DwgLZ77AC21Compressor(); }
 

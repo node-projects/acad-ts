@@ -26,10 +26,10 @@ export class DictionaryVariableCollection extends ObjectDictionaryCollection<Dic
 	}
 
 	createDefaults(): void {
-		this.addVariable(DictionaryVariable.CurrentMultiLeaderStyle, MultiLeaderStyle.DefaultName);
-		this.addVariable(DictionaryVariable.CurrentAnnotationScale, Scale.DefaultName);
-		this.addVariable(DictionaryVariable.CurrentTableStyle, TableStyle.DefaultName);
-		this.addVariable(DictionaryVariable.WipeoutFrame, '0');
+		this.addVariable(DictionaryVariable.currentMultiLeaderStyle, MultiLeaderStyle.defaultName);
+		this.addVariable(DictionaryVariable.currentAnnotationScale, Scale.defaultName);
+		this.addVariable(DictionaryVariable.currentTableStyle, TableStyle.defaultName);
+		this.addVariable(DictionaryVariable.wipeoutFrame, '0');
 		this.addVariable('CVIEWDETAILSTYLE', 'Metric50');
 		this.addVariable('CVIEWSECTIONSTYLE', 'Metric50');
 	}

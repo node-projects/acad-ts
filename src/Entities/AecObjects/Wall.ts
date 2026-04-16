@@ -32,9 +32,9 @@ export class Wall extends Entity {
   version: number = 0;
   width: number = 0;
 
-  override get objectName(): string { return DxfFileToken.EntityAecWall; }
+  override get objectName(): string { return DxfFileToken.entityAecWall; }
   override get objectType(): ObjectType { return ObjectType.UNLISTED; }
-  override get subclassMarker(): string { return DxfSubclassMarker.AecWall; }
+  override get subclassMarker(): string { return DxfSubclassMarker.aecWall; }
 
   getBoundingBox(): BoundingBox {
     throw new Error('Not implemented');

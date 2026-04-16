@@ -15,7 +15,7 @@ export class Tolerance extends Entity {
 	normal: XYZ = new XYZ(0, 0, 1);
 
 	override get objectName(): string {
-		return DxfFileToken.EntityTolerance;
+		return DxfFileToken.entityTolerance;
 	}
 
 	override get objectType(): ObjectType {
@@ -37,12 +37,12 @@ export class Tolerance extends Entity {
 	}
 
 	override get subclassMarker(): string {
-		return DxfSubclassMarker.Tolerance;
+		return DxfSubclassMarker.tolerance;
 	}
 
 	text: string = '';
 
-	private _style: DimensionStyle = DimensionStyle.Default;
+	private _style: DimensionStyle = DimensionStyle.default;
 
 	override applyTransform(transform: unknown): void {
 		this.direction = this.applyTransformToVector(transform, this.direction);
@@ -56,10 +56,10 @@ export class Tolerance extends Entity {
 	override getBoundingBox(): BoundingBox {
 		const height = Math.max(this.style.textHeight, 1e-12);
 		const width = Math.max(this.text.length, 1) * height * 0.6;
-		const direction = this.direction.getLength() > 0 ? this.direction.normalize() : XYZ.AxisX;
+		const direction = this.direction.getLength() > 0 ? this.direction.normalize() : XYZ.axisX;
 		let vertical = this.normal.cross(direction);
 		if (vertical.getLength() === 0) {
-			vertical = XYZ.AxisY;
+			vertical = XYZ.axisY;
 		} else {
 			vertical = vertical.normalize();
 		}
@@ -83,6 +83,6 @@ export class Tolerance extends Entity {
 			),
 		];
 
-		return BoundingBox.FromPoints(corners);
+		return BoundingBox.fromPoints(corners);
 	}
 }

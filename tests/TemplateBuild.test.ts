@@ -14,11 +14,11 @@ import { LeaderLine, LeaderRoot } from '../src/Objects/MultiLeaderObjectContextD
 import { XYZ } from '../src/Math/XYZ.js';
 
 class TestCadDocumentBuilder extends CadDocumentBuilder {
-	override get KeepUnknownEntities(): boolean {
+	override get keepUnknownEntities(): boolean {
 		return true;
 	}
 
-	override get KeepUnknownNonGraphicalObjects(): boolean {
+	override get keepUnknownNonGraphicalObjects(): boolean {
 		return true;
 	}
 
@@ -49,11 +49,11 @@ describe('TemplateBuildTests', () => {
 		builder.registerObject(visualStyle);
 		builder.registerObject(baseUcs);
 		builder.registerObject(namedUcs);
-		template.VisualStyleHandle = visualStyle.handle;
-		template.UcsHandle = baseUcs.handle;
-		template.NamedUcsHandle = namedUcs.handle;
+		template.visualStyleHandle = visualStyle.handle;
+		template.ucsHandle = baseUcs.handle;
+		template.namedUcsHandle = namedUcs.handle;
 
-		template.Build(builder);
+		template.build(builder);
 
 		expect(view.visualStyle).toBe(visualStyle);
 		expect(view.isUcsAssociated).toBe(true);
@@ -80,10 +80,10 @@ describe('TemplateBuildTests', () => {
 
 		builder.registerObject(defaultArrowhead);
 		builder.registerObject(lineArrowhead);
-		template.ArrowheadHandle = defaultArrowhead.handle;
-		template.ArrowheadHandles.set(lineArrowhead.handle, false);
+		template.arrowheadHandle = defaultArrowhead.handle;
+		template.arrowheadHandles.set(lineArrowhead.handle, false);
 
-		template.Build(builder);
+		template.build(builder);
 
 		expect(multiLeader.arrowhead).toBe(defaultArrowhead);
 		expect(multiLeader.contextData.leaderRoots[0].lines[0].arrowhead).toBe(lineArrowhead);

@@ -11,22 +11,22 @@ import { FaceModifierType } from './FaceModifierType.js';
 
 export class VisualStyle extends NonGraphicalObject {
 	brightness: number = 0;
-	color: Color = Color.ByLayer;
+	color: Color = Color.byLayer;
 	description: string = '';
 	displaySettings: number = 0;
 
 	edgeApplyStyleFlag: number = 0;
 	edgeColor: number = 0;
 	edgeCreaseAngle: number = 0;
-	edgeIntersectionColor: Color = Color.ByLayer;
+	edgeIntersectionColor: Color = Color.byLayer;
 	edgeIntersectionLineType: number = 0;
 	edgeIsolineCount: number = 0;
 	edgeJitter: number = 0;
 	edgeModifiers: number = 0;
-	edgeObscuredColor: Color = Color.ByLayer;
+	edgeObscuredColor: Color = Color.byLayer;
 	edgeObscuredLineType: number = 0;
 	edgeOverhang: number = 0;
-	edgeSilhouetteColor: Color = Color.ByLayer;
+	edgeSilhouetteColor: Color = Color.byLayer;
 	edgeSilhouetteWidth: number = 0;
 	edgeStyle: number = 0;
 	edgeStyleModel: EdgeStyleModel = EdgeStyleModel.NoEdges;
@@ -38,12 +38,12 @@ export class VisualStyle extends NonGraphicalObject {
 	faceModifiers: FaceModifierType = FaceModifierType.None;
 	faceOpacityLevel: number = 0;
 	faceSpecularLevel: number = 0;
-	faceStyleMonoColor: Color = Color.ByLayer;
+	faceStyleMonoColor: Color = Color.byLayer;
 
 	haloGap: number = 0;
 	internalFlag: boolean = false;
 
-	override get objectName(): string { return DxfFileToken.ObjectVisualStyle; }
+	override get objectName(): string { return DxfFileToken.objectVisualStyle; }
 	override get objectType(): ObjectType { return ObjectType.UNLISTED; }
 
 	opacityLevel: number = 0;
@@ -51,9 +51,9 @@ export class VisualStyle extends NonGraphicalObject {
 	rasterFile: string = '';
 	shadowType: number = 0;
 
-	override get subclassMarker(): string { return DxfSubclassMarker.VisualStyle; }
+	override get subclassMarker(): string { return DxfSubclassMarker.visualStyle; }
 
 	type: number = 0;
 
-	static readonly DefaultName = '2dWireframe';
+	static readonly defaultName = '2dWireframe';
 }

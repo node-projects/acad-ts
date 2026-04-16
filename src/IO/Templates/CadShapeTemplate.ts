@@ -5,27 +5,27 @@ import { NotificationType } from '../NotificationEventHandler.js';
 import { CadEntityTemplate } from './CadEntityTemplate.js';
 
 export class CadShapeTemplate extends CadEntityTemplate {
-	ShapeIndex: number | null = null;
+	shapeIndex: number | null = null;
 
-	ShapeFileHandle: number | null = null;
+	shapeFileHandle: number | null = null;
 
-	ShapeFileName: string | null = null;
+	shapeFileName: string | null = null;
 
 	constructor(shape: Shape) {
 		super(shape);
 	}
 
-	protected override build(builder: CadDocumentBuilder): void {
-		super.build(builder);
+	protected override _build(builder: CadDocumentBuilder): void {
+		super._build(builder);
 
-		const shape = this.CadObject as Shape;
+		const shape = this.cadObject as Shape;
 
-		const text = this.getTableReference<TextStyle>(builder, this.ShapeFileHandle, this.ShapeFileName ?? '');
+		const text = this.getTableReference<TextStyle>(builder, this.shapeFileHandle, this.shapeFileName ?? '');
 		if (text) {
 			if (text.isShapeFile) {
 				shape.shapeStyle = text;
 			} else {
-				builder.Notify(`Shape style ${this.ShapeFileHandle} | ${this.ShapeFileName} not found`, NotificationType.Warning);
+				builder.notify(`Shape style ${this.shapeFileHandle} | ${this.shapeFileName} not found`, NotificationType.Warning);
 			}
 		}
 	}

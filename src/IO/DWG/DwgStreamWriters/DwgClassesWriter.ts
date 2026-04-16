@@ -7,7 +7,7 @@ import { DwgStreamWriterBase } from './DwgStreamWriterBase.js';
 import { IDwgStreamWriter } from './IDwgStreamWriter.js';
 
 export class DwgClassesWriter extends DwgSectionIO {
-	override get SectionName(): string { return DwgSectionDefinition.Classes; }
+	override get sectionName(): string { return DwgSectionDefinition.classes; }
 
 	get bytesWritten(): number { return Math.ceil(this._startWriter.positionInBits / 8); }
 	get startWriterStream(): ArrayBuffer { return this._startWriter.main.stream; }
@@ -39,7 +39,7 @@ export class DwgClassesWriter extends DwgSectionIO {
 	}
 
 	write(): void {
-		if (this.R2007Plus) {
+		if (this.r2007Plus) {
 			this._writer.savePositonForSize();
 		}
 
@@ -49,8 +49,8 @@ export class DwgClassesWriter extends DwgSectionIO {
 			maxClassNumber = Math.max(...classesArr.map(c => c.classNumber));
 		}
 
-		if (this.R2004Plus) {
-			if (this.R2007Plus) {
+		if (this.r2004Plus) {
+			if (this.r2007Plus) {
 				//BL : Maximum class number
 				this._writer.writeBitLong(maxClassNumber);
 				//B : true
@@ -83,7 +83,7 @@ export class DwgClassesWriter extends DwgSectionIO {
 			//BS : itemclassid
 			this._writer.writeBitShort(c.itemClassId);
 
-			if (this.R2004Plus) {
+			if (this.r2004Plus) {
 				//BL : Number of objects created of this type
 				this._writer.writeBitLong(c.instanceCount);
 				//BS : Dwg Version
@@ -99,10 +99,10 @@ export class DwgClassesWriter extends DwgSectionIO {
 
 		this._writer.writeSpearShift();
 
-		this.writeSizeAndCrc();
+		this._writeSizeAndCrc();
 	}
 
-	private writeSizeAndCrc(): void {
+	private _writeSizeAndCrc(): void {
 		//SN : start sentinel
 		this._startWriter.writeBytes(this._startSentinel);
 
@@ -128,7 +128,7 @@ export class DwgClassesWriter extends DwgSectionIO {
 
 		for (let i = 0; i < sectionLength; i++) crcData.push(sectionData[i]);
 
-		const crcVal = CRC8StreamHandler.GetCRCValue(0xC0C1, new Uint8Array(crcData), 0, crcData.length);
+		const crcVal = CRC8StreamHandler.getCRCValue(0xC0C1, new Uint8Array(crcData), 0, crcData.length);
 
 		this._startWriter.writeBytes(sizeBytes);
 
@@ -145,7 +145,7 @@ export class DwgClassesWriter extends DwgSectionIO {
 
 		this._startWriter.writeBytes(this._endSentinel);
 
-		if (this.R2004Plus) {
+		if (this.r2004Plus) {
 			//For R18 and later 8 unknown bytes follow.
 			this._startWriter.writeRawLong(0);
 			this._startWriter.writeRawLong(0);

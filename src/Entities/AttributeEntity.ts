@@ -6,7 +6,7 @@ import { ObjectType } from '../Types/ObjectType.js';
 
 export class AttributeEntity extends AttributeBase {
 	override get objectName(): string {
-		return DxfFileToken.EntityAttribute;
+		return DxfFileToken.entityAttribute;
 	}
 
 	override get objectType(): ObjectType {
@@ -14,7 +14,7 @@ export class AttributeEntity extends AttributeBase {
 	}
 
 	override get subclassMarker(): string {
-		return DxfSubclassMarker.Attribute;
+		return DxfSubclassMarker.attribute;
 	}
 
 	constructor(definition?: AttributeDefinition) {

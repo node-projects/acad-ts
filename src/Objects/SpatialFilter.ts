@@ -7,7 +7,7 @@ import { Matrix4 } from '../Math/Matrix4.js';
 import { XY } from '../Math/XY.js';
 
 export class SpatialFilter extends Filter {
-	static readonly SpatialFilterEntryName = 'SPATIAL';
+	static readonly spatialFilterEntryName = 'SPATIAL';
 
 	backDistance: number = 0;
 	boundaryPoints: XY[] = [];
@@ -19,12 +19,12 @@ export class SpatialFilter extends Filter {
 	inverseInsertTransform: Matrix4 = Matrix4.identity(); // Matrix4
 	normal: XYZ = new XYZ(0, 0, 1);
 
-	override get objectName(): string { return DxfFileToken.ObjectSpatialFilter; }
+	override get objectName(): string { return DxfFileToken.objectSpatialFilter; }
 	override get objectType(): ObjectType { return ObjectType.UNLISTED; }
 
 	origin: XYZ = new XYZ(0, 0, 1);
 
-	override get subclassMarker(): string { return DxfSubclassMarker.SpatialFilter; }
+	override get subclassMarker(): string { return DxfSubclassMarker.spatialFilter; }
 
 	constructor(name?: string) {
 		super(name);

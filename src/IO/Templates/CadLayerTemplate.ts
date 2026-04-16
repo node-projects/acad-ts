@@ -6,32 +6,32 @@ import { NotificationType } from '../NotificationEventHandler.js';
 import { CadTableEntryTemplate } from './CadTableEntryTemplate.js';
 
 export class CadLayerTemplate extends CadTableEntryTemplate<Layer> {
-	LayerControlHandle: number = 0;
+	layerControlHandle: number = 0;
 
-	PlotStyleHandle: number = 0;
+	plotStyleHandle: number = 0;
 
-	MaterialHandle: number = 0;
+	materialHandle: number = 0;
 
-	LineTypeHandle: number | null = null;
+	lineTypeHandle: number | null = null;
 
-	LineTypeName: string | null = null;
+	lineTypeName: string | null = null;
 
-	TrueColorName: string | null = null;
+	trueColorName: string | null = null;
 
 	constructor(entry?: Layer) {
 		super(entry ?? new Layer());
 	}
 
-	protected override build(builder: CadDocumentBuilder): void {
-		super.build(builder);
+	protected override _build(builder: CadDocumentBuilder): void {
+		super._build(builder);
 
-		const material = builder.TryGetCadObject<Material>(this.MaterialHandle);
+		const material = builder.tryGetCadObject<Material>(this.materialHandle);
 
-		const lineType = this.getTableReference<LineType>(builder, this.LineTypeHandle, this.LineTypeName ?? '');
+		const lineType = this.getTableReference<LineType>(builder, this.lineTypeHandle, this.lineTypeName ?? '');
 		if (lineType) {
-			this.CadObject.lineType = lineType;
+			this.cadObject.lineType = lineType;
 		} else {
-			builder.Notify(`Linetype with handle ${this.LineTypeHandle} could not be found for layer ${this.CadObject.name}`, NotificationType.Warning);
+			builder.notify(`Linetype with handle ${this.lineTypeHandle} could not be found for layer ${this.cadObject.name}`, NotificationType.Warning);
 		}
 	}
 }

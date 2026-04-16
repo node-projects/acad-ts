@@ -1,5 +1,5 @@
 export interface IDwgFileHeaderWriter {
-	HandleSectionOffset: number;
+	handleSectionOffset: number;
 
 	bytesWritten: number;
 

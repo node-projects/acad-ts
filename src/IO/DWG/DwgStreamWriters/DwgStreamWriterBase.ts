@@ -157,7 +157,7 @@ export abstract class DwgStreamWriterBase implements IDwgStreamWriter {
 	}
 
 	writeInt(value: number): void {
-		this.ensureCapacity(4);
+		this._ensureCapacity(4);
 		const bytes = new Uint8Array(4);
 		const view = new DataView(bytes.buffer);
 		view.setInt32(0, value, true);
@@ -181,7 +181,7 @@ export abstract class DwgStreamWriterBase implements IDwgStreamWriter {
 
 	writeBytes(arr: Uint8Array): void {
 		if (this.bitShift === 0) {
-			this.ensureCapacity(arr.length);
+			this._ensureCapacity(arr.length);
 			for (let i = 0; i < arr.length; i++) {
 				this._buffer[this._position++] = arr[i];
 			}
@@ -189,7 +189,7 @@ export abstract class DwgStreamWriterBase implements IDwgStreamWriter {
 		}
 
 		const num = 8 - this.bitShift;
-		this.ensureCapacity(arr.length + 1);
+		this._ensureCapacity(arr.length + 1);
 		for (const b of arr) {
 			this._buffer[this._position++] = (this._lastByte | (b >>> this.bitShift)) & 0xFF;
 			this._lastByte = (b << num) & 0xFF;
@@ -198,7 +198,7 @@ export abstract class DwgStreamWriterBase implements IDwgStreamWriter {
 
 	writeBytesOffset(arr: Uint8Array, initialIndex: number, length: number): void {
 		if (this.bitShift === 0) {
-			this.ensureCapacity(length);
+			this._ensureCapacity(length);
 			for (let i = 0, j = initialIndex; i < length; i++, j++) {
 				this._buffer[this._position++] = arr[j];
 			}
@@ -206,7 +206,7 @@ export abstract class DwgStreamWriterBase implements IDwgStreamWriter {
 		}
 
 		const num = 8 - this.bitShift;
-		this.ensureCapacity(length + 1);
+		this._ensureCapacity(length + 1);
 		for (let i = 0, j = initialIndex; i < length; i++, j++) {
 			const b = arr[j];
 			this._buffer[this._position++] = (this._lastByte | (b >>> this.bitShift)) & 0xFF;
@@ -276,7 +276,7 @@ export abstract class DwgStreamWriterBase implements IDwgStreamWriter {
 			size++;
 		}
 
-		this.write3Bits(size);
+		this._write3Bits(size);
 
 		tmp = hold;
 		for (let i = 0; i < size; i++) {
@@ -300,7 +300,7 @@ export abstract class DwgStreamWriterBase implements IDwgStreamWriter {
 		const text = value ?? '';
 		const bytes = encodeCadString(text, this.encoding);
 		this.writeRawShort(bytes.length + 1);
-		this.ensureCapacity(bytes.length + 1);
+		this._ensureCapacity(bytes.length + 1);
 		for (let i = 0; i < bytes.length; i++) {
 			this._buffer[this._position++] = bytes[i];
 		}
@@ -313,12 +313,12 @@ export abstract class DwgStreamWriterBase implements IDwgStreamWriter {
 			this.bitShift += 2;
 		} else if (this.bitShift === 6) {
 			this._lastByte |= value;
-			this.ensureCapacity(1);
+			this._ensureCapacity(1);
 			this._buffer[this._position++] = this._lastByte & 0xFF;
-			this.resetShift();
+			this._resetShift();
 		} else {
 			this._lastByte |= (value >>> 1) & 0xFF;
-			this.ensureCapacity(1);
+			this._ensureCapacity(1);
 			this._buffer[this._position++] = this._lastByte & 0xFF;
 			this._lastByte = (value << 7) & 0xFF;
 			this.bitShift = 1;
@@ -338,25 +338,25 @@ export abstract class DwgStreamWriterBase implements IDwgStreamWriter {
 			this._lastByte |= 1;
 		}
 
-		this.ensureCapacity(1);
+		this._ensureCapacity(1);
 		this._buffer[this._position++] = this._lastByte & 0xFF;
-		this.resetShift();
+		this._resetShift();
 	}
 
 	writeByte(value: number): void {
 		if (this.bitShift === 0) {
-			this.ensureCapacity(1);
+			this._ensureCapacity(1);
 			this._buffer[this._position++] = value & 0xFF;
 			return;
 		}
 
 		const shift = 8 - this.bitShift;
-		this.ensureCapacity(1);
+		this._ensureCapacity(1);
 		this._buffer[this._position++] = (this._lastByte | (value >>> this.bitShift)) & 0xFF;
 		this._lastByte = (value << shift) & 0xFF;
 	}
 
-	private resetShift(): void {
+	private _resetShift(): void {
 		this.bitShift = 0;
 		this._lastByte = 0;
 	}
@@ -401,19 +401,19 @@ export abstract class DwgStreamWriterBase implements IDwgStreamWriter {
 	}
 
 	write2BitDouble(value: XY): void {
-		this.writeBitDouble(value.X);
-		this.writeBitDouble(value.Y);
+		this.writeBitDouble(value.x);
+		this.writeBitDouble(value.y);
 	}
 
 	write3BitDouble(value: XYZ): void {
-		this.writeBitDouble(value.X);
-		this.writeBitDouble(value.Y);
-		this.writeBitDouble(value.Z);
+		this.writeBitDouble(value.x);
+		this.writeBitDouble(value.y);
+		this.writeBitDouble(value.z);
 	}
 
 	write2RawDouble(value: XY): void {
-		this.writeRawDouble(value.X);
-		this.writeRawDouble(value.Y);
+		this.writeRawDouble(value.x);
+		this.writeRawDouble(value.y);
 	}
 
 	writeRawShort(value: number): void {
@@ -527,14 +527,14 @@ export abstract class DwgStreamWriterBase implements IDwgStreamWriter {
 	}
 
 	write2BitDoubleWithDefault(def: XY, value: XY): void {
-		this.writeBitDoubleWithDefault(def.X, value.X);
-		this.writeBitDoubleWithDefault(def.Y, value.Y);
+		this.writeBitDoubleWithDefault(def.x, value.x);
+		this.writeBitDoubleWithDefault(def.y, value.y);
 	}
 
 	write3BitDoubleWithDefault(def: XYZ, value: XYZ): void {
-		this.writeBitDoubleWithDefault(def.X, value.X);
-		this.writeBitDoubleWithDefault(def.Y, value.Y);
-		this.writeBitDoubleWithDefault(def.Z, value.Z);
+		this.writeBitDoubleWithDefault(def.x, value.x);
+		this.writeBitDoubleWithDefault(def.y, value.y);
+		this.writeBitDoubleWithDefault(def.z, value.z);
 	}
 
 	writeBitDoubleWithDefault(def: number, value: number): void {
@@ -641,13 +641,13 @@ export abstract class DwgStreamWriterBase implements IDwgStreamWriter {
 		}
 	}
 
-	private write3Bits(value: number): void {
+	private _write3Bits(value: number): void {
 		this.writeBit((value & 4) !== 0);
 		this.writeBit((value & 2) !== 0);
 		this.writeBit((value & 1) !== 0);
 	}
 
-	private ensureCapacity(additionalBytes: number): void {
+	private _ensureCapacity(additionalBytes: number): void {
 		const needed = this._position + additionalBytes;
 		if (needed > this._buffer.length) {
 			const newSize = Math.max(needed, this._buffer.length * 2);

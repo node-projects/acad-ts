@@ -8,44 +8,44 @@ import { CadTemplateT } from './CadTemplate[T].js';
 import { ICadDictionaryTemplate } from './ICadDictionaryTemplate.js';
 
 export class CadDictionaryTemplate extends CadTemplateT<CadDictionary> implements ICadDictionaryTemplate {
-	Entries: Map<string, number | null> = new Map();
+	entries: Map<string, number | null> = new Map();
 
 	constructor(dictionary?: CadDictionary) {
 		super(dictionary ?? new CadDictionary());
 	}
 
-	protected override build(builder: CadDocumentBuilder): void {
-		super.build(builder);
+	protected override _build(builder: CadDocumentBuilder): void {
+		super._build(builder);
 
-		if (this.OwnerHandle != null
-			&& this.OwnerHandle === 0
-			&& builder.DocumentToBuild.rootDictionary == null) {
+		if (this.ownerHandle != null
+			&& this.ownerHandle === 0
+			&& builder.documentToBuild.rootDictionary == null) {
 			if (builder instanceof DwgDocumentBuilder) {
 				const dwgBuilder = builder as DwgDocumentBuilder;
-				if (this.CadObject.handle === dwgBuilder.HeaderHandles.DICTIONARY_NAMED_OBJECTS) {
-					builder.DocumentToBuild.rootDictionary = this.CadObject;
+				if (this.cadObject.handle === dwgBuilder.headerHandles.dictionary_named_objects) {
+					builder.documentToBuild.rootDictionary = this.cadObject;
 				} else {
-					builder.DocumentToBuild.rootDictionary = this.CadObject;
+					builder.documentToBuild.rootDictionary = this.cadObject;
 				}
 			} else {
-				builder.DocumentToBuild.rootDictionary = this.CadObject;
+				builder.documentToBuild.rootDictionary = this.cadObject;
 			}
 		}
 
-		for (const [key, value] of this.Entries) {
-			const entry = builder.TryGetCadObject<NonGraphicalObject>(value);
+		for (const [key, value] of this.entries) {
+			const entry = builder.tryGetCadObject<NonGraphicalObject>(value);
 			if (entry) {
 				if (!entry.name || entry.name.length === 0) {
 					entry.name = key;
 				}
 
 				try {
-					this.CadObject.add(entry);
+					this.cadObject.add(entry);
 				} catch (ex: unknown) {
-					builder.Notify(`Error when trying to add the entry ${entry.name} to ${this.CadObject.name}|${this.CadObject.handle}`, NotificationType.Error, ex instanceof Error ? ex : null);
+					builder.notify(`Error when trying to add the entry ${entry.name} to ${this.cadObject.name}|${this.cadObject.handle}`, NotificationType.Error, ex instanceof Error ? ex : null);
 				}
 			} else {
-				builder.Notify(`Entry not found ${key}|${value} for dictionary ${this.CadObject.name}|${this.CadObject.handle}`, NotificationType.Warning);
+				builder.notify(`Entry not found ${key}|${value} for dictionary ${this.cadObject.name}|${this.cadObject.handle}`, NotificationType.Warning);
 			}
 		}
 	}

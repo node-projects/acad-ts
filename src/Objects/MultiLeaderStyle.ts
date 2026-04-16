@@ -14,7 +14,7 @@ import { TextStyle } from '../Tables/TextStyle.js';
 import { XYZ } from '../Math/XYZ.js';
 
 export class MultiLeaderStyle extends NonGraphicalObject {
-	static get default_(): MultiLeaderStyle { return new MultiLeaderStyle(MultiLeaderStyle.DefaultName); }
+	static get default_(): MultiLeaderStyle { return new MultiLeaderStyle(MultiLeaderStyle.defaultName); }
 
 	alignSpace: number = 0.0;
 
@@ -32,7 +32,7 @@ export class MultiLeaderStyle extends NonGraphicalObject {
 		this._blockContent = CadObject.updateCollectionStatic(value, this.document?.blockRecords ?? null);
 	}
 
-	blockContentColor: Color = Color.ByBlock;
+	blockContentColor: Color = Color.byBlock;
 	blockContentConnection: number = 0;
 	blockContentRotation: number = 0.0;
 
@@ -71,11 +71,11 @@ export class MultiLeaderStyle extends NonGraphicalObject {
 	}
 
 	leaderLineWeight: number = 0;
-	lineColor: Color = Color.ByLayer;
+	lineColor: Color = Color.byLayer;
 	maxLeaderSegmentsPoints: number = 2;
 	multiLeaderDrawOrder: MultiLeaderDrawOrderType = MultiLeaderDrawOrderType.ContentFirst;
 
-	override get objectName(): string { return DxfFileToken.ObjectMLeaderStyle; }
+	override get objectName(): string { return DxfFileToken.objectMLeaderStyle; }
 	override get objectType(): ObjectType { return ObjectType.UNLISTED; }
 
 	overwritePropertyValue: boolean = false;
@@ -83,14 +83,14 @@ export class MultiLeaderStyle extends NonGraphicalObject {
 	scaleFactor: number = 1;
 	secondSegmentAngleConstraint: number = 0;
 
-	override get subclassMarker(): string { return DxfSubclassMarker.MLeaderStyle; }
+	override get subclassMarker(): string { return DxfSubclassMarker.mLeaderStyle; }
 
 	textAlignAlwaysLeft: boolean = false;
 	textAlignment: number = 0;
 	textAngle: number = 0;
 	textAttachmentDirection: number = 0;
 	textBottomAttachment: number = 0;
-	textColor: Color = Color.ByBlock;
+	textColor: Color = Color.byBlock;
 	textFrame: boolean = false;
 	textHeight: number = 0.18;
 	textLeftAttachment: number = 0;
@@ -106,7 +106,7 @@ export class MultiLeaderStyle extends NonGraphicalObject {
 	textTopAttachment: number = 0;
 	unknownFlag298: boolean = false;
 
-	static readonly DefaultName = 'Standard';
+	static readonly defaultName = 'Standard';
 
 	constructor(name: string = '') {
 		super(name);

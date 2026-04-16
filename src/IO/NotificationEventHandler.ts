@@ -13,10 +13,6 @@ export class NotificationEventArgs {
 	readonly notificationType: NotificationType;
 	readonly exception: Error | null;
 
-	get Message(): string { return this.message; }
-	get NotificationType(): NotificationType { return this.notificationType; }
-	get Exception(): Error | null { return this.exception; }
-
 	constructor(message: string, notificationType: NotificationType = NotificationType.None, exception: Error | null = null) {
 		this.message = message;
 		this.notificationType = notificationType;

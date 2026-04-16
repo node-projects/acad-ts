@@ -152,7 +152,7 @@ export class DwgMergedReader implements IDwgStreamReader {
 
 		let color: Color;
 		if (rgb === 0xC0000000) {
-			color = Color.ByLayer;
+			color = Color.byLayer;
 		} else if ((rgb & 0b0000_0001_0000_0000_0000_0000_0000_0000) !== 0) {
 			// Indexed color
 			color = new Color(arr[0]);

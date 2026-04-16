@@ -6,13 +6,6 @@ export class Transform {
   scale: XYZ;
   eulerRotation: XYZ;
 
-  get Translation(): XYZ { return this.translation; }
-  set Translation(v: XYZ) { this.translation = v; }
-  get Scale(): XYZ { return this.scale; }
-  set Scale(v: XYZ) { this.scale = v; }
-  get EulerRotation(): XYZ { return this.eulerRotation; }
-  set EulerRotation(v: XYZ) { this.eulerRotation = v; }
-
   constructor(translation?: XYZ, scale?: XYZ, eulerRotation?: XYZ) {
     this.translation = translation ?? new XYZ(0, 0, 0);
     this.scale = scale ?? new XYZ(1, 1, 1);
@@ -41,7 +34,6 @@ export class Transform {
     m.m23 = this.translation.z;
     return m;
   }
-  get Matrix(): Matrix4 { return this.matrix; }
 
   applyTransform(point: XYZ): XYZ {
     const m = this.matrix;
@@ -52,11 +44,11 @@ export class Transform {
     );
   }
 
-  static CreateTranslation(translation: XYZ): Transform {
+  static createTranslation(translation: XYZ): Transform {
     return new Transform(translation);
   }
 
-  static CreateScaling(scale: XYZ, origin?: XYZ): Transform {
+  static createScaling(scale: XYZ, origin?: XYZ): Transform {
     const t = new Transform(undefined, scale);
     if (origin) {
       t.translation = new XYZ(
@@ -68,7 +60,7 @@ export class Transform {
     return t;
   }
 
-  static CreateRotation(axis: XYZ, angle: number): Transform {
+  static createRotation(axis: XYZ, angle: number): Transform {
     const t = new Transform();
     if (axis.z !== 0) t.eulerRotation = new XYZ(0, 0, angle);
     else if (axis.y !== 0) t.eulerRotation = new XYZ(0, angle, 0);

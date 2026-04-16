@@ -8,7 +8,7 @@ import { BlockRecord } from '../Tables/BlockRecord.js';
 
 export class BlockEnd extends Entity {
 	public override get objectName(): string {
-		return DxfFileToken.EndBlock;
+		return DxfFileToken.endBlock;
 	}
 
 	public override get objectType(): ObjectType {
@@ -16,7 +16,7 @@ export class BlockEnd extends Entity {
 	}
 
 	public override get subclassMarker(): string {
-		return DxfSubclassMarker.BlockEnd;
+		return DxfSubclassMarker.blockEnd;
 	}
 
 	public constructor(record?: BlockRecord) {

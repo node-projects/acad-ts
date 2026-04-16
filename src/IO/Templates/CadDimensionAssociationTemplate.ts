@@ -6,64 +6,64 @@ import { CadTemplateT } from './CadTemplate[T].js';
 import { ICadTemplate } from './ICadTemplate.js';
 
 export class CadDimensionAssociationTemplate extends CadTemplateT<DimensionAssociation> {
-	DimensionHandle: number | null = null;
+	dimensionHandle: number | null = null;
 
-	FirstPointRef: CadDimensionAssociationTemplate.OsnapPointRefTemplate | null = null;
+	firstPointRef: CadDimensionAssociationTemplate.OsnapPointRefTemplate | null = null;
 
-	FourthPointRef: CadDimensionAssociationTemplate.OsnapPointRefTemplate | null = null;
+	fourthPointRef: CadDimensionAssociationTemplate.OsnapPointRefTemplate | null = null;
 
-	SecondPointRef: CadDimensionAssociationTemplate.OsnapPointRefTemplate | null = null;
+	secondPointRef: CadDimensionAssociationTemplate.OsnapPointRefTemplate | null = null;
 
-	ThirdPointRef: CadDimensionAssociationTemplate.OsnapPointRefTemplate | null = null;
+	thirdPointRef: CadDimensionAssociationTemplate.OsnapPointRefTemplate | null = null;
 
 	constructor(obj?: DimensionAssociation) {
 		super(obj ?? new DimensionAssociation());
 	}
 
-	protected override build(builder: CadDocumentBuilder): void {
-		super.build(builder);
+	protected override _build(builder: CadDocumentBuilder): void {
+		super._build(builder);
 
-		const dimension = builder.TryGetCadObject<Dimension>(this.DimensionHandle);
+		const dimension = builder.tryGetCadObject<Dimension>(this.dimensionHandle);
 		if (dimension) {
-			this.CadObject.dimension = dimension;
+			this.cadObject.dimension = dimension;
 		}
 
-		if (this.FirstPointRef !== null) {
-			this.CadObject.firstPointRef = this.FirstPointRef.OsnapPointRef;
-			this.FirstPointRef.Build(builder);
+		if (this.firstPointRef !== null) {
+			this.cadObject.firstPointRef = this.firstPointRef.osnapPointRef;
+			this.firstPointRef.build(builder);
 		}
 
-		if (this.SecondPointRef !== null) {
-			this.CadObject.secondPointRef = this.SecondPointRef.OsnapPointRef;
-			this.SecondPointRef.Build(builder);
+		if (this.secondPointRef !== null) {
+			this.cadObject.secondPointRef = this.secondPointRef.osnapPointRef;
+			this.secondPointRef.build(builder);
 		}
 
-		if (this.ThirdPointRef !== null) {
-			this.CadObject.thirdPointRef = this.ThirdPointRef.OsnapPointRef;
-			this.ThirdPointRef.Build(builder);
+		if (this.thirdPointRef !== null) {
+			this.cadObject.thirdPointRef = this.thirdPointRef.osnapPointRef;
+			this.thirdPointRef.build(builder);
 		}
 
-		if (this.FourthPointRef !== null) {
-			this.CadObject.fourthPointRef = this.FourthPointRef.OsnapPointRef;
-			this.FourthPointRef.Build(builder);
+		if (this.fourthPointRef !== null) {
+			this.cadObject.fourthPointRef = this.fourthPointRef.osnapPointRef;
+			this.fourthPointRef.build(builder);
 		}
 	}
 }
 
 export namespace CadDimensionAssociationTemplate {
 	export class OsnapPointRefTemplate implements ICadTemplate {
-		ObjectHandle: number | null = null;
+		objectHandle: number | null = null;
 
-		OsnapPointRef: OsnapPointRef;
+		osnapPointRef: OsnapPointRef;
 
 		constructor(pointRef: OsnapPointRef) {
-			this.OsnapPointRef = pointRef;
+			this.osnapPointRef = pointRef;
 		}
 
-		Build(builder: CadDocumentBuilder): void {
-			const obj = builder.TryGetCadObject<CadObject>(this.ObjectHandle);
+		build(builder: CadDocumentBuilder): void {
+			const obj = builder.tryGetCadObject<CadObject>(this.objectHandle);
 			if (obj) {
-				this.OsnapPointRef.geometry = obj;
+				this.osnapPointRef.geometry = obj;
 			}
 		}
 	}

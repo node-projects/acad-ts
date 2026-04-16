@@ -21,16 +21,16 @@ import { AppId } from './AppId.js';
 import { TableEntry } from './TableEntry.js';
 
 export class BlockRecord extends TableEntry {
-	public static get ModelSpace(): BlockRecord {
-		const record = new BlockRecord(BlockRecord.ModelSpaceName);
-		const layout = new Layout(Layout.ModelLayoutName);
+	public static get modelSpace(): BlockRecord {
+		const record = new BlockRecord(BlockRecord.modelSpaceName);
+		const layout = new Layout(Layout.modelLayoutName);
 		layout.associatedBlock = record;
 		return record;
 	}
 
-	public static get PaperSpace(): BlockRecord {
-		const record = new BlockRecord(BlockRecord.PaperSpaceName);
-		const layout = new Layout(Layout.PaperLayoutName);
+	public static get paperSpace(): BlockRecord {
+		const record = new BlockRecord(BlockRecord.paperSpaceName);
+		const layout = new Layout(Layout.paperLayoutName);
 		layout.associatedBlock = record;
 		return record;
 	}
@@ -60,7 +60,7 @@ export class BlockRecord extends TableEntry {
 	public entities: CadObjectCollection<Entity>;
 
 	public get evaluationGraph(): EvaluationGraph | null {
-		return this.xDictionary?.getEntry<EvaluationGraph>(EvaluationGraph.DictionaryEntryName) ?? null;
+		return this.xDictionary?.getEntry<EvaluationGraph>(EvaluationGraph.dictionaryEntryName) ?? null;
 	}
 
 	public get blockFlags(): BlockTypeFlags {
@@ -112,7 +112,7 @@ export class BlockRecord extends TableEntry {
 	}
 
 	public override get objectName(): string {
-		return DxfFileToken.TableBlockRecord;
+		return DxfFileToken.tableBlockRecord;
 	}
 
 	public override get objectType(): ObjectType {
@@ -122,11 +122,11 @@ export class BlockRecord extends TableEntry {
 	public preview: Uint8Array | null = null;
 
 	public get sortEntitiesTable(): SortEntitiesTable | null {
-		return this.xDictionary?.getEntry<SortEntitiesTable>(SortEntitiesTable.DictionaryEntryName) ?? null;
+		return this.xDictionary?.getEntry<SortEntitiesTable>(SortEntitiesTable.dictionaryEntryName) ?? null;
 	}
 
 	public get source(): BlockRecord | null {
-		const data = this.extendedData.getExtendedDataByName().get(AppId.BlockRepBTag.toUpperCase());
+		const data = this.extendedData.getExtendedDataByName().get(AppId.blockRepBTag.toUpperCase());
 		const handle = data?.records.find((record): record is ExtendedDataHandle => record instanceof ExtendedDataHandle) ?? null;
 		if (handle == null || this.document == null) {
 			return null;
@@ -137,7 +137,7 @@ export class BlockRecord extends TableEntry {
 	}
 
 	public override get subclassMarker(): string {
-		return DxfSubclassMarker.BlockRecord;
+		return DxfSubclassMarker.blockRecord;
 	}
 
 	public units: UnitsType = UnitsType.Unitless;
@@ -146,9 +146,9 @@ export class BlockRecord extends TableEntry {
 		return Array.from(this.entities).filter((e): e is Viewport => e instanceof Viewport);
 	}
 
-	public static readonly AnonymousPrefix: string = '*A';
-	public static readonly ModelSpaceName: string = '*Model_Space';
-	public static readonly PaperSpaceName: string = '*Paper_Space';
+	public static readonly anonymousPrefix: string = '*A';
+	public static readonly modelSpaceName: string = '*Model_Space';
+	public static readonly paperSpaceName: string = '*Paper_Space';
 
 	private _blockEnd!: BlockEnd;
 	private _blockEntity!: Block;
@@ -167,14 +167,14 @@ export class BlockRecord extends TableEntry {
 	}
 
 	public override clone(): CadObject {
-		return this.cloneCore(true);
+		return this._cloneCore(true);
 	}
 
 	cloneWithoutLayout(): BlockRecord {
-		return this.cloneCore(false);
+		return this._cloneCore(false);
 	}
 
-	private cloneCore(includeLayout: boolean): BlockRecord {
+	private _cloneCore(includeLayout: boolean): BlockRecord {
 		const clone = super.clone() as BlockRecord;
 
 		clone._layout = null;
@@ -225,7 +225,7 @@ export class BlockRecord extends TableEntry {
 		}
 
 		table = new SortEntitiesTable(this);
-		this.xDictionary.addByKey(SortEntitiesTable.DictionaryEntryName, table);
+		this.xDictionary.addByKey(SortEntitiesTable.dictionaryEntryName, table);
 		return table;
 	}
 

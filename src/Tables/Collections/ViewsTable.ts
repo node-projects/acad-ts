@@ -9,7 +9,7 @@ export class ViewsTable extends Table<View> {
 	}
 
 	public override get objectName(): string {
-		return DxfFileToken.TableView;
+		return DxfFileToken.tableView;
 	}
 
 	protected override get defaultEntries(): string[] {

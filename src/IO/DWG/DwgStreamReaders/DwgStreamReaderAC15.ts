@@ -7,7 +7,7 @@ export class DwgStreamReaderAC15 extends DwgStreamReaderAC12 {
 	}
 
 	public override readBitExtrusion(): XYZ {
-		return this.readBit() ? XYZ.AxisZ : this.read3BitDouble();
+		return this.readBit() ? XYZ.axisZ : this.read3BitDouble();
 	}
 
 	public override readBitThickness(): number {

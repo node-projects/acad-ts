@@ -6,37 +6,37 @@ import { CadDocumentBuilder } from '../CadDocumentBuilder.js';
 import { CadEntityTemplate } from './CadEntityTemplate.js';
 
 export class CadWallTemplate extends CadEntityTemplate {
-	BinRecordHandle: number | null = null;
+	binRecordHandle: number | null = null;
 
-	CleanupGroupHandle: number | null = null;
+	cleanupGroupHandle: number | null = null;
 
-	RawData: Uint8Array | null = null;
+	rawData: Uint8Array | null = null;
 
-	StyleHandle: number | null = null;
+	styleHandle: number | null = null;
 
 	constructor(wall: Wall) {
 		super(wall);
 	}
 
-	protected override build(builder: CadDocumentBuilder): void {
-		super.build(builder);
-		const wall = this.CadObject as Wall;
+	protected override _build(builder: CadDocumentBuilder): void {
+		super._build(builder);
+		const wall = this.cadObject as Wall;
 
-		if (this.RawData !== null) {
-			wall.rawData = this.RawData;
+		if (this.rawData !== null) {
+			wall.rawData = this.rawData;
 		}
 
-		const binRecord = builder.TryGetCadObject<AecBinRecord>(this.BinRecordHandle);
+		const binRecord = builder.tryGetCadObject<AecBinRecord>(this.binRecordHandle);
 		if (binRecord) {
 			wall.binRecord = binRecord;
 		}
 
-		const wallStyle = builder.TryGetCadObject<AecWallStyle>(this.StyleHandle);
+		const wallStyle = builder.tryGetCadObject<AecWallStyle>(this.styleHandle);
 		if (wallStyle) {
 			wall.style = wallStyle;
 		}
 
-		const cleanupGroup = builder.TryGetCadObject<AecCleanupGroup>(this.CleanupGroupHandle);
+		const cleanupGroup = builder.tryGetCadObject<AecCleanupGroup>(this.cleanupGroupHandle);
 		if (cleanupGroup) {
 			wall.cleanupGroup = cleanupGroup;
 		}

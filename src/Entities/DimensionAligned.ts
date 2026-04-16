@@ -23,7 +23,7 @@ export class DimensionAligned extends Dimension {
 	}
 
 	override get objectName(): string {
-		return DxfFileToken.EntityDimension;
+		return DxfFileToken.entityDimension;
 	}
 
 	override get objectType(): ObjectType {
@@ -46,7 +46,7 @@ export class DimensionAligned extends Dimension {
 	secondPoint: XYZ = new XYZ(0, 0, 0);
 
 	override get subclassMarker(): string {
-		return DxfSubclassMarker.AlignedDimension;
+		return DxfSubclassMarker.alignedDimension;
 	}
 
 	constructor(firstPoint?: XYZ, secondPoint?: XYZ) {
@@ -74,7 +74,7 @@ export class DimensionAligned extends Dimension {
 	}
 
 	override getBoundingBox(): BoundingBox {
-		return BoundingBox.FromPoints([this.firstPoint, this.secondPoint, this.definitionPoint]);
+		return BoundingBox.fromPoints([this.firstPoint, this.secondPoint, this.definitionPoint]);
 	}
 
 	override updateBlock(): void {

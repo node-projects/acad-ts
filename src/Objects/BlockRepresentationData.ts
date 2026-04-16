@@ -7,11 +7,11 @@ export class BlockRepresentationData extends NonGraphicalObject {
 	block: BlockRecord | null = null;
 
 	override get objectName(): string {
-		return DxfFileToken.ObjectBlockRepresentationData;
+		return DxfFileToken.objectBlockRepresentationData;
 	}
 
 	override get subclassMarker(): string {
-		return DxfSubclassMarker.BlockRepresentationData;
+		return DxfSubclassMarker.blockRepresentationData;
 	}
 
 	value70: number = 0;

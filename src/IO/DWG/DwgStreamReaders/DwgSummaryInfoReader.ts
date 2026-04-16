@@ -6,8 +6,8 @@ import { DwgSectionDefinition } from '../FileHeaders/DwgSectionDefinition.js';
 import { IDwgStreamReader } from './IDwgStreamReader.js';
 
 export class DwgSummaryInfoReader extends DwgSectionIO {
-	override get SectionName(): string {
-		return DwgSectionDefinition.SummaryInfo;
+	override get sectionName(): string {
+		return DwgSectionDefinition.summaryInfo;
 	}
 
 	private _readStringMethod: () => string;
@@ -18,7 +18,7 @@ export class DwgSummaryInfoReader extends DwgSectionIO {
 		this._reader = reader;
 
 		if (version < ACadVersion.AC1021) {
-			this._readStringMethod = () => this.readUnicodeString();
+			this._readStringMethod = () => this._readUnicodeString();
 		} else {
 			this._readStringMethod = () => this._reader.readTextUnicode();
 		}
@@ -68,7 +68,7 @@ export class DwgSummaryInfoReader extends DwgSectionIO {
 		return summary;
 	}
 
-	private readUnicodeString(): string {
+	private _readUnicodeString(): string {
 		const textLength: number = this._reader.readShort();
 		let value: string;
 		if (textLength === 0) {

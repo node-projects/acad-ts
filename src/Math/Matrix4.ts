@@ -21,24 +21,6 @@ export class Matrix4 {
     ] = values;
   }
 
-  // PascalCase aliases
-  get M00(): number { return this.m00; } set M00(v: number) { this.m00 = v; }
-  get M01(): number { return this.m01; } set M01(v: number) { this.m01 = v; }
-  get M02(): number { return this.m02; } set M02(v: number) { this.m02 = v; }
-  get M03(): number { return this.m03; } set M03(v: number) { this.m03 = v; }
-  get M10(): number { return this.m10; } set M10(v: number) { this.m10 = v; }
-  get M11(): number { return this.m11; } set M11(v: number) { this.m11 = v; }
-  get M12(): number { return this.m12; } set M12(v: number) { this.m12 = v; }
-  get M13(): number { return this.m13; } set M13(v: number) { this.m13 = v; }
-  get M20(): number { return this.m20; } set M20(v: number) { this.m20 = v; }
-  get M21(): number { return this.m21; } set M21(v: number) { this.m21 = v; }
-  get M22(): number { return this.m22; } set M22(v: number) { this.m22 = v; }
-  get M23(): number { return this.m23; } set M23(v: number) { this.m23 = v; }
-  get M30(): number { return this.m30; } set M30(v: number) { this.m30 = v; }
-  get M31(): number { return this.m31; } set M31(v: number) { this.m31 = v; }
-  get M32(): number { return this.m32; } set M32(v: number) { this.m32 = v; }
-  get M33(): number { return this.m33; } set M33(v: number) { this.m33 = v; }
-
   static identity(): Matrix4 {
     return new Matrix4();
   }

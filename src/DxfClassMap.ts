@@ -42,7 +42,7 @@ export class DxfClassMap extends DxfMapBase {
 		return new DxfClassMap(classMap);
 	}
 
-	public static Create(type: Function | string, name?: string): DxfClassMap {
+	public static create(type: Function | string, name?: string): DxfClassMap {
 		const typeName = typeof type === 'string' ? type : type.name;
 		return DxfClassMap.createFromType(typeName, name);
 	}

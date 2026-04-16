@@ -20,7 +20,7 @@ export class PolyfaceMesh extends Polyline {
 	}
 
 	override get objectName(): string {
-		return DxfFileToken.EntityPolyline;
+		return DxfFileToken.entityPolyline;
 	}
 
 	override get objectType(): ObjectType {
@@ -28,7 +28,7 @@ export class PolyfaceMesh extends Polyline {
 	}
 
 	override get subclassMarker(): string {
-		return DxfSubclassMarker.PolyfaceMesh;
+		return DxfSubclassMarker.polyfaceMesh;
 	}
 
 	override clone(): CadObject {

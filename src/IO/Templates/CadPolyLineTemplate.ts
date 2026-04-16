@@ -20,31 +20,31 @@ import { CadEntityTemplate } from './CadEntityTemplate.js';
 import { ICadOwnerTemplate } from './ICadOwnerTemplate.js';
 
 export class CadPolyLineTemplate extends CadEntityTemplate implements ICadOwnerTemplate {
-	FirstVertexHandle: number | null = null;
+	firstVertexHandle: number | null = null;
 
-	LastVertexHandle: number | null = null;
+	lastVertexHandle: number | null = null;
 
-	SeqendHandle: number | null = null;
+	seqendHandle: number | null = null;
 
-	OwnedObjectsHandlers: Set<number> = new Set();
+	ownedObjectsHandlers: Set<number> = new Set();
 
 	constructor(entity?: IPolyline) {
 		super(entity ? (entity as unknown as Entity) : new PolyLinePlaceholder());
 	}
 
-	SetPolyLineObject(polyLine: Polyline): void {
-		polyLine.handle = this.CadObject.handle;
-		polyLine.color = this.CadObject.color;
-		polyLine.lineWeight = this.CadObject.lineWeight;
-		polyLine.lineTypeScale = this.CadObject.lineTypeScale;
-		polyLine.isInvisible = this.CadObject.isInvisible;
-		polyLine.transparency = this.CadObject.transparency;
+	setPolyLineObject(polyLine: Polyline): void {
+		polyLine.handle = this.cadObject.handle;
+		polyLine.color = this.cadObject.color;
+		polyLine.lineWeight = this.cadObject.lineWeight;
+		polyLine.lineTypeScale = this.cadObject.lineTypeScale;
+		polyLine.isInvisible = this.cadObject.isInvisible;
+		polyLine.transparency = this.cadObject.transparency;
 
-		this.CadObject = polyLine;
+		this.cadObject = polyLine;
 	}
 
 	protected addVertices(builder: CadDocumentBuilder, ...vertices: Entity[]): void {
-		const obj = this.CadObject;
+		const obj = this.cadObject;
 		if (obj instanceof Polyline2D) {
 			for (const v of vertices) {
 				(obj as Polyline2D).vertices.push(v as Vertex2D);
@@ -57,7 +57,7 @@ export class CadPolyLineTemplate extends CadEntityTemplate implements ICadOwnerT
 			}
 		} else if (obj instanceof PolyfaceMesh) {
 			for (const item of vertices) {
-				this.addPolyfaceMeshVertex(builder, obj as PolyfaceMesh, item);
+				this._addPolyfaceMeshVertex(builder, obj as PolyfaceMesh, item);
 			}
 		} else if (obj instanceof PolygonMesh) {
 			for (const v of vertices) {
@@ -65,35 +65,35 @@ export class CadPolyLineTemplate extends CadEntityTemplate implements ICadOwnerT
 				v.owner = obj;
 			}
 		} else {
-			builder.Notify(`Unknown polyline type ${this.CadObject.subclassMarker}`, NotificationType.Warning);
+			builder.notify(`Unknown polyline type ${this.cadObject.subclassMarker}`, NotificationType.Warning);
 		}
 	}
 
-	protected override build(builder: CadDocumentBuilder): void {
-		super.build(builder);
+	protected override _build(builder: CadDocumentBuilder): void {
+		super._build(builder);
 
-		const seqend = builder.TryGetCadObject<Seqend>(this.SeqendHandle);
+		const seqend = builder.tryGetCadObject<Seqend>(this.seqendHandle);
 		if (seqend) {
 			this.setSeqend(builder, seqend);
 		}
 
-		if (this.FirstVertexHandle != null) {
-			const vertices = Array.from(this.getEntitiesCollection<Vertex>(builder, this.FirstVertexHandle, this.LastVertexHandle!));
+		if (this.firstVertexHandle != null) {
+			const vertices = Array.from(this.getEntitiesCollection<Vertex>(builder, this.firstVertexHandle, this.lastVertexHandle!));
 			this.addVertices(builder, ...vertices);
 		} else {
-			if (this.CadObject instanceof PolyfaceMesh) {
-				this.buildPolyfaceMesh(this.CadObject as PolyfaceMesh, builder);
+			if (this.cadObject instanceof PolyfaceMesh) {
+				this._buildPolyfaceMesh(this.cadObject as PolyfaceMesh, builder);
 			} else {
-				for (const handle of this.OwnedObjectsHandlers) {
-					const v = builder.TryGetCadObject<Vertex>(handle);
+				for (const handle of this.ownedObjectsHandlers) {
+					const v = builder.tryGetCadObject<Vertex>(handle);
 					if (v) {
 						this.addVertices(builder, v);
 					} else {
-						const s = builder.TryGetCadObject<Seqend>(handle);
+						const s = builder.tryGetCadObject<Seqend>(handle);
 						if (s) {
 							this.setSeqend(builder, s);
 						} else {
-							builder.Notify(`Vertex ${handle} not found for polyline ${this.CadObject.handle}`, NotificationType.Warning);
+							builder.notify(`Vertex ${handle} not found for polyline ${this.cadObject.handle}`, NotificationType.Warning);
 						}
 					}
 				}
@@ -102,31 +102,31 @@ export class CadPolyLineTemplate extends CadEntityTemplate implements ICadOwnerT
 	}
 
 	protected setSeqend(builder: CadDocumentBuilder, seqend: Seqend): void {
-		const obj = this.CadObject;
+		const obj = this.cadObject;
 		seqend.owner = obj;
 		if (obj instanceof Polyline2D) {
-			(obj as Polyline2D).vertices.Seqend = seqend;
+			(obj as Polyline2D).vertices.seqend = seqend;
 		} else if (obj instanceof Polyline3D) {
-			(obj as Polyline3D).vertices.Seqend = seqend;
+			(obj as Polyline3D).vertices.seqend = seqend;
 		} else if (obj instanceof PolyfaceMesh) {
-			(obj as PolyfaceMesh).vertices.Seqend = seqend;
+			(obj as PolyfaceMesh).vertices.seqend = seqend;
 		} else if (obj instanceof PolygonMesh) {
-			(obj as PolygonMesh).vertices.Seqend = seqend;
+			(obj as PolygonMesh).vertices.seqend = seqend;
 		} else {
-			builder.Notify(`Unknown polyline type ${this.CadObject.subclassMarker}`, NotificationType.Warning);
+			builder.notify(`Unknown polyline type ${this.cadObject.subclassMarker}`, NotificationType.Warning);
 		}
 	}
 
-	private buildPolyfaceMesh(polyfaceMesh: PolyfaceMesh, builder: CadDocumentBuilder): void {
-		for (const handle of this.OwnedObjectsHandlers) {
-			const e = builder.TryGetCadObject<Entity>(handle);
+	private _buildPolyfaceMesh(polyfaceMesh: PolyfaceMesh, builder: CadDocumentBuilder): void {
+		for (const handle of this.ownedObjectsHandlers) {
+			const e = builder.tryGetCadObject<Entity>(handle);
 			if (e) {
-				this.addPolyfaceMeshVertex(builder, polyfaceMesh, e);
+				this._addPolyfaceMeshVertex(builder, polyfaceMesh, e);
 			}
 		}
 	}
 
-	private addPolyfaceMeshVertex(builder: CadDocumentBuilder, polyfaceMesh: PolyfaceMesh, e: Entity): void {
+	private _addPolyfaceMeshVertex(builder: CadDocumentBuilder, polyfaceMesh: PolyfaceMesh, e: Entity): void {
 		if (e instanceof VertexFaceMesh) {
 			polyfaceMesh.vertices.push(e as VertexFaceMesh);
 			e.owner = polyfaceMesh;
@@ -134,10 +134,10 @@ export class CadPolyLineTemplate extends CadEntityTemplate implements ICadOwnerT
 			polyfaceMesh.faces.push(e as VertexFaceRecord);
 			e.owner = polyfaceMesh;
 		} else if (e instanceof Seqend) {
-			polyfaceMesh.vertices.Seqend = e as Seqend;
+			polyfaceMesh.vertices.seqend = e as Seqend;
 			e.owner = polyfaceMesh;
 		} else {
-			builder.Notify(`Unidentified type for PolyfaceMesh ${e.constructor.name}`);
+			builder.notify(`Unidentified type for PolyfaceMesh ${e.constructor.name}`);
 		}
 	}
 }

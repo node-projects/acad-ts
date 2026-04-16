@@ -33,7 +33,7 @@ export class Block extends Entity {
 	}
 
 	public override get objectName(): string {
-		return DxfFileToken.Block;
+		return DxfFileToken.block;
 	}
 
 	public override get objectType(): ObjectType {
@@ -41,7 +41,7 @@ export class Block extends Entity {
 	}
 
 	public override get subclassMarker(): string {
-		return DxfSubclassMarker.BlockBegin;
+		return DxfSubclassMarker.blockBegin;
 	}
 
 	public xRefPath: string | null = null;

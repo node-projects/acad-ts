@@ -16,11 +16,11 @@ export class View extends TableEntry {
 	}
 
 	public override get objectName(): string {
-		return DxfFileToken.TableView;
+		return DxfFileToken.tableView;
 	}
 
 	public override get subclassMarker(): string {
-		return DxfSubclassMarker.View;
+		return DxfSubclassMarker.view;
 	}
 
 	public height: number = 0;

@@ -5,35 +5,35 @@ import { CadEntityTemplateT } from './CadEntityTemplate.js';
 import { ICadTemplate } from './ICadTemplate.js';
 
 export class CadHatchTemplate extends CadEntityTemplateT<Hatch> {
-	HatchPatternName: string | null = null;
+	hatchPatternName: string | null = null;
 
-	PathTemplates: CadHatchTemplate.CadBoundaryPathTemplate[] = [];
+	pathTemplates: CadHatchTemplate.CadBoundaryPathTemplate[] = [];
 
 	constructor(hatch?: Hatch) {
 		super(hatch ?? new Hatch());
 	}
 
-	protected override build(builder: CadDocumentBuilder): void {
-		super.build(builder);
+	protected override _build(builder: CadDocumentBuilder): void {
+		super._build(builder);
 
-		for (const t of this.PathTemplates) {
-			(this.CadObject as Hatch).paths.push(t.Path);
-			t.Build(builder);
+		for (const t of this.pathTemplates) {
+			(this.cadObject as Hatch).paths.push(t.path);
+			t.build(builder);
 		}
 	}
 }
 
 export namespace CadHatchTemplate {
 	export class CadBoundaryPathTemplate implements ICadTemplate {
-		Path: HatchBoundaryPath = new HatchBoundaryPath();
+		path: HatchBoundaryPath = new HatchBoundaryPath();
 
-		Handles: Set<number> = new Set();
+		handles: Set<number> = new Set();
 
-		Build(builder: CadDocumentBuilder): void {
-			for (const handle of this.Handles) {
-				const entity = builder.TryGetCadObject<Entity>(handle);
+		build(builder: CadDocumentBuilder): void {
+			for (const handle of this.handles) {
+				const entity = builder.tryGetCadObject<Entity>(handle);
 				if (entity) {
-					this.Path.entities.push(entity);
+					this.path.entities.push(entity);
 				}
 			}
 		}

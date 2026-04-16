@@ -6,34 +6,34 @@ import { CadTemplateT } from './CadTemplate[T].js';
 import { ICadTemplate } from './ICadTemplate.js';
 
 export class CadFieldTemplate extends CadTemplateT<Field> {
-	CadObjectsHandles: number[] = [];
+	cadObjectsHandles: number[] = [];
 
-	CadValueTemplates: ICadTemplate[] = [];
+	cadValueTemplates: ICadTemplate[] = [];
 
-	ChildrenHandles: number[] = [];
+	childrenHandles: number[] = [];
 
 	constructor(obj: Field) {
 		super(obj);
 	}
 
-	protected override build(builder: CadDocumentBuilder): void {
-		super.build(builder);
+	protected override _build(builder: CadDocumentBuilder): void {
+		super._build(builder);
 
-		for (const handle of this.CadObjectsHandles) {
-			const cobject = builder.TryGetCadObject<CadObject>(handle);
+		for (const handle of this.cadObjectsHandles) {
+			const cobject = builder.tryGetCadObject<CadObject>(handle);
 			if (cobject) {
-				this.CadObject.cadObjects.push(cobject);
+				this.cadObject.cadObjects.push(cobject);
 			} else {
-				builder.Notify(`[${this.CadObject.subclassMarker}] CadObject with handle ${handle} not found.`, NotificationType.Warning);
+				builder.notify(`[${this.cadObject.subclassMarker}] CadObject with handle ${handle} not found.`, NotificationType.Warning);
 			}
 		}
 
-		for (const handle of this.ChildrenHandles) {
-			const f = builder.TryGetCadObject<Field>(handle);
+		for (const handle of this.childrenHandles) {
+			const f = builder.tryGetCadObject<Field>(handle);
 			if (f) {
-				this.CadObject.children.push(f);
+				this.cadObject.children.push(f);
 			} else {
-				builder.Notify(`[${this.CadObject.subclassMarker}] CadObject with handle ${handle} not found.`, NotificationType.Warning);
+				builder.notify(`[${this.cadObject.subclassMarker}] CadObject with handle ${handle} not found.`, NotificationType.Warning);
 			}
 		}
 	}

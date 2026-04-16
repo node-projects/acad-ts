@@ -14,9 +14,9 @@ export class DwgLZ77AC18Decompressor {
 		let opcode1 = src[srcPos++];
 
 		if ((opcode1 & 0xF0) === 0) {
-			const litCount = DwgLZ77AC18Decompressor.literalCount(opcode1, src, { pos: srcPos });
+			const litCount = DwgLZ77AC18Decompressor._literalCount(opcode1, src, { pos: srcPos });
 			srcPos = DwgLZ77AC18Decompressor._lastSrcPos;
-			const result = DwgLZ77AC18Decompressor.copy(litCount + 3, src, srcPos, dst, dstPos, tempBuf);
+			const result = DwgLZ77AC18Decompressor._copy(litCount + 3, src, srcPos, dst, dstPos, tempBuf);
 			srcPos = result.srcPos;
 			dstPos = result.dstPos;
 			tempBuf = result.tempBuf as Uint8Array<ArrayBuffer>;
@@ -35,19 +35,19 @@ export class DwgLZ77AC18Decompressor {
 				const opcode2 = src[srcPos++];
 				compOffset = ((opcode1 >> 2 & 3) | (opcode2 << 2)) + 1;
 			} else if (opcode1 < 0x20) {
-				const rbResult = DwgLZ77AC18Decompressor.readCompressedBytes(opcode1, 0b0111, src, { pos: srcPos });
+				const rbResult = DwgLZ77AC18Decompressor._readCompressedBytes(opcode1, 0b0111, src, { pos: srcPos });
 				compressedBytes = rbResult.value;
 				srcPos = rbResult.srcPos;
 				compOffset = (opcode1 & 8) << 11;
-				const tboResult = DwgLZ77AC18Decompressor.twoByteOffset(compOffset, 0x4000, src, srcPos);
+				const tboResult = DwgLZ77AC18Decompressor._twoByteOffset(compOffset, 0x4000, src, srcPos);
 				compOffset = tboResult.offset;
 				opcode1 = tboResult.firstByte;
 				srcPos = tboResult.srcPos;
 			} else if (opcode1 >= 0x20) {
-				const rbResult = DwgLZ77AC18Decompressor.readCompressedBytes(opcode1, 0b00011111, src, { pos: srcPos });
+				const rbResult = DwgLZ77AC18Decompressor._readCompressedBytes(opcode1, 0b00011111, src, { pos: srcPos });
 				compressedBytes = rbResult.value;
 				srcPos = rbResult.srcPos;
-				const tboResult = DwgLZ77AC18Decompressor.twoByteOffset(compOffset, 1, src, srcPos);
+				const tboResult = DwgLZ77AC18Decompressor._twoByteOffset(compOffset, 1, src, srcPos);
 				compOffset = tboResult.offset;
 				opcode1 = tboResult.firstByte;
 				srcPos = tboResult.srcPos;
@@ -82,14 +82,14 @@ export class DwgLZ77AC18Decompressor {
 			if (litCount === 0) {
 				opcode1 = src[srcPos++];
 				if ((opcode1 & 0b11110000) === 0) {
-					const lcResult = DwgLZ77AC18Decompressor.literalCount(opcode1, src, { pos: srcPos });
+					const lcResult = DwgLZ77AC18Decompressor._literalCount(opcode1, src, { pos: srcPos });
 					srcPos = DwgLZ77AC18Decompressor._lastSrcPos;
 					litCount = lcResult + 3;
 				}
 			}
 
 			if (litCount > 0) {
-				const result = DwgLZ77AC18Decompressor.copy(litCount, src, srcPos, dst, dstPos, tempBuf);
+				const result = DwgLZ77AC18Decompressor._copy(litCount, src, srcPos, dst, dstPos, tempBuf);
 				srcPos = result.srcPos;
 				dstPos = result.dstPos;
 				tempBuf = result.tempBuf as Uint8Array<ArrayBuffer>;
@@ -100,7 +100,7 @@ export class DwgLZ77AC18Decompressor {
 
 	private static _lastSrcPos: number = 0;
 
-	private static copy(
+	private static _copy(
 		count: number, src: Uint8Array, srcPos: number,
 		dst: Uint8Array, dstPos: number, tempBuf: Uint8Array
 	): { srcPos: number; dstPos: number; tempBuf: Uint8Array; nextByte: number } {
@@ -117,7 +117,7 @@ export class DwgLZ77AC18Decompressor {
 		return { srcPos, dstPos, tempBuf, nextByte };
 	}
 
-	private static literalCount(code: number, src: Uint8Array, ref: { pos: number }): number {
+	private static _literalCount(code: number, src: Uint8Array, ref: { pos: number }): number {
 		let lowbits = code & 0b1111;
 		if (lowbits === 0) {
 			let lastByte: number;
@@ -132,7 +132,7 @@ export class DwgLZ77AC18Decompressor {
 		return lowbits;
 	}
 
-	private static readCompressedBytes(
+	private static _readCompressedBytes(
 		opcode1: number, validBits: number, compressed: Uint8Array, ref: { pos: number }
 	): { value: number; srcPos: number } {
 		let compressedBytes = opcode1 & validBits;
@@ -148,7 +148,7 @@ export class DwgLZ77AC18Decompressor {
 		return { value: compressedBytes + 2, srcPos: ref.pos };
 	}
 
-	private static twoByteOffset(
+	private static _twoByteOffset(
 		offset: number, addedValue: number, stream: Uint8Array, srcPos: number
 	): { offset: number; firstByte: number; srcPos: number } {
 		const firstByte = stream[srcPos++];

@@ -8,11 +8,11 @@ export class BlockRotationParameter extends Block2PtParameter {
 	name: string = '';
 	nameOffset: number = 0;
 
-	override get objectName(): string { return DxfFileToken.ObjectBlockRotationParameter; }
+	override get objectName(): string { return DxfFileToken.objectBlockRotationParameter; }
 
 	point: XYZ = new XYZ(0, 0, 0);
 
-	override get subclassMarker(): string { return DxfSubclassMarker.BlockRotationParameter; }
+	override get subclassMarker(): string { return DxfSubclassMarker.blockRotationParameter; }
 
 	value141: number = 0;
 	value142: number = 0;

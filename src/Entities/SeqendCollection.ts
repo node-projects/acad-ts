@@ -5,7 +5,7 @@ import { Entity } from './Entity.js';
  * In C# this was SeqendCollection<T>.
  */
 export class SeqendCollection<T extends Entity> extends Array<T> {
-  Seqend: Entity | null = null;
+  seqend: Entity | null = null;
 
   constructor(...items: T[]) {
     super(...items);

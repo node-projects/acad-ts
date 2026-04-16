@@ -6,54 +6,54 @@ import { NotificationType } from '../NotificationEventHandler.js';
 import { CadEntityTemplateT } from './CadEntityTemplate.js';
 
 export class CadViewportTemplate extends CadEntityTemplateT<Viewport> {
-	ViewportHeaderHandle: number | null = null;
+	viewportHeaderHandle: number | null = null;
 
-	BoundaryHandle: number | null = null;
+	boundaryHandle: number | null = null;
 
-	NamedUcsHandle: number | null = null;
+	namedUcsHandle: number | null = null;
 
-	BaseUcsHandle: number | null = null;
+	baseUcsHandle: number | null = null;
 
-	VisualStyleHandle: number | null = null;
+	visualStyleHandle: number | null = null;
 
-	ViewportId: number | null = null;
+	viewportId: number | null = null;
 
-	BlockHandle: number | null = null;
+	blockHandle: number | null = null;
 
-	FrozenLayerHandles: Set<number> = new Set();
+	frozenLayerHandles: Set<number> = new Set();
 
 	constructor(entity?: Viewport) {
 		super(entity ?? new Viewport());
 	}
 
-	protected override build(builder: CadDocumentBuilder): void {
-		super.build(builder);
+	protected override _build(builder: CadDocumentBuilder): void {
+		super._build(builder);
 
-		if (this.ViewportId != null) {
-			this.CadObject.id = this.ViewportId;
+		if (this.viewportId != null) {
+			this.cadObject.id = this.viewportId;
 		}
 
-		const entity = builder.TryGetCadObject<Entity>(this.BoundaryHandle);
+		const entity = builder.tryGetCadObject<Entity>(this.boundaryHandle);
 		if (entity) {
-			this.CadObject.boundary = entity;
-		} else if (this.BoundaryHandle != null && this.BoundaryHandle > 0) {
-			builder.Notify(`Boundary ${this.BoundaryHandle} not found for viewport ${this.CadObject.handle}`, NotificationType.Warning);
+			this.cadObject.boundary = entity;
+		} else if (this.boundaryHandle != null && this.boundaryHandle > 0) {
+			builder.notify(`Boundary ${this.boundaryHandle} not found for viewport ${this.cadObject.handle}`, NotificationType.Warning);
 		}
 
-		if (this.NamedUcsHandle != null && this.NamedUcsHandle > 0) {
-			builder.Notify(`Named ucs not implemented for Viewport, handle ${this.NamedUcsHandle}`);
+		if (this.namedUcsHandle != null && this.namedUcsHandle > 0) {
+			builder.notify(`Named ucs not implemented for Viewport, handle ${this.namedUcsHandle}`);
 		}
 
-		if (this.BaseUcsHandle != null && this.BaseUcsHandle > 0) {
-			builder.Notify(`Base ucs not implemented for Viewport, handle ${this.BaseUcsHandle}`);
+		if (this.baseUcsHandle != null && this.baseUcsHandle > 0) {
+			builder.notify(`Base ucs not implemented for Viewport, handle ${this.baseUcsHandle}`);
 		}
 
-		for (const handle of this.FrozenLayerHandles) {
-			const layer = builder.TryGetCadObject<Layer>(handle);
+		for (const handle of this.frozenLayerHandles) {
+			const layer = builder.tryGetCadObject<Layer>(handle);
 			if (layer) {
-				this.CadObject.frozenLayers.push(layer);
+				this.cadObject.frozenLayers.push(layer);
 			} else {
-				builder.Notify(`Frozen layer ${handle} not found for viewport ${this.CadObject.handle}`, NotificationType.Warning);
+				builder.notify(`Frozen layer ${handle} not found for viewport ${this.cadObject.handle}`, NotificationType.Warning);
 			}
 		}
 	}

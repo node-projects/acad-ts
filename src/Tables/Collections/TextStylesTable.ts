@@ -9,16 +9,16 @@ export class TextStylesTable extends Table<TextStyle> {
 	}
 
 	public override get objectName(): string {
-		return DxfFileToken.TableStyle;
+		return DxfFileToken.tableStyle;
 	}
 
 	protected override get defaultEntries(): string[] {
-		return [TextStyle.DefaultName];
+		return [TextStyle.defaultName];
 	}
 
 	public override createDefaultEntries(): void {
-		if (!this.contains(TextStyle.DefaultName)) {
-			this.add(TextStyle.Default);
+		if (!this.contains(TextStyle.defaultName)) {
+			this.add(TextStyle.default);
 		}
 	}
 

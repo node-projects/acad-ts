@@ -19,7 +19,7 @@ export class DwgLZ77AC18Compressor implements ICompressor {
 	}
 
 	compress(source: Uint8Array, offset: number, totalSize: number, dest: number[]): void {
-		this.restartBlock();
+		this._restartBlock();
 
 		this._source = source;
 		this._dest = dest;
@@ -36,7 +36,7 @@ export class DwgLZ77AC18Compressor implements ICompressor {
 		let lastMatchPos = { value: 0 };
 
 		while (this._currPosition < this._totalOffset - 0x13) {
-			if (!this.compressChunk(currOffset, lastMatchPos)) {
+			if (!this._compressChunk(currOffset, lastMatchPos)) {
 				this._currPosition++;
 				continue;
 			}
@@ -44,10 +44,10 @@ export class DwgLZ77AC18Compressor implements ICompressor {
 			const mask = this._currPosition - this._currOffset;
 
 			if (compressionOffset !== 0) {
-				this.applyMask(matchPos, compressionOffset, mask);
+				this._applyMask(matchPos, compressionOffset, mask);
 			}
 
-			this.writeLiteralLength(mask);
+			this._writeLiteralLength(mask);
 			this._currPosition += currOffset.value;
 			this._currOffset = this._currPosition;
 			compressionOffset = currOffset.value;
@@ -57,10 +57,10 @@ export class DwgLZ77AC18Compressor implements ICompressor {
 		const literalLength = this._totalOffset - this._currOffset;
 
 		if (compressionOffset !== 0) {
-			this.applyMask(matchPos, compressionOffset, literalLength);
+			this._applyMask(matchPos, compressionOffset, literalLength);
 		}
 
-		this.writeLiteralLength(literalLength);
+		this._writeLiteralLength(literalLength);
 
 		//0x11 : Terminates the input stream.
 		dest.push(0x11);
@@ -68,11 +68,11 @@ export class DwgLZ77AC18Compressor implements ICompressor {
 		dest.push(0);
 	}
 
-	private restartBlock(): void {
+	private _restartBlock(): void {
 		this._block.fill(-1);
 	}
 
-	private writeLen(len: number): void {
+	private _writeLen(len: number): void {
 		if (len <= 0) {
 			throw new Error('Invalid length');
 		}
@@ -85,7 +85,7 @@ export class DwgLZ77AC18Compressor implements ICompressor {
 		this._dest.push(len & 0xFF);
 	}
 
-	private writeOpCode(opCode: number, compressionOffset: number, value: number): void {
+	private _writeOpCode(opCode: number, compressionOffset: number, value: number): void {
 		if (compressionOffset <= 0) {
 			throw new Error('Invalid compressionOffset');
 		}
@@ -98,15 +98,15 @@ export class DwgLZ77AC18Compressor implements ICompressor {
 			this._dest.push((opCode | (compressionOffset - 2)) & 0xFF);
 		} else {
 			this._dest.push(opCode & 0xFF);
-			this.writeLen(compressionOffset - value);
+			this._writeLen(compressionOffset - value);
 		}
 	}
 
-	private writeLiteralLength(length: number): void {
+	private _writeLiteralLength(length: number): void {
 		if (length <= 0) return;
 
 		if (length > 3) {
-			this.writeOpCode(0, length - 1, 0x11);
+			this._writeOpCode(0, length - 1, 0x11);
 		}
 		let num = this._currOffset;
 		for (let i = 0; i < length; i++) {
@@ -115,18 +115,18 @@ export class DwgLZ77AC18Compressor implements ICompressor {
 		}
 	}
 
-	private applyMask(matchPosition: number, compressionOffset: number, mask: number): void {
+	private _applyMask(matchPosition: number, compressionOffset: number, mask: number): void {
 		let curr = 0;
 		let next = 0;
 		if (compressionOffset >= 0x0F || matchPosition > 0x400) {
 			if (matchPosition <= 0x4000) {
 				matchPosition--;
 				//compressedBytes is read as the next Long Compression Offset + 0x21
-				this.writeOpCode(0x20, compressionOffset, 0x21);
+				this._writeOpCode(0x20, compressionOffset, 0x21);
 			} else {
 				matchPosition -= 0x4000;
 				//compressedBytes is read as the next Long Compression Offset, with 9 added
-				this.writeOpCode(0x10 | ((matchPosition >>> 11) & 8), compressionOffset, 0x09);
+				this._writeOpCode(0x10 | ((matchPosition >>> 11) & 8), compressionOffset, 0x09);
 			}
 
 			//offset = (firstByte >> 2) | (readByte() << 6))
@@ -147,7 +147,7 @@ export class DwgLZ77AC18Compressor implements ICompressor {
 		this._dest.push(next & 0xFF);
 	}
 
-	private compressChunk(offset: { value: number }, matchPos: { value: number }): boolean {
+	private _compressChunk(offset: { value: number }, matchPos: { value: number }): boolean {
 		offset.value = 0;
 
 		const v1 = this._source[this._currPosition + 3] << 6;

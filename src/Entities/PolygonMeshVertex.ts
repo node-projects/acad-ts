@@ -9,7 +9,7 @@ export class PolygonMeshVertex extends Vertex {
 	}
 
 	override get subclassMarker(): string {
-		return DxfSubclassMarker.PolygonMeshVertex;
+		return DxfSubclassMarker.polygonMeshVertex;
 	}
 
 	constructor(location?: XYZ) {

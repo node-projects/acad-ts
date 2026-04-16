@@ -7,48 +7,48 @@ import { DwgReaderConfiguration } from './DwgReaderConfiguration.js';
 import { CadBlockRecordTemplate } from '../Templates/CadBlockRecordTemplate.js';
 
 export class DwgDocumentBuilder extends CadDocumentBuilder {
-	Configuration: DwgReaderConfiguration;
+	configuration: DwgReaderConfiguration;
 
-	HeaderHandles: DwgHeaderHandlesCollection = new DwgHeaderHandlesCollection();
+	headerHandles: DwgHeaderHandlesCollection = new DwgHeaderHandlesCollection();
 
-	BlockRecordTemplates: CadBlockRecordTemplate[] = [];
+	blockRecordTemplates: CadBlockRecordTemplate[] = [];
 
-	PaperSpaceEntities: Entity[] = [];
+	paperSpaceEntities: Entity[] = [];
 
-	ModelSpaceEntities: Entity[] = [];
+	modelSpaceEntities: Entity[] = [];
 
-	override get KeepUnknownEntities(): boolean { return this.Configuration.KeepUnknownEntities; }
-	override get KeepUnknownNonGraphicalObjects(): boolean { return this.Configuration.KeepUnknownNonGraphicalObjects; }
+	override get keepUnknownEntities(): boolean { return this.configuration.keepUnknownEntities; }
+	override get keepUnknownNonGraphicalObjects(): boolean { return this.configuration.keepUnknownNonGraphicalObjects; }
 
 	constructor(version: ACadVersion, document: CadDocument, configuration: DwgReaderConfiguration) {
 		super(version, document);
-		this.Configuration = configuration;
+		this.configuration = configuration;
 	}
 
-	override BuildDocument(): void {
+	override buildDocument(): void {
 		this.createMissingHandles();
 
-		for (const item of this.BlockRecordTemplates) {
-			item.SetBlockToRecord(this, this.HeaderHandles);
+		for (const item of this.blockRecordTemplates) {
+			item.setBlockToRecord(this, this.headerHandles);
 		}
 
-		this.RegisterTables();
-		this.BuildTables();
-		if (this.DocumentToBuild.vEntityControl) {
-			this.DocumentToBuild.registerCollection(this.DocumentToBuild.vEntityControl);
-			this.BuildTable(this.DocumentToBuild.vEntityControl);
+		this.registerTables();
+		this.buildTables();
+		if (this.documentToBuild.vEntityControl) {
+			this.documentToBuild.registerCollection(this.documentToBuild.vEntityControl);
+			this.buildTable(this.documentToBuild.vEntityControl);
 		}
 		this.buildDictionaries();
 
-		super.BuildDocument();
+		super.buildDocument();
 
-		this.ensureDefaultTableEntries();
+		this._ensureDefaultTableEntries();
 
-		this.HeaderHandles.UpdateHeader(this.DocumentToBuild.header, this);
+		this.headerHandles.updateHeader(this.documentToBuild.header, this);
 	}
 
-	private ensureDefaultTableEntries(): void {
-		const doc = this.DocumentToBuild;
+	private _ensureDefaultTableEntries(): void {
+		const doc = this.documentToBuild;
 		if (doc.lineTypes && typeof doc.lineTypes.createDefaultEntries === 'function') {
 			doc.lineTypes.createDefaultEntries();
 		}

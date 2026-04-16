@@ -5,8 +5,8 @@ import { ObjectType } from '../../Types/ObjectType.js';
 
 export class AecWallStyle extends NonGraphicalObject {
 	override get objectType(): ObjectType { return ObjectType.UNLISTED; }
-	override get objectName(): string { return DxfFileToken.ObjectAecWallStyle; }
-	override get subclassMarker(): string { return DxfSubclassMarker.AecDbWallStyle; }
+	override get objectName(): string { return DxfFileToken.objectAecWallStyle; }
+	override get subclassMarker(): string { return DxfSubclassMarker.aecDbWallStyle; }
 
 	version: number = 0;
 	description: string = '';

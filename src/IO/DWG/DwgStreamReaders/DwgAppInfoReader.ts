@@ -4,8 +4,8 @@ import { DwgSectionDefinition } from '../FileHeaders/DwgSectionDefinition.js';
 import { IDwgStreamReader } from './IDwgStreamReader.js';
 
 export class DwgAppInfoReader extends DwgSectionIO {
-	override get SectionName(): string {
-		return DwgSectionDefinition.AppInfo;
+	override get sectionName(): string {
+		return DwgSectionDefinition.appInfo;
 	}
 
 	private readonly _reader: IDwgStreamReader;
@@ -16,8 +16,8 @@ export class DwgAppInfoReader extends DwgSectionIO {
 	}
 
 	public read(): void {
-		if (!this.R2007Plus) {
-			this.readR18();
+		if (!this.r2007Plus) {
+			this._readR18();
 		}
 
 		const unknown1: number = this._reader.readInt();
@@ -27,7 +27,7 @@ export class DwgAppInfoReader extends DwgSectionIO {
 		const version: string = this._reader.readTextUnicode();
 		const comm: Uint8Array = this._reader.readBytes(16);
 
-		if (!this.R2010Plus) {
+		if (!this.r2010Plus) {
 			return;
 		}
 
@@ -36,7 +36,7 @@ export class DwgAppInfoReader extends DwgSectionIO {
 		const xml: string = this._reader.readTextUnicode();
 	}
 
-	private readR18(): void {
+	private _readR18(): void {
 		const infoname: string = this._reader.readVariableText();
 		const unknown2: number = this._reader.readInt();
 		const version: string = this._reader.readVariableText();

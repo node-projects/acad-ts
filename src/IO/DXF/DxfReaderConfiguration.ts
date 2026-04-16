@@ -1,7 +1,7 @@
 import { CadReaderConfiguration } from '../CadReaderConfiguration.js';
 
 export class DxfReaderConfiguration extends CadReaderConfiguration {
-  public ClearCache: boolean = true;
+  public clearCache: boolean = true;
 
-  public CreateDefaults: boolean = false;
+  public createDefaults: boolean = false;
 }

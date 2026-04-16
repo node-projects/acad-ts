@@ -8,20 +8,20 @@ import { UnitExtensions } from '../../Extensions/UnitExtensions.js';
 import { Entity } from '../../Entities/Entity.js';
 import { XYZ } from '../../Math/XYZ.js';
 
-interface BoundingBox { Min: XYZ; Max: XYZ; Width: number; Height: number; }
+interface BoundingBox { min: XYZ; max: XYZ; width: number; height: number; }
 
 /** @deprecated is it needed? defs block? styles? */
 export class SvgDocumentBuilder extends SvgXmlWriter {
-  EntitiesWriter: SvgXmlWriter | null = null;
+  entitiesWriter: SvgXmlWriter | null = null;
 
-  LineTypeWriters: Map<string, SvgXmlWriter> = new Map();
+  lineTypeWriters: Map<string, SvgXmlWriter> = new Map();
 
   constructor(stream: ArrayBuffer | Uint8Array, encoding: string | null, configuration: SvgConfiguration) {
     super(stream, encoding, configuration);
   }
 
-  override WriteLayout(layout: Layout): void {
-    this.Units = UnitExtensions.toUnits(layout.paperUnits);
+  override writeLayout(layout: Layout): void {
+    this.units = UnitExtensions.toUnits(layout.paperUnits);
 
     let paperWidth = layout.paperWidth;
     let paperHeight = layout.paperHeight;
@@ -36,58 +36,58 @@ export class SvgDocumentBuilder extends SvgXmlWriter {
 
     const lowerCorner: XYZ = new XYZ(0, 0, 0);
     const upperCorner: XYZ = new XYZ(paperWidth, paperHeight, 0);
-    const paper: BoundingBox = { Min: lowerCorner, Max: upperCorner, Width: paperWidth, Height: paperHeight };
+    const paper: BoundingBox = { min: lowerCorner, max: upperCorner, width: paperWidth, height: paperHeight };
 
     const lowerMargin: XYZ = new XYZ(layout.unprintableMargin?.bottomLeftCorner?.x ?? 0, layout.unprintableMargin?.bottomLeftCorner?.y ?? 0, 0,);
 
-    this.startDocumentInternal(paper);
+    this._startDocumentInternal(paper);
 
-    const translation = SvgConverter.vectorToPixelSize(lowerMargin, this.Units);
+    const translation = SvgConverter.vectorToPixelSize(lowerMargin, this.units);
     const scale: XYZ = new XYZ(layout.printScale, layout.printScale, layout.printScale);
 
     for (const e of layout.associatedBlock.entities) {
       this.writeEntity(e as Entity);
     }
 
-    this.endDocumentInternal();
+    this._endDocumentInternal();
   }
 
-  private startDocumentInternal(box: BoundingBox): void {
-    this.WriteStartDocument();
+  private _startDocumentInternal(box: BoundingBox): void {
+    this.writeStartDocument();
 
-    this.WriteStartElement('svg');
-    this.WriteAttributeString('xmlns', 'http://www.w3.org/2000/svg');
+    this.writeStartElement('svg');
+    this.writeAttributeString('xmlns', 'http://www.w3.org/2000/svg');
 
-    this.WriteAttributeString('width', SvgConverter.toSvgWithUnits(box.Max.x - box.Min.x, this.Units));
-    this.WriteAttributeString('height', SvgConverter.toSvgWithUnits(box.Max.y - box.Min.y, this.Units));
+    this.writeAttributeString('width', SvgConverter.toSvgWithUnits(box.max.x - box.min.x, this.units));
+    this.writeAttributeString('height', SvgConverter.toSvgWithUnits(box.max.y - box.min.y, this.units));
 
-    this.WriteStartAttribute('viewBox');
-    this.WriteValue(SvgConverter.toSvgWithUnits(box.Min.x, this.Units));
-    this.WriteValue(' ');
-    this.WriteValue(SvgConverter.toSvgWithUnits(box.Min.y, this.Units));
-    this.WriteValue(' ');
-    this.WriteValue(SvgConverter.toSvgWithUnits(box.Max.x - box.Min.x, this.Units));
-    this.WriteValue(' ');
-    this.WriteValue(SvgConverter.toSvgWithUnits(box.Max.y - box.Min.y, this.Units));
-    this.WriteEndAttribute();
+    this.writeStartAttribute('viewBox');
+    this.writeValue(SvgConverter.toSvgWithUnits(box.min.x, this.units));
+    this.writeValue(' ');
+    this.writeValue(SvgConverter.toSvgWithUnits(box.min.y, this.units));
+    this.writeValue(' ');
+    this.writeValue(SvgConverter.toSvgWithUnits(box.max.x - box.min.x, this.units));
+    this.writeValue(' ');
+    this.writeValue(SvgConverter.toSvgWithUnits(box.max.y - box.min.y, this.units));
+    this.writeEndAttribute();
 
-    this.WriteAttributeString('transform', 'scale(1,-1)');
+    this.writeAttributeString('transform', 'scale(1,-1)');
 
-    if (this.Layout !== null) {
-      this.WriteAttributeString('style', 'background-color:white');
+    if (this.layout !== null) {
+      this.writeAttributeString('style', 'background-color:white');
     }
   }
 
-  private endDocumentInternal(): void {
-    this.WriteEndElement();
-    this.WriteEndDocument();
-    this.Close();
+  private _endDocumentInternal(): void {
+    this.writeEndElement();
+    this.writeEndDocument();
+    this.close();
   }
 
-  private createWriter(): SvgXmlWriter {
-    const xmlWriter = new SvgXmlWriter(new Uint8Array(0), this.Configuration);
-    xmlWriter.Formatting = 'Indented';
-    xmlWriter.OnNotification = (sender, e) => this.triggerNotification(sender, e);
+  private _createWriter(): SvgXmlWriter {
+    const xmlWriter = new SvgXmlWriter(new Uint8Array(0), this.configuration);
+    xmlWriter.formatting = 'Indented';
+    xmlWriter.onNotification = (sender, e) => this.triggerNotification(sender, e);
     return xmlWriter;
   }
 }

@@ -20,7 +20,7 @@ export class PolygonMesh extends Polyline {
 	nVertexCount: number = 0;
 
 	override get objectName(): string {
-		return DxfFileToken.EntityPolyline;
+		return DxfFileToken.entityPolyline;
 	}
 
 	override get objectType(): ObjectType {
@@ -28,7 +28,7 @@ export class PolygonMesh extends Polyline {
 	}
 
 	override get subclassMarker(): string {
-		return DxfSubclassMarker.PolygonMesh;
+		return DxfSubclassMarker.polygonMesh;
 	}
 	override getBoundingBox(): BoundingBox | null {
 		return super.getBoundingBox();

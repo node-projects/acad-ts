@@ -3,7 +3,7 @@ import { DxfSubclassMarker } from '../DxfSubclassMarker.js';
 
 export abstract class ObjectContextData extends NonGraphicalObject {
 	override get subclassMarker(): string {
-		return DxfSubclassMarker.ObjectContextData;
+		return DxfSubclassMarker.objectContextData;
 	}
 
 	version: number = 3;

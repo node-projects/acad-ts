@@ -29,10 +29,8 @@ import { FontFlags } from '../../Tables/FontFlags.js';
 import { XYZ } from '../../Math/XYZ.js';
 import { XY } from '../../Math/XY.js';
 
-interface BoundingBox { Min: XYZ; Max: XYZ; Width: number; Height: number; }
+interface BoundingBox { min: XYZ; max: XYZ; width: number; height: number; }
 type BoundingBoxLike = {
-  Min?: { x?: number; y?: number; z?: number } | null;
-  Max?: { x?: number; y?: number; z?: number } | null;
   min?: { x?: number; y?: number; z?: number } | null;
   max?: { x?: number; y?: number; z?: number } | null;
 };
@@ -48,32 +46,32 @@ type StyledSvgEntity = {
 };
 
 class Transform {
-  Translation: XYZ = new XYZ(0, 0, 0);
-  Scale: XYZ = new XYZ(1, 1, 1);
-  EulerRotation: XYZ = new XYZ(0, 0, 0);
-  Matrix: number[][] | null = null;
+  translation: XYZ = new XYZ(0, 0, 0);
+  scale: XYZ = new XYZ(1, 1, 1);
+  eulerRotation: XYZ = new XYZ(0, 0, 0);
+  matrix: number[][] | null = null;
 
   constructor(translation?: XYZ, scale?: XYZ, rotation?: XYZ) {
-    if (translation) this.Translation = translation;
-    if (scale) this.Scale = scale;
-    if (rotation) this.EulerRotation = rotation;
+    if (translation) this.translation = translation;
+    if (scale) this.scale = scale;
+    if (rotation) this.eulerRotation = rotation;
   }
 
-  ApplyTransform(point: XYZ): XYZ {
-    return new XYZ(point.x + this.Translation.x, point.y + this.Translation.y, point.z + this.Translation.z,);
+  applyTransform(point: XYZ): XYZ {
+    return new XYZ(point.x + this.translation.x, point.y + this.translation.y, point.z + this.translation.z,);
   }
 }
 
 export class SvgXmlWriter {
-  OnNotification: NotificationEventHandler | null = null;
+  onNotification: NotificationEventHandler | null = null;
 
-  Configuration: SvgConfiguration;
+  configuration: SvgConfiguration;
 
-  Layout: Layout | null = null;
+  layout: Layout | null = null;
 
-  Units: UnitsType = UnitsType.Unitless;
+  units: UnitsType = UnitsType.Unitless;
 
-  Formatting: string = 'Indented';
+  formatting: string = 'Indented';
 
   private _output: string = '';
   private _indent: number = 0;
@@ -91,30 +89,30 @@ export class SvgXmlWriter {
     this._stream = stream;
     if (configuration !== undefined) {
       this._encoding = configOrEncoding as string | null;
-      this.Configuration = configuration;
+      this.configuration = configuration;
     } else {
       this._encoding = null;
-      this.Configuration = configOrEncoding as SvgConfiguration;
+      this.configuration = configOrEncoding as SvgConfiguration;
     }
   }
 
-  WriteBlock(record: BlockRecord): void {
-    this.Units = record.units;
+  writeBlock(record: BlockRecord): void {
+    this.units = record.units;
 
-    const box = this.getBlockBoundingBox(record);
+    const box = this._getBlockBoundingBox(record);
 
-    this.startDocument(box, box, this.Units);
+    this._startDocument(box, box, this.units);
 
     for (const e of record.entities) {
       this.writeEntity(e as Entity);
     }
 
-    this.endDocument();
+    this._endDocument();
   }
 
-  WriteLayout(layout: Layout): void {
-    this.Layout = layout;
-    this.Units = UnitExtensions.toUnits(layout.paperUnits);
+  writeLayout(layout: Layout): void {
+    this.layout = layout;
+    this.units = UnitExtensions.toUnits(layout.paperUnits);
 
     let paperWidth = layout.paperWidth;
     let paperHeight = layout.paperHeight;
@@ -129,11 +127,11 @@ export class SvgXmlWriter {
 
     const lowerCorner: XYZ = new XYZ(0, 0, 0);
     const upperCorner: XYZ = new XYZ(paperWidth, paperHeight, 0);
-    const paper: BoundingBox = { Min: lowerCorner, Max: upperCorner, Width: paperWidth, Height: paperHeight };
+    const paper: BoundingBox = { min: lowerCorner, max: upperCorner, width: paperWidth, height: paperHeight };
 
     const lowerMargin: XYZ = new XYZ(layout.unprintableMargin?.bottomLeftCorner?.x ?? 0, layout.unprintableMargin?.bottomLeftCorner?.y ?? 0, 0,);
 
-    this.startDocument(paper, null, UnitsType.Millimeters);
+    this._startDocument(paper, null, UnitsType.Millimeters);
 
     const transform = new Transform(
       SvgConverter.vectorToPixelSize(lowerMargin, UnitsType.Millimeters),
@@ -145,28 +143,28 @@ export class SvgXmlWriter {
       this.writeEntity(e as Entity, transform);
     }
 
-    this.endDocument();
+    this._endDocument();
   }
 
   // ========== XML Writing Methods ==========
 
-  WriteStartDocument(): void {
+  writeStartDocument(): void {
     this._output += '<?xml version="1.0" encoding="utf-8"?>\n';
   }
 
-  WriteEndDocument(): void {
+  writeEndDocument(): void {
     // no-op
   }
 
-  WriteStartElement(localName: string): void {
-    this.closeOpenElement();
-    this._output += `${this.getIndent()}<${localName}`;
+  writeStartElement(localName: string): void {
+    this._closeOpenElement();
+    this._output += `${this._getIndent()}<${localName}`;
     this._elementStack.push(localName);
     this._currentElementOpen = true;
     this._indent++;
   }
 
-  WriteEndElement(): void {
+  writeEndElement(): void {
     this._indent--;
     if (this._currentElementOpen) {
       this._output += ' />\n';
@@ -174,54 +172,54 @@ export class SvgXmlWriter {
       this._elementStack.pop();
     } else {
       this._elementStack.pop();
-      this._output += `${this.getIndent()}</${this._elementStack.length >= 0 ? '' : ''}`;
+      this._output += `${this._getIndent()}</${this._elementStack.length >= 0 ? '' : ''}`;
       // Re-get the element name before it was popped
-      this._output = this._output.slice(0, this._output.lastIndexOf(`${this.getIndent()}<`));
+      this._output = this._output.slice(0, this._output.lastIndexOf(`${this._getIndent()}<`));
       // Actually let's redo this
       const name = this._elementStack.length >= 0 ? '' : '';
-      this._output += `${this.getIndent()}</${this.getClosingTag()}>\n`;
+      this._output += `${this._getIndent()}</${this._getClosingTag()}>\n`;
     }
   }
 
-  WriteAttributeString(localName: string, value: string | number): void {
+  writeAttributeString(localName: string, value: string | number): void {
     if (typeof value === 'number') {
-      this._output += ` ${localName}="${SvgConverter.toSvgWithUnits(value, this.Units)}"`;
+      this._output += ` ${localName}="${SvgConverter.toSvgWithUnits(value, this.units)}"`;
     } else {
-      this._output += ` ${localName}="${this.escapeXml(value)}"`;
+      this._output += ` ${localName}="${this._escapeXml(value)}"`;
     }
   }
 
-  WriteStartAttribute(localName: string): void {
+  writeStartAttribute(localName: string): void {
     this._inAttribute = true;
     this._attrName = localName;
     this._attrValue = '';
   }
 
-  WriteEndAttribute(): void {
-    this._output += ` ${this._attrName}="${this.escapeXml(this._attrValue)}"`;
+  writeEndAttribute(): void {
+    this._output += ` ${this._attrName}="${this._escapeXml(this._attrValue)}"`;
     this._inAttribute = false;
   }
 
-  WriteValue(value: string | number): void {
+  writeValue(value: string | number): void {
     if (this._inAttribute) {
       this._attrValue += typeof value === 'number' ? value.toString() : value;
     } else {
-      this.closeOpenElement();
-      this._output += this.escapeXml(typeof value === 'number' ? value.toString() : value);
+      this._closeOpenElement();
+      this._output += this._escapeXml(typeof value === 'number' ? value.toString() : value);
     }
   }
 
-  WriteComment(comment: string): void {
-    this.closeOpenElement();
-    this._output += `${this.getIndent()}<!-- ${comment} -->\n`;
+  writeComment(comment: string): void {
+    this._closeOpenElement();
+    this._output += `${this._getIndent()}<!-- ${comment} -->\n`;
   }
 
-  WriteString(text: string): void {
-    this.closeOpenElement();
-    this._output += this.escapeXml(text);
+  writeString(text: string): void {
+    this._closeOpenElement();
+    this._output += this._escapeXml(text);
   }
 
-  Close(): void {
+  close(): void {
     // Write output to stream
     const encoder = new TextEncoder();
     const bytes = encoder.encode(this._output);
@@ -237,14 +235,14 @@ export class SvgXmlWriter {
   // ========== Protected methods ==========
 
   protected notify(message: string, type: NotificationType, ex: Error | null = null): void {
-    if (this.OnNotification) {
-      this.OnNotification(this, new NotificationEventArgs(message, type, ex));
+    if (this.onNotification) {
+      this.onNotification(this, new NotificationEventArgs(message, type, ex));
     }
   }
 
   protected triggerNotification(sender: object, e: NotificationEventArgs): void {
-    if (this.OnNotification) {
-      this.OnNotification(sender, e);
+    if (this.onNotification) {
+      this.onNotification(sender, e);
     }
   }
 
@@ -253,30 +251,30 @@ export class SvgXmlWriter {
       transform = new Transform();
     }
 
-    this.WriteComment(`${entity.objectName} | ${entity.handle}`);
+    this.writeComment(`${entity.objectName} | ${entity.handle}`);
 
     if (entity instanceof Arc) {
-      this.writeArc(entity as Arc, transform);
+      this._writeArc(entity as Arc, transform);
     } else if (entity instanceof Dimension) {
-      this.writeDimension(entity as Dimension, transform);
+      this._writeDimension(entity as Dimension, transform);
     } else if (entity instanceof Line) {
-      this.writeLine(entity as Line, transform);
+      this._writeLine(entity as Line, transform);
     } else if (entity instanceof Point) {
-      this.writePoint(entity as Point, transform);
+      this._writePoint(entity as Point, transform);
     } else if (entity instanceof Circle) {
-      this.writeCircle(entity as Circle, transform);
+      this._writeCircle(entity as Circle, transform);
     } else if (entity instanceof Ellipse) {
-      this.writeEllipse(entity as Ellipse, transform);
+      this._writeEllipse(entity as Ellipse, transform);
     } else if (entity instanceof Hatch) {
-      this.writeHatch(entity as Hatch, transform);
+      this._writeHatch(entity as Hatch, transform);
     } else if (entity instanceof Insert) {
-      this.writeInsert(entity as Insert, transform);
+      this._writeInsert(entity as Insert, transform);
     } else if ('isClosed' in entity && 'vertices' in entity) {
-      this.writePolyline(entity as unknown as IPolyline, transform);
+      this._writePolyline(entity as unknown as IPolyline, transform);
     } else if (entity instanceof TextEntity || entity instanceof MText) {
-      this.writeText(entity, transform);
+      this._writeText(entity, transform);
     } else if (entity instanceof Solid) {
-      this.writeSolid(entity as Solid, transform);
+      this._writeSolid(entity as Solid, transform);
     } else {
       this.notify(`[${entity.objectName}] Entity not implemented.`, NotificationType.NotImplemented);
     }
@@ -284,23 +282,23 @@ export class SvgXmlWriter {
 
   // ========== Private helper methods ==========
 
-  private closeOpenElement(): void {
+  private _closeOpenElement(): void {
     if (this._currentElementOpen) {
       this._output += '>\n';
       this._currentElementOpen = false;
     }
   }
 
-  private getIndent(): string {
+  private _getIndent(): string {
     return '  '.repeat(this._indent);
   }
 
-  private getClosingTag(): string {
+  private _getClosingTag(): string {
     // We need to track this differently
     return '';
   }
 
-  private escapeXml(str: string): string {
+  private _escapeXml(str: string): string {
     return str
       .replace(/&/g, '&amp;')
       .replace(/</g, '&lt;')
@@ -309,14 +307,14 @@ export class SvgXmlWriter {
       .replace(/'/g, '&apos;');
   }
 
-  private colorSvg(color: Color): string {
-    if (this.Layout !== null && color.equals(Color.Default)) {
-      color = Color.Black;
+  private _colorSvg(color: Color): string {
+    if (this.layout !== null && color.equals(Color.default)) {
+      color = Color.black;
     }
     return `rgb(${color.r},${color.g},${color.b})`;
   }
 
-  private getBlockBoundingBox(record: BlockRecord): BoundingBox {
+  private _getBlockBoundingBox(record: BlockRecord): BoundingBox {
     let minX = Infinity;
     let minY = Infinity;
     let minZ = Infinity;
@@ -329,37 +327,37 @@ export class SvgXmlWriter {
         continue;
       }
 
-      const box = this.normalizeBoundingBox(item.getBoundingBox());
+      const box = this._normalizeBoundingBox(item.getBoundingBox());
       if (!box) {
         continue;
       }
 
-      minX = Math.min(minX, box.Min.x);
-      minY = Math.min(minY, box.Min.y);
-      minZ = Math.min(minZ, box.Min.z);
-      maxX = Math.max(maxX, box.Max.x);
-      maxY = Math.max(maxY, box.Max.y);
-      maxZ = Math.max(maxZ, box.Max.z);
+      minX = Math.min(minX, box.min.x);
+      minY = Math.min(minY, box.min.y);
+      minZ = Math.min(minZ, box.min.z);
+      maxX = Math.max(maxX, box.max.x);
+      maxY = Math.max(maxY, box.max.y);
+      maxZ = Math.max(maxZ, box.max.z);
     }
 
     if (!Number.isFinite(minX) || !Number.isFinite(maxX)) {
-      return { Min: new XYZ(0, 0, 0), Max: new XYZ(0, 0, 0), Width: 0, Height: 0 };
+      return { min: new XYZ(0, 0, 0), max: new XYZ(0, 0, 0), width: 0, height: 0 };
     }
 
     const min = new XYZ(minX, minY, minZ);
     const max = new XYZ(maxX, maxY, maxZ);
-    return { Min: min, Max: max, Width: max.x - min.x, Height: max.y - min.y };
+    return { min: min, max: max, width: max.x - min.x, height: max.y - min.y };
   }
 
-  private normalizeBoundingBox(box: unknown): BoundingBox | null {
+  private _normalizeBoundingBox(box: unknown): BoundingBox | null {
     if (!box || typeof box !== 'object') {
       return null;
     }
 
     const candidate = box as BoundingBoxLike;
 
-    const min = candidate.Min ?? candidate.min;
-    const max = candidate.Max ?? candidate.max;
+    const min = candidate.min ?? candidate.min;
+    const max = candidate.max ?? candidate.max;
 
     if (!min || !max) {
       return null;
@@ -368,16 +366,16 @@ export class SvgXmlWriter {
     const normalizedMin = new XYZ(min.x ?? 0, min.y ?? 0, min.z ?? 0);
     const normalizedMax = new XYZ(max.x ?? 0, max.y ?? 0, max.z ?? 0);
     return {
-      Min: normalizedMin,
-      Max: normalizedMax,
-      Width: normalizedMax.x - normalizedMin.x,
-      Height: normalizedMax.y - normalizedMin.y,
+      min: normalizedMin,
+      max: normalizedMax,
+      width: normalizedMax.x - normalizedMin.x,
+      height: normalizedMax.y - normalizedMin.y,
     };
   }
 
-  private getPolylinePoints(polyline: { getPoints?: (precision: number) => XYZ[] | XY[]; vertices?: Iterable<PolylineVertexLike>; }): Array<XY | XYZ> {
+  private _getPolylinePoints(polyline: { getPoints?: (precision: number) => XYZ[] | XY[]; vertices?: Iterable<PolylineVertexLike>; }): Array<XY | XYZ> {
     if (typeof polyline.getPoints === 'function') {
-      return polyline.getPoints(this.Configuration.ArcPoints);
+      return polyline.getPoints(this.configuration.arcPoints);
     }
 
     const points: Array<XY | XYZ> = [];
@@ -403,19 +401,19 @@ export class SvgXmlWriter {
     return points;
   }
 
-  private createPath(...polylines: IPolyline[]): string {
+  private _createPath(...polylines: IPolyline[]): string {
     let sb = '';
 
     for (const item of polylines) {
-      const pts = this.getPolylinePoints(item);
+      const pts = this._getPolylinePoints(item);
       if (!pts || pts.length === 0) {
         continue;
       }
 
-      const pt0 = SvgConverter.vectorToPixelSize(pts[0], this.Units);
+      const pt0 = SvgConverter.vectorToPixelSize(pts[0], this.units);
       sb += `M ${SvgConverter.vectorToSvg(pt0)} `;
       for (let i = 1; i < pts.length; i++) {
-        const pt = SvgConverter.vectorToPixelSize(pts[i], this.Units);
+        const pt = SvgConverter.vectorToPixelSize(pts[i], this.units);
         sb += `L ${SvgConverter.vectorToSvg(pt)} `;
       }
 
@@ -427,71 +425,71 @@ export class SvgXmlWriter {
     return sb;
   }
 
-  private drawableLineType(lineType: LineType): boolean {
+  private _drawableLineType(lineType: LineType): boolean {
     return lineType.isComplex && !lineType.hasShapes;
   }
 
-  private getPointSize(entity: StyledSvgEntity): number {
+  private _getPointSize(entity: StyledSvgEntity): number {
     const lw = entity.getActiveLineWeightType ? entity.getActiveLineWeightType() : LineWeightType.Default;
     return SvgConverter.toPixelSize(
-      this.Configuration.GetLineWeightValue(lw, this.Units),
-      this.Units
+      this.configuration.getLineWeightValue(lw, this.units),
+      this.units
     );
   }
 
-  private startDocument(box: BoundingBox, viewBox: BoundingBox | null, units: UnitsType): void {
-    this.WriteStartDocument();
+  private _startDocument(box: BoundingBox, viewBox: BoundingBox | null, units: UnitsType): void {
+    this.writeStartDocument();
 
-    this.WriteStartElement('svg');
-    this.WriteAttributeString('xmlns', 'http://www.w3.org/2000/svg');
+    this.writeStartElement('svg');
+    this.writeAttributeString('xmlns', 'http://www.w3.org/2000/svg');
 
-    this.WriteAttributeString('width', SvgConverter.toSvgWithUnits(box.Max.x - box.Min.x, units));
-    this.WriteAttributeString('height', SvgConverter.toSvgWithUnits(box.Max.y - box.Min.y, units));
+    this.writeAttributeString('width', SvgConverter.toSvgWithUnits(box.max.x - box.min.x, units));
+    this.writeAttributeString('height', SvgConverter.toSvgWithUnits(box.max.y - box.min.y, units));
 
     if (viewBox) {
       const vb = viewBox;
-      this.WriteStartAttribute('viewBox');
-      this.WriteValue(SvgConverter.toPixelSize(vb.Min.x, units));
-      this.WriteValue(' ');
-      this.WriteValue(SvgConverter.toPixelSize(vb.Min.y, units));
-      this.WriteValue(' ');
-      this.WriteValue(SvgConverter.toPixelSize(vb.Width, units));
-      this.WriteValue(' ');
-      this.WriteValue(SvgConverter.toPixelSize(vb.Height, units));
-      this.WriteEndAttribute();
+      this.writeStartAttribute('viewBox');
+      this.writeValue(SvgConverter.toPixelSize(vb.min.x, units));
+      this.writeValue(' ');
+      this.writeValue(SvgConverter.toPixelSize(vb.min.y, units));
+      this.writeValue(' ');
+      this.writeValue(SvgConverter.toPixelSize(vb.width, units));
+      this.writeValue(' ');
+      this.writeValue(SvgConverter.toPixelSize(vb.height, units));
+      this.writeEndAttribute();
     }
 
-    this.WriteAttributeString('transform', 'scale(1,-1)');
+    this.writeAttributeString('transform', 'scale(1,-1)');
 
-    if (this.Layout !== null) {
-      this.WriteAttributeString('style', 'background-color:white');
+    if (this.layout !== null) {
+      this.writeAttributeString('style', 'background-color:white');
     }
   }
 
-  private endDocument(): void {
-    this.WriteEndElement();
-    this.WriteEndDocument();
-    this.Close();
+  private _endDocument(): void {
+    this.writeEndElement();
+    this.writeEndDocument();
+    this.close();
   }
 
-  private svgPoints(points: ReadonlyArray<XY | XYZ>, transform: Transform): string {
+  private _svgPoints(points: ReadonlyArray<XY | XYZ>, transform: Transform): string {
     if (!points || points.length === 0) {
       return '';
     }
 
-    let sb = SvgConverter.vectorToSvg(SvgConverter.vectorToPixelSize(points[0], this.Units));
+    let sb = SvgConverter.vectorToSvg(SvgConverter.vectorToPixelSize(points[0], this.units));
     for (let i = 1; i < points.length; i++) {
       sb += ' ';
-      sb += SvgConverter.vectorToSvg(SvgConverter.vectorToPixelSize(points[i], this.Units));
+      sb += SvgConverter.vectorToSvg(SvgConverter.vectorToPixelSize(points[i], this.units));
     }
 
     return sb;
   }
 
-  private writeArc(arc: Arc, transform: Transform): void {
-    this.WriteStartElement('path');
+  private _writeArc(arc: Arc, transform: Transform): void {
+    this.writeStartElement('path');
 
-    this.writeEntityHeader(arc, transform);
+    this._writeEntityHeader(arc, transform);
 
     const vertices = arc.getEndVertices();
     const start = vertices.start;
@@ -500,20 +498,20 @@ export class SvgXmlWriter {
     const largeArc = Math.abs(sweep) > Math.PI ? 1 : 0;
 
     let sb = '';
-    sb += `M ${SvgConverter.vectorToSvg(SvgConverter.vectorToPixelSize(start, this.Units))}`;
+    sb += `M ${SvgConverter.vectorToSvg(SvgConverter.vectorToPixelSize(start, this.units))}`;
     sb += ` `;
-    sb += `A ${SvgConverter.toPixelSize(arc.radius, this.Units)} ${SvgConverter.toPixelSize(arc.radius, this.Units)}`;
+    sb += `A ${SvgConverter.toPixelSize(arc.radius, this.units)} ${SvgConverter.toPixelSize(arc.radius, this.units)}`;
     sb += ` `;
-    sb += `${0} ${largeArc} ${1} ${SvgConverter.vectorToSvg(SvgConverter.vectorToPixelSize(end, this.Units))}`;
+    sb += `${0} ${largeArc} ${1} ${SvgConverter.vectorToSvg(SvgConverter.vectorToPixelSize(end, this.units))}`;
 
-    this.WriteAttributeString('d', sb);
-    this.WriteAttributeString('fill', 'none');
+    this.writeAttributeString('d', sb);
+    this.writeAttributeString('fill', 'none');
 
-    this.WriteEndElement();
+    this.writeEndElement();
   }
 
-  private writeDimension(dimension: Dimension, transform: Transform): void {
-    this.WriteStartElement('g');
+  private _writeDimension(dimension: Dimension, transform: Transform): void {
+    this.writeStartElement('g');
 
     if (dimension.block && dimension.block.entities) {
       for (const e of dimension.block.entities) {
@@ -521,303 +519,303 @@ export class SvgXmlWriter {
       }
     }
 
-    this.WriteEndElement();
+    this.writeEndElement();
   }
 
-  private writeCircle(circle: Circle, transform: Transform): void {
-    const loc = transform.ApplyTransform(circle.center);
+  private _writeCircle(circle: Circle, transform: Transform): void {
+    const loc = transform.applyTransform(circle.center);
 
-    this.WriteStartElement('circle');
+    this.writeStartElement('circle');
 
-    this.writeEntityHeader(circle, transform);
+    this._writeEntityHeader(circle, transform);
 
-    this.WriteAttributeString('r', SvgConverter.toSvgWithUnits(circle.radius, this.Units));
-    this.WriteAttributeString('cx', SvgConverter.toSvgWithUnits(loc.x, this.Units));
-    this.WriteAttributeString('cy', SvgConverter.toSvgWithUnits(loc.y, this.Units));
+    this.writeAttributeString('r', SvgConverter.toSvgWithUnits(circle.radius, this.units));
+    this.writeAttributeString('cx', SvgConverter.toSvgWithUnits(loc.x, this.units));
+    this.writeAttributeString('cy', SvgConverter.toSvgWithUnits(loc.y, this.units));
 
-    this.WriteAttributeString('fill', 'none');
+    this.writeAttributeString('fill', 'none');
 
-    this.WriteEndElement();
+    this.writeEndElement();
   }
 
-  private writeDashes(dashes: number[]): void {
+  private _writeDashes(dashes: number[]): void {
     let sb = '';
 
     for (const d of dashes) {
-      sb += Math.abs(SvgConverter.toPixelSize(d, this.Units)).toString();
+      sb += Math.abs(SvgConverter.toPixelSize(d, this.units)).toString();
       sb += ' ';
     }
 
-    this.WriteAttributeString('stroke-dasharray', sb.trim());
+    this.writeAttributeString('stroke-dasharray', sb.trim());
   }
 
-  private writeDashesFromLineType(lineType: LineType, pointSize: number): void {
+  private _writeDashesFromLineType(lineType: LineType, pointSize: number): void {
     let sb = '';
     for (const segment of lineType.segments) {
       if (segment.length === 0) {
-        sb += SvgConverter.toPixelSize(pointSize, this.Units).toString();
+        sb += SvgConverter.toPixelSize(pointSize, this.units).toString();
       } else {
-        sb += Math.abs(SvgConverter.toPixelSize(segment.length, this.Units)).toString();
+        sb += Math.abs(SvgConverter.toPixelSize(segment.length, this.units)).toString();
       }
       sb += ' ';
     }
 
-    this.WriteAttributeString('stroke-dasharray', sb.trim());
+    this.writeAttributeString('stroke-dasharray', sb.trim());
   }
 
-  private writeEllipse(ellipse: Ellipse, transform: Transform): void {
+  private _writeEllipse(ellipse: Ellipse, transform: Transform): void {
     if (ellipse.isFullEllipse) {
-      this.WriteStartElement('path');
+      this.writeStartElement('path');
 
-      this.writeEntityHeader(ellipse, transform);
+      this._writeEntityHeader(ellipse, transform);
 
       let sb = '';
 
       const start = ellipse.polarCoordinateRelativeToCenter ? ellipse.polarCoordinateRelativeToCenter(0) : new XYZ(0, 0, 0);
       const end = ellipse.polarCoordinateRelativeToCenter ? ellipse.polarCoordinateRelativeToCenter(Math.PI) : new XYZ(0, 0, 0);
 
-      sb += `M ${SvgConverter.vectorToSvg(SvgConverter.vectorToPixelSize(start, this.Units))} `;
-      sb += `A ${ellipse.majorAxis / 2} ${ellipse.minorAxis / 2} ${ellipse.rotation * 180 / Math.PI} ${0} ${1} ${SvgConverter.vectorToSvg(SvgConverter.vectorToPixelSize(end, this.Units))} `;
+      sb += `M ${SvgConverter.vectorToSvg(SvgConverter.vectorToPixelSize(start, this.units))} `;
+      sb += `A ${ellipse.majorAxis / 2} ${ellipse.minorAxis / 2} ${ellipse.rotation * 180 / Math.PI} ${0} ${1} ${SvgConverter.vectorToSvg(SvgConverter.vectorToPixelSize(end, this.units))} `;
 
       const start2 = ellipse.polarCoordinateRelativeToCenter ? ellipse.polarCoordinateRelativeToCenter(Math.PI) : new XYZ(0, 0, 0);
       const end2 = ellipse.polarCoordinateRelativeToCenter ? ellipse.polarCoordinateRelativeToCenter(Math.PI * 2) : new XYZ(0, 0, 0);
-      sb += `A ${ellipse.majorAxis / 2} ${ellipse.minorAxis / 2} ${ellipse.rotation * 180 / Math.PI} ${0} ${1} ${SvgConverter.vectorToSvg(SvgConverter.vectorToPixelSize(end2, this.Units))}`;
+      sb += `A ${ellipse.majorAxis / 2} ${ellipse.minorAxis / 2} ${ellipse.rotation * 180 / Math.PI} ${0} ${1} ${SvgConverter.vectorToSvg(SvgConverter.vectorToPixelSize(end2, this.units))}`;
 
-      this.WriteAttributeString('d', sb);
-      this.WriteAttributeString('fill', 'none');
-      this.WriteEndElement();
+      this.writeAttributeString('d', sb);
+      this.writeAttributeString('fill', 'none');
+      this.writeEndElement();
     } else {
-      this.WriteStartElement('polyline');
+      this.writeStartElement('polyline');
 
-      this.writeEntityHeader(ellipse, transform);
+      this._writeEntityHeader(ellipse, transform);
 
       const vertices = ellipse.polygonalVertexes ? ellipse.polygonalVertexes(256) : [];
-      const pts = this.svgPoints(vertices, transform);
-      this.WriteAttributeString('points', pts);
-      this.WriteAttributeString('fill', 'none');
+      const pts = this._svgPoints(vertices, transform);
+      this.writeAttributeString('points', pts);
+      this.writeAttributeString('fill', 'none');
 
-      this.WriteEndElement();
+      this.writeEndElement();
     }
   }
 
-  private writeEntityHeader(entity: StyledSvgEntity, transform: Transform, drawStroke: boolean = true): void {
-    const color = entity.getActiveColor ? entity.getActiveColor() : entity.color ?? Color.Default;
+  private _writeEntityHeader(entity: StyledSvgEntity, transform: Transform, drawStroke: boolean = true): void {
+    const color = entity.getActiveColor ? entity.getActiveColor() : entity.color ?? Color.default;
 
-    this.WriteAttributeString('vector-effect', 'non-scaling-stroke');
+    this.writeAttributeString('vector-effect', 'non-scaling-stroke');
 
     if (drawStroke) {
-      this.WriteAttributeString('stroke', this.colorSvg(color));
+      this.writeAttributeString('stroke', this._colorSvg(color));
     } else {
-      this.WriteAttributeString('stroke', 'none');
+      this.writeAttributeString('stroke', 'none');
     }
 
     const lineWeight = entity.getActiveLineWeightType ? entity.getActiveLineWeightType() : LineWeightType.Default;
-    this.WriteAttributeString('stroke-width', `${SvgConverter.toSvgWithUnits(this.Configuration.GetLineWeightValue(lineWeight, this.Units), UnitsType.Millimeters)}`);
+    this.writeAttributeString('stroke-width', `${SvgConverter.toSvgWithUnits(this.configuration.getLineWeightValue(lineWeight, this.units), UnitsType.Millimeters)}`);
 
-    this.writeTransformObj(transform);
+    this._writeTransformObj(transform);
 
     const lt = entity.getActiveLineType ? entity.getActiveLineType() : null;
-    if (lt && this.drawableLineType(lt)) {
-      this.writeDashesFromLineType(lt, this.getPointSize(entity));
+    if (lt && this._drawableLineType(lt)) {
+      this._writeDashesFromLineType(lt, this._getPointSize(entity));
     }
   }
 
-  private writeHatch(hatch: Hatch, transform: Transform): void {
-    this.WriteStartElement('g');
+  private _writeHatch(hatch: Hatch, transform: Transform): void {
+    this.writeStartElement('g');
 
-    const patternId = this.writePattern(hatch);
+    const patternId = this._writePattern(hatch);
 
     const plines: IPolyline[] = [];
     for (const path of hatch.paths) {
-      const pts = path.getPoints ? path.getPoints(this.Configuration.ArcPoints) : [];
+      const pts = path.getPoints ? path.getPoints(this.configuration.arcPoints) : [];
       const pline = new Polyline3D(pts);
       plines.push(pline as unknown as IPolyline);
     }
 
-    this.WriteStartElement('path');
+    this.writeStartElement('path');
 
-    this.writeEntityHeader(hatch, transform, false);
+    this._writeEntityHeader(hatch, transform, false);
 
-    this.WriteAttributeString('d', this.createPath(...plines));
+    this.writeAttributeString('d', this._createPath(...plines));
 
-    this.WriteAttributeString('fill', `url(#${patternId})`);
+    this.writeAttributeString('fill', `url(#${patternId})`);
 
-    this.WriteEndElement();
+    this.writeEndElement();
 
-    this.WriteEndElement();
+    this.writeEndElement();
   }
 
-  private writePatternHeader(hatch: Hatch): string {
+  private _writePatternHeader(hatch: Hatch): string {
     const id = `${hatch.pattern.name}_pattern`;
 
-    this.WriteStartElement('pattern');
+    this.writeStartElement('pattern');
 
-    this.WriteAttributeString('id', id);
-    this.WriteAttributeString('patternUnits', 'userSpaceOnUse');
+    this.writeAttributeString('id', id);
+    this.writeAttributeString('patternUnits', 'userSpaceOnUse');
 
     return id;
   }
 
-  private writeSolidPattern(hatch: Hatch): string {
-    const id = this.writePatternHeader(hatch);
+  private _writeSolidPattern(hatch: Hatch): string {
+    const id = this._writePatternHeader(hatch);
 
-    this.WriteAttributeString('width', '100%');
-    this.WriteAttributeString('height', '100%');
+    this.writeAttributeString('width', '100%');
+    this.writeAttributeString('height', '100%');
 
-    this.WriteStartElement('rect');
+    this.writeStartElement('rect');
 
-    this.WriteAttributeString('width', '100%');
-    this.WriteAttributeString('height', '100%');
-    this.WriteAttributeString('fill', this.colorSvg(hatch.color));
+    this.writeAttributeString('width', '100%');
+    this.writeAttributeString('height', '100%');
+    this.writeAttributeString('fill', this._colorSvg(hatch.color));
 
     // rect
-    this.WriteEndElement();
+    this.writeEndElement();
 
     // pattern
-    this.WriteEndElement();
+    this.writeEndElement();
 
     return id;
   }
 
-  private writePattern(hatch: Hatch): string {
+  private _writePattern(hatch: Hatch): string {
     if (hatch.isSolid) {
-      return this.writeSolidPattern(hatch);
+      return this._writeSolidPattern(hatch);
     }
 
     const patterns = new Map<string, BoundingBox>();
     for (const [index, item] of hatch.pattern.lines.entries()) {
       const i = `${hatch.pattern.name}_${index}_line`;
       patterns.set(i, {
-        Min: new XYZ(0, 0, 0),
-        Max: new XYZ(item.lineOffset, item.lineOffset, 0),
-        Width: item.lineOffset,
-        Height: item.lineOffset,
+        min: new XYZ(0, 0, 0),
+        max: new XYZ(item.lineOffset, item.lineOffset, 0),
+        width: item.lineOffset,
+        height: item.lineOffset,
       });
 
-      this.WriteStartElement('pattern');
-      this.WriteAttributeString('id', i);
-      this.WriteAttributeString('patternUnits', 'userSpaceOnUse');
+      this.writeStartElement('pattern');
+      this.writeAttributeString('id', i);
+      this.writeAttributeString('patternUnits', 'userSpaceOnUse');
 
-      this.WriteAttributeString('width', SvgConverter.toSvgWithUnits(item.lineOffset, this.Units));
-      this.WriteAttributeString('height', SvgConverter.toSvgWithUnits(item.lineOffset, this.Units));
+      this.writeAttributeString('width', SvgConverter.toSvgWithUnits(item.lineOffset, this.units));
+      this.writeAttributeString('height', SvgConverter.toSvgWithUnits(item.lineOffset, this.units));
 
-      this.writeTransformValues(
+      this._writeTransformValues(
         'patternTransform',
-        SvgConverter.vectorToPixelSize(new XYZ(item.basePoint.x, item.basePoint.y, 0), this.Units)
+        SvgConverter.vectorToPixelSize(new XYZ(item.basePoint.x, item.basePoint.y, 0), this.units)
       );
 
-      this.WriteStartElement('line');
+      this.writeStartElement('line');
 
       const x = Math.cos(item.angle) * 10;
       const y = Math.sin(item.angle) * 10;
 
-      this.WriteAttributeString('x1', SvgConverter.toSvgWithUnits(0, this.Units));
-      this.WriteAttributeString('y1', SvgConverter.toSvgWithUnits(0, this.Units));
-      this.WriteAttributeString('x2', SvgConverter.toSvgWithUnits(x, this.Units));
-      this.WriteAttributeString('y2', SvgConverter.toSvgWithUnits(y, this.Units));
+      this.writeAttributeString('x1', SvgConverter.toSvgWithUnits(0, this.units));
+      this.writeAttributeString('y1', SvgConverter.toSvgWithUnits(0, this.units));
+      this.writeAttributeString('x2', SvgConverter.toSvgWithUnits(x, this.units));
+      this.writeAttributeString('y2', SvgConverter.toSvgWithUnits(y, this.units));
 
-      this.WriteAttributeString('stroke', this.colorSvg(hatch.color));
-      this.WriteAttributeString('stroke-width', `${SvgConverter.toSvgWithUnits(this.Configuration.GetLineWeightValue(hatch.lineWeight ?? LineWeightType.Default, this.Units), UnitsType.Millimeters)}`);
+      this.writeAttributeString('stroke', this._colorSvg(hatch.color));
+      this.writeAttributeString('stroke-width', `${SvgConverter.toSvgWithUnits(this.configuration.getLineWeightValue(hatch.lineWeight ?? LineWeightType.Default, this.units), UnitsType.Millimeters)}`);
 
       if (item.dashLengths && item.dashLengths.length > 0) {
-        this.writeDashes(item.dashLengths);
+        this._writeDashes(item.dashLengths);
       }
 
       // Line
-      this.WriteEndElement();
+      this.writeEndElement();
 
       // Pattern
-      this.WriteEndElement();
+      this.writeEndElement();
     }
 
-    const id = this.writePatternHeader(hatch);
+    const id = this._writePatternHeader(hatch);
     let width = 0;
     let height = 0;
     for (const [, box] of patterns) {
-      if (box.Width > width) width = box.Width;
-      if (box.Height > height) height = box.Height;
+      if (box.width > width) width = box.width;
+      if (box.height > height) height = box.height;
     }
 
-    this.WriteAttributeString('width', SvgConverter.toSvgWithUnits(width, this.Units));
-    this.WriteAttributeString('height', SvgConverter.toSvgWithUnits(height, this.Units));
+    this.writeAttributeString('width', SvgConverter.toSvgWithUnits(width, this.units));
+    this.writeAttributeString('height', SvgConverter.toSvgWithUnits(height, this.units));
 
     for (const [key, box] of patterns) {
-      this.WriteStartElement('rect');
-      this.WriteAttributeString('width', SvgConverter.toSvgWithUnits(box.Width, this.Units));
-      this.WriteAttributeString('height', SvgConverter.toSvgWithUnits(box.Height, this.Units));
-      this.WriteAttributeString('fill', `url(#${key})`);
-      this.WriteEndElement();
+      this.writeStartElement('rect');
+      this.writeAttributeString('width', SvgConverter.toSvgWithUnits(box.width, this.units));
+      this.writeAttributeString('height', SvgConverter.toSvgWithUnits(box.height, this.units));
+      this.writeAttributeString('fill', `url(#${key})`);
+      this.writeEndElement();
     }
 
     // pattern
-    this.WriteEndElement();
+    this.writeEndElement();
 
     return id;
   }
 
-  private writeInsert(insert: Insert, transform: Transform): void {
+  private _writeInsert(insert: Insert, transform: Transform): void {
     const insertTransform = insert.getTransform ? insert.getTransform() : new Transform();
     // Merge transforms
     const merged = new Transform(
-      new XYZ(transform.Translation.x + insertTransform.Translation.x, transform.Translation.y + insertTransform.Translation.y, transform.Translation.z + insertTransform.Translation.z,)
+      new XYZ(transform.translation.x + insertTransform.translation.x, transform.translation.y + insertTransform.translation.y, transform.translation.z + insertTransform.translation.z,)
     );
 
-    this.WriteStartElement('g');
-    this.writeTransformObj(merged);
+    this.writeStartElement('g');
+    this._writeTransformObj(merged);
 
     for (const e of insert.block.entities) {
       this.writeEntity(e as Entity);
     }
 
-    this.WriteEndElement();
+    this.writeEndElement();
   }
 
-  private writeLine(line: Line, transform: Transform): void {
-    this.WriteStartElement('line');
+  private _writeLine(line: Line, transform: Transform): void {
+    this.writeStartElement('line');
 
-    this.writeEntityHeader(line, transform);
+    this._writeEntityHeader(line, transform);
 
-    this.WriteAttributeString('x1', SvgConverter.toSvgWithUnits(line.startPoint.x, this.Units));
-    this.WriteAttributeString('y1', SvgConverter.toSvgWithUnits(line.startPoint.y, this.Units));
-    this.WriteAttributeString('x2', SvgConverter.toSvgWithUnits(line.endPoint.x, this.Units));
-    this.WriteAttributeString('y2', SvgConverter.toSvgWithUnits(line.endPoint.y, this.Units));
+    this.writeAttributeString('x1', SvgConverter.toSvgWithUnits(line.startPoint.x, this.units));
+    this.writeAttributeString('y1', SvgConverter.toSvgWithUnits(line.startPoint.y, this.units));
+    this.writeAttributeString('x2', SvgConverter.toSvgWithUnits(line.endPoint.x, this.units));
+    this.writeAttributeString('y2', SvgConverter.toSvgWithUnits(line.endPoint.y, this.units));
 
-    this.WriteEndElement();
+    this.writeEndElement();
   }
 
-  private writePoint(point: Point, transform: Transform): void {
-    this.WriteStartElement('circle');
+  private _writePoint(point: Point, transform: Transform): void {
+    this.writeStartElement('circle');
 
-    this.writeEntityHeader(point, transform);
+    this._writeEntityHeader(point, transform);
 
-    this.WriteAttributeString('r', SvgConverter.toSvgWithUnits(this.Configuration.PointRadius, UnitsType.Unitless));
-    this.WriteAttributeString('cx', SvgConverter.toSvgWithUnits(point.location.x, this.Units));
-    this.WriteAttributeString('cy', SvgConverter.toSvgWithUnits(point.location.y, this.Units));
+    this.writeAttributeString('r', SvgConverter.toSvgWithUnits(this.configuration.pointRadius, UnitsType.Unitless));
+    this.writeAttributeString('cx', SvgConverter.toSvgWithUnits(point.location.x, this.units));
+    this.writeAttributeString('cy', SvgConverter.toSvgWithUnits(point.location.y, this.units));
 
-    this.WriteAttributeString('fill', this.colorSvg(point.color));
+    this.writeAttributeString('fill', this._colorSvg(point.color));
 
-    this.WriteEndElement();
+    this.writeEndElement();
   }
 
-  private writePolyline(polyline: IPolyline, transform: Transform): void {
+  private _writePolyline(polyline: IPolyline, transform: Transform): void {
     if (polyline.isClosed) {
-      this.WriteStartElement('polygon');
+      this.writeStartElement('polygon');
     } else {
-      this.WriteStartElement('polyline');
+      this.writeStartElement('polyline');
     }
 
-    this.writeEntityHeader(polyline, transform);
+    this._writeEntityHeader(polyline, transform);
 
-    const pts = this.getPolylinePoints(polyline);
-    const ptsStr = this.svgPoints(pts, transform);
+    const pts = this._getPolylinePoints(polyline);
+    const ptsStr = this._svgPoints(pts, transform);
 
-    this.WriteAttributeString('points', ptsStr);
-    this.WriteAttributeString('fill', 'none');
+    this.writeAttributeString('points', ptsStr);
+    this.writeAttributeString('fill', 'none');
 
-    this.WriteEndElement();
+    this.writeEndElement();
   }
 
-  private writeText(text: TextEntity | MText, transform: Transform): void {
+  private _writeText(text: TextEntity | MText, transform: Transform): void {
     let insert: XYZ;
 
     if (text instanceof TextEntity
@@ -830,23 +828,23 @@ export class SvgXmlWriter {
       insert = text.insertPoint;
     }
 
-    this.WriteStartElement('g');
-    this.writeTransformObj(transform);
+    this.writeStartElement('g');
+    this._writeTransformObj(transform);
 
-    this.WriteStartElement('text');
+    this.writeStartElement('text');
 
-    this.writeTransformValues(
+    this._writeTransformValues(
       'transform',
-      SvgConverter.vectorToPixelSize(insert, this.Units),
+      SvgConverter.vectorToPixelSize(insert, this.units),
       new XYZ(1, -1, 0),
       text.rotation !== 0 ? text.rotation : undefined
     );
 
-    this.WriteAttributeString('fill', this.colorSvg(text.color ?? Color.Default));
+    this.writeAttributeString('fill', this._colorSvg(text.color ?? Color.default));
 
     let style = 'font:';
-    style += SvgConverter.toSvgWithUnits(text.height, this.Units);
-    if (this.Units === UnitsType.Unitless) {
+    style += SvgConverter.toSvgWithUnits(text.height, this.units);
+    if (this.units === UnitsType.Unitless) {
       style += 'px';
     }
 
@@ -866,122 +864,122 @@ export class SvgXmlWriter {
       style += nameWithoutExt;
     }
 
-    this.WriteAttributeString('style', style);
+    this.writeAttributeString('style', style);
 
     if (text instanceof MText) {
       const mtext = text as MText;
       switch (mtext.attachmentPoint) {
         case AttachmentPointType.TopLeft:
-          this.WriteAttributeString('alignment-baseline', 'hanging');
-          this.WriteAttributeString('text-anchor', 'start');
+          this.writeAttributeString('alignment-baseline', 'hanging');
+          this.writeAttributeString('text-anchor', 'start');
           break;
         case AttachmentPointType.TopCenter:
-          this.WriteAttributeString('alignment-baseline', 'hanging');
-          this.WriteAttributeString('text-anchor', 'middle');
+          this.writeAttributeString('alignment-baseline', 'hanging');
+          this.writeAttributeString('text-anchor', 'middle');
           break;
         case AttachmentPointType.TopRight:
-          this.WriteAttributeString('alignment-baseline', 'hanging');
-          this.WriteAttributeString('text-anchor', 'end');
+          this.writeAttributeString('alignment-baseline', 'hanging');
+          this.writeAttributeString('text-anchor', 'end');
           break;
         case AttachmentPointType.MiddleLeft:
-          this.WriteAttributeString('alignment-baseline', 'middle');
-          this.WriteAttributeString('text-anchor', 'start');
+          this.writeAttributeString('alignment-baseline', 'middle');
+          this.writeAttributeString('text-anchor', 'start');
           break;
         case AttachmentPointType.MiddleCenter:
-          this.WriteAttributeString('alignment-baseline', 'middle');
-          this.WriteAttributeString('text-anchor', 'middle');
+          this.writeAttributeString('alignment-baseline', 'middle');
+          this.writeAttributeString('text-anchor', 'middle');
           break;
         case AttachmentPointType.MiddleRight:
-          this.WriteAttributeString('alignment-baseline', 'middle');
-          this.WriteAttributeString('text-anchor', 'end');
+          this.writeAttributeString('alignment-baseline', 'middle');
+          this.writeAttributeString('text-anchor', 'end');
           break;
         case AttachmentPointType.BottomLeft:
-          this.WriteAttributeString('alignment-baseline', 'baseline');
-          this.WriteAttributeString('text-anchor', 'start');
+          this.writeAttributeString('alignment-baseline', 'baseline');
+          this.writeAttributeString('text-anchor', 'start');
           break;
         case AttachmentPointType.BottomCenter:
-          this.WriteAttributeString('alignment-baseline', 'baseline');
-          this.WriteAttributeString('text-anchor', 'middle');
+          this.writeAttributeString('alignment-baseline', 'baseline');
+          this.writeAttributeString('text-anchor', 'middle');
           break;
         case AttachmentPointType.BottomRight:
-          this.WriteAttributeString('alignment-baseline', 'baseline');
-          this.WriteAttributeString('text-anchor', 'end');
+          this.writeAttributeString('alignment-baseline', 'baseline');
+          this.writeAttributeString('text-anchor', 'end');
           break;
       }
 
       const lines = mtext.getPlainTextLines ? mtext.getPlainTextLines() : [mtext.value];
       for (const item of lines) {
-        this.WriteStartElement('tspan');
-        this.WriteAttributeString('x', '0');
-        this.WriteAttributeString('dy', '1em');
-        this.WriteString(item);
-        this.WriteEndElement();
+        this.writeStartElement('tspan');
+        this.writeAttributeString('x', '0');
+        this.writeAttributeString('dy', '1em');
+        this.writeString(item);
+        this.writeEndElement();
       }
 
       // Hidden line to avoid offset
-      this.WriteStartElement('tspan');
-      this.WriteAttributeString('x', '0');
-      this.WriteAttributeString('dy', '1em');
-      this.WriteAttributeString('visibility', 'hidden');
-      this.WriteString('.');
-      this.WriteEndElement();
+      this.writeStartElement('tspan');
+      this.writeAttributeString('x', '0');
+      this.writeAttributeString('dy', '1em');
+      this.writeAttributeString('visibility', 'hidden');
+      this.writeString('.');
+      this.writeEndElement();
     } else if (text instanceof TextEntity) {
       const textEntity = text as TextEntity;
 
       switch (textEntity.horizontalAlignment) {
         case TextHorizontalAlignment.Left:
-          this.WriteAttributeString('text-anchor', 'start');
+          this.writeAttributeString('text-anchor', 'start');
           break;
         case TextHorizontalAlignment.Middle:
         case TextHorizontalAlignment.Center:
-          this.WriteAttributeString('text-anchor', 'middle');
+          this.writeAttributeString('text-anchor', 'middle');
           break;
         case TextHorizontalAlignment.Right:
-          this.WriteAttributeString('text-anchor', 'end');
+          this.writeAttributeString('text-anchor', 'end');
           break;
       }
 
       switch (textEntity.verticalAlignment) {
         case TextVerticalAlignmentType.Baseline:
         case TextVerticalAlignmentType.Bottom:
-          this.WriteAttributeString('alignment-baseline', 'baseline');
+          this.writeAttributeString('alignment-baseline', 'baseline');
           break;
         case TextVerticalAlignmentType.Middle:
-          this.WriteAttributeString('alignment-baseline', 'middle');
+          this.writeAttributeString('alignment-baseline', 'middle');
           break;
         case TextVerticalAlignmentType.Top:
-          this.WriteAttributeString('alignment-baseline', 'hanging');
+          this.writeAttributeString('alignment-baseline', 'hanging');
           break;
       }
 
-      this.WriteString(text.value);
+      this.writeString(text.value);
     }
 
-    this.WriteEndElement();
-    this.WriteEndElement();
+    this.writeEndElement();
+    this.writeEndElement();
   }
 
-  private writeSolid(solid: Solid, transform: Transform): void {
-    this.WriteStartElement('polygon');
+  private _writeSolid(solid: Solid, transform: Transform): void {
+    this.writeStartElement('polygon');
 
-    this.writeEntityHeader(solid, transform);
+    this._writeEntityHeader(solid, transform);
 
-    const pts = this.svgPoints([solid.firstCorner, solid.secondCorner, solid.thirdCorner, solid.fourthCorner], transform);
-    this.WriteAttributeString('points', pts);
-    this.WriteAttributeString('fill', this.colorSvg(solid.color));
+    const pts = this._svgPoints([solid.firstCorner, solid.secondCorner, solid.thirdCorner, solid.fourthCorner], transform);
+    this.writeAttributeString('points', pts);
+    this.writeAttributeString('fill', this._colorSvg(solid.color));
 
-    this.WriteEndElement();
+    this.writeEndElement();
   }
 
-  private writeTransformObj(transform: Transform): void {
-    const translation = (transform.Translation.x !== 0 || transform.Translation.y !== 0 || transform.Translation.z !== 0) ? transform.Translation : undefined;
-    const scale = (transform.Scale.x !== 1 || transform.Scale.y !== 1) ? transform.Scale : undefined;
-    const rotation = transform.EulerRotation.z !== 0 ? transform.EulerRotation.z : undefined;
+  private _writeTransformObj(transform: Transform): void {
+    const translation = (transform.translation.x !== 0 || transform.translation.y !== 0 || transform.translation.z !== 0) ? transform.translation : undefined;
+    const scale = (transform.scale.x !== 1 || transform.scale.y !== 1) ? transform.scale : undefined;
+    const rotation = transform.eulerRotation.z !== 0 ? transform.eulerRotation.z : undefined;
 
-    this.writeTransformValues('transform', translation, scale, rotation);
+    this._writeTransformValues('transform', translation, scale, rotation);
   }
 
-  private writeTransformValues(name: string = 'transform', translation?: XYZ, scale?: XYZ, rotation?: number): void {
+  private _writeTransformValues(name: string = 'transform', translation?: XYZ, scale?: XYZ, rotation?: number): void {
     let sb = '';
 
     if (translation) {
@@ -1001,6 +999,6 @@ export class SvgXmlWriter {
       return;
     }
 
-    this.WriteAttributeString(name, sb);
+    this.writeAttributeString(name, sb);
   }
 }

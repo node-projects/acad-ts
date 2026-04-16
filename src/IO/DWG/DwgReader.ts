@@ -48,82 +48,82 @@ export class DwgReader extends CadReaderBase<DwgReaderConfiguration> {
 		return new DwgReaderConfiguration();
 	}
 
-	static ReadFromStream(stream: ArrayBuffer, notification: NotificationEventHandler | null = null): CadDocument {
-		return DwgReader.ReadFromStreamWithConfig(stream, new DwgReaderConfiguration(), notification);
+	static readFromStream(stream: ArrayBuffer, notification: NotificationEventHandler | null = null): CadDocument {
+		return DwgReader.readFromStreamWithConfig(stream, new DwgReaderConfiguration(), notification);
 	}
 
-	static ReadFromStreamWithConfig(stream: ArrayBuffer, configuration: DwgReaderConfiguration, notification: NotificationEventHandler | null = null): CadDocument {
+	static readFromStreamWithConfig(stream: ArrayBuffer, configuration: DwgReaderConfiguration, notification: NotificationEventHandler | null = null): CadDocument {
 		const reader = new DwgReader(stream, notification);
-		reader.Configuration = configuration;
-		const doc = reader.Read();
-		reader.Dispose();
+		reader.configuration = configuration;
+		const doc = reader.read();
+		reader.dispose();
 		return doc;
 	}
 
-	Read(): CadDocument {
+	read(): CadDocument {
 		this._document = new CadDocument(undefined, false);
 
 		this._fileHeader = this.readFileHeader();
 
-		this._builder = new DwgDocumentBuilder(this._fileHeader.AcadVersion, this._document, this.Configuration);
-		this._builder.OnNotification = (sender, e) => this.onNotificationEvent(sender, e);
+		this._builder = new DwgDocumentBuilder(this._fileHeader.acadVersion, this._document, this.configuration);
+		this._builder.onNotification = (sender, e) => this.onNotificationEvent(sender, e);
 
-		this._document.summaryInfo = this.ReadSummaryInfo();
-		this._document.header = this.ReadHeader();
-		this._document.header.Document = this._document;
-		this._document.classes = this.readClasses();
+		this._document.summaryInfo = this.readSummaryInfo();
+		this._document.header = this.readHeader();
+		this._document.header.document = this._document;
+		this._document.classes = this._readClasses();
 
-		this.readObjects();
+		this._readObjects();
 
-		this._builder.BuildDocument();
+		this._builder.buildDocument();
 
 		return this._document;
 	}
 
-	ReadSummaryInfo(): CadSummaryInfo {
+	readSummaryInfo(): CadSummaryInfo {
 		this._fileHeader = this._fileHeader ?? this.readFileHeader();
 
-		if (this._fileHeader.AcadVersion < ACadVersion.AC1018 || !this.Configuration.ReadSummaryInfo) {
+		if (this._fileHeader.acadVersion < ACadVersion.AC1018 || !this.configuration.readSummaryInfo) {
 			return new CadSummaryInfo();
 		}
 
-		const reader = this.getSectionStream(DwgSectionDefinition.SummaryInfo);
+		const reader = this._getSectionStream(DwgSectionDefinition.summaryInfo);
 		if (!reader) return new CadSummaryInfo();
 
-		const summaryReader = new DwgSummaryInfoReader(this._fileHeader.AcadVersion, reader);
+		const summaryReader = new DwgSummaryInfoReader(this._fileHeader.acadVersion, reader);
 		return summaryReader.read();
 	}
 
-	ReadPreview(): DwgPreview | null {
+	readPreview(): DwgPreview | null {
 		this._fileHeader = this._fileHeader ?? this.readFileHeader();
 
-		if (this._fileHeader.PreviewAddress < 0) return null;
+		if (this._fileHeader.previewAddress < 0) return null;
 
-		let streamReader = this.getSectionStream(DwgSectionDefinition.Preview);
+		let streamReader = this._getSectionStream(DwgSectionDefinition.preview);
 		if (!streamReader) {
-			streamReader = DwgStreamReaderBase.getStreamHandler(this._fileHeader.AcadVersion, new Uint8Array(this._fileStream));
-			streamReader.position = this._fileHeader.PreviewAddress;
+			streamReader = DwgStreamReaderBase.getStreamHandler(this._fileHeader.acadVersion, new Uint8Array(this._fileStream));
+			streamReader.position = this._fileHeader.previewAddress;
 		}
 
-		const reader = new DwgPreviewReader(this._fileHeader.AcadVersion, streamReader, this._fileHeader.PreviewAddress);
+		const reader = new DwgPreviewReader(this._fileHeader.acadVersion, streamReader, this._fileHeader.previewAddress);
 		return reader.read();
 	}
 
-	ReadHeader(): CadHeader {
+	readHeader(): CadHeader {
 		this._fileHeader = this._fileHeader ?? this.readFileHeader();
 
 		const header = new CadHeader();
-		header.codePage = CadUtils.getCodePageName(this._fileHeader.DrawingCodePage);
+		header.codePage = CadUtils.getCodePageName(this._fileHeader.drawingCodePage);
 
-		const sreader = this.getSectionStream(DwgSectionDefinition.Header)!;
+		const sreader = this._getSectionStream(DwgSectionDefinition.header)!;
 
-		const hReader = new DwgHeaderReader(this._fileHeader.AcadVersion, sreader, header);
-		hReader.OnNotification = (sender, e) => this.onNotificationEvent(sender, e);
+		const hReader = new DwgHeaderReader(this._fileHeader.acadVersion, sreader, header);
+		hReader.onNotification = (sender, e) => this.onNotificationEvent(sender, e);
 
-		const headerHandles = hReader.read(this._fileHeader.AcadMaintenanceVersion);
+		const headerHandles = hReader.read(this._fileHeader.acadMaintenanceVersion);
 
 		if (this._builder) {
-			this._builder.HeaderHandles = headerHandles.objectPointers;
+			this._builder.headerHandles = headerHandles.objectPointers;
 		}
 
 		return header;
@@ -136,14 +136,14 @@ export class DwgReader extends CadReaderBase<DwgReaderConfiguration> {
 		// 0x00  6  "ACXXXX" version string
 		const versionStr = String.fromCharCode(...fileBytes.slice(0, 6));
 		const version = CadUtils.getVersionFromName(versionStr);
-		const fileHeader = DwgFileHeader.CreateFileHeader(version)!;
+		const fileHeader = DwgFileHeader.createFileHeader(version)!;
 
 		// Get the stream reader, positioned after the version string
-		const sreader = DwgStreamReaderBase.getStreamHandler(fileHeader.AcadVersion, fileBytes);
+		const sreader = DwgStreamReaderBase.getStreamHandler(fileHeader.acadVersion, fileBytes);
 		sreader.position = 6;
 
 		// Read the file header based on version
-		switch (fileHeader.AcadVersion) {
+		switch (fileHeader.acadVersion) {
 			case ACadVersion.Unknown:
 				throw new CadNotSupportedException();
 			case ACadVersion.MC0_0:
@@ -156,28 +156,28 @@ export class DwgReader extends CadReaderBase<DwgReaderConfiguration> {
 			case ACadVersion.AC1004:
 			case ACadVersion.AC1006:
 			case ACadVersion.AC1009:
-				throw new CadNotSupportedException(fileHeader.AcadVersion);
+				throw new CadNotSupportedException(fileHeader.acadVersion);
 			case ACadVersion.AC1012:
 			case ACadVersion.AC1014:
 			case ACadVersion.AC1015:
-				this.readFileHeaderAC15(fileHeader as DwgFileHeaderAC15, sreader);
+				this._readFileHeaderAC15(fileHeader as DwgFileHeaderAC15, sreader);
 				break;
 			case ACadVersion.AC1018:
-				this.readFileHeaderAC18(fileHeader as DwgFileHeaderAC18, sreader);
+				this._readFileHeaderAC18(fileHeader as DwgFileHeaderAC18, sreader);
 				break;
 			case ACadVersion.AC1021:
 				try {
-					this.readFileHeaderAC21(fileHeader as DwgFileHeaderAC21, sreader);
+					this._readFileHeaderAC21(fileHeader as DwgFileHeaderAC21, sreader);
 				} catch (_err) {
 					// Accept AC18-compatible AC1021 files by falling back to AC18 header parsing.
 					sreader.position = 6;
-					this.readFileHeaderAC18(fileHeader as DwgFileHeaderAC18, sreader);
+					this._readFileHeaderAC18(fileHeader as DwgFileHeaderAC18, sreader);
 				}
 				break;
 			case ACadVersion.AC1024:
 			case ACadVersion.AC1027:
 			case ACadVersion.AC1032:
-				this.readFileHeaderAC18(fileHeader as DwgFileHeaderAC18, sreader);
+				this._readFileHeaderAC18(fileHeader as DwgFileHeaderAC18, sreader);
 				break;
 			default:
 				break;
@@ -186,57 +186,57 @@ export class DwgReader extends CadReaderBase<DwgReaderConfiguration> {
 		return fileHeader;
 	}
 
-	private readClasses(): DxfClassCollection {
+	private _readClasses(): DxfClassCollection {
 		this._fileHeader = this._fileHeader ?? this.readFileHeader();
 
-		const sreader = this.getSectionStream(DwgSectionDefinition.Classes)!;
+		const sreader = this._getSectionStream(DwgSectionDefinition.classes)!;
 
-		const reader = new DwgClassesReader(this._fileHeader.AcadVersion, sreader, this._fileHeader);
-		reader.OnNotification = (sender, e) => this.onNotificationEvent(sender, e);
+		const reader = new DwgClassesReader(this._fileHeader.acadVersion, sreader, this._fileHeader);
+		reader.onNotification = (sender, e) => this.onNotificationEvent(sender, e);
 
 		return reader.read();
 	}
 
-	private readHandles(): Map<number, number> {
+	private _readHandles(): Map<number, number> {
 		this._fileHeader = this._fileHeader ?? this.readFileHeader();
 
-		const sreader = this.getSectionStream(DwgSectionDefinition.Handles)!;
+		const sreader = this._getSectionStream(DwgSectionDefinition.handles)!;
 
-		const handleReader = new DwgHandleReader(this._fileHeader.AcadVersion, sreader);
-		handleReader.OnNotification = (sender, e) => this.onNotificationEvent(sender, e);
+		const handleReader = new DwgHandleReader(this._fileHeader.acadVersion, sreader);
+		handleReader.onNotification = (sender, e) => this.onNotificationEvent(sender, e);
 
 		return handleReader.read();
 	}
 
-	private readObjFreeSpace(): number {
+	private _readObjFreeSpace(): number {
 		this._fileHeader = this._fileHeader ?? this.readFileHeader();
 
-		if (this._fileHeader.AcadVersion < ACadVersion.AC1018) return 0;
+		if (this._fileHeader.acadVersion < ACadVersion.AC1018) return 0;
 
-		const sreader = this.getSectionStream(DwgSectionDefinition.ObjFreeSpace)!;
+		const sreader = this._getSectionStream(DwgSectionDefinition.objFreeSpace)!;
 
 		sreader.advance(16);
 		return sreader.readUInt();
 	}
 
-	private readObjects(): void {
-		const handles = this.readHandles();
-		this._document.classes = this.readClasses();
+	private _readObjects(): void {
+		const handles = this._readHandles();
+		this._document.classes = this._readClasses();
 
 		let sreader: IDwgStreamReader;
-		if (this._fileHeader.AcadVersion <= ACadVersion.AC1015) {
-			sreader = DwgStreamReaderBase.getStreamHandler(this._fileHeader.AcadVersion, new Uint8Array(this._fileStream), this._encoding);
+		if (this._fileHeader.acadVersion <= ACadVersion.AC1015) {
+			sreader = DwgStreamReaderBase.getStreamHandler(this._fileHeader.acadVersion, new Uint8Array(this._fileStream), this._encoding);
 			sreader.position = 0;
 		} else {
-			sreader = this.getSectionStream(DwgSectionDefinition.AcDbObjects)!;
+			sreader = this._getSectionStream(DwgSectionDefinition.acDbObjects)!;
 		}
 
-		const objectHandles: number[] = this._builder.HeaderHandles.GetHandles()
+		const objectHandles: number[] = this._builder.headerHandles.getHandles()
 			.filter((o): o is number => o != null)
 			.map(a => a);
 
 		const sectionReader = new DwgObjectReader(
-			this._fileHeader.AcadVersion,
+			this._fileHeader.acadVersion,
 			this._builder,
 			sreader,
 			objectHandles,
@@ -247,10 +247,10 @@ export class DwgReader extends CadReaderBase<DwgReaderConfiguration> {
 		sectionReader.read();
 	}
 
-	private getSectionStream(sectionName: string): IDwgStreamReader | null {
+	private _getSectionStream(sectionName: string): IDwgStreamReader | null {
 		let sectionBuffer: Uint8Array | null = null;
 
-		switch (this._fileHeader.AcadVersion) {
+		switch (this._fileHeader.acadVersion) {
 			case ACadVersion.Unknown:
 				throw new CadNotSupportedException();
 			case ACadVersion.MC0_0:
@@ -263,26 +263,26 @@ export class DwgReader extends CadReaderBase<DwgReaderConfiguration> {
 			case ACadVersion.AC1004:
 			case ACadVersion.AC1006:
 			case ACadVersion.AC1009:
-				throw new CadNotSupportedException(this._fileHeader.AcadVersion);
+				throw new CadNotSupportedException(this._fileHeader.acadVersion);
 			case ACadVersion.AC1012:
 			case ACadVersion.AC1014:
 			case ACadVersion.AC1015:
-				sectionBuffer = this.getSectionBuffer15(this._fileHeader as DwgFileHeaderAC15, sectionName);
+				sectionBuffer = this._getSectionBuffer15(this._fileHeader as DwgFileHeaderAC15, sectionName);
 				break;
 			case ACadVersion.AC1018:
-				sectionBuffer = this.getSectionBuffer18(this._fileHeader as DwgFileHeaderAC18, sectionName);
+				sectionBuffer = this._getSectionBuffer18(this._fileHeader as DwgFileHeaderAC18, sectionName);
 				break;
 			case ACadVersion.AC1021:
-				if ((this._fileHeader as DwgFileHeaderAC21).CompressedMetadata) {
-					sectionBuffer = this.getSectionBuffer21(this._fileHeader as DwgFileHeaderAC21, sectionName);
+				if ((this._fileHeader as DwgFileHeaderAC21).compressedMetadata) {
+					sectionBuffer = this._getSectionBuffer21(this._fileHeader as DwgFileHeaderAC21, sectionName);
 				} else {
-					sectionBuffer = this.getSectionBuffer18(this._fileHeader as DwgFileHeaderAC18, sectionName);
+					sectionBuffer = this._getSectionBuffer18(this._fileHeader as DwgFileHeaderAC18, sectionName);
 				}
 				break;
 			case ACadVersion.AC1024:
 			case ACadVersion.AC1027:
 			case ACadVersion.AC1032:
-				sectionBuffer = this.getSectionBuffer18(this._fileHeader as DwgFileHeaderAC18, sectionName);
+				sectionBuffer = this._getSectionBuffer18(this._fileHeader as DwgFileHeaderAC18, sectionName);
 				break;
 			default:
 				break;
@@ -290,76 +290,76 @@ export class DwgReader extends CadReaderBase<DwgReaderConfiguration> {
 
 		if (!sectionBuffer) return null;
 
-		const streamHandler = DwgStreamReaderBase.getStreamHandler(this._fileHeader.AcadVersion, sectionBuffer);
+		const streamHandler = DwgStreamReaderBase.getStreamHandler(this._fileHeader.acadVersion, sectionBuffer);
 		streamHandler.encoding = this._encoding;
 		return streamHandler;
 	}
 
 	// #region File Header reading methods
 
-	private readFileHeaderAC15(fileheader: DwgFileHeaderAC15, sreader: IDwgStreamReader): void {
+	private _readFileHeaderAC15(fileheader: DwgFileHeaderAC15, sreader: IDwgStreamReader): void {
 		// The next 7 starting at offset 0x06 are to be six bytes of 0
 		// (in R14, 5 0's and the ACADMAINTVER variable) and a byte of 1.
 		sreader.readBytes(7);
 
 		// At 0x0D is a seeker for the beginning sentinel of the image data.
-		fileheader.PreviewAddress = sreader.readInt();
+		fileheader.previewAddress = sreader.readInt();
 
 		// Undocumented Bytes at 0x11 and 0x12
 		sreader.readBytes(2);
 
 		// Bytes at 0x13 and 0x14 are a raw short indicating the code page
-		fileheader.DrawingCodePage = CadUtils.getCodePage(sreader.readShort());
-		this._encoding = this.getListedEncoding(fileheader.DrawingCodePage);
+		fileheader.drawingCodePage = CadUtils.getCodePage(sreader.readShort());
+		this._encoding = this.getListedEncoding(fileheader.drawingCodePage);
 
 		// At 0x15 is a long that tells how many sets of recno/seeker/length records follow
 		const nRecords = sreader.readRawLong();
 
 		for (let i = 0; i < nRecords; ++i) {
 			const record = new DwgSectionLocatorRecord();
-			record.Number = sreader.readByte();
-			record.Seeker = sreader.readRawLong();
-			record.Size = sreader.readRawLong();
-			fileheader.Records.set(record.Number!, record);
+			record.number = sreader.readByte();
+			record.seeker = sreader.readRawLong();
+			record.size = sreader.readRawLong();
+			fileheader.records.set(record.number!, record);
 		}
 
 		// RS : CRC for BOF to this point.
 		sreader.resetShift();
 
 		const sn = sreader.readSentinel();
-		DwgSectionIO.CheckSentinel(sn, DwgFileHeaderAC15.EndSentinel);
+		DwgSectionIO.checkSentinel(sn, DwgFileHeaderAC15.endSentinel);
 	}
 
-	private readFileMetaData(fileheader: DwgFileHeaderAC18, sreader: IDwgStreamReader): void {
+	private _readFileMetaData(fileheader: DwgFileHeaderAC18, sreader: IDwgStreamReader): void {
 		// 5 bytes of 0x00
 		sreader.advance(5);
 
 		// 0x0B  Maintenance release version
-		fileheader.AcadMaintenanceVersion = sreader.readByte();
+		fileheader.acadMaintenanceVersion = sreader.readByte();
 		// 0x0C  Byte 0x00, 0x01, or 0x03
 		sreader.advance(1);
 		// 0x0D  Preview address
-		fileheader.PreviewAddress = sreader.readRawLong();
+		fileheader.previewAddress = sreader.readRawLong();
 		// 0x11  Dwg version
-		fileheader.DwgVersion = sreader.readByte();
+		fileheader.dwgVersion = sreader.readByte();
 		// 0x12  Application maintenance release version
-		fileheader.AppReleaseVersion = sreader.readByte();
+		fileheader.appReleaseVersion = sreader.readByte();
 
 		// 0x13  Codepage
-		fileheader.DrawingCodePage = CadUtils.getCodePage(sreader.readShort());
-		this._encoding = this.getListedEncoding(fileheader.DrawingCodePage);
+		fileheader.drawingCodePage = CadUtils.getCodePage(sreader.readShort());
+		this._encoding = this.getListedEncoding(fileheader.drawingCodePage);
 
 		// 0x15  3 zero bytes
 		sreader.advance(3);
 
 		// 0x18  SecurityType
-		fileheader.SecurityType = sreader.readRawLong();
+		fileheader.securityType = sreader.readRawLong();
 		// 0x1C  Unknown
 		sreader.readRawLong();
 		// 0x20  Summary info Address in stream
-		fileheader.SummaryInfoAddr = sreader.readRawLong();
+		fileheader.summaryInfoAddr = sreader.readRawLong();
 		// 0x24  VBA Project Addr
-		fileheader.VbaProjectAddr = sreader.readRawLong();
+		fileheader.vbaProjectAddr = sreader.readRawLong();
 
 		// 0x28  0x00000080
 		sreader.readRawLong();
@@ -371,8 +371,8 @@ export class DwgReader extends CadReaderBase<DwgReaderConfiguration> {
 		sreader.advance(80);
 	}
 
-	private readFileHeaderAC18(fileheader: DwgFileHeaderAC18, sreader: IDwgStreamReader): void {
-		this.readFileMetaData(fileheader, sreader);
+	private _readFileHeaderAC18(fileheader: DwgFileHeaderAC18, sreader: IDwgStreamReader): void {
+		this._readFileMetaData(fileheader, sreader);
 
 		// 0x80  0x6C  Encrypted Data
 		const encryptedData = sreader.readBytes(0x6C); // 108 bytes
@@ -384,7 +384,7 @@ export class DwgReader extends CadReaderBase<DwgReaderConfiguration> {
 		// Read header encrypted data
 		// 0x00  12  "AcFssFcAJMB" file ID string
 		const fileIdBytes = new Uint8Array(12);
-		headerStream.Read(fileIdBytes, 0, 12);
+		headerStream.read(fileIdBytes, 0, 12);
 		const fileId = String.fromCharCode(...fileIdBytes);
 		if (!fileId.startsWith('AcFssFcAJMB')) {
 			this.triggerNotification(`File validation failed, id should be: AcFssFcAJMB, but is: ${fileId}`, NotificationType.Warning);
@@ -392,19 +392,19 @@ export class DwgReader extends CadReaderBase<DwgReaderConfiguration> {
 
 		const readInt32LE = (): number => {
 			const buf = new Uint8Array(4);
-			headerStream.Read(buf, 0, 4);
+			headerStream.read(buf, 0, 4);
 			return new DataView(buf.buffer).getInt32(0, true);
 		};
 
 		const readUInt32LE = (): number => {
 			const buf = new Uint8Array(4);
-			headerStream.Read(buf, 0, 4);
+			headerStream.read(buf, 0, 4);
 			return new DataView(buf.buffer).getUint32(0, true);
 		};
 
 		const readULong = (): number => {
 			const buf = new Uint8Array(8);
-			headerStream.Read(buf, 0, 8);
+			headerStream.read(buf, 0, 8);
 			const view = new DataView(buf.buffer);
 			// JavaScript numbers only support 53 bits, use low 32 bits for most values
 			const low = view.getUint32(0, true);
@@ -419,25 +419,25 @@ export class DwgReader extends CadReaderBase<DwgReaderConfiguration> {
 		// 0x14  0x04
 		readInt32LE();
 		// 0x18  Root tree node gap
-		fileheader.RootTreeNodeGap = readInt32LE();
+		fileheader.rootTreeNodeGap = readInt32LE();
 		// 0x1C  Lowermost left tree node gap
-		fileheader.LeftGap = readInt32LE();
+		fileheader.leftGap = readInt32LE();
 		// 0x20  Lowermost right tree node gap
-		fileheader.RigthGap = readInt32LE();
+		fileheader.rigthGap = readInt32LE();
 		// 0x24  Unknown long (ODA writes 1)
 		readInt32LE();
 		// 0x28  Last section page Id
-		fileheader.LastPageId = readInt32LE();
+		fileheader.lastPageId = readInt32LE();
 
 		// 0x2C  Last section page end address (64-bit)
-		fileheader.LastSectionAddr = readULong();
+		fileheader.lastSectionAddr = readULong();
 		// 0x34  Second header data address (64-bit)
-		fileheader.SecondHeaderAddr = readULong();
+		fileheader.secondHeaderAddr = readULong();
 
 		// 0x3C  Gap amount
-		fileheader.GapAmount = readUInt32LE();
+		fileheader.gapAmount = readUInt32LE();
 		// 0x40  Section page amount
-		fileheader.SectionAmount = readUInt32LE();
+		fileheader.sectionAmount = readUInt32LE();
 		// 0x44  0x20
 		readInt32LE();
 		// 0x48  0x80
@@ -445,20 +445,20 @@ export class DwgReader extends CadReaderBase<DwgReaderConfiguration> {
 		// 0x4C  0x40
 		readInt32LE();
 		// 0x50  Section Page Map Id
-		fileheader.SectionPageMapId = readUInt32LE();
+		fileheader.sectionPageMapId = readUInt32LE();
 		// 0x54  Section Page Map address (add 0x100 to this value) (64-bit)
-		fileheader.PageMapAddress = readULong() + 256;
+		fileheader.pageMapAddress = readULong() + 256;
 		// 0x5C  Section Map Id
-		fileheader.SectionMapId = readUInt32LE();
+		fileheader.sectionMapId = readUInt32LE();
 		// 0x60  Section page array size
-		fileheader.SectionArrayPageSize = readUInt32LE();
+		fileheader.sectionArrayPageSize = readUInt32LE();
 		// 0x64  Gap array size
-		fileheader.GapArraySize = readUInt32LE();
+		fileheader.gapArraySize = readUInt32LE();
 		// 0x68  CRC32
-		fileheader.CRCSeed = readUInt32LE();
+		fileheader.crcSeed = readUInt32LE();
 
 		// #region Read page map of the file
-		sreader.position = fileheader.PageMapAddress;
+		sreader.position = fileheader.pageMapAddress;
 		// Get the page size
 		const pmPageType = sreader.readRawLong();
 		const pmDecompressedSize = sreader.readRawLong();
@@ -477,26 +477,26 @@ export class DwgReader extends CadReaderBase<DwgReaderConfiguration> {
 		while (decompPos < decompressed.length) {
 			const record = new DwgSectionLocatorRecord();
 			// 0x00  Section page number
-			record.Number = decompView.getInt32(decompPos, true);
+			record.number = decompView.getInt32(decompPos, true);
 			decompPos += 4;
 			// 0x04  Section size
-			record.Size = decompView.getInt32(decompPos, true);
+			record.size = decompView.getInt32(decompPos, true);
 			decompPos += 4;
 
-			if (record.Number! >= 0) {
-				record.Seeker = total;
-				fileheader.Records.set(record.Number!, record);
+			if (record.number! >= 0) {
+				record.seeker = total;
+				fileheader.records.set(record.number!, record);
 			} else {
 				// Negative section number = gap, skip 4 ints (Parent, Left, Right, 0x00)
 				decompPos += 16;
 			}
 
-			total += record.Size;
+			total += record.size;
 		}
 		// #endregion
 
 		// #region Read the data section map
-		sreader.position = fileheader.Records.get(fileheader.SectionMapId)!.Seeker;
+		sreader.position = fileheader.records.get(fileheader.sectionMapId)!.seeker;
 
 		// Get the page size
 		const smPageType = sreader.readRawLong();
@@ -545,64 +545,64 @@ export class DwgReader extends CadReaderBase<DwgReaderConfiguration> {
 		for (let i = 0; i < ndescriptions; ++i) {
 			const descriptor = new DwgSectionDescriptor();
 			// 0x00  Size of section (64-bit)
-			descriptor.CompressedSize = readDsULong();
+			descriptor.compressedSize = readDsULong();
 			// 0x08  Page count
-			descriptor.PageCount = readDsInt();
+			descriptor.pageCount = readDsInt();
 			// 0x0C  Max Decompressed Size
-			descriptor.DecompressedSize = readDsInt();
+			descriptor.decompressedSize = readDsInt();
 			// 0x10  Unknown
 			readDsInt();
 			// 0x14  Compressed (1=no, 2=yes)
-			descriptor.CompressedCode = readDsInt();
+			descriptor.compressedCode = readDsInt();
 			// 0x18  Section Id
-			descriptor.SectionId = readDsInt();
+			descriptor.sectionId = readDsInt();
 			// 0x1C  Encrypted
-			descriptor.Encrypted = readDsInt();
+			descriptor.encrypted = readDsInt();
 			// 0x20  Section Name (64 bytes)
-			descriptor.Name = readDsString(64);
+			descriptor.name = readDsString(64);
 
-			for (let j = 0; j < descriptor.PageCount; ++j) {
+			for (let j = 0; j < descriptor.pageCount; ++j) {
 				const localmap = new DwgLocalSectionMap();
 				// Page number
-				localmap.PageNumber = readDsInt();
+				localmap.pageNumber = readDsInt();
 				// Data size (compressed)
-				localmap.CompressedSize = readDsInt();
+				localmap.compressedSize = readDsInt();
 				// Start offset (64-bit)
-				localmap.Offset = readDsULong();
+				localmap.offset = readDsULong();
 
-				localmap.DecompressedSize = descriptor.DecompressedSize;
-				localmap.Seeker = fileheader.Records.get(localmap.PageNumber)?.Seeker ?? 0;
+				localmap.decompressedSize = descriptor.decompressedSize;
+				localmap.seeker = fileheader.records.get(localmap.pageNumber)?.seeker ?? 0;
 
-				descriptor.LocalSections.push(localmap);
+				descriptor.localSections.push(localmap);
 			}
 
 			// Get the final size for the local section
-			const sizeLeft = descriptor.CompressedSize % descriptor.DecompressedSize;
-			if (sizeLeft > 0 && descriptor.LocalSections.length > 0) {
-				descriptor.LocalSections[descriptor.LocalSections.length - 1].DecompressedSize = sizeLeft;
+			const sizeLeft = descriptor.compressedSize % descriptor.decompressedSize;
+			if (sizeLeft > 0 && descriptor.localSections.length > 0) {
+				descriptor.localSections[descriptor.localSections.length - 1].decompressedSize = sizeLeft;
 			}
 
-			fileheader.Descriptors.set(descriptor.Name, descriptor);
+			fileheader.descriptors.set(descriptor.name, descriptor);
 		}
 		// #endregion
 	}
 
-	private readFileHeaderAC21(fileheader: DwgFileHeaderAC21, sreader: IDwgStreamReader): void {
-		this.readFileMetaData(fileheader, sreader);
+	private _readFileHeaderAC21(fileheader: DwgFileHeaderAC21, sreader: IDwgStreamReader): void {
+		this._readFileMetaData(fileheader, sreader);
 
 		// The last 0x28 bytes of this section consists of check data
 		// The first 0x3D8 bytes should be decoded using Reed-Solomon (255, 239) with factor 3
 		const compressedData = sreader.readBytes(0x400);
 		const decodedData = new Uint8Array(3 * 239); // factor * blockSize
-		this.reedSolomonDecoding(compressedData, decodedData, 3, 239);
+		this._reedSolomonDecoding(compressedData, decodedData, 3, 239);
 
 		const decodedView = new DataView(decodedData.buffer);
 		// 0x00  CRC (64-bit)
-		const crc = this.readInt64(decodedView, 0);
+		const crc = this._readInt64(decodedView, 0);
 		// 0x08  Unknown key (64-bit)
-		const unknownKey = this.readInt64(decodedView, 8);
+		const unknownKey = this._readInt64(decodedView, 8);
 		// 0x10  Compressed Data CRC (64-bit)
-		const compressedDataCRC = this.readInt64(decodedView, 16);
+		const compressedDataCRC = this._readInt64(decodedView, 16);
 		// 0x18  ComprLen (32-bit)
 		const comprLen = decodedView.getInt32(24, true);
 		// 0x1C  Length2 (32-bit)
@@ -628,48 +628,48 @@ export class DwgReader extends CadReaderBase<DwgReaderConfiguration> {
 			return high * 0x100000000 + low;
 		};
 
-		fileheader.CompressedMetadata = new Dwg21CompressedMetadata();
-		fileheader.CompressedMetadata.HeaderSize = readBufULong();
-		fileheader.CompressedMetadata.FileSize = readBufULong();
-		fileheader.CompressedMetadata.PagesMapCrcCompressed = readBufULong();
-		fileheader.CompressedMetadata.PagesMapCorrectionFactor = readBufULong();
-		fileheader.CompressedMetadata.PagesMapCrcSeed = readBufULong();
-		fileheader.CompressedMetadata.Map2Offset = readBufULong();
-		fileheader.CompressedMetadata.Map2Id = readBufULong();
-		fileheader.CompressedMetadata.PagesMapOffset = readBufULong();
-		fileheader.CompressedMetadata.PagesMapId = readBufULong();
-		fileheader.CompressedMetadata.Header2offset = readBufULong();
-		fileheader.CompressedMetadata.PagesMapSizeCompressed = readBufULong();
-		fileheader.CompressedMetadata.PagesMapSizeUncompressed = readBufULong();
-		fileheader.CompressedMetadata.PagesAmount = readBufULong();
-		fileheader.CompressedMetadata.PagesMaxId = readBufULong();
-		fileheader.CompressedMetadata.Unknow0x20 = readBufULong();
-		fileheader.CompressedMetadata.Unknow0x40 = readBufULong();
-		fileheader.CompressedMetadata.PagesMapCrcUncompressed = readBufULong();
-		fileheader.CompressedMetadata.Unknown0xF800 = readBufULong();
-		fileheader.CompressedMetadata.Unknown4 = readBufULong();
-		fileheader.CompressedMetadata.Unknown1 = readBufULong();
-		fileheader.CompressedMetadata.SectionsAmount = readBufULong();
-		fileheader.CompressedMetadata.SectionsMapCrcUncompressed = readBufULong();
-		fileheader.CompressedMetadata.SectionsMapSizeCompressed = readBufULong();
-		fileheader.CompressedMetadata.SectionsMap2Id = readBufULong();
-		fileheader.CompressedMetadata.SectionsMapId = readBufULong();
-		fileheader.CompressedMetadata.SectionsMapSizeUncompressed = readBufULong();
-		fileheader.CompressedMetadata.SectionsMapCrcCompressed = readBufULong();
-		fileheader.CompressedMetadata.SectionsMapCorrectionFactor = readBufULong();
-		fileheader.CompressedMetadata.SectionsMapCrcSeed = readBufULong();
-		fileheader.CompressedMetadata.StreamVersion = readBufULong();
-		fileheader.CompressedMetadata.CrcSeed = readBufULong();
-		fileheader.CompressedMetadata.CrcSeedEncoded = readBufULong();
-		fileheader.CompressedMetadata.RandomSeed = readBufULong();
-		fileheader.CompressedMetadata.HeaderCRC64 = readBufULong();
+		fileheader.compressedMetadata = new Dwg21CompressedMetadata();
+		fileheader.compressedMetadata.headerSize = readBufULong();
+		fileheader.compressedMetadata.fileSize = readBufULong();
+		fileheader.compressedMetadata.pagesMapCrcCompressed = readBufULong();
+		fileheader.compressedMetadata.pagesMapCorrectionFactor = readBufULong();
+		fileheader.compressedMetadata.pagesMapCrcSeed = readBufULong();
+		fileheader.compressedMetadata.map2Offset = readBufULong();
+		fileheader.compressedMetadata.map2Id = readBufULong();
+		fileheader.compressedMetadata.pagesMapOffset = readBufULong();
+		fileheader.compressedMetadata.pagesMapId = readBufULong();
+		fileheader.compressedMetadata.header2offset = readBufULong();
+		fileheader.compressedMetadata.pagesMapSizeCompressed = readBufULong();
+		fileheader.compressedMetadata.pagesMapSizeUncompressed = readBufULong();
+		fileheader.compressedMetadata.pagesAmount = readBufULong();
+		fileheader.compressedMetadata.pagesMaxId = readBufULong();
+		fileheader.compressedMetadata.unknow0x20 = readBufULong();
+		fileheader.compressedMetadata.unknow0x40 = readBufULong();
+		fileheader.compressedMetadata.pagesMapCrcUncompressed = readBufULong();
+		fileheader.compressedMetadata.unknown0xF800 = readBufULong();
+		fileheader.compressedMetadata.unknown4 = readBufULong();
+		fileheader.compressedMetadata.unknown1 = readBufULong();
+		fileheader.compressedMetadata.sectionsAmount = readBufULong();
+		fileheader.compressedMetadata.sectionsMapCrcUncompressed = readBufULong();
+		fileheader.compressedMetadata.sectionsMapSizeCompressed = readBufULong();
+		fileheader.compressedMetadata.sectionsMap2Id = readBufULong();
+		fileheader.compressedMetadata.sectionsMapId = readBufULong();
+		fileheader.compressedMetadata.sectionsMapSizeUncompressed = readBufULong();
+		fileheader.compressedMetadata.sectionsMapCrcCompressed = readBufULong();
+		fileheader.compressedMetadata.sectionsMapCorrectionFactor = readBufULong();
+		fileheader.compressedMetadata.sectionsMapCrcSeed = readBufULong();
+		fileheader.compressedMetadata.streamVersion = readBufULong();
+		fileheader.compressedMetadata.crcSeed = readBufULong();
+		fileheader.compressedMetadata.crcSeedEncoded = readBufULong();
+		fileheader.compressedMetadata.randomSeed = readBufULong();
+		fileheader.compressedMetadata.headerCRC64 = readBufULong();
 
 		// Prepare the page data stream to read
-		const arr = this.getPageBuffer(
-			fileheader.CompressedMetadata.PagesMapOffset,
-			fileheader.CompressedMetadata.PagesMapSizeCompressed,
-			fileheader.CompressedMetadata.PagesMapSizeUncompressed,
-			fileheader.CompressedMetadata.PagesMapCorrectionFactor,
+		const arr = this._getPageBuffer(
+			fileheader.compressedMetadata.pagesMapOffset,
+			fileheader.compressedMetadata.pagesMapSizeCompressed,
+			fileheader.compressedMetadata.pagesMapSizeUncompressed,
+			fileheader.compressedMetadata.pagesMapCorrectionFactor,
 			0xEF,
 			new Uint8Array(this._fileStream));
 
@@ -679,20 +679,20 @@ export class DwgReader extends CadReaderBase<DwgReaderConfiguration> {
 		let offset = 0;
 
 		while (pdPos < arr.length) {
-			const size = this.readInt64View(pageDataView, pdPos);
+			const size = this._readInt64View(pageDataView, pdPos);
 			pdPos += 8;
-			const id = Math.abs(this.readInt64View(pageDataView, pdPos));
+			const id = Math.abs(this._readInt64View(pageDataView, pdPos));
 			pdPos += 8;
-			fileheader.Records.set(id, new DwgSectionLocatorRecord(id, offset, size));
+			fileheader.records.set(id, new DwgSectionLocatorRecord(id, offset, size));
 			offset += size;
 		}
 
 		// Prepare the section map data stream to read
-		const arr2 = this.getPageBuffer(
-			fileheader.Records.get(fileheader.CompressedMetadata.SectionsMapId)!.Seeker,
-			fileheader.CompressedMetadata.SectionsMapSizeCompressed,
-			fileheader.CompressedMetadata.SectionsMapSizeUncompressed,
-			fileheader.CompressedMetadata.SectionsMapCorrectionFactor,
+		const arr2 = this._getPageBuffer(
+			fileheader.records.get(fileheader.compressedMetadata.sectionsMapId)!.seeker,
+			fileheader.compressedMetadata.sectionsMapSizeCompressed,
+			fileheader.compressedMetadata.sectionsMapSizeUncompressed,
+			fileheader.compressedMetadata.sectionsMapCorrectionFactor,
 			239,
 			new Uint8Array(this._fileStream));
 
@@ -716,21 +716,21 @@ export class DwgReader extends CadReaderBase<DwgReaderConfiguration> {
 		while (smPos < arr2.length) {
 			const section = new DwgSectionDescriptor();
 			// 0x00  Data size (64-bit)
-			section.CompressedSize = readSmULong();
+			section.compressedSize = readSmULong();
 			// 0x08  Max size (64-bit)
-			section.DecompressedSize = readSmULong();
+			section.decompressedSize = readSmULong();
 			// 0x10  Encryption (64-bit)
-			section.Encrypted = readSmULong();
+			section.encrypted = readSmULong();
 			// 0x18  HashCode (64-bit)
-			section.HashCode = readSmULong();
+			section.hashCode = readSmULong();
 			// 0x20  SectionNameLength (64-bit)
 			const sectionNameLength = readSmLong();
 			// 0x28  Unknown (64-bit)
 			readSmULong();
 			// 0x30  Encoding (64-bit)
-			section.Encoding = readSmULong();
+			section.encoding = readSmULong();
 			// 0x38  NumPages (64-bit)
-			section.PageCount = readSmULong();
+			section.pageCount = readSmULong();
 
 			// Read the name
 			if (sectionNameLength > 0) {
@@ -740,33 +740,33 @@ export class DwgReader extends CadReaderBase<DwgReaderConfiguration> {
 					if (charCode !== 0) name += String.fromCharCode(charCode);
 				}
 				smPos += sectionNameLength;
-				section.Name = name;
+				section.name = name;
 			}
 
 			let currentOffset = 0;
-			for (let i = 0; i < section.PageCount; ++i) {
+			for (let i = 0; i < section.pageCount; ++i) {
 				const page = new DwgLocalSectionMap();
 				// 8  Page data offset (64-bit)
-				page.Offset = readSmULong();
+				page.offset = readSmULong();
 				// 8  Page Size (64-bit)
-				page.Size = readSmLong();
+				page.size = readSmLong();
 				// 8  Page Id (64-bit)
-				page.PageNumber = readSmLong();
+				page.pageNumber = readSmLong();
 				// 8  Page Uncompressed Size (64-bit)
-				page.DecompressedSize = readSmULong();
+				page.decompressedSize = readSmULong();
 				// 8  Page Compressed Size (64-bit)
-				page.CompressedSize = readSmULong();
+				page.compressedSize = readSmULong();
 				// 8  Page Checksum (64-bit)
-				page.Checksum = readSmULong();
+				page.checksum = readSmULong();
 				// 8  Page CRC (64-bit)
-				page.CRC = readSmULong();
+				page.crc = readSmULong();
 
-				section.LocalSections.push(page);
-				currentOffset = page.Offset + page.DecompressedSize;
+				section.localSections.push(page);
+				currentOffset = page.offset + page.decompressedSize;
 			}
 
 			if (sectionNameLength > 0) {
-				fileheader.Descriptors.set(section.Name, section);
+				fileheader.descriptors.set(section.name, section);
 			}
 		}
 	}
@@ -775,52 +775,52 @@ export class DwgReader extends CadReaderBase<DwgReaderConfiguration> {
 
 	// #region Section buffer methods
 
-	private getSectionBuffer15(fileheader: DwgFileHeaderAC15, sectionName: string): Uint8Array | null {
-		const sectionLocator = DwgSectionDefinition.GetSectionLocatorByName(sectionName);
+	private _getSectionBuffer15(fileheader: DwgFileHeaderAC15, sectionName: string): Uint8Array | null {
+		const sectionLocator = DwgSectionDefinition.getSectionLocatorByName(sectionName);
 		if (sectionLocator === null) return null;
 
-		const record = fileheader.Records.get(sectionLocator);
+		const record = fileheader.records.get(sectionLocator);
 		if (!record) return null;
 
 		// Return a view of the file at the section's offset
 		const fileBytes = new Uint8Array(this._fileStream);
-		return fileBytes.subarray(record.Seeker, record.Seeker + record.Size);
+		return fileBytes.subarray(record.seeker, record.seeker + record.size);
 	}
 
-	private getSectionBuffer18(fileheader: DwgFileHeaderAC18, sectionName: string): Uint8Array | null {
-		const descriptor = fileheader.Descriptors.get(sectionName);
+	private _getSectionBuffer18(fileheader: DwgFileHeaderAC18, sectionName: string): Uint8Array | null {
+		const descriptor = fileheader.descriptors.get(sectionName);
 		if (!descriptor) return null;
 
-		const totalSize = descriptor.DecompressedSize * descriptor.LocalSections.length;
+		const totalSize = descriptor.decompressedSize * descriptor.localSections.length;
 		const memoryStream = new Uint8Array(totalSize);
 		let msPos = 0;
 
 		const fileBytes = new Uint8Array(this._fileStream);
 
-		for (const section of descriptor.LocalSections) {
-			if (section.IsEmpty) {
+		for (const section of descriptor.localSections) {
+			if (section.isEmpty) {
 				// Fill with zeros
-				for (let i = 0; i < section.DecompressedSize; ++i) {
+				for (let i = 0; i < section.decompressedSize; ++i) {
 					memoryStream[msPos++] = 0;
 				}
 			} else {
-				const secreader = DwgStreamReaderBase.getStreamHandler(fileheader.AcadVersion, fileBytes);
-				secreader.position = section.Seeker;
+				const secreader = DwgStreamReaderBase.getStreamHandler(fileheader.acadVersion, fileBytes);
+				secreader.position = section.seeker;
 
 				// Decrypt the data section header
-				this.decryptDataSection(section, secreader);
+				this._decryptDataSection(section, secreader);
 
-				if (descriptor.IsCompressed) {
+				if (descriptor.isCompressed) {
 					// Decompress to memory stream
 					const decompressed = DwgLZ77AC18Decompressor.decompress(
-						secreader.stream, secreader.position, section.DecompressedSize);
-					memoryStream.set(decompressed.subarray(0, section.DecompressedSize), msPos);
-					msPos += section.DecompressedSize;
+						secreader.stream, secreader.position, section.decompressedSize);
+					memoryStream.set(decompressed.subarray(0, section.decompressedSize), msPos);
+					msPos += section.decompressedSize;
 				} else {
 					// Read directly
-					const buf = secreader.readBytes(section.CompressedSize);
+					const buf = secreader.readBytes(section.compressedSize);
 					memoryStream.set(buf, msPos);
-					msPos += section.CompressedSize;
+					msPos += section.compressedSize;
 				}
 			}
 		}
@@ -828,7 +828,7 @@ export class DwgReader extends CadReaderBase<DwgReaderConfiguration> {
 		return memoryStream.subarray(0, msPos);
 	}
 
-	private decryptDataSection(section: DwgLocalSectionMap, sreader: IDwgStreamReader): void {
+	private _decryptDataSection(section: DwgLocalSectionMap, sreader: IDwgStreamReader): void {
 		const secMask = 0x4164536B ^ sreader.position;
 
 		// 0x00  Section page type
@@ -836,28 +836,28 @@ export class DwgReader extends CadReaderBase<DwgReaderConfiguration> {
 		// 0x04  Section number
 		const sectionNumber = (sreader.readRawLong() ^ secMask) | 0;
 		// 0x08  Data size (compressed)
-		section.CompressedSize = (sreader.readRawLong() ^ secMask) | 0;
+		section.compressedSize = (sreader.readRawLong() ^ secMask) | 0;
 		// 0x0C  Page Size (decompressed)
-		section.PageSize = (sreader.readRawLong() ^ secMask) | 0;
+		section.pageSize = (sreader.readRawLong() ^ secMask) | 0;
 		// 0x10  Start Offset
 		const startOffset = (sreader.readRawLong() ^ secMask) | 0;
 		// 0x14  Page header Checksum
 		const checksum = (sreader.readRawLong() ^ secMask) | 0;
-		section.Offset = ((checksum + startOffset) | 0) >>> 0;
+		section.offset = ((checksum + startOffset) | 0) >>> 0;
 		// 0x18  Data Checksum
-		section.Checksum = ((sreader.readRawLong() ^ secMask) | 0) >>> 0;
+		section.checksum = ((sreader.readRawLong() ^ secMask) | 0) >>> 0;
 		// 0x1C  Unknown
 		const oda = ((sreader.readRawLong() ^ secMask) | 0) >>> 0;
 	}
 
-	private getSectionBuffer21(fileheader: DwgFileHeaderAC21, sectionName: string): Uint8Array | null {
-		const section = fileheader.Descriptors.get(sectionName);
+	private _getSectionBuffer21(fileheader: DwgFileHeaderAC21, sectionName: string): Uint8Array | null {
+		const section = fileheader.descriptors.get(sectionName);
 		if (!section) return null;
 
 		// Get total length of all uncompressed pages
 		let totalLength = 0;
-		for (const page of section.LocalSections) {
-			totalLength += page.DecompressedSize;
+		for (const page of section.localSections) {
+			totalLength += page.decompressedSize;
 		}
 
 		const memoryStream = new Uint8Array(totalLength);
@@ -865,38 +865,38 @@ export class DwgReader extends CadReaderBase<DwgReaderConfiguration> {
 
 		const fileBytes = new Uint8Array(this._fileStream);
 
-		for (const page of section.LocalSections) {
-			if (page.IsEmpty) {
-				for (let i = 0; i < page.DecompressedSize; ++i) {
+		for (const page of section.localSections) {
+			if (page.isEmpty) {
+				for (let i = 0; i < page.decompressedSize; ++i) {
 					memoryStream[msPos++] = 0;
 				}
 			} else {
-				const pageData = fileheader.Records.get(page.PageNumber);
+				const pageData = fileheader.records.get(page.pageNumber);
 				if (!pageData) continue;
 
 				// Set pointer to current page (add 0x480 offset)
-				const startPos = pageData.Seeker + 0x480;
-				let pageBytes = fileBytes.slice(startPos, startPos + pageData.Size);
+				const startPos = pageData.seeker + 0x480;
+				let pageBytes = fileBytes.slice(startPos, startPos + pageData.size);
 
-				if (section.Encoding === 4) {
+				if (section.encoding === 4) {
 					// Reed-Solomon encoded
-					let v = page.CompressedSize + 7;
+					let v = page.compressedSize + 7;
 					v = v & 0xFFFFFFF8;
 					const alignedPageSize = Math.floor((v + 251 - 1) / 251);
 					const arr = new Uint8Array(alignedPageSize * 251);
-					this.reedSolomonDecoding(pageBytes, arr, alignedPageSize, 251);
+					this._reedSolomonDecoding(pageBytes, arr, alignedPageSize, 251);
 					pageBytes = arr;
 				}
 
-				if (page.CompressedSize !== page.DecompressedSize) {
+				if (page.compressedSize !== page.decompressedSize) {
 					// Compressed
-					const arr = new Uint8Array(page.DecompressedSize);
-					DwgLZ77AC21Decompressor.decompress(pageBytes, 0, page.CompressedSize, arr);
+					const arr = new Uint8Array(page.decompressedSize);
+					DwgLZ77AC21Decompressor.decompress(pageBytes, 0, page.compressedSize, arr);
 					pageBytes = arr;
 				}
 
-				memoryStream.set(pageBytes.subarray(0, page.DecompressedSize), msPos);
-				msPos += page.DecompressedSize;
+				memoryStream.set(pageBytes.subarray(0, page.decompressedSize), msPos);
+				msPos += page.decompressedSize;
 			}
 		}
 
@@ -905,7 +905,7 @@ export class DwgReader extends CadReaderBase<DwgReaderConfiguration> {
 
 	// #endregion
 
-	private getPageBuffer(pageOffset: number, compressedSize: number, uncompressedSize: number, correctionFactor: number, blockSize: number, stream: Uint8Array): Uint8Array {
+	private _getPageBuffer(pageOffset: number, compressedSize: number, uncompressedSize: number, correctionFactor: number, blockSize: number, stream: Uint8Array): Uint8Array {
 		// Avoid shifted bits
 		let v = compressedSize + 7;
 		v = v & 0xFFFFFFF8;
@@ -921,7 +921,7 @@ export class DwgReader extends CadReaderBase<DwgReaderConfiguration> {
 		buffer.set(stream.subarray(readPos, readPos + length));
 
 		const compressedData = new Uint8Array(totalSize);
-		this.reedSolomonDecoding(buffer, compressedData, factor, blockSize);
+		this._reedSolomonDecoding(buffer, compressedData, factor, blockSize);
 
 		const decompressedData = new Uint8Array(uncompressedSize);
 		DwgLZ77AC21Decompressor.decompress(compressedData, 0, compressedSize, decompressedData);
@@ -929,19 +929,19 @@ export class DwgReader extends CadReaderBase<DwgReaderConfiguration> {
 		return decompressedData;
 	}
 
-	private readInt64(view: DataView, offset: number): number {
+	private _readInt64(view: DataView, offset: number): number {
 		const low = view.getUint32(offset, true);
 		const high = view.getInt32(offset + 4, true);
 		return high * 0x100000000 + low;
 	}
 
-	private readInt64View(view: DataView, offset: number): number {
+	private _readInt64View(view: DataView, offset: number): number {
 		const low = view.getUint32(offset, true);
 		const high = view.getInt32(offset + 4, true);
 		return high * 0x100000000 + low;
 	}
 
-	private reedSolomonDecoding(encoded: Uint8Array, buffer: Uint8Array, factor: number, blockSize: number): void {
+	private _reedSolomonDecoding(encoded: Uint8Array, buffer: Uint8Array, factor: number, blockSize: number): void {
 		let index = 0;
 		let n = 0;
 		let length = buffer.length;

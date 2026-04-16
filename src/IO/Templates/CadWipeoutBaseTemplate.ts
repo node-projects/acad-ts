@@ -5,30 +5,30 @@ import { CadDocumentBuilder } from '../CadDocumentBuilder.js';
 import { CadEntityTemplate } from './CadEntityTemplate.js';
 
 export class CadWipeoutBaseTemplate extends CadEntityTemplate {
-	ImgDefHandle: number | null = null;
+	imgDefHandle: number | null = null;
 
-	ImgReactorHandle: number | null = null;
+	imgReactorHandle: number | null = null;
 
 	constructor(image: CadWipeoutBase) {
 		super(image);
 	}
 
-	protected override build(builder: CadDocumentBuilder): void {
-		super.build(builder);
+	protected override _build(builder: CadDocumentBuilder): void {
+		super._build(builder);
 
-		const image = this.CadObject as CadWipeoutBase;
+		const image = this.cadObject as CadWipeoutBase;
 
-		const imgDef = builder.TryGetCadObject<ImageDefinition>(this.ImgDefHandle);
+		const imgDef = builder.tryGetCadObject<ImageDefinition>(this.imgDefHandle);
 		if (imgDef) {
 			image.definition = imgDef;
 		}
 
-		const imgReactor = builder.TryGetCadObject<ImageDefinitionReactor>(this.ImgReactorHandle);
+		const imgReactor = builder.tryGetCadObject<ImageDefinitionReactor>(this.imgReactorHandle);
 		if (imgReactor) {
 			image.definitionReactor = imgReactor;
 			imgReactor.image = image;
 			imgReactor.owner = image;
-			builder.DocumentToBuild.registerCollection(imgReactor);
+			builder.documentToBuild.registerCollection(imgReactor);
 		}
 	}
 }

@@ -7,8 +7,8 @@ import { DxfFileToken } from '../../../DxfFileToken.js';
 import { Entity } from '../../../Entities/Entity.js';
 
 export class DxfEntitiesSectionWriter extends DxfSectionWriterBase {
-  public get SectionName(): string {
-    return DxfFileToken.EntitiesSection;
+  public get sectionName(): string {
+    return DxfFileToken.entitiesSection;
   }
 
   public constructor(
@@ -21,8 +21,8 @@ export class DxfEntitiesSectionWriter extends DxfSectionWriterBase {
   }
 
   protected writeSection(): void {
-    while (this.Holder.Entities.length > 0) {
-      const item: Entity = this.Holder.Entities.shift()!;
+    while (this.holder.entities.length > 0) {
+      const item: Entity = this.holder.entities.shift()!;
       this.writeEntity(item);
     }
   }

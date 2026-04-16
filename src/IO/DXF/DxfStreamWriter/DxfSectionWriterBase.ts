@@ -93,17 +93,17 @@ import { XYZ } from '../../../Math/XYZ.js';
 import { XY } from '../../../Math/XY.js';
 
 export abstract class DxfSectionWriterBase {
-  public OnNotification: NotificationEventHandler | null = null;
+  public onNotification: NotificationEventHandler | null = null;
 
-  public abstract get SectionName(): string;
+  public abstract get sectionName(): string;
 
-  public get Version(): ACadVersion {
-    return this._document.header.Version;
+  public get version(): ACadVersion {
+    return this._document.header.version;
   }
 
-  public Holder: CadObjectHolder;
+  public holder: CadObjectHolder;
 
-  public Configuration: DxfWriterConfiguration;
+  public configuration: DxfWriterConfiguration;
 
   protected _writer: IDxfStreamWriter;
   protected _document: CadDocument;
@@ -116,32 +116,32 @@ export abstract class DxfSectionWriterBase {
   ) {
     this._writer = writer;
     this._document = document;
-    this.Holder = holder;
-    this.Configuration = configuration;
+    this.holder = holder;
+    this.configuration = configuration;
   }
 
-  public Write(): void {
-    this._writer.Write(DxfCode.Start, DxfFileToken.BeginSection);
-    this._writer.Write(DxfCode.SymbolTableName, this.SectionName);
+  public write(): void {
+    this._writer.write(DxfCode.Start, DxfFileToken.beginSection);
+    this._writer.write(DxfCode.SymbolTableName, this.sectionName);
 
     this.writeSection();
 
-    this._writer.Write(DxfCode.Start, DxfFileToken.EndSection);
+    this._writer.write(DxfCode.Start, DxfFileToken.endSection);
   }
 
   protected writeCadValue(value: CadValue): void {
-    this._writer.Write(93, value.flags);
-    this._writer.Write(90, value.valueType as number);
+    this._writer.write(93, value.flags);
+    this._writer.write(90, value.valueType as number);
 
     switch (value.valueType) {
       case CadValueType.Unknown:
-        this._writer.Write(91, 0);
+        this._writer.write(91, 0);
         break;
       case CadValueType.Double:
-        this._writer.Write(140, Number(value.value));
+        this._writer.write(140, Number(value.value));
         break;
       case CadValueType.Date:
-        this._writer.Write(91, 0);
+        this._writer.write(91, 0);
         break;
       case CadValueType.General:
       case CadValueType.String:
@@ -149,91 +149,91 @@ export abstract class DxfSectionWriterBase {
         break;
       case CadValueType.Point2D:
       case CadValueType.Point3D:
-        this._writer.WriteVector(11, value.value as IVector);
+        this._writer.writeVector(11, value.value as IVector);
         break;
       case CadValueType.Long:
-        this._writer.Write(91, Number(value.value));
+        this._writer.write(91, Number(value.value));
         break;
       case CadValueType.Handle: {
         const handleObj = value.value as IHandledCadObject;
         if (handleObj) {
-          this._writer.WriteHandle(330, handleObj);
+          this._writer.writeHandle(330, handleObj);
         }
         break;
       }
       case CadValueType.Buffer:
       case CadValueType.ResultBuffer:
-        this._writer.Write(91, 0);
+        this._writer.write(91, 0);
         break;
     }
   }
 
   protected writeCommonObjectData(cadObject: CadObject): void {
     if (cadObject instanceof DimensionStyle) {
-      this._writer.Write(DxfCode.DimVarHandle, cadObject.handle);
+      this._writer.write(DxfCode.DimVarHandle, cadObject.handle);
     } else {
-      this._writer.Write(DxfCode.Handle, cadObject.handle);
+      this._writer.write(DxfCode.Handle, cadObject.handle);
     }
 
     if (cadObject.xDictionary !== null) {
-      this._writer.Write(DxfCode.ControlString, DxfFileToken.DictionaryToken);
-      this._writer.Write(DxfCode.HardOwnershipId, cadObject.xDictionary.handle);
-      this._writer.Write(DxfCode.ControlString, "}");
-      this.Holder.Objects.push(cadObject.xDictionary);
+      this._writer.write(DxfCode.ControlString, DxfFileToken.dictionaryToken);
+      this._writer.write(DxfCode.HardOwnershipId, cadObject.xDictionary.handle);
+      this._writer.write(DxfCode.ControlString, "}");
+      this.holder.objects.push(cadObject.xDictionary);
     }
 
     cadObject.cleanReactors();
     if (cadObject.reactors.length > 0) {
-      this._writer.Write(DxfCode.ControlString, DxfFileToken.ReactorsToken);
+      this._writer.write(DxfCode.ControlString, DxfFileToken.reactorsToken);
       for (const reactor of cadObject.reactors) {
-        this._writer.Write(DxfCode.SoftPointerId, reactor.handle);
+        this._writer.write(DxfCode.SoftPointerId, reactor.handle);
       }
-      this._writer.Write(DxfCode.ControlString, "}");
+      this._writer.write(DxfCode.ControlString, "}");
     }
 
-    this._writer.Write(DxfCode.SoftPointerId, cadObject.owner!.handle);
+    this._writer.write(DxfCode.SoftPointerId, cadObject.owner!.handle);
   }
 
   protected writeExtendedData(xdata: ExtendedDataDictionary | null): void {
-    if (xdata === null || !this.Configuration.WriteXData) {
+    if (xdata === null || !this.configuration.writeXData) {
       return;
     }
 
     for (const [appId, edataCollection] of xdata) {
-      this._writer.Write(DxfCode.ExtendedDataRegAppName, appId.name);
+      this._writer.write(DxfCode.ExtendedDataRegAppName, appId.name);
 
       for (const record of edataCollection.records) {
         if (record instanceof ExtendedDataBinaryChunk) {
-          this._writer.Write(record.code, record.value);
+          this._writer.write(record.code, record.value);
         } else if (record instanceof ExtendedDataControlString) {
-          this._writer.Write(record.code, record.value);
+          this._writer.write(record.code, record.value);
         } else if (record instanceof ExtendedDataInteger16) {
-          this._writer.Write(record.code, record.value);
+          this._writer.write(record.code, record.value);
         } else if (record instanceof ExtendedDataInteger32) {
-          this._writer.Write(record.code, record.value);
+          this._writer.write(record.code, record.value);
         } else if (record instanceof ExtendedDataReal) {
-          this._writer.Write(record.code, record.value);
+          this._writer.write(record.code, record.value);
         } else if (record instanceof ExtendedDataScale) {
-          this._writer.Write(record.code, record.value);
+          this._writer.write(record.code, record.value);
         } else if (record instanceof ExtendedDataDistance) {
-          this._writer.Write(record.code, record.value);
+          this._writer.write(record.code, record.value);
         } else if (record instanceof ExtendedDataDisplacement) {
-          this._writer.Write(record.code, record.value);
+          this._writer.write(record.code, record.value);
         } else if (record instanceof ExtendedDataDirection) {
-          this._writer.WriteVector(record.code, record.value as IVector);
+          this._writer.writeVector(record.code, record.value as IVector);
         } else if (record instanceof ExtendedDataCoordinate) {
-          this._writer.WriteVector(record.code, record.value as IVector);
+          this._writer.writeVector(record.code, record.value as IVector);
         } else if (record instanceof ExtendedDataWorldCoordinate) {
-          this._writer.WriteVector(record.code, record.value as IVector);
+          this._writer.writeVector(record.code, record.value as IVector);
         } else if (typeof (record as Partial<IExtendedDataHandleReference>).resolveReference === 'function') {
           const handle = record as Partial<IExtendedDataHandleReference>;
           let h = handle.value;
           if (handle.resolveReference(this._document) === null) {
             h = 0;
           }
-          this._writer.Write(DxfCode.ExtendedDataHandle, h);
+          this._writer.write(DxfCode.ExtendedDataHandle, h);
         } else if (record instanceof ExtendedDataString) {
-          this._writer.Write(record.code, record.value);
+          this._writer.write(record.code, record.value);
         } else {
           throw new Error(`ExtendedDataRecord of type ${record.constructor.name} not supported.`);
         }
@@ -242,53 +242,53 @@ export abstract class DxfSectionWriterBase {
   }
 
   protected writeCommonEntityData(entity: Entity): void {
-    const map = DxfClassMap.Create(Entity);
+    const map = DxfClassMap.create(Entity);
 
-    this._writer.Write(DxfCode.Subclass, DxfSubclassMarker.Entity);
+    this._writer.write(DxfCode.Subclass, DxfSubclassMarker.entity);
 
-    this._writer.Write(8, entity.layer?.name ?? '0');
-    this._writer.Write(6, entity.lineType?.name ?? 'ByLayer');
+    this._writer.write(8, entity.layer?.name ?? '0');
+    this._writer.write(6, entity.lineType?.name ?? 'ByLayer');
 
     if (entity.bookColor !== null) {
-      this._writer.Write(62, entity.bookColor.color.getApproxIndex());
-      this._writer.WriteTrueColor(420, entity.bookColor.color);
-      this._writer.Write(430, entity.bookColor.name);
+      this._writer.write(62, entity.bookColor.color.getApproxIndex());
+      this._writer.writeTrueColor(420, entity.bookColor.color);
+      this._writer.write(430, entity.bookColor.name);
     } else if (entity.color.isTrueColor) {
-      this._writer.WriteTrueColor(420, entity.color);
+      this._writer.writeTrueColor(420, entity.color);
     } else {
-      this._writer.Write(62, entity.color.index);
+      this._writer.write(62, entity.color.index);
     }
 
     if (entity.transparency.value >= 0) {
-      this._writer.Write(440, Transparency.toAlphaValue(entity.transparency));
+      this._writer.write(440, Transparency.toAlphaValue(entity.transparency));
     }
 
-    this._writer.Write(48, entity.lineTypeScale, map);
-    this._writer.Write(60, entity.isInvisible ? 1 : 0, map);
+    this._writer.write(48, entity.lineTypeScale, map);
+    this._writer.write(60, entity.isInvisible ? 1 : 0, map);
 
     if (entity.owner instanceof BlockRecord) {
       const record = entity.owner as BlockRecord;
       if (record.layout !== null) {
-        this._writer.Write(67, record.layout.IsPaperSpace ? 1 : 0);
+        this._writer.write(67, record.layout.isPaperSpace ? 1 : 0);
       }
     }
 
-    this._writer.Write(370, entity.lineWeight);
+    this._writer.write(370, entity.lineWeight);
   }
 
   protected abstract writeSection(): void;
 
   protected writeLongTextValue(code: number, subcode: number, text: string): void {
     while (text.length > 250) {
-      this._writer.Write(subcode, text.substring(0, 250));
+      this._writer.write(subcode, text.substring(0, 250));
       text = text.substring(250);
     }
-    this._writer.Write(code, text);
+    this._writer.write(code, text);
   }
 
   protected notify(message: string, notificationType: NotificationType = NotificationType.None, ex?: Error): void {
-    if (this.OnNotification) {
-      this.OnNotification(this, new NotificationEventArgs(message, notificationType, ex));
+    if (this.onNotification) {
+      this.onNotification(this, new NotificationEventArgs(message, notificationType, ex));
     }
   }
 
@@ -297,11 +297,11 @@ export abstract class DxfSectionWriterBase {
   // =====================================================
 
   protected writeEntity(entity: Entity): void {
-    if (!this.isEntitySupported(entity)) {
+    if (!this._isEntitySupported(entity)) {
       return;
     }
 
-    this._writer.Write(DxfCode.Start, entity.objectName);
+    this._writer.write(DxfCode.Start, entity.objectName);
 
     this.writeCommonObjectData(entity);
     this.writeCommonEntityData(entity);
@@ -309,79 +309,79 @@ export abstract class DxfSectionWriterBase {
     const map = DxfMap.create(entity.constructor.name);
 
     if (entity instanceof Arc) {
-      this.writeArc(entity, map);
+      this._writeArc(entity, map);
     } else if (entity instanceof Circle) {
-      this.writeCircle(entity, map);
+      this._writeCircle(entity, map);
     } else if (entity instanceof DimensionLinear) {
-      this.writeDimension(entity, map);
+      this._writeDimension(entity, map);
     } else if (entity instanceof DimensionAligned) {
-      this.writeDimension(entity, map);
+      this._writeDimension(entity, map);
     } else if (entity instanceof DimensionRadius) {
-      this.writeDimension(entity, map);
+      this._writeDimension(entity, map);
     } else if (entity instanceof DimensionDiameter) {
-      this.writeDimension(entity, map);
+      this._writeDimension(entity, map);
     } else if (entity instanceof DimensionAngular2Line) {
-      this.writeDimension(entity, map);
+      this._writeDimension(entity, map);
     } else if (entity instanceof DimensionAngular3Pt) {
-      this.writeDimension(entity, map);
+      this._writeDimension(entity, map);
     } else if (entity instanceof DimensionOrdinate) {
-      this.writeDimension(entity, map);
+      this._writeDimension(entity, map);
     } else if (entity instanceof Ellipse) {
-      this.writeEllipse(entity, map);
+      this._writeEllipse(entity, map);
     } else if (entity instanceof Face3D) {
-      this.writeFace3D(entity, map);
+      this._writeFace3D(entity, map);
     } else if (entity instanceof Hatch) {
-      this.writeHatch(entity, map);
+      this._writeHatch(entity, map);
     } else if (entity instanceof Insert) {
-      this.writeInsert(entity, map);
+      this._writeInsert(entity, map);
     } else if (entity instanceof Leader) {
-      this.writeLeader(entity, map);
+      this._writeLeader(entity, map);
     } else if (entity instanceof Line) {
-      this.writeLine(entity, map);
+      this._writeLine(entity, map);
     } else if (entity instanceof LwPolyline) {
-      this.writeLwPolyline(entity, map);
+      this._writeLwPolyline(entity, map);
     } else if (entity instanceof Mesh) {
-      this.writeMesh(entity, map);
+      this._writeMesh(entity, map);
     } else if (entity instanceof MLine) {
-      this.writeMLine(entity, map);
+      this._writeMLine(entity, map);
     } else if (entity instanceof MText) {
-      this.writeMText(entity, map);
+      this._writeMText(entity, map);
     } else if (entity instanceof MultiLeader) {
-      this.writeMultiLeader(entity, map);
+      this._writeMultiLeader(entity, map);
     } else if (entity instanceof Ole2Frame) {
-      this.writeOle2Frame(entity, map);
+      this._writeOle2Frame(entity, map);
     } else if (entity instanceof PdfUnderlay) {
-      this.writePdfUnderlay(entity, map);
+      this._writePdfUnderlay(entity, map);
     } else if (entity instanceof Point) {
-      this.writePoint(entity, map);
+      this._writePoint(entity, map);
     } else if (entity instanceof Polyline2D) {
-      this.writePolyline(entity, map);
+      this._writePolyline(entity, map);
     } else if (entity instanceof Polyline3D) {
-      this.writePolyline(entity, map);
+      this._writePolyline(entity, map);
     } else if (entity instanceof PolyfaceMesh) {
-      this.writePolyline(entity, map);
+      this._writePolyline(entity, map);
     } else if (entity instanceof PolygonMesh) {
-      this.writePolyline(entity, map);
+      this._writePolyline(entity, map);
     } else if (entity instanceof Ray) {
-      this.writeRay(entity, map);
+      this._writeRay(entity, map);
     } else if (entity instanceof Shape) {
-      this.writeShape(entity, map);
+      this._writeShape(entity, map);
     } else if (entity instanceof Solid) {
-      this.writeSolid(entity, map);
+      this._writeSolid(entity, map);
     } else if (entity instanceof Spline) {
-      this.writeSpline(entity, map);
+      this._writeSpline(entity, map);
     } else if (entity instanceof TextEntity) {
-      this.writeTextEntity(entity, map);
+      this._writeTextEntity(entity, map);
     } else if (entity instanceof Tolerance) {
-      this.writeTolerance(entity, map);
+      this._writeTolerance(entity, map);
     } else if (entity instanceof Viewport) {
-      this.writeViewport(entity, map);
+      this._writeViewport(entity, map);
     } else if (entity instanceof XLine) {
-      this.writeXLine(entity, map);
+      this._writeXLine(entity, map);
     } else if (entity instanceof RasterImage || entity instanceof Wipeout) {
-      this.writeCadImage(entity as CadImage, map);
+      this._writeCadImage(entity as CadImage, map);
     } else if (entity instanceof Seqend) {
-      this.writeSeqend(entity, map);
+      this._writeSeqend(entity, map);
     } else {
       this.notify(`Entity not implemented: ${entity.constructor.name}`, NotificationType.NotImplemented);
     }
@@ -389,810 +389,810 @@ export abstract class DxfSectionWriterBase {
     this.writeExtendedData(entity.extendedData);
   }
 
-  private isEntitySupported(entity: Entity): boolean {
+  private _isEntitySupported(entity: Entity): boolean {
     if (entity instanceof UnknownEntity) {
       return false;
     }
     return true;
   }
 
-  private writeArc(arc: Arc, map: DxfMap): void {
-    this.writeCircle(arc, map);
-    const subclass = map.subClasses.get(DxfSubclassMarker.Arc)!;
-    this._writer.Write(DxfCode.Subclass, DxfSubclassMarker.Arc);
-    this._writer.Write(50, arc.startAngle, subclass);
-    this._writer.Write(51, arc.endAngle, subclass);
+  private _writeArc(arc: Arc, map: DxfMap): void {
+    this._writeCircle(arc, map);
+    const subclass = map.subClasses.get(DxfSubclassMarker.arc)!;
+    this._writer.write(DxfCode.Subclass, DxfSubclassMarker.arc);
+    this._writer.write(50, arc.startAngle, subclass);
+    this._writer.write(51, arc.endAngle, subclass);
   }
 
-  private writeCircle(circle: Circle, map: DxfMap): void {
-    const subclass = map.subClasses.get(DxfSubclassMarker.Circle)!;
-    this._writer.Write(DxfCode.Subclass, DxfSubclassMarker.Circle);
-    this._writer.WriteVector(10, circle.center, subclass);
-    this._writer.Write(40, circle.radius, subclass);
-    this._writer.Write(39, circle.thickness, subclass);
-    this._writer.WriteVector(210, circle.normal, subclass);
+  private _writeCircle(circle: Circle, map: DxfMap): void {
+    const subclass = map.subClasses.get(DxfSubclassMarker.circle)!;
+    this._writer.write(DxfCode.Subclass, DxfSubclassMarker.circle);
+    this._writer.writeVector(10, circle.center, subclass);
+    this._writer.write(40, circle.radius, subclass);
+    this._writer.write(39, circle.thickness, subclass);
+    this._writer.writeVector(210, circle.normal, subclass);
   }
 
-  private writeDimension(dim: Dimension, map: DxfMap): void {
-    const dimMap = map.subClasses.get(DxfSubclassMarker.Dimension)!;
-    this._writer.Write(DxfCode.Subclass, DxfSubclassMarker.Dimension);
+  private _writeDimension(dim: Dimension, map: DxfMap): void {
+    const dimMap = map.subClasses.get(DxfSubclassMarker.dimension)!;
+    this._writer.write(DxfCode.Subclass, DxfSubclassMarker.dimension);
 
-    this._writer.Write(2, dim.block?.name ?? '', dimMap);
-    this._writer.WriteVector(10, dim.definitionPoint, dimMap);
-    this._writer.WriteVector(11, dim.textMiddlePoint, dimMap);
-    this._writer.Write(70, dim.flags, dimMap);
-    this._writer.Write(71, dim.attachmentPoint, dimMap);
-    this._writer.Write(72, dim.lineSpacingStyle, dimMap);
-    this._writer.Write(41, dim.lineSpacingFactor, dimMap);
-    this._writer.Write(42, dim.measurement, dimMap);
-    this._writer.Write(1, dim.text, dimMap);
-    this._writer.Write(53, dim.textRotation, dimMap);
-    this._writer.Write(51, dim.horizontalDirection, dimMap);
-    this._writer.WriteVector(210, dim.normal, dimMap);
-    this._writer.Write(3, dim.style?.name ?? '', dimMap);
+    this._writer.write(2, dim.block?.name ?? '', dimMap);
+    this._writer.writeVector(10, dim.definitionPoint, dimMap);
+    this._writer.writeVector(11, dim.textMiddlePoint, dimMap);
+    this._writer.write(70, dim.flags, dimMap);
+    this._writer.write(71, dim.attachmentPoint, dimMap);
+    this._writer.write(72, dim.lineSpacingStyle, dimMap);
+    this._writer.write(41, dim.lineSpacingFactor, dimMap);
+    this._writer.write(42, dim.measurement, dimMap);
+    this._writer.write(1, dim.text, dimMap);
+    this._writer.write(53, dim.textRotation, dimMap);
+    this._writer.write(51, dim.horizontalDirection, dimMap);
+    this._writer.writeVector(210, dim.normal, dimMap);
+    this._writer.write(3, dim.style?.name ?? '', dimMap);
 
     if (dim instanceof DimensionAligned) {
-      this.writeDimensionAligned(dim, map);
+      this._writeDimensionAligned(dim, map);
     }
     if (dim instanceof DimensionLinear) {
-      this.writeDimensionLinear(dim, map);
+      this._writeDimensionLinear(dim, map);
     }
     if (dim instanceof DimensionRadius) {
-      this.writeDimensionRadius(dim, map);
+      this._writeDimensionRadius(dim, map);
     }
     if (dim instanceof DimensionDiameter) {
-      this.writeDimensionDiameter(dim, map);
+      this._writeDimensionDiameter(dim, map);
     }
     if (dim instanceof DimensionAngular2Line) {
-      this.writeDimensionAngular2Line(dim, map);
+      this._writeDimensionAngular2Line(dim, map);
     }
     if (dim instanceof DimensionAngular3Pt) {
-      this.writeDimensionAngular3Pt(dim, map);
+      this._writeDimensionAngular3Pt(dim, map);
     }
     if (dim instanceof DimensionOrdinate) {
-      this.writeDimensionOrdinate(dim, map);
+      this._writeDimensionOrdinate(dim, map);
     }
   }
 
-  private writeDimensionAligned(dim: DimensionAligned, map: DxfMap): void {
-    const subclass = map.subClasses.get(DxfSubclassMarker.AlignedDimension)!;
-    this._writer.Write(DxfCode.Subclass, DxfSubclassMarker.AlignedDimension);
-    this._writer.WriteVector(13, dim.firstPoint, subclass);
-    this._writer.WriteVector(14, dim.secondPoint, subclass);
+  private _writeDimensionAligned(dim: DimensionAligned, map: DxfMap): void {
+    const subclass = map.subClasses.get(DxfSubclassMarker.alignedDimension)!;
+    this._writer.write(DxfCode.Subclass, DxfSubclassMarker.alignedDimension);
+    this._writer.writeVector(13, dim.firstPoint, subclass);
+    this._writer.writeVector(14, dim.secondPoint, subclass);
   }
 
-  private writeDimensionLinear(dim: DimensionLinear, map: DxfMap): void {
-    this.writeDimensionAligned(dim, map);
-    const subclass = map.subClasses.get(DxfSubclassMarker.LinearDimension);
-    this._writer.Write(DxfCode.Subclass, DxfSubclassMarker.LinearDimension);
-    this._writer.Write(50, dim.rotation, subclass);
+  private _writeDimensionLinear(dim: DimensionLinear, map: DxfMap): void {
+    this._writeDimensionAligned(dim, map);
+    const subclass = map.subClasses.get(DxfSubclassMarker.linearDimension);
+    this._writer.write(DxfCode.Subclass, DxfSubclassMarker.linearDimension);
+    this._writer.write(50, dim.rotation, subclass);
   }
 
-  private writeDimensionRadius(dim: DimensionRadius, map: DxfMap): void {
-    const subclass = map.subClasses.get(DxfSubclassMarker.RadialDimension)!;
-    this._writer.Write(DxfCode.Subclass, DxfSubclassMarker.RadialDimension);
-    this._writer.WriteVector(15, dim.angleVertex, subclass);
-    this._writer.Write(40, dim.leaderLength, subclass);
+  private _writeDimensionRadius(dim: DimensionRadius, map: DxfMap): void {
+    const subclass = map.subClasses.get(DxfSubclassMarker.radialDimension)!;
+    this._writer.write(DxfCode.Subclass, DxfSubclassMarker.radialDimension);
+    this._writer.writeVector(15, dim.angleVertex, subclass);
+    this._writer.write(40, dim.leaderLength, subclass);
   }
 
-  private writeDimensionDiameter(dim: DimensionDiameter, map: DxfMap): void {
-    const subclass = map.subClasses.get(DxfSubclassMarker.DiametricDimension)!;
-    this._writer.Write(DxfCode.Subclass, DxfSubclassMarker.DiametricDimension);
-    this._writer.WriteVector(15, dim.angleVertex, subclass);
-    this._writer.Write(40, dim.leaderLength, subclass);
+  private _writeDimensionDiameter(dim: DimensionDiameter, map: DxfMap): void {
+    const subclass = map.subClasses.get(DxfSubclassMarker.diametricDimension)!;
+    this._writer.write(DxfCode.Subclass, DxfSubclassMarker.diametricDimension);
+    this._writer.writeVector(15, dim.angleVertex, subclass);
+    this._writer.write(40, dim.leaderLength, subclass);
   }
 
-  private writeDimensionAngular2Line(dim: DimensionAngular2Line, map: DxfMap): void {
-    const subclass = map.subClasses.get(DxfSubclassMarker.Angular2LineDimension)!;
-    this._writer.Write(DxfCode.Subclass, DxfSubclassMarker.Angular2LineDimension);
-    this._writer.WriteVector(13, dim.firstPoint, subclass);
-    this._writer.WriteVector(14, dim.secondPoint, subclass);
-    this._writer.WriteVector(15, dim.angleVertex, subclass);
-    this._writer.WriteVector(16, dim.dimensionArc, subclass);
+  private _writeDimensionAngular2Line(dim: DimensionAngular2Line, map: DxfMap): void {
+    const subclass = map.subClasses.get(DxfSubclassMarker.angular2LineDimension)!;
+    this._writer.write(DxfCode.Subclass, DxfSubclassMarker.angular2LineDimension);
+    this._writer.writeVector(13, dim.firstPoint, subclass);
+    this._writer.writeVector(14, dim.secondPoint, subclass);
+    this._writer.writeVector(15, dim.angleVertex, subclass);
+    this._writer.writeVector(16, dim.dimensionArc, subclass);
   }
 
-  private writeDimensionAngular3Pt(dim: DimensionAngular3Pt, map: DxfMap): void {
-    const subclass = map.subClasses.get(DxfSubclassMarker.Angular3PointDimension)!;
-    this._writer.Write(DxfCode.Subclass, DxfSubclassMarker.Angular3PointDimension);
-    this._writer.WriteVector(13, dim.firstPoint, subclass);
-    this._writer.WriteVector(14, dim.secondPoint, subclass);
-    this._writer.WriteVector(15, dim.angleVertex, subclass);
+  private _writeDimensionAngular3Pt(dim: DimensionAngular3Pt, map: DxfMap): void {
+    const subclass = map.subClasses.get(DxfSubclassMarker.angular3PointDimension)!;
+    this._writer.write(DxfCode.Subclass, DxfSubclassMarker.angular3PointDimension);
+    this._writer.writeVector(13, dim.firstPoint, subclass);
+    this._writer.writeVector(14, dim.secondPoint, subclass);
+    this._writer.writeVector(15, dim.angleVertex, subclass);
   }
 
-  private writeDimensionOrdinate(dim: DimensionOrdinate, map: DxfMap): void {
-    const subclass = map.subClasses.get(DxfSubclassMarker.OrdinateDimension)!;
-    this._writer.Write(DxfCode.Subclass, DxfSubclassMarker.OrdinateDimension);
-    this._writer.WriteVector(13, dim.featureLocation, subclass);
-    this._writer.WriteVector(14, dim.leaderEndpoint, subclass);
+  private _writeDimensionOrdinate(dim: DimensionOrdinate, map: DxfMap): void {
+    const subclass = map.subClasses.get(DxfSubclassMarker.ordinateDimension)!;
+    this._writer.write(DxfCode.Subclass, DxfSubclassMarker.ordinateDimension);
+    this._writer.writeVector(13, dim.featureLocation, subclass);
+    this._writer.writeVector(14, dim.leaderEndpoint, subclass);
   }
 
-  private writeEllipse(ellipse: Ellipse, map: DxfMap): void {
-    const subclass = map.subClasses.get(DxfSubclassMarker.Ellipse)!;
-    this._writer.Write(DxfCode.Subclass, DxfSubclassMarker.Ellipse);
-    this._writer.WriteVector(10, ellipse.center, subclass);
-    this._writer.WriteVector(11, ellipse.majorAxisEndPoint, subclass);
-    this._writer.WriteVector(210, ellipse.normal, subclass);
-    this._writer.Write(40, ellipse.radiusRatio, subclass);
-    this._writer.Write(41, ellipse.startParameter, subclass);
-    this._writer.Write(42, ellipse.endParameter, subclass);
+  private _writeEllipse(ellipse: Ellipse, map: DxfMap): void {
+    const subclass = map.subClasses.get(DxfSubclassMarker.ellipse)!;
+    this._writer.write(DxfCode.Subclass, DxfSubclassMarker.ellipse);
+    this._writer.writeVector(10, ellipse.center, subclass);
+    this._writer.writeVector(11, ellipse.majorAxisEndPoint, subclass);
+    this._writer.writeVector(210, ellipse.normal, subclass);
+    this._writer.write(40, ellipse.radiusRatio, subclass);
+    this._writer.write(41, ellipse.startParameter, subclass);
+    this._writer.write(42, ellipse.endParameter, subclass);
   }
 
-  private writeFace3D(face: Face3D, map: DxfMap): void {
-    const subclass = map.subClasses.get(DxfSubclassMarker.Face3d)!;
-    this._writer.Write(DxfCode.Subclass, DxfSubclassMarker.Face3d);
-    this._writer.WriteVector(10, face.firstCorner, subclass);
-    this._writer.WriteVector(11, face.secondCorner, subclass);
-    this._writer.WriteVector(12, face.thirdCorner, subclass);
-    this._writer.WriteVector(13, face.fourthCorner, subclass);
-    this._writer.Write(70, face.flags, subclass);
+  private _writeFace3D(face: Face3D, map: DxfMap): void {
+    const subclass = map.subClasses.get(DxfSubclassMarker.face3d)!;
+    this._writer.write(DxfCode.Subclass, DxfSubclassMarker.face3d);
+    this._writer.writeVector(10, face.firstCorner, subclass);
+    this._writer.writeVector(11, face.secondCorner, subclass);
+    this._writer.writeVector(12, face.thirdCorner, subclass);
+    this._writer.writeVector(13, face.fourthCorner, subclass);
+    this._writer.write(70, face.flags, subclass);
   }
 
-  private writeHatch(hatch: Hatch, map: DxfMap): void {
-    const subclass = map.subClasses.get(DxfSubclassMarker.Hatch)!;
-    this._writer.Write(DxfCode.Subclass, DxfSubclassMarker.Hatch);
+  private _writeHatch(hatch: Hatch, map: DxfMap): void {
+    const subclass = map.subClasses.get(DxfSubclassMarker.hatch)!;
+    this._writer.write(DxfCode.Subclass, DxfSubclassMarker.hatch);
 
-    this._writer.Write(30, hatch.elevation, subclass);
-    this._writer.WriteVector(210, hatch.normal, subclass);
+    this._writer.write(30, hatch.elevation, subclass);
+    this._writer.writeVector(210, hatch.normal, subclass);
 
-    this._writer.Write(2, hatch.pattern.name, subclass);
-    this._writer.Write(70, hatch.isSolid ? 1 : 0, subclass);
-    this._writer.Write(71, hatch.isAssociative ? 1 : 0, subclass);
+    this._writer.write(2, hatch.pattern.name, subclass);
+    this._writer.write(70, hatch.isSolid ? 1 : 0, subclass);
+    this._writer.write(71, hatch.isAssociative ? 1 : 0, subclass);
 
-    this._writer.Write(91, hatch.paths.length);
+    this._writer.write(91, hatch.paths.length);
 
     for (const path of hatch.paths) {
-      this.writeBoundaryPath(path);
+      this._writeBoundaryPath(path);
     }
 
-    this._writer.Write(75, hatch.style, subclass);
-    this._writer.Write(76, hatch.patternType, subclass);
+    this._writer.write(75, hatch.style, subclass);
+    this._writer.write(76, hatch.patternType, subclass);
 
     if (!hatch.isSolid) {
-      this._writer.Write(52, hatch.patternAngle, subclass);
-      this._writer.Write(41, hatch.patternScale, subclass);
-      this._writer.Write(77, hatch.isDouble ? 1 : 0, subclass);
+      this._writer.write(52, hatch.patternAngle, subclass);
+      this._writer.write(41, hatch.patternScale, subclass);
+      this._writer.write(77, hatch.isDouble ? 1 : 0, subclass);
 
-      this._writer.Write(78, hatch.pattern.lines.length);
+      this._writer.write(78, hatch.pattern.lines.length);
       for (const line of hatch.pattern.lines) {
-        this._writer.Write(53, line.angle);
-        this._writer.Write(43, line.basePoint.x);
-        this._writer.Write(44, line.basePoint.y);
-        this._writer.Write(45, line.offset.x);
-        this._writer.Write(46, line.offset.y);
-        this._writer.Write(79, line.dashLengths.length);
+        this._writer.write(53, line.angle);
+        this._writer.write(43, line.basePoint.x);
+        this._writer.write(44, line.basePoint.y);
+        this._writer.write(45, line.offset.x);
+        this._writer.write(46, line.offset.y);
+        this._writer.write(79, line.dashLengths.length);
         for (const dash of line.dashLengths) {
-          this._writer.Write(49, dash);
+          this._writer.write(49, dash);
         }
       }
     }
 
-    this._writer.Write(47, hatch.pixelSize, subclass);
+    this._writer.write(47, hatch.pixelSize, subclass);
 
-    this._writer.Write(98, hatch.seedPoints.length);
+    this._writer.write(98, hatch.seedPoints.length);
     for (const pt of hatch.seedPoints) {
-      this._writer.Write(10, pt.x);
-      this._writer.Write(20, pt.y);
+      this._writer.write(10, pt.x);
+      this._writer.write(20, pt.y);
     }
 
     if (hatch.gradientColor.enabled) {
-      this._writer.Write(450, hatch.gradientColor.enabled ? 1 : 0);
-      this._writer.Write(451, hatch.gradientColor.reserved);
-      this._writer.Write(452, hatch.gradientColor.isSingleColorGradient ? 1 : 0);
-      this._writer.Write(453, hatch.gradientColor.colors.length);
+      this._writer.write(450, hatch.gradientColor.enabled ? 1 : 0);
+      this._writer.write(451, hatch.gradientColor.reserved);
+      this._writer.write(452, hatch.gradientColor.isSingleColorGradient ? 1 : 0);
+      this._writer.write(453, hatch.gradientColor.colors.length);
       for (const gc of hatch.gradientColor.colors) {
-        this._writer.Write(463, gc.value);
-        this._writer.Write(63, gc.color.index);
-        this._writer.Write(421, gc.color.trueColor);
+        this._writer.write(463, gc.value);
+        this._writer.write(63, gc.color.index);
+        this._writer.write(421, gc.color.trueColor);
       }
-      this._writer.Write(460, hatch.gradientColor.angle);
-      this._writer.Write(461, hatch.gradientColor.shift);
-      this._writer.Write(462, hatch.gradientColor.colorTint);
-      this._writer.Write(470, hatch.gradientColor.name);
+      this._writer.write(460, hatch.gradientColor.angle);
+      this._writer.write(461, hatch.gradientColor.shift);
+      this._writer.write(462, hatch.gradientColor.colorTint);
+      this._writer.write(470, hatch.gradientColor.name);
     }
   }
 
-  private writeBoundaryPath(path: HatchBoundaryPath): void {
-    this._writer.Write(92, path.flags as number);
+  private _writeBoundaryPath(path: HatchBoundaryPath): void {
+    this._writer.write(92, path.flags as number);
 
     if ((path.flags & BoundaryPathFlags.Polyline) !== 0) {
       for (const edge of path.edges) {
         if (edge instanceof HatchBoundaryPathPolyline) {
-          this.writePolylineBoundary(edge);
+          this._writePolylineBoundary(edge);
         }
       }
     } else {
-      this._writer.Write(93, path.edges.length);
+      this._writer.write(93, path.edges.length);
       for (const edge of path.edges) {
-        this.writeBoundaryEdge(edge);
+        this._writeBoundaryEdge(edge);
       }
     }
 
-    this._writer.Write(97, path.entities.length);
+    this._writer.write(97, path.entities.length);
     for (const entity of path.entities) {
-      this._writer.Write(330, entity.handle);
+      this._writer.write(330, entity.handle);
     }
   }
 
-  private writePolylineBoundary(polyline: HatchBoundaryPathPolyline): void {
-    const hasBulge = polyline.vertices.some(v => v.Z !== 0);
-    this._writer.Write(72, hasBulge ? 1 : 0);
-    this._writer.Write(73, polyline.isClosed ? 1 : 0);
-    this._writer.Write(93, polyline.vertices.length);
+  private _writePolylineBoundary(polyline: HatchBoundaryPathPolyline): void {
+    const hasBulge = polyline.vertices.some(v => v.z !== 0);
+    this._writer.write(72, hasBulge ? 1 : 0);
+    this._writer.write(73, polyline.isClosed ? 1 : 0);
+    this._writer.write(93, polyline.vertices.length);
     for (const v of polyline.vertices) {
-      this._writer.Write(10, v.X);
-      this._writer.Write(20, v.Y);
+      this._writer.write(10, v.x);
+      this._writer.write(20, v.y);
       if (hasBulge) {
-        this._writer.Write(42, v.Z);
+        this._writer.write(42, v.z);
       }
     }
   }
 
-  private writeBoundaryEdge(edge: HatchBoundaryPathEdge): void {
+  private _writeBoundaryEdge(edge: HatchBoundaryPathEdge): void {
     if (edge instanceof HatchBoundaryPathLine) {
-      this._writer.Write(72, 1);
-      this._writer.Write(10, edge.start.X);
-      this._writer.Write(20, edge.start.Y);
-      this._writer.Write(11, edge.end.X);
-      this._writer.Write(21, edge.end.Y);
+      this._writer.write(72, 1);
+      this._writer.write(10, edge.start.x);
+      this._writer.write(20, edge.start.y);
+      this._writer.write(11, edge.end.x);
+      this._writer.write(21, edge.end.y);
     } else if (edge instanceof HatchBoundaryPathArc) {
-      this._writer.Write(72, 2);
-      this._writer.Write(10, edge.center.X);
-      this._writer.Write(20, edge.center.Y);
-      this._writer.Write(40, edge.radius);
-      this._writer.Write(50, MathHelper.RadToDeg(edge.startAngle));
-      this._writer.Write(51, MathHelper.RadToDeg(edge.endAngle));
-      this._writer.Write(73, edge.counterClockWise ? 1 : 0);
+      this._writer.write(72, 2);
+      this._writer.write(10, edge.center.x);
+      this._writer.write(20, edge.center.y);
+      this._writer.write(40, edge.radius);
+      this._writer.write(50, MathHelper.radToDeg(edge.startAngle));
+      this._writer.write(51, MathHelper.radToDeg(edge.endAngle));
+      this._writer.write(73, edge.counterClockWise ? 1 : 0);
     } else if (edge instanceof HatchBoundaryPathEllipse) {
-      this._writer.Write(72, 3);
-      this._writer.Write(10, edge.center.X);
-      this._writer.Write(20, edge.center.Y);
-      this._writer.Write(11, edge.majorAxisEndPoint.X);
-      this._writer.Write(21, edge.majorAxisEndPoint.Y);
-      this._writer.Write(40, edge.minorToMajorRatio);
-      this._writer.Write(50, MathHelper.RadToDeg(edge.startAngle));
-      this._writer.Write(51, MathHelper.RadToDeg(edge.endAngle));
-      this._writer.Write(73, edge.counterClockWise ? 1 : 0);
+      this._writer.write(72, 3);
+      this._writer.write(10, edge.center.x);
+      this._writer.write(20, edge.center.y);
+      this._writer.write(11, edge.majorAxisEndPoint.x);
+      this._writer.write(21, edge.majorAxisEndPoint.y);
+      this._writer.write(40, edge.minorToMajorRatio);
+      this._writer.write(50, MathHelper.radToDeg(edge.startAngle));
+      this._writer.write(51, MathHelper.radToDeg(edge.endAngle));
+      this._writer.write(73, edge.counterClockWise ? 1 : 0);
     } else if (edge instanceof HatchBoundaryPathSpline) {
-      this._writer.Write(72, 4);
-      this._writer.Write(94, edge.degree);
-      this._writer.Write(73, edge.isRational ? 1 : 0);
-      this._writer.Write(74, edge.isPeriodic ? 1 : 0);
-      this._writer.Write(95, edge.knots.length);
-      this._writer.Write(96, edge.controlPoints.length);
+      this._writer.write(72, 4);
+      this._writer.write(94, edge.degree);
+      this._writer.write(73, edge.isRational ? 1 : 0);
+      this._writer.write(74, edge.isPeriodic ? 1 : 0);
+      this._writer.write(95, edge.knots.length);
+      this._writer.write(96, edge.controlPoints.length);
       for (const k of edge.knots) {
-        this._writer.Write(40, k);
+        this._writer.write(40, k);
       }
       for (const cp of edge.controlPoints) {
-        this._writer.Write(10, cp.X);
-        this._writer.Write(20, cp.Y);
+        this._writer.write(10, cp.x);
+        this._writer.write(20, cp.y);
         if (edge.isRational) {
-          this._writer.Write(42, cp.Z);
+          this._writer.write(42, cp.z);
         }
       }
       if (edge.fitPoints.length > 0) {
-        this._writer.Write(97, edge.fitPoints.length);
+        this._writer.write(97, edge.fitPoints.length);
         for (const fp of edge.fitPoints) {
-          this._writer.Write(11, fp.X);
-          this._writer.Write(21, fp.Y);
+          this._writer.write(11, fp.x);
+          this._writer.write(21, fp.y);
         }
       }
-      this._writer.Write(12, edge.startTangent.X);
-      this._writer.Write(22, edge.startTangent.Y);
-      this._writer.Write(13, edge.endTangent.X);
-      this._writer.Write(23, edge.endTangent.Y);
+      this._writer.write(12, edge.startTangent.x);
+      this._writer.write(22, edge.startTangent.y);
+      this._writer.write(13, edge.endTangent.x);
+      this._writer.write(23, edge.endTangent.y);
     }
   }
 
-  private writeInsert(insert: Insert, map: DxfMap): void {
-    const subclass = map.subClasses.get(DxfSubclassMarker.Insert)!;
-    this._writer.Write(DxfCode.Subclass, DxfSubclassMarker.Insert);
+  private _writeInsert(insert: Insert, map: DxfMap): void {
+    const subclass = map.subClasses.get(DxfSubclassMarker.insert)!;
+    this._writer.write(DxfCode.Subclass, DxfSubclassMarker.insert);
 
-    this._writer.Write(66, insert.hasAttributes ? 1 : 0);
-    this._writer.Write(2, insert.block?.name ?? '', subclass);
-    this._writer.WriteVector(10, insert.insertPoint, subclass);
-    this._writer.Write(41, insert.xScale, subclass);
-    this._writer.Write(42, insert.yScale, subclass);
-    this._writer.Write(43, insert.zScale, subclass);
-    this._writer.Write(50, insert.rotation, subclass);
-    this._writer.Write(70, insert.columnCount, subclass);
-    this._writer.Write(71, insert.rowCount, subclass);
-    this._writer.Write(44, insert.columnSpacing, subclass);
-    this._writer.Write(45, insert.rowSpacing, subclass);
-    this._writer.WriteVector(210, insert.normal, subclass);
+    this._writer.write(66, insert.hasAttributes ? 1 : 0);
+    this._writer.write(2, insert.block?.name ?? '', subclass);
+    this._writer.writeVector(10, insert.insertPoint, subclass);
+    this._writer.write(41, insert.xScale, subclass);
+    this._writer.write(42, insert.yScale, subclass);
+    this._writer.write(43, insert.zScale, subclass);
+    this._writer.write(50, insert.rotation, subclass);
+    this._writer.write(70, insert.columnCount, subclass);
+    this._writer.write(71, insert.rowCount, subclass);
+    this._writer.write(44, insert.columnSpacing, subclass);
+    this._writer.write(45, insert.rowSpacing, subclass);
+    this._writer.writeVector(210, insert.normal, subclass);
 
     for (const att of insert.attributes) {
       this.writeEntity(att);
     }
 
-    if (insert.hasAttributes && insert.attributes.Seqend) {
-      this.writeEntity(insert.attributes.Seqend);
+    if (insert.hasAttributes && insert.attributes.seqend) {
+      this.writeEntity(insert.attributes.seqend);
     }
   }
 
-  private writeLeader(leader: Leader, map: DxfMap): void {
-    const subclass = map.subClasses.get(DxfSubclassMarker.Leader)!;
-    this._writer.Write(DxfCode.Subclass, DxfSubclassMarker.Leader);
+  private _writeLeader(leader: Leader, map: DxfMap): void {
+    const subclass = map.subClasses.get(DxfSubclassMarker.leader)!;
+    this._writer.write(DxfCode.Subclass, DxfSubclassMarker.leader);
 
-    this._writer.Write(3, leader.style?.name ?? '', subclass);
-    this._writer.Write(71, leader.arrowHeadEnabled ? 1 : 0, subclass);
-    this._writer.Write(72, leader.pathType, subclass);
-    this._writer.Write(73, leader.creationType, subclass);
-    this._writer.Write(74, leader.hookLineDirection ? 1 : 0, subclass);
-    this._writer.Write(75, leader.hasHookline ? 1 : 0, subclass);
-    this._writer.Write(40, leader.textHeight, subclass);
-    this._writer.Write(41, leader.textWidth, subclass);
-    this._writer.Write(76, leader.vertices.length);
+    this._writer.write(3, leader.style?.name ?? '', subclass);
+    this._writer.write(71, leader.arrowHeadEnabled ? 1 : 0, subclass);
+    this._writer.write(72, leader.pathType, subclass);
+    this._writer.write(73, leader.creationType, subclass);
+    this._writer.write(74, leader.hookLineDirection ? 1 : 0, subclass);
+    this._writer.write(75, leader.hasHookline ? 1 : 0, subclass);
+    this._writer.write(40, leader.textHeight, subclass);
+    this._writer.write(41, leader.textWidth, subclass);
+    this._writer.write(76, leader.vertices.length);
 
     for (const v of leader.vertices) {
-      this._writer.WriteVector(10, v);
+      this._writer.writeVector(10, v);
     }
 
-    this._writer.Write(77, leader.color ? 1 : 0, subclass);
-    this._writer.WriteHandle(340, leader.associatedAnnotation);
-    this._writer.WriteVector(210, leader.normal, subclass);
-    this._writer.WriteVector(211, leader.horizontalDirection, subclass);
-    this._writer.WriteVector(212, leader.blockOffset, subclass);
-    this._writer.WriteVector(213, leader.annotationOffset, subclass);
+    this._writer.write(77, leader.color ? 1 : 0, subclass);
+    this._writer.writeHandle(340, leader.associatedAnnotation);
+    this._writer.writeVector(210, leader.normal, subclass);
+    this._writer.writeVector(211, leader.horizontalDirection, subclass);
+    this._writer.writeVector(212, leader.blockOffset, subclass);
+    this._writer.writeVector(213, leader.annotationOffset, subclass);
   }
 
-  private writeLine(line: Line, map: DxfMap): void {
-    const subclass = map.subClasses.get(DxfSubclassMarker.Line)!;
-    this._writer.Write(DxfCode.Subclass, DxfSubclassMarker.Line);
-    this._writer.Write(39, line.thickness, subclass);
-    this._writer.WriteVector(10, line.startPoint, subclass);
-    this._writer.WriteVector(11, line.endPoint, subclass);
-    this._writer.WriteVector(210, line.normal, subclass);
+  private _writeLine(line: Line, map: DxfMap): void {
+    const subclass = map.subClasses.get(DxfSubclassMarker.line)!;
+    this._writer.write(DxfCode.Subclass, DxfSubclassMarker.line);
+    this._writer.write(39, line.thickness, subclass);
+    this._writer.writeVector(10, line.startPoint, subclass);
+    this._writer.writeVector(11, line.endPoint, subclass);
+    this._writer.writeVector(210, line.normal, subclass);
   }
 
-  private writeLwPolyline(polyline: LwPolyline, map: DxfMap): void {
-    const subclass = map.subClasses.get(DxfSubclassMarker.LwPolyline)!;
-    this._writer.Write(DxfCode.Subclass, DxfSubclassMarker.LwPolyline);
+  private _writeLwPolyline(polyline: LwPolyline, map: DxfMap): void {
+    const subclass = map.subClasses.get(DxfSubclassMarker.lwPolyline)!;
+    this._writer.write(DxfCode.Subclass, DxfSubclassMarker.lwPolyline);
 
-    this._writer.Write(90, polyline.vertices.length);
-    this._writer.Write(70, polyline.flags, subclass);
-    this._writer.Write(43, polyline.constantWidth, subclass);
-    this._writer.Write(38, polyline.elevation, subclass);
-    this._writer.Write(39, polyline.thickness, subclass);
-    this._writer.WriteVector(210, polyline.normal, subclass);
+    this._writer.write(90, polyline.vertices.length);
+    this._writer.write(70, polyline.flags, subclass);
+    this._writer.write(43, polyline.constantWidth, subclass);
+    this._writer.write(38, polyline.elevation, subclass);
+    this._writer.write(39, polyline.thickness, subclass);
+    this._writer.writeVector(210, polyline.normal, subclass);
 
     for (const v of polyline.vertices) {
-      this._writer.Write(10, v.location.x);
-      this._writer.Write(20, v.location.y);
-      this._writer.Write(40, v.startWidth);
-      this._writer.Write(41, v.endWidth);
-      this._writer.Write(42, v.bulge);
+      this._writer.write(10, v.location.x);
+      this._writer.write(20, v.location.y);
+      this._writer.write(40, v.startWidth);
+      this._writer.write(41, v.endWidth);
+      this._writer.write(42, v.bulge);
       if (v.id !== 0) {
-        this._writer.Write(91, v.id);
+        this._writer.write(91, v.id);
       }
     }
   }
 
-  private writeMesh(mesh: Mesh, map: DxfMap): void {
-    const subclass = map.subClasses.get(DxfSubclassMarker.Mesh)!;
-    this._writer.Write(DxfCode.Subclass, DxfSubclassMarker.Mesh);
+  private _writeMesh(mesh: Mesh, map: DxfMap): void {
+    const subclass = map.subClasses.get(DxfSubclassMarker.mesh)!;
+    this._writer.write(DxfCode.Subclass, DxfSubclassMarker.mesh);
 
-    this._writer.Write(71, mesh.subdivisionLevel, subclass);
+    this._writer.write(71, mesh.subdivisionLevel, subclass);
 
-    this._writer.Write(72, 0); // override count
-    this._writer.Write(91, 0); // sub entity count
+    this._writer.write(72, 0); // override count
+    this._writer.write(91, 0); // sub entity count
 
-    this._writer.Write(92, mesh.vertices.length);
+    this._writer.write(92, mesh.vertices.length);
     for (const v of mesh.vertices) {
-      this._writer.WriteVector(10, v);
+      this._writer.writeVector(10, v);
     }
 
     let faceListSize = 0;
     for (const face of mesh.faces) {
       faceListSize += 1 + face.length;
     }
-    this._writer.Write(93, faceListSize);
+    this._writer.write(93, faceListSize);
     for (const face of mesh.faces) {
-      this._writer.Write(90, face.length);
+      this._writer.write(90, face.length);
       for (const idx of face) {
-        this._writer.Write(90, idx);
+        this._writer.write(90, idx);
       }
     }
 
-    this._writer.Write(94, mesh.edges.length);
+    this._writer.write(94, mesh.edges.length);
     for (const edge of mesh.edges) {
-      this._writer.Write(90, edge.start);
-      this._writer.Write(90, edge.end);
+      this._writer.write(90, edge.start);
+      this._writer.write(90, edge.end);
     }
 
-    this._writer.Write(95, mesh.edges.length);
+    this._writer.write(95, mesh.edges.length);
     for (const edge of mesh.edges) {
-      this._writer.Write(140, edge.crease);
+      this._writer.write(140, edge.crease);
     }
   }
 
-  private writeMLine(mline: MLine, map: DxfMap): void {
-    const subclass = map.subClasses.get(DxfSubclassMarker.MLine)!;
-    this._writer.Write(DxfCode.Subclass, DxfSubclassMarker.MLine);
+  private _writeMLine(mline: MLine, map: DxfMap): void {
+    const subclass = map.subClasses.get(DxfSubclassMarker.mLine)!;
+    this._writer.write(DxfCode.Subclass, DxfSubclassMarker.mLine);
 
-    this._writer.WriteHandle(340, mline.style, subclass);
-    this._writer.Write(40, mline.scaleFactor, subclass);
-    this._writer.Write(70, mline.justification, subclass);
-    this._writer.Write(71, mline.flags, subclass);
-    this._writer.Write(72, mline.vertices.length);
-    this._writer.Write(73, mline.style?.elements.length ?? 0);
+    this._writer.writeHandle(340, mline.style, subclass);
+    this._writer.write(40, mline.scaleFactor, subclass);
+    this._writer.write(70, mline.justification, subclass);
+    this._writer.write(71, mline.flags, subclass);
+    this._writer.write(72, mline.vertices.length);
+    this._writer.write(73, mline.style?.elements.length ?? 0);
 
-    this._writer.WriteVector(10, mline.startPoint, subclass);
-    this._writer.WriteVector(210, mline.normal, subclass);
+    this._writer.writeVector(10, mline.startPoint, subclass);
+    this._writer.writeVector(210, mline.normal, subclass);
 
     for (const vertex of mline.vertices) {
-      this._writer.WriteVector(11, vertex.position);
-      this._writer.WriteVector(12, vertex.direction);
-      this._writer.WriteVector(13, vertex.miter);
+      this._writer.writeVector(11, vertex.position);
+      this._writer.writeVector(12, vertex.direction);
+      this._writer.writeVector(13, vertex.miter);
 
       for (const segment of vertex.segments) {
-        this._writer.Write(74, segment.parameters.length);
+        this._writer.write(74, segment.parameters.length);
         for (const p of segment.parameters) {
-          this._writer.Write(41, p);
+          this._writer.write(41, p);
         }
-        this._writer.Write(75, segment.areaFillParameters.length);
+        this._writer.write(75, segment.areaFillParameters.length);
         for (const p of segment.areaFillParameters) {
-          this._writer.Write(42, p);
+          this._writer.write(42, p);
         }
       }
     }
   }
 
-  private writeMText(mtext: MText, map: DxfMap): void {
-    const subclass = map.subClasses.get(DxfSubclassMarker.MText)!;
-    this._writer.Write(DxfCode.Subclass, DxfSubclassMarker.MText);
+  private _writeMText(mtext: MText, map: DxfMap): void {
+    const subclass = map.subClasses.get(DxfSubclassMarker.mText)!;
+    this._writer.write(DxfCode.Subclass, DxfSubclassMarker.mText);
 
-    this._writer.WriteVector(10, mtext.insertPoint, subclass);
-    this._writer.Write(40, mtext.height, subclass);
-    this._writer.Write(41, mtext.rectangleWidth, subclass);
-    this._writer.Write(46, mtext.rectangleHeight, subclass);
-    this._writer.Write(71, mtext.attachmentPoint, subclass);
-    this._writer.Write(72, mtext.drawingDirection, subclass);
+    this._writer.writeVector(10, mtext.insertPoint, subclass);
+    this._writer.write(40, mtext.height, subclass);
+    this._writer.write(41, mtext.rectangleWidth, subclass);
+    this._writer.write(46, mtext.rectangleHeight, subclass);
+    this._writer.write(71, mtext.attachmentPoint, subclass);
+    this._writer.write(72, mtext.drawingDirection, subclass);
 
     this.writeLongTextValue(1, 3, mtext.value ?? '');
 
-    this._writer.Write(7, mtext.style?.name ?? '', subclass);
-    this._writer.WriteVector(210, mtext.normal, subclass);
-    this._writer.WriteVector(11, mtext.alignmentPoint, subclass);
-    this._writer.Write(73, mtext.lineSpacingStyle, subclass);
-    this._writer.Write(44, mtext.lineSpacing, subclass);
-    this._writer.Write(90, mtext.backgroundFillFlags, subclass);
+    this._writer.write(7, mtext.style?.name ?? '', subclass);
+    this._writer.writeVector(210, mtext.normal, subclass);
+    this._writer.writeVector(11, mtext.alignmentPoint, subclass);
+    this._writer.write(73, mtext.lineSpacingStyle, subclass);
+    this._writer.write(44, mtext.lineSpacing, subclass);
+    this._writer.write(90, mtext.backgroundFillFlags, subclass);
 
     if (mtext.backgroundFillFlags > 0) {
-      this._writer.Write(63, mtext.backgroundColor.index);
-      this._writer.Write(45, mtext.backgroundScale, subclass);
-      this._writer.WriteTrueColor(420, mtext.backgroundColor);
-      this._writer.Write(441, mtext.backgroundTransparency);
+      this._writer.write(63, mtext.backgroundColor.index);
+      this._writer.write(45, mtext.backgroundScale, subclass);
+      this._writer.writeTrueColor(420, mtext.backgroundColor);
+      this._writer.write(441, mtext.backgroundTransparency);
     }
   }
 
-  private writeMultiLeader(mleader: MultiLeader, map: DxfMap): void {
-    const subclass = map.subClasses.get(DxfSubclassMarker.Leader)!;
-    this._writer.Write(DxfCode.Subclass, DxfSubclassMarker.Leader);
+  private _writeMultiLeader(mleader: MultiLeader, map: DxfMap): void {
+    const subclass = map.subClasses.get(DxfSubclassMarker.leader)!;
+    this._writer.write(DxfCode.Subclass, DxfSubclassMarker.leader);
 
-    this._writer.Write(270, mleader.contentType, subclass);
-    this._writer.WriteHandle(340, mleader.style);
-    this._writer.WriteHandle(341, mleader.leaderLineType);
-    this._writer.WriteCmColor(91, mleader.lineColor, subclass);
-    this._writer.Write(170, mleader.pathType, subclass);
-    this._writer.Write(171, mleader.lineColor, subclass);
-    this._writer.WriteHandle(343, mleader.textStyle);
-    this._writer.Write(173, mleader.textLeftAttachment, subclass);
-    this._writer.Write(95, mleader.textRightAttachment, subclass);
+    this._writer.write(270, mleader.contentType, subclass);
+    this._writer.writeHandle(340, mleader.style);
+    this._writer.writeHandle(341, mleader.leaderLineType);
+    this._writer.writeCmColor(91, mleader.lineColor, subclass);
+    this._writer.write(170, mleader.pathType, subclass);
+    this._writer.write(171, mleader.lineColor, subclass);
+    this._writer.writeHandle(343, mleader.textStyle);
+    this._writer.write(173, mleader.textLeftAttachment, subclass);
+    this._writer.write(95, mleader.textRightAttachment, subclass);
 
     if (mleader.contextData) {
-      this._writer.Write(300, "CONTEXT_DATA{");
-      this.writeAnnotContext(mleader.contextData, map);
-      this._writer.Write(301, "}");
+      this._writer.write(300, "CONTEXT_DATA{");
+      this._writeAnnotContext(mleader.contextData, map);
+      this._writer.write(301, "}");
     }
 
-    this._writer.Write(44, mleader.scaleFactor, subclass);
-    this._writer.Write(294, mleader.textDirectionNegative, subclass);
-    this._writer.Write(274, mleader.textAligninIPE, subclass);
-    this._writer.Write(178, mleader.textAttachmentDirection, subclass);
-    this._writer.Write(175, mleader.textAttachmentDirection, subclass);
-    this._writer.Write(176, mleader.textAttachmentDirection, subclass);
+    this._writer.write(44, mleader.scaleFactor, subclass);
+    this._writer.write(294, mleader.textDirectionNegative, subclass);
+    this._writer.write(274, mleader.textAligninIPE, subclass);
+    this._writer.write(178, mleader.textAttachmentDirection, subclass);
+    this._writer.write(175, mleader.textAttachmentDirection, subclass);
+    this._writer.write(176, mleader.textAttachmentDirection, subclass);
   }
 
-  private writeAnnotContext(contextData: MultiLeaderObjectContextData, map: DxfMap): void {
-    const ctxMap = DxfClassMap.Create(MultiLeaderObjectContextData);
-    this._writer.WriteVector(10, contextData.contentBasePoint, ctxMap);
-    this._writer.Write(41, contextData.textHeight, ctxMap);
-    this._writer.Write(140, contextData.arrowheadSize, ctxMap);
-    this._writer.Write(145, contextData.landingGap, ctxMap);
-    this._writer.Write(174, contextData.textLeftAttachment, ctxMap);
-    this._writer.Write(175, contextData.textRightAttachment, ctxMap);
-    this._writer.Write(176, contextData.textAlignment, ctxMap);
-    this._writer.Write(177, contextData.blockContentConnection, ctxMap);
-    this._writer.Write(290, contextData.hasTextContents, ctxMap);
+  private _writeAnnotContext(contextData: MultiLeaderObjectContextData, map: DxfMap): void {
+    const ctxMap = DxfClassMap.create(MultiLeaderObjectContextData);
+    this._writer.writeVector(10, contextData.contentBasePoint, ctxMap);
+    this._writer.write(41, contextData.textHeight, ctxMap);
+    this._writer.write(140, contextData.arrowheadSize, ctxMap);
+    this._writer.write(145, contextData.landingGap, ctxMap);
+    this._writer.write(174, contextData.textLeftAttachment, ctxMap);
+    this._writer.write(175, contextData.textRightAttachment, ctxMap);
+    this._writer.write(176, contextData.textAlignment, ctxMap);
+    this._writer.write(177, contextData.blockContentConnection, ctxMap);
+    this._writer.write(290, contextData.hasTextContents, ctxMap);
 
-    this._writer.WriteVector(110, contextData.contentBasePoint, ctxMap);
-    this._writer.WriteVector(111, contextData.baseDirection, ctxMap);
-    this._writer.WriteVector(112, contextData.baseVertical, ctxMap);
-    this._writer.Write(297, contextData.normalReversed, ctxMap);
+    this._writer.writeVector(110, contextData.contentBasePoint, ctxMap);
+    this._writer.writeVector(111, contextData.baseDirection, ctxMap);
+    this._writer.writeVector(112, contextData.baseVertical, ctxMap);
+    this._writer.write(297, contextData.normalReversed, ctxMap);
 
-    this._writer.WriteVector(12, contextData.textLocation, ctxMap);
-    this._writer.WriteVector(13, contextData.direction, ctxMap);
+    this._writer.writeVector(12, contextData.textLocation, ctxMap);
+    this._writer.writeVector(13, contextData.direction, ctxMap);
 
     for (const root of contextData.leaderRoots) {
-      this._writer.Write(302, "LEADER{");
-      this.writeLeaderRoot(root);
-      this._writer.Write(303, "}");
+      this._writer.write(302, "LEADER{");
+      this._writeLeaderRoot(root);
+      this._writer.write(303, "}");
     }
 
-    this._writer.WriteHandle(340, contextData.textStyle);
+    this._writer.writeHandle(340, contextData.textStyle);
   }
 
-  private writeLeaderRoot(root: LeaderRoot): void {
-  const rootMap = DxfClassMap.Create(root.constructor, 'LeaderRoot');
-    this._writer.Write(290, root.contentValid, rootMap);
-    this._writer.WriteVector(10, root.connectionPoint, rootMap);
-    this._writer.WriteVector(11, root.direction, rootMap);
+  private _writeLeaderRoot(root: LeaderRoot): void {
+  const rootMap = DxfClassMap.create(root.constructor, 'LeaderRoot');
+    this._writer.write(290, root.contentValid, rootMap);
+    this._writer.writeVector(10, root.connectionPoint, rootMap);
+    this._writer.writeVector(11, root.direction, rootMap);
 
     for (const line of root.lines) {
-      this._writer.Write(304, "LEADER_LINE{");
-      this.writeLeaderLine(line);
-      this._writer.Write(305, "}");
+      this._writer.write(304, "LEADER_LINE{");
+      this._writeLeaderLine(line);
+      this._writer.write(305, "}");
     }
 
-    this._writer.Write(271, root.textAttachmentDirection, rootMap);
+    this._writer.write(271, root.textAttachmentDirection, rootMap);
   }
 
-  private writeLeaderLine(line: LeaderLine): void {
+  private _writeLeaderLine(line: LeaderLine): void {
     for (const pt of line.points) {
-      this._writer.WriteVector(10, pt);
+      this._writer.writeVector(10, pt);
     }
-    this._writer.Write(91, line.breakInfoCount);
+    this._writer.write(91, line.breakInfoCount);
   }
 
-  private writeOle2Frame(ole: Ole2Frame, map: DxfMap): void {
-    const subclass = map.subClasses.get(DxfSubclassMarker.Ole2Frame)!;
-    this._writer.Write(DxfCode.Subclass, DxfSubclassMarker.Ole2Frame);
-    this._writer.Write(70, ole.oleObjectType, subclass);
-    this._writer.Write(3, ole.sourceApplication, subclass);
-    this._writer.WriteVector(10, ole.upperLeftCorner, subclass);
-    this._writer.WriteVector(11, ole.lowerRightCorner, subclass);
+  private _writeOle2Frame(ole: Ole2Frame, map: DxfMap): void {
+    const subclass = map.subClasses.get(DxfSubclassMarker.ole2Frame)!;
+    this._writer.write(DxfCode.Subclass, DxfSubclassMarker.ole2Frame);
+    this._writer.write(70, ole.oleObjectType, subclass);
+    this._writer.write(3, ole.sourceApplication, subclass);
+    this._writer.writeVector(10, ole.upperLeftCorner, subclass);
+    this._writer.writeVector(11, ole.lowerRightCorner, subclass);
   }
 
-  private writePdfUnderlay(underlay: PdfUnderlay, map: DxfMap): void {
-    const subclass = map.subClasses.get(DxfSubclassMarker.Underlay)!;
-    this._writer.Write(DxfCode.Subclass, DxfSubclassMarker.Underlay);
-    this._writer.WriteHandle(340, underlay.definition, subclass);
-    this._writer.WriteVector(10, underlay.insertPoint, subclass);
-    this._writer.Write(41, underlay.xScale, subclass);
-    this._writer.Write(42, underlay.yScale, subclass);
-    this._writer.Write(43, underlay.zScale, subclass);
-    this._writer.Write(50, underlay.rotation, subclass);
-    this._writer.Write(280, underlay.flags, subclass);
-    this._writer.Write(281, underlay.contrast, subclass);
-    this._writer.Write(282, underlay.fade, subclass);
+  private _writePdfUnderlay(underlay: PdfUnderlay, map: DxfMap): void {
+    const subclass = map.subClasses.get(DxfSubclassMarker.underlay)!;
+    this._writer.write(DxfCode.Subclass, DxfSubclassMarker.underlay);
+    this._writer.writeHandle(340, underlay.definition, subclass);
+    this._writer.writeVector(10, underlay.insertPoint, subclass);
+    this._writer.write(41, underlay.xScale, subclass);
+    this._writer.write(42, underlay.yScale, subclass);
+    this._writer.write(43, underlay.zScale, subclass);
+    this._writer.write(50, underlay.rotation, subclass);
+    this._writer.write(280, underlay.flags, subclass);
+    this._writer.write(281, underlay.contrast, subclass);
+    this._writer.write(282, underlay.fade, subclass);
   }
 
-  private writePoint(point: Point, map: DxfMap): void {
-    const subclass = map.subClasses.get(DxfSubclassMarker.Point)!;
-    this._writer.Write(DxfCode.Subclass, DxfSubclassMarker.Point);
-    this._writer.WriteVector(10, point.location, subclass);
-    this._writer.Write(39, point.thickness, subclass);
-    this._writer.WriteVector(210, point.normal, subclass);
-    this._writer.Write(50, point.rotation, subclass);
+  private _writePoint(point: Point, map: DxfMap): void {
+    const subclass = map.subClasses.get(DxfSubclassMarker.point)!;
+    this._writer.write(DxfCode.Subclass, DxfSubclassMarker.point);
+    this._writer.writeVector(10, point.location, subclass);
+    this._writer.write(39, point.thickness, subclass);
+    this._writer.writeVector(210, point.normal, subclass);
+    this._writer.write(50, point.rotation, subclass);
   }
 
-  private writePolyline(polyline: Polyline2D | Polyline3D | PolyfaceMesh | PolygonMesh, map: DxfMap): void {
-    this._writer.Write(DxfCode.Subclass, polyline.subclassMarker);
-    this._writer.Write(66, 1);
-    this._writer.Write(70, polyline.flags);
-    this._writer.WriteVector(210, polyline.normal);
+  private _writePolyline(polyline: Polyline2D | Polyline3D | PolyfaceMesh | PolygonMesh, map: DxfMap): void {
+    this._writer.write(DxfCode.Subclass, polyline.subclassMarker);
+    this._writer.write(66, 1);
+    this._writer.write(70, polyline.flags);
+    this._writer.writeVector(210, polyline.normal);
 
     for (const vertex of polyline.vertices) {
       if (vertex instanceof Vertex) {
-        this.writeVertex(vertex, map);
+        this._writeVertex(vertex, map);
       }
     }
 
-    this.writeSeqend(polyline.vertices.Seqend, map);
+    this._writeSeqend(polyline.vertices.seqend, map);
   }
 
-  private writeVertex(vertex: Vertex, map: DxfMap): void {
-    this._writer.Write(DxfCode.Start, vertex.objectName);
+  private _writeVertex(vertex: Vertex, map: DxfMap): void {
+    this._writer.write(DxfCode.Start, vertex.objectName);
     this.writeCommonObjectData(vertex);
     this.writeCommonEntityData(vertex);
 
-    this._writer.Write(DxfCode.Subclass, DxfSubclassMarker.Vertex);
-    this._writer.Write(DxfCode.Subclass, vertex.subclassMarker);
-    this._writer.WriteVector(10, vertex.location);
-    this._writer.Write(70, vertex.flags);
+    this._writer.write(DxfCode.Subclass, DxfSubclassMarker.vertex);
+    this._writer.write(DxfCode.Subclass, vertex.subclassMarker);
+    this._writer.writeVector(10, vertex.location);
+    this._writer.write(70, vertex.flags);
 
     if (vertex instanceof Vertex2D) {
-      this._writer.Write(40, vertex.startWidth);
-      this._writer.Write(41, vertex.endWidth);
-      this._writer.Write(42, vertex.bulge);
-      this._writer.Write(50, vertex.curveTangent);
+      this._writer.write(40, vertex.startWidth);
+      this._writer.write(41, vertex.endWidth);
+      this._writer.write(42, vertex.bulge);
+      this._writer.write(50, vertex.curveTangent);
     } else if (vertex instanceof VertexFaceRecord) {
-      this._writer.Write(71, vertex.index1);
-      this._writer.Write(72, vertex.index2);
-      this._writer.Write(73, vertex.index3);
-      this._writer.Write(74, vertex.index4);
+      this._writer.write(71, vertex.index1);
+      this._writer.write(72, vertex.index2);
+      this._writer.write(73, vertex.index3);
+      this._writer.write(74, vertex.index4);
     }
   }
 
-  private writeRay(ray: Ray, map: DxfMap): void {
-    const subclass = map.subClasses.get(DxfSubclassMarker.Ray)!;
-    this._writer.Write(DxfCode.Subclass, DxfSubclassMarker.Ray);
-    this._writer.WriteVector(10, ray.startPoint, subclass);
-    this._writer.WriteVector(11, ray.direction, subclass);
+  private _writeRay(ray: Ray, map: DxfMap): void {
+    const subclass = map.subClasses.get(DxfSubclassMarker.ray)!;
+    this._writer.write(DxfCode.Subclass, DxfSubclassMarker.ray);
+    this._writer.writeVector(10, ray.startPoint, subclass);
+    this._writer.writeVector(11, ray.direction, subclass);
   }
 
-  private writeShape(shape: Shape, map: DxfMap): void {
-    const subclass = map.subClasses.get(DxfSubclassMarker.Shape)!;
-    this._writer.Write(DxfCode.Subclass, DxfSubclassMarker.Shape);
-    this._writer.WriteVector(10, shape.insertionPoint, subclass);
-    this._writer.Write(40, shape.size, subclass);
-    this._writer.Write(2, shape.shapeIndex, subclass);
-    this._writer.Write(50, shape.rotation, subclass);
-    this._writer.Write(41, shape.relativeXScale, subclass);
-    this._writer.Write(51, shape.obliqueAngle, subclass);
-    this._writer.Write(39, shape.thickness, subclass);
-    this._writer.WriteVector(210, shape.normal, subclass);
+  private _writeShape(shape: Shape, map: DxfMap): void {
+    const subclass = map.subClasses.get(DxfSubclassMarker.shape)!;
+    this._writer.write(DxfCode.Subclass, DxfSubclassMarker.shape);
+    this._writer.writeVector(10, shape.insertionPoint, subclass);
+    this._writer.write(40, shape.size, subclass);
+    this._writer.write(2, shape.shapeIndex, subclass);
+    this._writer.write(50, shape.rotation, subclass);
+    this._writer.write(41, shape.relativeXScale, subclass);
+    this._writer.write(51, shape.obliqueAngle, subclass);
+    this._writer.write(39, shape.thickness, subclass);
+    this._writer.writeVector(210, shape.normal, subclass);
   }
 
-  private writeSolid(solid: Solid, map: DxfMap): void {
-    const subclass = map.subClasses.get(DxfSubclassMarker.Solid)!;
-    this._writer.Write(DxfCode.Subclass, DxfSubclassMarker.Solid);
-    this._writer.WriteVector(10, solid.firstCorner, subclass);
-    this._writer.WriteVector(11, solid.secondCorner, subclass);
-    this._writer.WriteVector(12, solid.thirdCorner, subclass);
-    this._writer.WriteVector(13, solid.fourthCorner, subclass);
-    this._writer.Write(39, solid.thickness, subclass);
-    this._writer.WriteVector(210, solid.normal, subclass);
+  private _writeSolid(solid: Solid, map: DxfMap): void {
+    const subclass = map.subClasses.get(DxfSubclassMarker.solid)!;
+    this._writer.write(DxfCode.Subclass, DxfSubclassMarker.solid);
+    this._writer.writeVector(10, solid.firstCorner, subclass);
+    this._writer.writeVector(11, solid.secondCorner, subclass);
+    this._writer.writeVector(12, solid.thirdCorner, subclass);
+    this._writer.writeVector(13, solid.fourthCorner, subclass);
+    this._writer.write(39, solid.thickness, subclass);
+    this._writer.writeVector(210, solid.normal, subclass);
   }
 
-  private writeSpline(spline: Spline, map: DxfMap): void {
-    const subclass = map.subClasses.get(DxfSubclassMarker.Spline)!;
-    this._writer.Write(DxfCode.Subclass, DxfSubclassMarker.Spline);
-    this._writer.WriteVector(210, spline.normal, subclass);
-    this._writer.Write(70, spline.flags, subclass);
-    this._writer.Write(71, spline.degree, subclass);
-    this._writer.Write(72, spline.knots.length);
-    this._writer.Write(73, spline.controlPoints.length);
-    this._writer.Write(74, spline.fitPoints.length);
-    this._writer.Write(42, spline.knotTolerance, subclass);
-    this._writer.Write(43, spline.controlPointTolerance, subclass);
-    this._writer.Write(44, spline.fitTolerance, subclass);
+  private _writeSpline(spline: Spline, map: DxfMap): void {
+    const subclass = map.subClasses.get(DxfSubclassMarker.spline)!;
+    this._writer.write(DxfCode.Subclass, DxfSubclassMarker.spline);
+    this._writer.writeVector(210, spline.normal, subclass);
+    this._writer.write(70, spline.flags, subclass);
+    this._writer.write(71, spline.degree, subclass);
+    this._writer.write(72, spline.knots.length);
+    this._writer.write(73, spline.controlPoints.length);
+    this._writer.write(74, spline.fitPoints.length);
+    this._writer.write(42, spline.knotTolerance, subclass);
+    this._writer.write(43, spline.controlPointTolerance, subclass);
+    this._writer.write(44, spline.fitTolerance, subclass);
 
     if (spline.startTangent) {
-      this._writer.WriteVector(12, spline.startTangent);
+      this._writer.writeVector(12, spline.startTangent);
     }
     if (spline.endTangent) {
-      this._writer.WriteVector(13, spline.endTangent);
+      this._writer.writeVector(13, spline.endTangent);
     }
 
     for (const k of spline.knots) {
-      this._writer.Write(40, k);
+      this._writer.write(40, k);
     }
     for (let i = 0; i < spline.controlPoints.length; i++) {
-      this._writer.WriteVector(10, spline.controlPoints[i]);
+      this._writer.writeVector(10, spline.controlPoints[i]);
       if (i < spline.weights.length) {
-        this._writer.Write(41, spline.weights[i]);
+        this._writer.write(41, spline.weights[i]);
       }
     }
     for (const fp of spline.fitPoints) {
-      this._writer.WriteVector(11, fp);
+      this._writer.writeVector(11, fp);
     }
   }
 
-  private writeTextEntity(text: TextEntity, map: DxfMap): void {
-    const subclass = map.subClasses.get(DxfSubclassMarker.Text)!;
-    this._writer.Write(DxfCode.Subclass, DxfSubclassMarker.Text);
+  private _writeTextEntity(text: TextEntity, map: DxfMap): void {
+    const subclass = map.subClasses.get(DxfSubclassMarker.text)!;
+    this._writer.write(DxfCode.Subclass, DxfSubclassMarker.text);
 
-    this._writer.Write(39, text.thickness, subclass);
-    this._writer.WriteVector(10, text.insertPoint, subclass);
-    this._writer.Write(40, text.height, subclass);
-    this._writer.Write(1, text.value ?? '', subclass);
-    this._writer.Write(50, text.rotation, subclass);
-    this._writer.Write(41, text.widthFactor, subclass);
-    this._writer.Write(51, text.obliqueAngle, subclass);
-    this._writer.Write(7, text.style?.name ?? '', subclass);
-    this._writer.Write(71, text.mirror, subclass);
-    this._writer.Write(72, text.horizontalAlignment, subclass);
-    this._writer.WriteVector(11, text.alignmentPoint, subclass);
-    this._writer.WriteVector(210, text.normal, subclass);
+    this._writer.write(39, text.thickness, subclass);
+    this._writer.writeVector(10, text.insertPoint, subclass);
+    this._writer.write(40, text.height, subclass);
+    this._writer.write(1, text.value ?? '', subclass);
+    this._writer.write(50, text.rotation, subclass);
+    this._writer.write(41, text.widthFactor, subclass);
+    this._writer.write(51, text.obliqueAngle, subclass);
+    this._writer.write(7, text.style?.name ?? '', subclass);
+    this._writer.write(71, text.mirror, subclass);
+    this._writer.write(72, text.horizontalAlignment, subclass);
+    this._writer.writeVector(11, text.alignmentPoint, subclass);
+    this._writer.writeVector(210, text.normal, subclass);
 
-    this._writer.Write(DxfCode.Subclass, DxfSubclassMarker.Text);
-    this._writer.Write(73, text.verticalAlignment, subclass);
+    this._writer.write(DxfCode.Subclass, DxfSubclassMarker.text);
+    this._writer.write(73, text.verticalAlignment, subclass);
   }
 
-  private writeTolerance(tolerance: Tolerance, map: DxfMap): void {
-    const subclass = map.subClasses.get(DxfSubclassMarker.Tolerance)!;
-    this._writer.Write(DxfCode.Subclass, DxfSubclassMarker.Tolerance);
-    this._writer.Write(3, tolerance.style?.name ?? '', subclass);
-    this._writer.WriteVector(10, tolerance.insertionPoint, subclass);
-    this._writer.Write(1, tolerance.text ?? '', subclass);
-    this._writer.WriteVector(11, tolerance.direction, subclass);
-    this._writer.WriteVector(210, tolerance.normal, subclass);
+  private _writeTolerance(tolerance: Tolerance, map: DxfMap): void {
+    const subclass = map.subClasses.get(DxfSubclassMarker.tolerance)!;
+    this._writer.write(DxfCode.Subclass, DxfSubclassMarker.tolerance);
+    this._writer.write(3, tolerance.style?.name ?? '', subclass);
+    this._writer.writeVector(10, tolerance.insertionPoint, subclass);
+    this._writer.write(1, tolerance.text ?? '', subclass);
+    this._writer.writeVector(11, tolerance.direction, subclass);
+    this._writer.writeVector(210, tolerance.normal, subclass);
   }
 
-  private writeViewport(viewport: Viewport, map: DxfMap): void {
-    const subclass = map.subClasses.get(DxfSubclassMarker.Viewport)!;
-    this._writer.Write(DxfCode.Subclass, DxfSubclassMarker.Viewport);
-    this._writer.WriteVector(10, viewport.center, subclass);
-    this._writer.Write(40, viewport.width, subclass);
-    this._writer.Write(41, viewport.height, subclass);
-    this._writer.Write(68, viewport.id, subclass);
-    this._writer.WriteVector(12, viewport.viewCenter, subclass);
-    this._writer.WriteVector(13, viewport.snapBase, subclass);
-    this._writer.WriteVector(14, viewport.snapSpacing, subclass);
-    this._writer.WriteVector(15, viewport.gridSpacing, subclass);
-    this._writer.WriteVector(16, viewport.viewDirection, subclass);
-    this._writer.WriteVector(17, viewport.viewTarget, subclass);
-    this._writer.Write(42, viewport.lensLength, subclass);
-    this._writer.Write(43, viewport.frontClipPlane, subclass);
-    this._writer.Write(44, viewport.backClipPlane, subclass);
-    this._writer.Write(45, viewport.viewHeight, subclass);
-    this._writer.Write(50, viewport.twistAngle, subclass);
-    this._writer.Write(51, viewport.circleZoomPercent, subclass);
-    this._writer.Write(72, viewport.displayUcsIcon, subclass);
-    this._writer.Write(90, viewport.status, subclass);
-    this._writer.Write(110, viewport.ucsOrigin, subclass);
-    this._writer.Write(111, viewport.ucsXAxis, subclass);
-    this._writer.Write(112, viewport.ucsYAxis, subclass);
-    this._writer.Write(281, viewport.renderMode, subclass);
+  private _writeViewport(viewport: Viewport, map: DxfMap): void {
+    const subclass = map.subClasses.get(DxfSubclassMarker.viewport)!;
+    this._writer.write(DxfCode.Subclass, DxfSubclassMarker.viewport);
+    this._writer.writeVector(10, viewport.center, subclass);
+    this._writer.write(40, viewport.width, subclass);
+    this._writer.write(41, viewport.height, subclass);
+    this._writer.write(68, viewport.id, subclass);
+    this._writer.writeVector(12, viewport.viewCenter, subclass);
+    this._writer.writeVector(13, viewport.snapBase, subclass);
+    this._writer.writeVector(14, viewport.snapSpacing, subclass);
+    this._writer.writeVector(15, viewport.gridSpacing, subclass);
+    this._writer.writeVector(16, viewport.viewDirection, subclass);
+    this._writer.writeVector(17, viewport.viewTarget, subclass);
+    this._writer.write(42, viewport.lensLength, subclass);
+    this._writer.write(43, viewport.frontClipPlane, subclass);
+    this._writer.write(44, viewport.backClipPlane, subclass);
+    this._writer.write(45, viewport.viewHeight, subclass);
+    this._writer.write(50, viewport.twistAngle, subclass);
+    this._writer.write(51, viewport.circleZoomPercent, subclass);
+    this._writer.write(72, viewport.displayUcsIcon, subclass);
+    this._writer.write(90, viewport.status, subclass);
+    this._writer.write(110, viewport.ucsOrigin, subclass);
+    this._writer.write(111, viewport.ucsXAxis, subclass);
+    this._writer.write(112, viewport.ucsYAxis, subclass);
+    this._writer.write(281, viewport.renderMode, subclass);
 
     for (const layer of viewport.frozenLayers) {
-      this._writer.WriteHandle(331, layer);
+      this._writer.writeHandle(331, layer);
     }
   }
 
-  private writeXLine(xline: XLine, map: DxfMap): void {
-    const subclass = map.subClasses.get(DxfSubclassMarker.XLine)!;
-    this._writer.Write(DxfCode.Subclass, DxfSubclassMarker.XLine);
-    this._writer.WriteVector(10, xline.firstPoint, subclass);
-    this._writer.WriteVector(11, xline.direction, subclass);
+  private _writeXLine(xline: XLine, map: DxfMap): void {
+    const subclass = map.subClasses.get(DxfSubclassMarker.xLine)!;
+    this._writer.write(DxfCode.Subclass, DxfSubclassMarker.xLine);
+    this._writer.writeVector(10, xline.firstPoint, subclass);
+    this._writer.writeVector(11, xline.direction, subclass);
   }
 
-  private writeCadImage(image: CadImage, map: DxfMap): void {
-    const subclass = map.subClasses.get(DxfSubclassMarker.RasterImage)!;
-    this._writer.Write(DxfCode.Subclass, DxfSubclassMarker.RasterImage);
-    this._writer.Write(90, image.classVersion, subclass);
-    this._writer.WriteVector(10, image.insertPoint, subclass);
-    this._writer.WriteVector(11, image.uVector, subclass);
-    this._writer.WriteVector(12, image.vVector, subclass);
-    this._writer.WriteVector(13, image.size, subclass);
-    this._writer.WriteHandle(340, image.definition, subclass);
-    this._writer.Write(70, image.flags, subclass);
-    this._writer.Write(280, image.clippingState, subclass);
-    this._writer.Write(281, image.brightness, subclass);
-    this._writer.Write(282, image.contrast, subclass);
-    this._writer.Write(283, image.fade, subclass);
-    this._writer.WriteHandle(360, image.definitionReactor, subclass);
-    this._writer.Write(71, image.clipType, subclass);
-    this._writer.Write(91, image.clipBoundaryVertices.length);
+  private _writeCadImage(image: CadImage, map: DxfMap): void {
+    const subclass = map.subClasses.get(DxfSubclassMarker.rasterImage)!;
+    this._writer.write(DxfCode.Subclass, DxfSubclassMarker.rasterImage);
+    this._writer.write(90, image.classVersion, subclass);
+    this._writer.writeVector(10, image.insertPoint, subclass);
+    this._writer.writeVector(11, image.uVector, subclass);
+    this._writer.writeVector(12, image.vVector, subclass);
+    this._writer.writeVector(13, image.size, subclass);
+    this._writer.writeHandle(340, image.definition, subclass);
+    this._writer.write(70, image.flags, subclass);
+    this._writer.write(280, image.clippingState, subclass);
+    this._writer.write(281, image.brightness, subclass);
+    this._writer.write(282, image.contrast, subclass);
+    this._writer.write(283, image.fade, subclass);
+    this._writer.writeHandle(360, image.definitionReactor, subclass);
+    this._writer.write(71, image.clipType, subclass);
+    this._writer.write(91, image.clipBoundaryVertices.length);
     for (const v of image.clipBoundaryVertices) {
-      this._writer.Write(14, v.X);
-      this._writer.Write(24, v.Y);
+      this._writer.write(14, v.x);
+      this._writer.write(24, v.y);
     }
   }
 
-  private writeSeqend(seqend: Seqend, map: DxfMap): void {
+  private _writeSeqend(seqend: Seqend, map: DxfMap): void {
     if (!seqend) return;
-    this._writer.Write(DxfCode.Start, seqend.objectName);
+    this._writer.write(DxfCode.Start, seqend.objectName);
     this.writeCommonObjectData(seqend);
     this.writeCommonEntityData(seqend);
   }
 
-  private writeAttributeBase(att: AttributeBase, map: DxfMap): void {
-    this._writer.Write(DxfCode.Subclass, att.subclassMarker);
-    this._writer.Write(2, att.tag);
-    this._writer.Write(70, att.flags);
-    this._writer.WriteVector(10, att.insertPoint);
-    this._writer.Write(40, att.height);
-    this._writer.Write(1, att.value ?? '');
-    this._writer.Write(7, att.style?.name ?? '');
-    this._writer.Write(41, att.widthFactor);
-    this._writer.Write(50, att.rotation);
-    this._writer.Write(51, att.obliqueAngle);
-    this._writer.WriteVector(11, att.alignmentPoint);
-    this._writer.Write(71, att.mirror);
-    this._writer.Write(72, att.horizontalAlignment);
-    this._writer.Write(73, att.verticalAlignment);
-    this._writer.WriteVector(210, att.normal);
+  private _writeAttributeBase(att: AttributeBase, map: DxfMap): void {
+    this._writer.write(DxfCode.Subclass, att.subclassMarker);
+    this._writer.write(2, att.tag);
+    this._writer.write(70, att.flags);
+    this._writer.writeVector(10, att.insertPoint);
+    this._writer.write(40, att.height);
+    this._writer.write(1, att.value ?? '');
+    this._writer.write(7, att.style?.name ?? '');
+    this._writer.write(41, att.widthFactor);
+    this._writer.write(50, att.rotation);
+    this._writer.write(51, att.obliqueAngle);
+    this._writer.writeVector(11, att.alignmentPoint);
+    this._writer.write(71, att.mirror);
+    this._writer.write(72, att.horizontalAlignment);
+    this._writer.write(73, att.verticalAlignment);
+    this._writer.writeVector(210, att.normal);
   }
 }

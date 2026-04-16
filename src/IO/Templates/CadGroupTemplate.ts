@@ -6,27 +6,27 @@ import { CadTemplateT } from './CadTemplate[T].js';
 import { CadEntityTemplate } from './CadEntityTemplate.js';
 
 export class CadGroupTemplate extends CadTemplateT<Group> {
-	Handles: Set<number> = new Set();
+	handles: Set<number> = new Set();
 
 	constructor(group?: Group) {
 		super(group ?? new Group());
 	}
 
-	protected override build(builder: CadDocumentBuilder): void {
-		super.build(builder);
+	protected override _build(builder: CadDocumentBuilder): void {
+		super._build(builder);
 
-		for (const handle of this.Handles) {
-			const e = builder.GetObjectTemplate<CadEntityTemplate>(handle);
+		for (const handle of this.handles) {
+			const e = builder.getObjectTemplate<CadEntityTemplate>(handle);
 			if (e) {
-				e.Build(builder);
+				e.build(builder);
 
 				try {
-					this.CadObject.add(e.CadObject);
+					this.cadObject.add(e.cadObject);
 				} catch (ex: unknown) {
-					builder.Notify(`Entity with handle ${handle} could not be added to group ${this.CadObject.handle}`, NotificationType.Error, ex instanceof Error ? ex : null);
+					builder.notify(`Entity with handle ${handle} could not be added to group ${this.cadObject.handle}`, NotificationType.Error, ex instanceof Error ? ex : null);
 				}
 			} else {
-				builder.Notify(`Entity with handle ${handle} not found for group ${this.CadObject.handle}`, NotificationType.Warning);
+				builder.notify(`Entity with handle ${handle} not found for group ${this.cadObject.handle}`, NotificationType.Warning);
 			}
 		}
 	}

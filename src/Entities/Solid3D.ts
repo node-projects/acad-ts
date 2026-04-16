@@ -9,10 +9,10 @@ export class Solid3D extends ModelerGeometry {
 	}
 
 	override get objectName(): string {
-		return DxfFileToken.Entity3DSolid;
+		return DxfFileToken.entity3DSolid;
 	}
 
 	override get subclassMarker(): string {
-		return DxfSubclassMarker.Solid3D;
+		return DxfSubclassMarker.solid3D;
 	}
 }

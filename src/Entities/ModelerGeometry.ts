@@ -7,7 +7,7 @@ import { XYZ } from '../Math/XYZ.js';
 export class ModelerGeometryWire {
 	acisIndex: number = 0;
 	applyTransformPresent: boolean = false;
-	color: Color = Color.ByLayer;
+	color: Color = Color.byLayer;
 	hasRotation: boolean = false;
 	hasShear: boolean = false;
 	points: XYZ[] = [];
@@ -37,7 +37,7 @@ export abstract class ModelerGeometry extends Entity {
 	silhouettes: ModelerGeometrySilhouette[] = [];
 
 	override get subclassMarker(): string {
-		return DxfSubclassMarker.ModelerGeometry;
+		return DxfSubclassMarker.modelerGeometry;
 	}
 
 	wires: ModelerGeometryWire[] = [];
@@ -84,6 +84,6 @@ export abstract class ModelerGeometry extends Entity {
 			}
 		}
 
-		return BoundingBox.FromPoints(points);
+		return BoundingBox.fromPoints(points);
 	}
 }

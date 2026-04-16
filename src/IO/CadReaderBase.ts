@@ -6,9 +6,9 @@ import { NotificationEventHandler, NotificationEventArgs, NotificationType } fro
 import { getDecoderEncodingLabel } from './TextEncoding.js';
 
 export abstract class CadReaderBase<T extends CadReaderConfiguration> implements ICadReader {
-	OnNotification: NotificationEventHandler | null = null;
+	onNotification: NotificationEventHandler | null = null;
 
-	Configuration: T;
+	configuration: T;
 
 	protected _document: CadDocument = new CadDocument();
 
@@ -18,19 +18,19 @@ export abstract class CadReaderBase<T extends CadReaderConfiguration> implements
 
 	protected constructor(stream: ArrayBuffer | Uint8Array, notification: NotificationEventHandler | null = null) {
 		if (notification) {
-			this.OnNotification = notification;
+			this.onNotification = notification;
 		}
 		this._fileStream = stream;
-		this.Configuration = this.createDefaultConfiguration();
+		this.configuration = this.createDefaultConfiguration();
 	}
 
 	protected abstract createDefaultConfiguration(): T;
 
-	abstract Read(): CadDocument;
+	abstract read(): CadDocument;
 
-	abstract ReadHeader(): CadHeader;
+	abstract readHeader(): CadHeader;
 
-	Dispose(): void {
+	dispose(): void {
 		// No-op in TS; ArrayBuffer doesn't need disposal
 	}
 
@@ -43,6 +43,6 @@ export abstract class CadReaderBase<T extends CadReaderConfiguration> implements
 	}
 
 	protected onNotificationEvent(sender: object | null, e: NotificationEventArgs): void {
-		this.OnNotification?.(this, e);
+		this.onNotification?.(this, e);
 	}
 }

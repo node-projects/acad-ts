@@ -5,8 +5,8 @@ import { DwgSectionDefinition } from '../FileHeaders/DwgSectionDefinition.js';
 import { IDwgStreamReader } from './IDwgStreamReader.js';
 
 export class DwgHandleReader extends DwgSectionIO {
-	override get SectionName(): string {
-		return DwgSectionDefinition.Handles;
+	override get sectionName(): string {
+		return DwgSectionDefinition.handles;
 	}
 
 	private _sreader: IDwgStreamReader;

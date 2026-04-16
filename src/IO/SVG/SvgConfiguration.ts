@@ -4,24 +4,24 @@ import { LineWeightTypeExtensions } from '../../Extensions/LineWeightTypeExtensi
 import { UnitsType } from '../../Types/Units/UnitsType.js';
 
 export class SvgConfiguration extends CadWriterConfiguration {
-  LineWeightRatio: number = 100;
+  lineWeightRatio: number = 100;
 
-  DefaultLineWeight: number = 0.01;
+  defaultLineWeight: number = 0.01;
 
-  PointRadius: number = 0.1;
+  pointRadius: number = 0.1;
 
-  ArcPoints: number = 256;
+  arcPoints: number = 256;
 
-  GetLineWeightValue(lineWeight: LineWeightType, units: UnitsType): number {
+  getLineWeightValue(lineWeight: LineWeightType, units: UnitsType): number {
     const value = Math.abs(lineWeight as number);
 
     if (units === UnitsType.Unitless) {
-      return value / this.LineWeightRatio;
+      return value / this.lineWeightRatio;
     }
 
     switch (lineWeight) {
       case LineWeightType.Default:
-        return this.DefaultLineWeight;
+        return this.defaultLineWeight;
       case LineWeightType.W0:
         return 0.001;
     }

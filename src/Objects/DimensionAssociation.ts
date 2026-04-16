@@ -30,7 +30,7 @@ export class DimensionAssociation extends NonGraphicalObject {
 	isTransSpace: boolean = false;
 
 	override get objectName(): string {
-		return DxfFileToken.ObjectDimensionAssociation;
+		return DxfFileToken.objectDimensionAssociation;
 	}
 
 	override get objectType(): ObjectType {
@@ -41,12 +41,12 @@ export class DimensionAssociation extends NonGraphicalObject {
 	secondPointRef: OsnapPointRef | null = null;
 
 	override get subclassMarker(): string {
-		return DxfSubclassMarker.DimensionAssociation;
+		return DxfSubclassMarker.dimensionAssociation;
 	}
 
 	thirdPointRef: OsnapPointRef | null = null;
 
-	static readonly OsnapPointRefClassName = 'AcDbOsnapPointRef';
+	static readonly osnapPointRefClassName = 'AcDbOsnapPointRef';
 }
 
 export { AssociativityFlags } from './AssociativityFlags.js';

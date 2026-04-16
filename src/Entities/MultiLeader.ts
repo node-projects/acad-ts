@@ -43,7 +43,7 @@ export class MultiLeader extends Entity {
 
 	blockAttributes: MultiLeaderBlockAttribute[] = [];
 
-	blockContentColor: Color = Color.ByBlock;
+	blockContentColor: Color = Color.byBlock;
 
 	blockContentConnection: number = 0;
 
@@ -71,10 +71,10 @@ export class MultiLeader extends Entity {
 
 	leaderLineWeight: number = 0;
 
-	lineColor: Color = Color.ByBlock;
+	lineColor: Color = Color.byBlock;
 
 	override get objectName(): string {
-		return DxfFileToken.EntityMultiLeader;
+		return DxfFileToken.entityMultiLeader;
 	}
 
 	override get objectType(): ObjectType {
@@ -90,7 +90,7 @@ export class MultiLeader extends Entity {
 	style: MultiLeaderStyle | null = null;
 
 	override get subclassMarker(): string {
-		return DxfSubclassMarker.MultiLeader;
+		return DxfSubclassMarker.multiLeader;
 	}
 
 	textAlignment: TextAlignmentType = TextAlignmentType.Left;
@@ -103,7 +103,7 @@ export class MultiLeader extends Entity {
 
 	textBottomAttachment: TextAttachmentType = TextAttachmentType.CenterOfText;
 
-	textColor: Color = Color.ByBlock;
+	textColor: Color = Color.byBlock;
 
 	textFrame: boolean = false;
 
@@ -163,7 +163,7 @@ export class MultiLeader extends Entity {
 			pushLeaderRoot(root);
 		}
 
-		return points.length > 0 ? BoundingBox.FromPoints(points) : null;
+		return points.length > 0 ? BoundingBox.fromPoints(points) : null;
 	}
 }
 

@@ -37,15 +37,15 @@ export class LineTypeSegment {
 }
 
 export class LineType extends TableEntry {
-	public static get ByBlock(): LineType {
+	public static get byBlock(): LineType {
 		return new LineType('ByBlock');
 	}
 
-	public static get ByLayer(): LineType {
+	public static get byLayer(): LineType {
 		return new LineType('ByLayer');
 	}
 
-	public static get Continuous(): LineType {
+	public static get continuous(): LineType {
 		return new LineType('Continuous');
 	}
 
@@ -62,7 +62,7 @@ export class LineType extends TableEntry {
 	}
 
 	public override get objectName(): string {
-		return DxfFileToken.TableLinetype;
+		return DxfFileToken.tableLinetype;
 	}
 
 	public override get objectType(): ObjectType {
@@ -78,12 +78,12 @@ export class LineType extends TableEntry {
 	}
 
 	public override get subclassMarker(): string {
-		return DxfSubclassMarker.Linetype;
+		return DxfSubclassMarker.linetype;
 	}
 
-	public static readonly ByBlockName: string = 'ByBlock';
-	public static readonly ByLayerName: string = 'ByLayer';
-	public static readonly ContinuousName: string = 'Continuous';
+	public static readonly byBlockName: string = 'ByBlock';
+	public static readonly byLayerName: string = 'ByLayer';
+	public static readonly continuousName: string = 'Continuous';
 
 	private _segments: LineTypeSegment[] = [];
 

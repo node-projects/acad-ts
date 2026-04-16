@@ -5,29 +5,29 @@ import { CadDocumentBuilder } from '../CadDocumentBuilder.js';
 import { CadEntityTemplateT } from './CadEntityTemplate.js';
 
 export class CadLeaderTemplate extends CadEntityTemplateT<Leader> {
-	Dimasz: number = 0;
+	dimasz: number = 0;
 
-	DIMSTYLEHandle: number = 0;
+	dimstyleHandle: number = 0;
 
-	DIMSTYLEName: string = '';
+	dimstyleName: string = '';
 
-	AnnotationHandle: number = 0;
+	annotationHandle: number = 0;
 
 	constructor(entity?: Leader) {
 		super(entity ?? new Leader());
 	}
 
-	protected override build(builder: CadDocumentBuilder): void {
-		super.build(builder);
+	protected override _build(builder: CadDocumentBuilder): void {
+		super._build(builder);
 
-		const leader = this.CadObject as Leader;
+		const leader = this.cadObject as Leader;
 
-		const style = this.getTableReference<DimensionStyle>(builder, this.DIMSTYLEHandle, this.DIMSTYLEName);
+		const style = this.getTableReference<DimensionStyle>(builder, this.dimstyleHandle, this.dimstyleName);
 		if (style) {
 			leader.style = style;
 		}
 
-		const annotation = builder.TryGetCadObject<Entity>(this.AnnotationHandle);
+		const annotation = builder.tryGetCadObject<Entity>(this.annotationHandle);
 		if (annotation) {
 			leader.associatedAnnotation = annotation;
 		}

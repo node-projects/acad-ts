@@ -1,22 +1,22 @@
 import { DwgLocalSectionMap } from './DwgLocalSectionMap.js';
 
 export class DwgSectionDescriptor {
-	readonly PageType: number = 0x4163043B;
+	readonly pageType: number = 0x4163043B;
 
-	Name: string = '';
+	name: string = '';
 
-	CompressedSize: number = 0;
+	compressedSize: number = 0;
 
-	PageCount: number = 0;
+	pageCount: number = 0;
 
-	DecompressedSize: number = 0x7400;
+	decompressedSize: number = 0x7400;
 
 	private _compressed: number = 2;
 
-	get CompressedCode(): number {
+	get compressedCode(): number {
 		return this._compressed;
 	}
-	set CompressedCode(value: number) {
+	set compressedCode(value: number) {
 		if (value === 1 || value === 2) {
 			this._compressed = value;
 		} else {
@@ -24,23 +24,23 @@ export class DwgSectionDescriptor {
 		}
 	}
 
-	get IsCompressed(): boolean {
+	get isCompressed(): boolean {
 		return this._compressed === 2;
 	}
 
-	SectionId: number = 0;
+	sectionId: number = 0;
 
-	Encrypted: number = 0;
+	encrypted: number = 0;
 
-	HashCode: number | null = null;
+	hashCode: number | null = null;
 
-	Encoding: number | null = null;
+	encoding: number | null = null;
 
-	LocalSections: DwgLocalSectionMap[] = [];
+	localSections: DwgLocalSectionMap[] = [];
 
 	constructor(name?: string) {
 		if (name !== undefined) {
-			this.Name = name;
+			this.name = name;
 		}
 	}
 }

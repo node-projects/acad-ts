@@ -13,100 +13,100 @@ import { CadTableEntryTemplate } from './CadTableEntryTemplate.js';
 import { ICadOwnerTemplate } from './ICadOwnerTemplate.js';
 
 export class CadBlockRecordTemplate extends CadTableEntryTemplate<BlockRecord> implements ICadOwnerTemplate {
-	BeginBlockHandle: number | null = null;
+	beginBlockHandle: number | null = null;
 
-	BlockEntityTemplate: CadBlockEntityTemplate | null = null;
+	blockEntityTemplate: CadBlockEntityTemplate | null = null;
 
-	EndBlockHandle: number | null = null;
+	endBlockHandle: number | null = null;
 
-	FirstEntityHandle: number | null = null;
+	firstEntityHandle: number | null = null;
 
-	InsertHandles: number[] = [];
+	insertHandles: number[] = [];
 
-	LastEntityHandle: number | null = null;
+	lastEntityHandle: number | null = null;
 
-	LayoutHandle: number | null = null;
+	layoutHandle: number | null = null;
 
-	OwnedObjectsHandlers: Set<number> = new Set();
+	ownedObjectsHandlers: Set<number> = new Set();
 
-	ReferenceTemplates: Set<CadEntityTemplate> = new Set();
+	referenceTemplates: Set<CadEntityTemplate> = new Set();
 
 	constructor(block?: BlockRecord) {
 		super(block ?? new BlockRecord());
 	}
 
-	SetBlockToRecord(builder: CadDocumentBuilder, headerHandles: DwgHeaderHandlesCollection): void {
-		const block = builder.TryGetCadObject<Block>(this.BeginBlockHandle);
+	setBlockToRecord(builder: CadDocumentBuilder, headerHandles: DwgHeaderHandlesCollection): void {
+		const block = builder.tryGetCadObject<Block>(this.beginBlockHandle);
 		if (block) {
 			if (block.name && block.name.length > 0) {
-				this.CadObject.name = block.name;
+				this.cadObject.name = block.name;
 			}
 
-			block.flags = this.CadObject.blockEntity.flags;
-			block.basePoint = this.CadObject.blockEntity.basePoint;
-			block.xRefPath = this.CadObject.blockEntity.xRefPath;
-			block.comments = this.CadObject.blockEntity.comments;
-			block.isUnloaded = this.CadObject.blockEntity.isUnloaded;
+			block.flags = this.cadObject.blockEntity.flags;
+			block.basePoint = this.cadObject.blockEntity.basePoint;
+			block.xRefPath = this.cadObject.blockEntity.xRefPath;
+			block.comments = this.cadObject.blockEntity.comments;
+			block.isUnloaded = this.cadObject.blockEntity.isUnloaded;
 
-			this.CadObject.blockEntity = block;
+			this.cadObject.blockEntity = block;
 		}
 
-		const blockEnd = builder.TryGetCadObject<BlockEnd>(this.EndBlockHandle);
+		const blockEnd = builder.tryGetCadObject<BlockEnd>(this.endBlockHandle);
 		if (blockEnd) {
-			this.CadObject.blockEnd = blockEnd;
+			this.cadObject.blockEnd = blockEnd;
 		}
 
-		this.ensureCorrectNaming(builder, headerHandles.MODEL_SPACE, BlockRecord.ModelSpaceName);
-		this.ensureCorrectNaming(builder, headerHandles.PAPER_SPACE, BlockRecord.PaperSpaceName);
+		this._ensureCorrectNaming(builder, headerHandles.model_space, BlockRecord.modelSpaceName);
+		this._ensureCorrectNaming(builder, headerHandles.paper_space, BlockRecord.paperSpaceName);
 	}
 
-	protected override build(builder: CadDocumentBuilder): void {
-		super.build(builder);
-		this.CadObject.insertHandles = [...this.InsertHandles];
-		this.CadObject.ownedObjectHandles = Array.from(this.OwnedObjectsHandlers);
+	protected override _build(builder: CadDocumentBuilder): void {
+		super._build(builder);
+		this.cadObject.insertHandles = [...this.insertHandles];
+		this.cadObject.ownedObjectHandles = Array.from(this.ownedObjectsHandlers);
 
-		const layout = builder.TryGetCadObject<Layout>(this.LayoutHandle);
+		const layout = builder.tryGetCadObject<Layout>(this.layoutHandle);
 		if (layout) {
-			this.CadObject.layout = layout;
+			this.cadObject.layout = layout;
 		}
 
-		if (this.FirstEntityHandle != null && this.FirstEntityHandle !== 0) {
-			for (const e of this.getEntitiesCollection<Entity>(builder, this.FirstEntityHandle, this.LastEntityHandle!)) {
-				this.addEntity(builder, e);
+		if (this.firstEntityHandle != null && this.firstEntityHandle !== 0) {
+			for (const e of this.getEntitiesCollection<Entity>(builder, this.firstEntityHandle, this.lastEntityHandle!)) {
+				this._addEntity(builder, e);
 			}
 		} else {
-			if (this.BlockEntityTemplate !== null) {
-				for (const h of this.BlockEntityTemplate.OwnedObjectsHandlers) {
-					this.OwnedObjectsHandlers.add(h);
+			if (this.blockEntityTemplate !== null) {
+				for (const h of this.blockEntityTemplate.ownedObjectsHandlers) {
+					this.ownedObjectsHandlers.add(h);
 				}
 			}
 
-			for (const handle of this.OwnedObjectsHandlers) {
-				const child = builder.TryGetCadObject<Entity>(handle);
+			for (const handle of this.ownedObjectsHandlers) {
+				const child = builder.tryGetCadObject<Entity>(handle);
 				if (child) {
-					this.addEntity(builder, child);
+					this._addEntity(builder, child);
 				}
 			}
 		}
 
-		for (const item of this.ReferenceTemplates) {
-			this.addEntity(builder, item.CadObject);
+		for (const item of this.referenceTemplates) {
+			this._addEntity(builder, item.cadObject);
 		}
 	}
 
-	private addEntity(builder: CadDocumentBuilder, entity: Entity): void {
-		if (!builder.KeepUnknownEntities && entity instanceof UnknownEntity) {
+	private _addEntity(builder: CadDocumentBuilder, entity: Entity): void {
+		if (!builder.keepUnknownEntities && entity instanceof UnknownEntity) {
 			return;
 		}
 
-		this.CadObject.entities.add(entity);
+		this.cadObject.entities.add(entity);
 	}
 
-	private ensureCorrectNaming(builder: CadDocumentBuilder, handle: number | null, expected: string): void {
-		if (this.CadObject.handle === handle
-			&& this.CadObject.name.toLowerCase() !== expected.toLowerCase()) {
-			builder.Notify(`Invalid name for ${this.CadObject.name} changed to ${expected}`, NotificationType.Warning);
-			this.CadObject.name = expected;
+	private _ensureCorrectNaming(builder: CadDocumentBuilder, handle: number | null, expected: string): void {
+		if (this.cadObject.handle === handle
+			&& this.cadObject.name.toLowerCase() !== expected.toLowerCase()) {
+			builder.notify(`Invalid name for ${this.cadObject.name} changed to ${expected}`, NotificationType.Warning);
+			this.cadObject.name = expected;
 		}
 	}
 }

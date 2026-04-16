@@ -8,8 +8,8 @@ export class BlockFlipAction extends BlockAction {
 	caption303: string = '';
 	caption304: string = '';
 
-	override get objectName(): string { return DxfFileToken.ObjectBlockFlipAction; }
-	override get subclassMarker(): string { return DxfSubclassMarker.BlockFlipAction; }
+	override get objectName(): string { return DxfFileToken.objectBlockFlipAction; }
+	override get subclassMarker(): string { return DxfSubclassMarker.blockFlipAction; }
 
 	value92: number = 0;
 	value93: number = 0;

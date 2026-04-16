@@ -10,59 +10,59 @@ import { CadEntityTemplateT } from './CadEntityTemplate.js';
 import { CadMLeaderAnnotContextTemplate } from './CadMLeaderAnnotContextTemplate.js';
 
 export class CadMLeaderTemplate extends CadEntityTemplateT<MultiLeader> {
-	ArrowheadHandle: number = 0;
+	arrowheadHandle: number = 0;
 
-	ArrowheadHandles: Map<number, boolean> = new Map();
+	arrowheadHandles: Map<number, boolean> = new Map();
 
-	BlockAttributeHandles: Map<MultiLeaderBlockAttribute, number> = new Map();
+	blockAttributeHandles: Map<MultiLeaderBlockAttribute, number> = new Map();
 
-	BlockContentHandle: number = 0;
+	blockContentHandle: number = 0;
 
-	CadMLeaderAnnotContextTemplate: CadMLeaderAnnotContextTemplate;
+	cadMLeaderAnnotContextTemplate: CadMLeaderAnnotContextTemplate;
 
-	LeaderLineTypeHandle: number | null = null;
+	leaderLineTypeHandle: number | null = null;
 
-	LeaderStyleHandle: number = 0;
+	leaderStyleHandle: number = 0;
 
-	MTextStyleHandle: number = 0;
+	mTextStyleHandle: number = 0;
 
 	constructor(entity?: MultiLeader) {
 		const e = entity ?? new MultiLeader();
 		super(e);
-		this.CadMLeaderAnnotContextTemplate = new CadMLeaderAnnotContextTemplate(e.contextData);
+		this.cadMLeaderAnnotContextTemplate = new CadMLeaderAnnotContextTemplate(e.contextData);
 	}
 
-	protected override build(builder: CadDocumentBuilder): void {
-		super.build(builder);
+	protected override _build(builder: CadDocumentBuilder): void {
+		super._build(builder);
 
-		this.CadMLeaderAnnotContextTemplate.Build(builder);
+		this.cadMLeaderAnnotContextTemplate.build(builder);
 
-		const multiLeader = this.CadObject as MultiLeader;
+		const multiLeader = this.cadObject as MultiLeader;
 
-		const leaderStyle = builder.TryGetCadObject<MultiLeaderStyle>(this.LeaderStyleHandle);
+		const leaderStyle = builder.tryGetCadObject<MultiLeaderStyle>(this.leaderStyleHandle);
 		if (leaderStyle) {
 			multiLeader.style = leaderStyle;
 		}
-		const lineType = builder.TryGetCadObject<LineType>(this.LeaderLineTypeHandle);
+		const lineType = builder.tryGetCadObject<LineType>(this.leaderLineTypeHandle);
 		if (lineType) {
 			multiLeader.leaderLineType = lineType;
 		}
-		const textStyle = builder.TryGetCadObject<TextStyle>(this.MTextStyleHandle);
+		const textStyle = builder.tryGetCadObject<TextStyle>(this.mTextStyleHandle);
 		if (textStyle) {
 			multiLeader.textStyle = textStyle;
 		}
-		const blockContent = builder.TryGetCadObject<BlockRecord>(this.BlockContentHandle);
+		const blockContent = builder.tryGetCadObject<BlockRecord>(this.blockContentHandle);
 		if (blockContent) {
 			multiLeader.blockContentId = blockContent;
 		}
-		const arrowHead = builder.TryGetCadObject<BlockRecord>(this.ArrowheadHandle);
+		const arrowHead = builder.tryGetCadObject<BlockRecord>(this.arrowheadHandle);
 		if (arrowHead) {
 			multiLeader.arrowhead = arrowHead;
 		}
 
 		const leaderLines = multiLeader.contextData.leaderRoots.flatMap((root) => root.lines);
-		for (const [handle, isDefault] of this.ArrowheadHandles) {
-			const arrowhead = builder.TryGetCadObject<BlockRecord>(handle);
+		for (const [handle, isDefault] of this.arrowheadHandles) {
+			const arrowhead = builder.tryGetCadObject<BlockRecord>(handle);
 			if (arrowhead == null) {
 				continue;
 			}
@@ -81,9 +81,9 @@ export class CadMLeaderTemplate extends CadEntityTemplateT<MultiLeader> {
 		}
 
 		for (const blockAttribute of multiLeader.blockAttributes) {
-			const attributeHandle = this.BlockAttributeHandles.get(blockAttribute);
+			const attributeHandle = this.blockAttributeHandles.get(blockAttribute);
 			if (attributeHandle !== undefined) {
-				const attributeDefinition = builder.TryGetCadObject<AttributeDefinition>(attributeHandle);
+				const attributeDefinition = builder.tryGetCadObject<AttributeDefinition>(attributeHandle);
 				if (attributeDefinition) {
 					blockAttribute.attributeDefinition = attributeDefinition;
 				}

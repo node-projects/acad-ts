@@ -3,7 +3,7 @@ import { DxfFileToken } from '../DxfFileToken.js';
 import { DxfSubclassMarker } from '../DxfSubclassMarker.js';
 
 export class PdfUnderlayDefinition extends UnderlayDefinition {
-	override get objectName(): string { return DxfFileToken.ObjectPdfDefinition; }
+	override get objectName(): string { return DxfFileToken.objectPdfDefinition; }
 
 	private _page: string = '';
 	get page(): string { return this._page; }

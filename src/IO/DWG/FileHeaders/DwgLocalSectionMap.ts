@@ -1,21 +1,21 @@
 export class DwgLocalSectionMap {
-	Compression: number = 2;
-	IsEmpty: boolean = false;
-	Offset: number = 0;
-	CompressedSize: number = 0;
-	PageNumber: number = 0;
-	DecompressedSize: number = 0;
-	Seeker: number = 0;
-	Size: number = 0;
-	Checksum: number = 0;
-	CRC: number = 0;
-	PageSize: number = 0;
-	ODA: number = 0;
-	SectionMap: number = 0;
+	compression: number = 2;
+	isEmpty: boolean = false;
+	offset: number = 0;
+	compressedSize: number = 0;
+	pageNumber: number = 0;
+	decompressedSize: number = 0;
+	seeker: number = 0;
+	size: number = 0;
+	checksum: number = 0;
+	crc: number = 0;
+	pageSize: number = 0;
+	oda: number = 0;
+	sectionMap: number = 0;
 
 	constructor(value?: number) {
 		if (value !== undefined) {
-			this.SectionMap = value;
+			this.sectionMap = value;
 		}
 	}
 }

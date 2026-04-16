@@ -47,16 +47,16 @@ describe('DwgWriterTests', () => {
       const writer = new DwgWriter(buffer, doc);
 
       if (isSupportedVersion(version)) {
-        writer.Write();
+        writer.write();
         fs.writeFileSync(outPath, new Uint8Array(buffer, 0, writer.bytesWritten));
 
         // Read back
         const readData = readFileAsArrayBuffer(outPath);
         const reader = new DwgReader(readData);
-        const readed = reader.Read();
+        const readed = reader.read();
         expect(readed).not.toBeNull();
       } else {
-        expect(() => writer.Write()).toThrow();
+        expect(() => writer.write()).toThrow();
       }
     });
 
@@ -75,14 +75,14 @@ describe('DwgWriterTests', () => {
 
       const buffer = new ArrayBuffer(1024 * 1024);
       const writer = new DwgWriter(buffer, doc);
-      writer.Write();
+      writer.write();
 
       fs.writeFileSync(outPath, new Uint8Array(buffer, 0, writer.bytesWritten));
 
       // Read back
       const readData = readFileAsArrayBuffer(outPath);
       const reader = new DwgReader(readData);
-      const readed = reader.Read();
+      const readed = reader.read();
       expect(readed).not.toBeNull();
     });
 
@@ -119,11 +119,11 @@ describe('DwgWriterTests', () => {
 
       const buffer = new ArrayBuffer(1024 * 1024);
       const writer = new DwgWriter(buffer, doc);
-      writer.Write();
+      writer.write();
 
       const readBuffer = buffer.slice(0);
       const reader = new DwgReader(readBuffer);
-      const info = reader.ReadSummaryInfo();
+      const info = reader.readSummaryInfo();
 
       if (info) {
         expect(info.title).toBe(doc.summaryInfo!.title);
@@ -144,8 +144,8 @@ describe('DwgWriterTests', () => {
     const proxyClass = Object.assign(new DxfClass(), {
       applicationName: 'ObjectDBX Classes',
       classNumber: 700,
-      cppClassName: DxfSubclassMarker.ProxyEntity,
-      dxfName: DxfFileToken.EntityProxyEntity,
+      cppClassName: DxfSubclassMarker.proxyEntity,
+      dxfName: DxfFileToken.entityProxyEntity,
       dwgVersion: version,
       maintenanceVersion: 0,
       wasZombie: false,
@@ -161,9 +161,9 @@ describe('DwgWriterTests', () => {
 
     const buffer = new ArrayBuffer(1024 * 1024);
     const writer = new DwgWriter(buffer, doc);
-    writer.Write();
+    writer.write();
 
-    const reread = new DwgReader(buffer.slice(0)).Read();
+    const reread = new DwgReader(buffer.slice(0)).read();
     const proxies = [...reread.entities].filter((entity): entity is ProxyEntity => entity instanceof ProxyEntity);
 
     expect(proxies).toHaveLength(1);

@@ -2,9 +2,9 @@ import { DxfStreamReaderBase } from './DxfStreamReaderBase.js';
 import { DxfCode } from '../../../DxfCode.js';
 
 export class DxfBinaryReader extends DxfStreamReaderBase {
-  public static readonly Sentinel: string = 'AutoCAD Binary DXF\r\n\x1a\0';
+  public static readonly sentinel: string = 'AutoCAD Binary DXF\r\n\x1a\0';
 
-  public static readonly SentinelBytes: Uint8Array = new Uint8Array([
+  public static readonly sentinelBytes: Uint8Array = new Uint8Array([
     0x41, 0x75, 0x74, 0x6F, 0x43, 0x41, 0x44, 0x20,
     0x42, 0x69, 0x6E, 0x61, 0x72, 0x79, 0x20, 0x44,
     0x58, 0x46, 0x0D, 0x0A, 0x1A, 0x00,
@@ -22,16 +22,16 @@ export class DxfBinaryReader extends DxfStreamReaderBase {
     super();
     this._data = stream;
     this._view = new DataView(stream.buffer, stream.byteOffset, stream.byteLength);
-    this.Start();
+    this.start();
   }
 
-  public override Start(): void {
-    super.Start();
+  public override start(): void {
+    super.start();
     this._pos = 0;
 
     // Skip sentinel (22 bytes)
     this._pos = 22;
-    this.Position = this._pos;
+    this.position = this._pos;
   }
 
   protected readStringLine(): string {
@@ -42,42 +42,42 @@ export class DxfBinaryReader extends DxfStreamReaderBase {
       bytes.push(b);
     }
 
-    this.ValueRaw = this.decodeString(new Uint8Array(bytes));
-    this.Position = this._pos;
-    return this.ValueRaw;
+    this.valueRaw = this.decodeString(new Uint8Array(bytes));
+    this.position = this._pos;
+    return this.valueRaw;
   }
 
   protected readCode(): DxfCode {
     const code = this._view.getInt16(this._pos, true);
     this._pos += 2;
-    this.Position = this._pos;
+    this.position = this._pos;
     return code as DxfCode;
   }
 
   protected lineAsBool(): boolean {
     const val = this._data[this._pos++];
-    this.Position = this._pos;
+    this.position = this._pos;
     return val > 0;
   }
 
   protected lineAsDouble(): number {
     const val = this._view.getFloat64(this._pos, true);
     this._pos += 8;
-    this.Position = this._pos;
+    this.position = this._pos;
     return val;
   }
 
   protected lineAsShort(): number {
     const val = this._view.getInt16(this._pos, true);
     this._pos += 2;
-    this.Position = this._pos;
+    this.position = this._pos;
     return val;
   }
 
   protected lineAsInt(): number {
     const val = this._view.getInt32(this._pos, true);
     this._pos += 4;
-    this.Position = this._pos;
+    this.position = this._pos;
     return val;
   }
 
@@ -86,7 +86,7 @@ export class DxfBinaryReader extends DxfStreamReaderBase {
     const lo = this._view.getUint32(this._pos, true);
     const hi = this._view.getInt32(this._pos + 4, true);
     this._pos += 8;
-    this.Position = this._pos;
+    this.position = this._pos;
     return hi * 0x100000000 + lo;
   }
 
@@ -103,7 +103,7 @@ export class DxfBinaryReader extends DxfStreamReaderBase {
     const length = this._data[this._pos++];
     const chunk = this._data.slice(this._pos, this._pos + length);
     this._pos += length;
-    this.Position = this._pos;
+    this.position = this._pos;
     return chunk;
   }
 }

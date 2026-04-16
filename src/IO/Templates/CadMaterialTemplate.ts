@@ -7,7 +7,7 @@ export class CadMaterialTemplate extends CadTemplateT<Material> {
 		super(material ?? new Material());
 	}
 
-	protected override build(builder: CadDocumentBuilder): void {
-		super.build(builder);
+	protected override _build(builder: CadDocumentBuilder): void {
+		super._build(builder);
 	}
 }

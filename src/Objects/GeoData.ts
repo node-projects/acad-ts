@@ -26,8 +26,8 @@ export class GeoMeshPoint {
 
 export class GeoData extends NonGraphicalObject {
 	override get objectType(): ObjectType { return ObjectType.UNLISTED; }
-	override get objectName(): string { return DxfFileToken.ObjectGeoData; }
-	override get subclassMarker(): string { return DxfSubclassMarker.GeoData; }
+	override get objectName(): string { return DxfFileToken.objectGeoData; }
+	override get subclassMarker(): string { return DxfSubclassMarker.geoData; }
 
 	version: GeoDataVersion = GeoDataVersion.R2013;
 	coordinatesType: DesignCoordinatesType = DesignCoordinatesType.LocalGrid;

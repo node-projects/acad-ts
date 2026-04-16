@@ -12,36 +12,36 @@ import { DictionaryVariable } from '../src/Objects/DictionaryVariable.js';
 
 describe('MetadataMappingTests', () => {
 	it('BuildsHeaderSystemVariableMap', () => {
-		const headerMap = CadHeader.GetHeaderMap();
+		const headerMap = CadHeader.getHeaderMap();
 
 		expect(headerMap.has('$CLAYER')).toBe(true);
-		expect(headerMap.get('$CLAYER')?.DxfCodes).toEqual([8]);
-		expect(headerMap.get('$EXTMAX')?.DxfCodes).toEqual([10, 20, 30]);
-		expect(headerMap.get('$TDCREATE')?.DxfCodes).toEqual([40]);
+		expect(headerMap.get('$CLAYER')?.dxfCodes).toEqual([8]);
+		expect(headerMap.get('$EXTMAX')?.dxfCodes).toEqual([10, 20, 30]);
+		expect(headerMap.get('$TDCREATE')?.dxfCodes).toEqual([40]);
 	});
 
 	it('AppliesHeaderSystemVariableValues', () => {
 		const header = new CadHeader();
 
-		header.SetValue('$CLAYER', ['Layer-A']);
+		header.setValue('$CLAYER', ['Layer-A']);
 		expect(header.currentLayerName).toBe('Layer-A');
 
-		header.SetValue('$CLAYER', ['']);
+		header.setValue('$CLAYER', ['']);
 		expect(header.currentLayerName).toBe('Layer-A');
 
-		header.SetValue('$EXTMAX', [1.25, 2.5, 3.75]);
+		header.setValue('$EXTMAX', [1.25, 2.5, 3.75]);
 		expect(header.modelSpaceExtMax.x).toBe(1.25);
 		expect(header.modelSpaceExtMax.y).toBe(2.5);
 		expect(header.modelSpaceExtMax.z).toBe(3.75);
 
 		const julianDate = CadUtils.toJulianCalendar(new Date(2024, 0, 2, 3, 4, 5, 0));
-		header.SetValue('$TDCREATE', [julianDate]);
+		header.setValue('$TDCREATE', [julianDate]);
 		expect(CadUtils.toJulianCalendar(header.createDateTime)).toBeCloseTo(julianDate, 5);
 
-		header.SetValue('$TDINDWG', [2.5]);
+		header.setValue('$TDINDWG', [2.5]);
 		expect(header.totalEditingTime).toBe(2.5 * 86400000);
 
-		expect(Array.from(header.GetValues('$EXTMAX').entries())).toEqual([
+		expect(Array.from(header.getValues('$EXTMAX').entries())).toEqual([
 			[10, 1.25],
 			[20, 2.5],
 			[30, 3.75],
@@ -61,7 +61,7 @@ describe('MetadataMappingTests', () => {
 		expect(circle.radius).toBe(12.5);
 		expect(circle.center.x).toBe(7);
 
-		const classMap = DxfClassMap.Create(DictionaryVariable);
+		const classMap = DxfClassMap.create(DictionaryVariable);
 		expect(classMap.name).toBe('DictionaryVariables');
 
 		const variable = new DictionaryVariable('TEST');

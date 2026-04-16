@@ -10,11 +10,11 @@ export class Wipeout extends CadWipeoutBase {
 	}
 
 	override get objectName(): string {
-		return DxfFileToken.EntityWipeout;
+		return DxfFileToken.entityWipeout;
 	}
 
 	override get subclassMarker(): string {
-		return DxfSubclassMarker.Wipeout;
+		return DxfSubclassMarker.wipeout;
 	}
 
 	constructor() {

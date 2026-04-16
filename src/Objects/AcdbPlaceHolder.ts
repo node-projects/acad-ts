@@ -9,10 +9,10 @@ export class AcdbPlaceHolder extends NonGraphicalObject {
 	}
 
 	override get objectName(): string {
-		return DxfFileToken.ObjectPlaceholder;
+		return DxfFileToken.objectPlaceholder;
 	}
 
 	override get subclassMarker(): string {
-		return DxfSubclassMarker.AcDbPlaceHolder;
+		return DxfSubclassMarker.acDbPlaceHolder;
 	}
 }

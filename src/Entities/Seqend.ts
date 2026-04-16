@@ -10,7 +10,7 @@ export class Seqend extends Entity {
 	}
 
 	override get objectName(): string {
-		return DxfFileToken.EntitySeqend;
+		return DxfFileToken.entitySeqend;
 	}
 
 	constructor(owner?: CadObject) {

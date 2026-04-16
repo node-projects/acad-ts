@@ -8,6 +8,6 @@ export class VertexFaceMesh extends Vertex {
 	}
 
 	override get subclassMarker(): string {
-		return DxfSubclassMarker.PolyfaceMeshVertex;
+		return DxfSubclassMarker.polyfaceMeshVertex;
 	}
 }

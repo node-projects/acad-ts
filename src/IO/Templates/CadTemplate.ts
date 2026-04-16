@@ -10,76 +10,76 @@ import { NotificationType } from '../NotificationEventHandler.js';
 import { ICadObjectTemplate } from './ICadObjectTemplate.js';
 
 export abstract class CadTemplate<T extends CadObject = CadObject> implements ICadObjectTemplate {
-	CadObject: CadObject;
+	cadObject: CadObject;
 
-	EDataTemplate: Map<number, ExtendedDataRecord[]> = new Map();
+	eDataTemplate: Map<number, ExtendedDataRecord[]> = new Map();
 
-	EDataTemplateByAppName: Map<string, ExtendedDataRecord[]> = new Map();
+	eDataTemplateByAppName: Map<string, ExtendedDataRecord[]> = new Map();
 
-	HasBeenBuilt: boolean = false;
+	hasBeenBuilt: boolean = false;
 
-	OwnerHandle: number | null = null;
+	ownerHandle: number | null = null;
 
-	ReactorsHandles: Set<number> = new Set();
+	reactorsHandles: Set<number> = new Set();
 
-	XDictHandle: number | null = null;
+	xDictHandle: number | null = null;
 
 	constructor(cadObject: CadObject) {
-		this.CadObject = cadObject;
+		this.cadObject = cadObject;
 	}
 
-	Build(builder: CadDocumentBuilder): void {
-		if (this.HasBeenBuilt) {
+	build(builder: CadDocumentBuilder): void {
+		if (this.hasBeenBuilt) {
 			return;
 		} else {
-			this.HasBeenBuilt = true;
+			this.hasBeenBuilt = true;
 		}
 
-		this.build(builder);
+		this._build(builder);
 	}
 
 	toString(): string {
-		return `${this.CadObject?.toString()}`;
+		return `${this.cadObject?.toString()}`;
 	}
 
-	protected build(builder: CadDocumentBuilder): void {
-		const cadDictionary = builder.TryGetCadObject<CadDictionary>(this.XDictHandle);
+	protected _build(builder: CadDocumentBuilder): void {
+		const cadDictionary = builder.tryGetCadObject<CadDictionary>(this.xDictHandle);
 		if (cadDictionary) {
-			this.CadObject.xDictionary = cadDictionary;
+			this.cadObject.xDictionary = cadDictionary;
 		}
 
-		for (const handle of this.ReactorsHandles) {
-			const reactor = builder.TryGetCadObject<CadObject>(handle);
+		for (const handle of this.reactorsHandles) {
+			const reactor = builder.tryGetCadObject<CadObject>(handle);
 			if (reactor) {
-				this.CadObject.addReactor(reactor);
+				this.cadObject.addReactor(reactor);
 			} else {
-				builder.Notify(`Reactor with handle ${handle} not found`, NotificationType.Warning);
+				builder.notify(`Reactor with handle ${handle} not found`, NotificationType.Warning);
 			}
 		}
 
-		for (const [key, value] of this.EDataTemplate) {
-			const app = builder.TryGetCadObject<AppId>(key);
+		for (const [key, value] of this.eDataTemplate) {
+			const app = builder.tryGetCadObject<AppId>(key);
 			if (app) {
-				this.CadObject.extendedData.set(app, new ExtendedData(value));
+				this.cadObject.extendedData.set(app, new ExtendedData(value));
 			} else {
-				builder.Notify(`AppId in extended data with handle ${key} not found`, NotificationType.Warning);
+				builder.notify(`AppId in extended data with handle ${key} not found`, NotificationType.Warning);
 			}
 		}
 
-		for (const [key, value] of this.EDataTemplateByAppName) {
-			const app = builder.TryGetTableEntry<AppId>(key);
+		for (const [key, value] of this.eDataTemplateByAppName) {
+			const app = builder.tryGetTableEntry<AppId>(key);
 			if (app) {
-				this.CadObject.extendedData.set(app, new ExtendedData(value));
+				this.cadObject.extendedData.set(app, new ExtendedData(value));
 			} else {
-				builder.Notify(`AppId in extended data with handle ${key} not found`, NotificationType.Warning);
+				builder.notify(`AppId in extended data with handle ${key} not found`, NotificationType.Warning);
 			}
 		}
 	}
 
 	protected *getEntitiesCollection<T extends Entity = Entity>(builder: CadDocumentBuilder, firstHandle: number, endHandle: number): IterableIterator<T> {
 		const getEntityTemplate = (handle: number | null | undefined): CadEntityTemplate | null => {
-			const candidate = builder.TryGetObjectTemplate<ICadObjectTemplate>(handle);
-			if (candidate && candidate.CadObject instanceof Entity && 'NextEntity' in candidate) {
+			const candidate = builder.tryGetObjectTemplate<ICadObjectTemplate>(handle);
+			if (candidate && candidate.cadObject instanceof Entity && 'nextEntity' in candidate) {
 				return candidate as unknown as CadEntityTemplate;
 			}
 			return null;
@@ -89,45 +89,45 @@ export abstract class CadTemplate<T extends CadObject = CadObject> implements IC
 		let template = getEntityTemplate(firstHandle);
 
 		if (!template) {
-			builder.Notify(`Leading entity with handle ${firstHandle} not found.`, NotificationType.Warning);
+			builder.notify(`Leading entity with handle ${firstHandle} not found.`, NotificationType.Warning);
 			template = getEntityTemplate(endHandle);
 		}
 
 		while (template) {
-			if (visitedHandles.has(template.CadObject.handle)) {
-				builder.Notify(`Entity chain loop detected at handle ${template.CadObject.handle}`, NotificationType.Warning);
+			if (visitedHandles.has(template.cadObject.handle)) {
+				builder.notify(`Entity chain loop detected at handle ${template.cadObject.handle}`, NotificationType.Warning);
 				break;
 			}
-			visitedHandles.add(template.CadObject.handle);
+			visitedHandles.add(template.cadObject.handle);
 
-			yield template.CadObject as T;
+			yield template.cadObject as T;
 
-			if (template.CadObject.handle === endHandle) {
+			if (template.cadObject.handle === endHandle) {
 				break;
 			}
 
-			if (template.NextEntity != null) {
-				template = getEntityTemplate(template.NextEntity);
+			if (template.nextEntity != null) {
+				template = getEntityTemplate(template.nextEntity);
 			} else {
-				template = getEntityTemplate(template.CadObject.handle + 1);
+				template = getEntityTemplate(template.cadObject.handle + 1);
 			}
 		}
 	}
 
 	protected getTableReference<T extends TableEntry = TableEntry>(builder: CadDocumentBuilder, handle: number | null, name: string): T | null {
-		const byHandleCandidate = builder.TryGetCadObject<CadObject>(handle);
+		const byHandleCandidate = builder.tryGetCadObject<CadObject>(handle);
 		const byHandle = byHandleCandidate instanceof TableEntry ? byHandleCandidate as T : null;
 		if (byHandle) {
 			return byHandle;
 		}
 
-		const byName = builder.TryGetTableEntry<T>(name);
+		const byName = builder.tryGetTableEntry<T>(name);
 		if (byName) {
 			return byName;
 		}
 
 		if ((name && name.length > 0) || (handle != null && handle !== 0)) {
-			builder.Notify(`Table reference with handle: ${handle} | name: ${name} not found for ${this.CadObject.constructor.name} with handle ${this.CadObject.handle}`, NotificationType.Warning);
+			builder.notify(`Table reference with handle: ${handle} | name: ${name} not found for ${this.cadObject.constructor.name} with handle ${this.cadObject.handle}`, NotificationType.Warning);
 		}
 
 		return null;
@@ -136,5 +136,5 @@ export abstract class CadTemplate<T extends CadObject = CadObject> implements IC
 
 // Forward reference for CadEntityTemplate - will be in its own file
 export interface CadEntityTemplate extends CadTemplate {
-	NextEntity: number | null;
+	nextEntity: number | null;
 }

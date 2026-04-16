@@ -9,105 +9,105 @@ import { decodeCadString, getDecoderEncodingLabel } from '../../TextEncoding.js'
 export abstract class DxfStreamReaderBase implements IDxfStreamReader {
   public encoding: string = getDecoderEncodingLabel('ANSI_1252');
 
-  public DxfCode: DxfCode = DxfCode.Invalid;
+  public dxfCode: DxfCode = DxfCode.Invalid;
 
-  public GroupCodeValue: GroupCodeValueType = GroupCodeValueType.None;
+  public groupCodeValue: GroupCodeValueType = GroupCodeValueType.None;
 
-  public get Code(): number {
-    return this.DxfCode as number;
+  public get code(): number {
+    return this.dxfCode as number;
   }
 
-  public Value: unknown = '';
+  public value: unknown = '';
 
-  public Position: number = 0;
+  public position: number = 0;
 
-  public ValueRaw: string = '';
+  public valueRaw: string = '';
 
-  public get ValueAsString(): string {
-    return String(this.Value)
+  public get valueAsString(): string {
+    return String(this.value)
       .replace(/\^J/g, '\n')
       .replace(/\^M/g, '\r')
       .replace(/\^I/g, '\t')
       .replace(/\^ /g, '^');
   }
 
-  public get ValueAsBool(): boolean {
-    return Boolean(this.Value);
+  public get valueAsBool(): boolean {
+    return Boolean(this.value);
   }
 
-  public get ValueAsShort(): number {
-    return Number(this.Value) & 0xFFFF;
+  public get valueAsShort(): number {
+    return Number(this.value) & 0xFFFF;
   }
 
-  public get ValueAsUShort(): number {
-    return (Number(this.Value) & 0xFFFF) >>> 0;
+  public get valueAsUShort(): number {
+    return (Number(this.value) & 0xFFFF) >>> 0;
   }
 
-  public get ValueAsInt(): number {
-    return Number(this.Value) | 0;
+  public get valueAsInt(): number {
+    return Number(this.value) | 0;
   }
 
-  public get ValueAsLong(): number {
-    return Number(this.Value);
+  public get valueAsLong(): number {
+    return Number(this.value);
   }
 
-  public get ValueAsDouble(): number {
-    return Number(this.Value);
+  public get valueAsDouble(): number {
+    return Number(this.value);
   }
 
-  public get ValueAsAngle(): number {
-    return MathHelper.DegToRad(Number(this.Value));
+  public get valueAsAngle(): number {
+    return MathHelper.degToRad(Number(this.value));
   }
 
-  public get ValueAsHandle(): number {
-    return Number(this.Value);
+  public get valueAsHandle(): number {
+    return Number(this.value);
   }
 
-  public get ValueAsBinaryChunk(): Uint8Array {
-    return this.Value as Uint8Array;
+  public get valueAsBinaryChunk(): Uint8Array {
+    return this.value as Uint8Array;
   }
 
   protected abstract get baseStream(): Uint8Array;
 
-  public ReadNext(): void {
-    this.DxfCode = this.readCode();
-    this.GroupCodeValue = GroupCodeValue.transformValue(this.Code);
-    this.Value = this.transformValue(this.GroupCodeValue);
+  public readNext(): void {
+    this.dxfCode = this.readCode();
+    this.groupCodeValue = GroupCodeValue.transformValue(this.code);
+    this.value = this._transformValue(this.groupCodeValue);
 
-    if (this.DxfCode === DxfCode.Comment) {
-      this.ReadNext();
+    if (this.dxfCode === DxfCode.Comment) {
+      this.readNext();
     }
   }
 
-  public Find(dxfEntry: string): boolean {
-    this.Start();
+  public find(dxfEntry: string): boolean {
+    this.start();
 
     do {
-      this.ReadNext();
-    } while (this.ValueAsString !== dxfEntry && this.ValueAsString !== DxfFileToken.EndOfFile);
+      this.readNext();
+    } while (this.valueAsString !== dxfEntry && this.valueAsString !== DxfFileToken.endOfFile);
 
-    return this.ValueAsString === dxfEntry;
+    return this.valueAsString === dxfEntry;
   }
 
-  public ExpectedCode(code: number): void {
-    this.ReadNext();
+  public expectedCode(code: number): void {
+    this.readNext();
 
-    if (this.Code !== code) {
-      throw new DxfException(code, this.Position);
+    if (this.code !== code) {
+      throw new DxfException(code, this.position);
     }
   }
 
   public toString(): string {
-    return `${this.Code} | ${this.Value}`;
+    return `${this.code} | ${this.value}`;
   }
 
-  public Start(): void {
-    this.DxfCode = DxfCode.Invalid;
-    this.Value = '';
+  public start(): void {
+    this.dxfCode = DxfCode.Invalid;
+    this.value = '';
 
     this._streamPosition = 0;
 
-    this.Position = 0;
+    this.position = 0;
   }
 
   protected _streamPosition: number = 0;
@@ -134,7 +134,7 @@ export abstract class DxfStreamReaderBase implements IDxfStreamReader {
     return decodeCadString(bytes, this.encoding);
   }
 
-  private transformValue(code: GroupCodeValueType): unknown {
+  private _transformValue(code: GroupCodeValueType): unknown {
     switch (code) {
       case GroupCodeValueType.String:
       case GroupCodeValueType.Comment:
@@ -164,7 +164,7 @@ export abstract class DxfStreamReaderBase implements IDxfStreamReader {
         return this.lineAsBinaryChunk();
       case GroupCodeValueType.None:
       default:
-        throw new DxfException(code as number, this.Position);
+        throw new DxfException(code as number, this.position);
     }
   }
 }

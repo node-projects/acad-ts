@@ -9,7 +9,7 @@ export class Ray extends Entity {
 	direction: XYZ = new XYZ(0, 0, 0);
 
 	override get objectName(): string {
-		return DxfFileToken.EntityRay;
+		return DxfFileToken.entityRay;
 	}
 
 	override get objectType(): ObjectType {
@@ -19,7 +19,7 @@ export class Ray extends Entity {
 	startPoint: XYZ = new XYZ(0, 0, 0);
 
 	override get subclassMarker(): string {
-		return DxfSubclassMarker.Ray;
+		return DxfSubclassMarker.ray;
 	}
 
 	override applyTransform(transform: unknown): void {
@@ -31,6 +31,6 @@ export class Ray extends Entity {
 	}
 
 	override getBoundingBox(): BoundingBox {
-		return BoundingBox.Infinite;
+		return BoundingBox.infinite;
 	}
 }

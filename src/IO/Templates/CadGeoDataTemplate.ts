@@ -4,18 +4,18 @@ import { CadDocumentBuilder } from '../CadDocumentBuilder.js';
 import { CadTemplateT } from './CadTemplate[T].js';
 
 export class CadGeoDataTemplate extends CadTemplateT<GeoData> {
-	HostBlockHandle: number | null = null;
+	hostBlockHandle: number | null = null;
 
 	constructor(geodata?: GeoData) {
 		super(geodata ?? new GeoData());
 	}
 
-	protected override build(builder: CadDocumentBuilder): void {
-		super.build(builder);
+	protected override _build(builder: CadDocumentBuilder): void {
+		super._build(builder);
 
-		const host = this.getTableReference<BlockRecord>(builder, this.HostBlockHandle, '');
+		const host = this.getTableReference<BlockRecord>(builder, this.hostBlockHandle, '');
 		if (host) {
-			this.CadObject.hostBlock = host;
+			this.cadObject.hostBlock = host;
 		}
 	}
 }

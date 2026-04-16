@@ -12,7 +12,7 @@ export class Circle extends Entity {
 	normal: XYZ = new XYZ(0, 0, 1);
 
 	override get objectName(): string {
-		return DxfFileToken.EntityCircle;
+		return DxfFileToken.entityCircle;
 	}
 
 	override get objectType(): ObjectType {
@@ -34,7 +34,7 @@ export class Circle extends Entity {
 	}
 
 	override get subclassMarker(): string {
-		return DxfSubclassMarker.Circle;
+		return DxfSubclassMarker.circle;
 	}
 
 	thickness: number = 0.0;

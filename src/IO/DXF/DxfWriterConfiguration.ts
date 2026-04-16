@@ -3,7 +3,7 @@ import { CadHeader } from '../../Header/CadHeader.js';
 import { CadSystemVariable } from '../../CadSystemVariable.js';
 
 export class DxfWriterConfiguration extends CadWriterConfiguration {
-  public static readonly Variables: string[] = [
+  public static readonly variables: string[] = [
     "$ACADVER",
     "$DWGCODEPAGE",
     "$LASTSAVEDBY",
@@ -46,11 +46,11 @@ export class DxfWriterConfiguration extends CadWriterConfiguration {
     "$TDINDWG",
   ];
 
-  public WriteAllHeaderVariables: boolean = false;
+  public writeAllHeaderVariables: boolean = false;
 
-  public WriteOptionalValues: boolean = true;
+  public writeOptionalValues: boolean = true;
 
-  public get HeaderVariables(): ReadonlySet<string> {
+  public get headerVariables(): ReadonlySet<string> {
     return this._headerVariables;
   }
 
@@ -58,11 +58,11 @@ export class DxfWriterConfiguration extends CadWriterConfiguration {
 
   public constructor() {
     super();
-    this._headerVariables = new Set<string>(DxfWriterConfiguration.Variables);
+    this._headerVariables = new Set<string>(DxfWriterConfiguration.variables);
   }
 
-  public AddHeaderVariable(name: string): void {
-    const map: Map<string, CadSystemVariable> = CadHeader.GetHeaderMap();
+  public addHeaderVariable(name: string): void {
+    const map: Map<string, CadSystemVariable> = CadHeader.getHeaderMap();
 
     if (!map.has(name)) {
       throw new Error(`The variable ${name} does not exist in the header`);
@@ -71,8 +71,8 @@ export class DxfWriterConfiguration extends CadWriterConfiguration {
     this._headerVariables.add(name);
   }
 
-  public RemoveHeaderVariable(name: string): boolean {
-    if (DxfWriterConfiguration.Variables.map(v => v.toLowerCase()).includes(name.toLowerCase())) {
+  public removeHeaderVariable(name: string): boolean {
+    if (DxfWriterConfiguration.variables.map(v => v.toLowerCase()).includes(name.toLowerCase())) {
       throw new Error(`The variable ${name} cannot be removed from the set`);
     }
 

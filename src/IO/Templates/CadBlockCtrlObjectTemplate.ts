@@ -4,25 +4,25 @@ import { CadDocumentBuilder } from '../CadDocumentBuilder.js';
 import { CadTableTemplate } from './CadTableTemplate.js';
 
 export class CadBlockCtrlObjectTemplate extends CadTableTemplate<BlockRecord> {
-	ModelSpaceHandle: number | null = null;
+	modelSpaceHandle: number | null = null;
 
-	PaperSpaceHandle: number | null = null;
+	paperSpaceHandle: number | null = null;
 
 	constructor(blocks: BlockRecordsTable) {
 		super(blocks);
 	}
 
-	protected override build(builder: CadDocumentBuilder): void {
-		super.build(builder);
+	protected override _build(builder: CadDocumentBuilder): void {
+		super._build(builder);
 
-		const modelSpace = builder.TryGetCadObject<BlockRecord>(this.ModelSpaceHandle);
+		const modelSpace = builder.tryGetCadObject<BlockRecord>(this.modelSpaceHandle);
 		if (modelSpace) {
-			this.CadObject.add(modelSpace);
+			this.cadObject.add(modelSpace);
 		}
 
-		const paperSpace = builder.TryGetCadObject<BlockRecord>(this.PaperSpaceHandle);
+		const paperSpace = builder.tryGetCadObject<BlockRecord>(this.paperSpaceHandle);
 		if (paperSpace) {
-			this.CadObject.add(paperSpace);
+			this.cadObject.add(paperSpace);
 		}
 	}
 }

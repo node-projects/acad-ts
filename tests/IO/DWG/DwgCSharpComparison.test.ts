@@ -59,7 +59,7 @@ function createSimpleDoc(version: ACadVersion): CadDocument {
 function writeDwg(doc: CadDocument): Uint8Array {
   const buffer = new ArrayBuffer(4 * 1024 * 1024);
   const writer = new DwgWriter(buffer, doc);
-  writer.Write();
+  writer.write();
   return new Uint8Array(buffer, 0, writer.bytesWritten);
 }
 

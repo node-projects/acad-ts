@@ -6,21 +6,21 @@ import { CadTemplateT } from './CadTemplate[T].js';
 import { ICadOwnerTemplate } from './ICadOwnerTemplate.js';
 
 export class CadFieldListTemplate extends CadTemplateT<FieldList> implements ICadOwnerTemplate {
-	OwnedObjectsHandlers: Set<number> = new Set();
+	ownedObjectsHandlers: Set<number> = new Set();
 
 	constructor(obj: FieldList) {
 		super(obj);
 	}
 
-	protected override build(builder: CadDocumentBuilder): void {
-		super.build(builder);
+	protected override _build(builder: CadDocumentBuilder): void {
+		super._build(builder);
 
-		for (const handle of this.OwnedObjectsHandlers) {
-			const field = builder.TryGetCadObject<Field>(handle);
+		for (const handle of this.ownedObjectsHandlers) {
+			const field = builder.tryGetCadObject<Field>(handle);
 			if (field) {
-				this.CadObject.fields.push(field);
+				this.cadObject.fields.push(field);
 			} else {
-				builder.Notify(`Field ${handle} not found for FieldList ${this.CadObject.handle}`, NotificationType.Warning);
+				builder.notify(`Field ${handle} not found for FieldList ${this.cadObject.handle}`, NotificationType.Warning);
 			}
 		}
 	}

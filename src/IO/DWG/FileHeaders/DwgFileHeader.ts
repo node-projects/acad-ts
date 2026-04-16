@@ -5,30 +5,30 @@ import { DwgSectionDescriptor } from './DwgSectionDescriptor.js';
 let _factory: ((version: ACadVersion) => DwgFileHeader | null) | null = null;
 
 export abstract class DwgFileHeader {
-	readonly AcadVersion: ACadVersion;
+	readonly acadVersion: ACadVersion;
 
-	PreviewAddress: number = -1;
+	previewAddress: number = -1;
 
-	AcadMaintenanceVersion: number = 0;
+	acadMaintenanceVersion: number = 0;
 
-	DrawingCodePage: number = 0;
+	drawingCodePage: number = 0;
 
 	constructor(version?: ACadVersion) {
-		this.AcadVersion = version ?? ACadVersion.Unknown;
+		this.acadVersion = version ?? ACadVersion.Unknown;
 	}
 
 	static registerFactory(factory: (version: ACadVersion) => DwgFileHeader | null): void {
 		_factory = factory;
 	}
 
-	static CreateFileHeader(version: ACadVersion): DwgFileHeader | null {
+	static createFileHeader(version: ACadVersion): DwgFileHeader | null {
 		if (!_factory) {
 			throw new Error('DwgFileHeader factory not registered. Import DwgFileHeaderFactory first.');
 		}
 		return _factory(version);
 	}
 
-	abstract AddSection(name: string): void;
+	abstract addSection(name: string): void;
 
-	abstract GetDescriptor(name: string): DwgSectionDescriptor;
+	abstract getDescriptor(name: string): DwgSectionDescriptor;
 }

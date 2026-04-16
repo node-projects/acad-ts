@@ -9,7 +9,7 @@ export class FieldList extends NonGraphicalObject {
 	fields: Field[] = [];
 
 	override get objectName(): string {
-		return DxfFileToken.ObjectFieldList;
+		return DxfFileToken.objectFieldList;
 	}
 
 	override get objectType(): ObjectType {
@@ -17,7 +17,7 @@ export class FieldList extends NonGraphicalObject {
 	}
 
 	override get subclassMarker(): string {
-		return DxfSubclassMarker.FieldList;
+		return DxfSubclassMarker.fieldList;
 	}
 
 	override clone(): CadObject {

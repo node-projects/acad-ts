@@ -40,15 +40,15 @@ export class DxfReader extends CadReaderBase<DxfReaderConfiguration> {
 
   public constructor(stream: Uint8Array, notification?: NotificationEventHandler) {
     super(stream, notification);
-    this.Configuration = new DxfReaderConfiguration();
+    this.configuration = new DxfReaderConfiguration();
   }
 
-  public IsBinary(): boolean {
-    return DxfReader.IsBinaryStream(this.fileStream);
+  public isBinary(): boolean {
+    return DxfReader.isBinaryStream(this.fileStream);
   }
 
-  public static IsBinaryStream(stream: Uint8Array, resetPos: boolean = false): boolean {
-    const sentinelBytes = DxfBinaryReader.SentinelBytes;
+  public static isBinaryStream(stream: Uint8Array, resetPos: boolean = false): boolean {
+    const sentinelBytes = DxfBinaryReader.sentinelBytes;
     if (stream.length < sentinelBytes.length) {
       return false;
     }
@@ -62,105 +62,105 @@ export class DxfReader extends CadReaderBase<DxfReaderConfiguration> {
     return true;
   }
 
-  public static ReadFromStream(stream: Uint8Array, notification?: NotificationEventHandler): CadDocument {
+  public static readFromStream(stream: Uint8Array, notification?: NotificationEventHandler): CadDocument {
     const reader = new DxfReader(stream, notification);
-    const doc = reader.Read();
-    reader.Dispose();
+    const doc = reader.read();
+    reader.dispose();
     return doc;
   }
 
-  public static ReadFromStreamWithConfig(
+  public static readFromStreamWithConfig(
     stream: Uint8Array,
     configuration: DxfReaderConfiguration,
     notification?: NotificationEventHandler
   ): CadDocument {
     const reader = new DxfReader(stream, notification);
-    reader.Configuration = configuration;
-    const doc = reader.Read();
-    reader.Dispose();
+    reader.configuration = configuration;
+    const doc = reader.read();
+    reader.dispose();
     return doc;
   }
 
-  public override Read(): CadDocument {
+  public override read(): CadDocument {
     this._document = new CadDocument();
     this._document.summaryInfo = new CadSummaryInfo();
 
-    this._reader = this._reader ?? this.getReader();
+    this._reader = this._reader ?? this._getReader();
 
-    this._builder = new DxfDocumentBuilder(this._version, this._document, this.Configuration);
-    this._builder.OnNotification = this.onNotificationEvent.bind(this);
+    this._builder = new DxfDocumentBuilder(this._version, this._document, this.configuration);
+    this._builder.onNotification = this.onNotificationEvent.bind(this);
 
-    while (this._reader.ValueAsString !== DxfFileToken.EndOfFile) {
-      if (this._reader.ValueAsString !== DxfFileToken.BeginSection) {
-        this._reader.ReadNext();
+    while (this._reader.valueAsString !== DxfFileToken.endOfFile) {
+      if (this._reader.valueAsString !== DxfFileToken.beginSection) {
+        this._reader.readNext();
         continue;
       } else {
-        this._reader.ReadNext();
+        this._reader.readNext();
       }
 
-      switch (this._reader.ValueAsString as string) {
-        case DxfFileToken.HeaderSection:
-          this._document.header = this.ReadHeader();
-          this._document.header.Document = this._document;
-          this._builder.InitialHandSeed = this._document.header.HandleSeed;
+      switch (this._reader.valueAsString as string) {
+        case DxfFileToken.headerSection:
+          this._document.header = this.readHeader();
+          this._document.header.document = this._document;
+          this._builder.initialHandSeed = this._document.header.handleSeed;
           break;
-        case DxfFileToken.ClassesSection:
-          this._document.classes = this.readClasses();
+        case DxfFileToken.classesSection:
+          this._document.classes = this._readClasses();
           break;
-        case DxfFileToken.TablesSection:
-          this.readTables();
+        case DxfFileToken.tablesSection:
+          this._readTablesSection();
           break;
-        case DxfFileToken.BlocksSection:
-          this.readBlocks();
+        case DxfFileToken.blocksSection:
+          this._readBlocks();
           break;
-        case DxfFileToken.EntitiesSection:
-          this.readEntities();
+        case DxfFileToken.entitiesSection:
+          this._readEntitiesSection();
           break;
-        case DxfFileToken.ObjectsSection:
-          this.readObjects();
+        case DxfFileToken.objectsSection:
+          this._readObjects();
           break;
         default:
-          this.triggerNotification(`Section not implemented ${this._reader.ValueAsString}`, NotificationType.NotImplemented);
+          this.triggerNotification(`Section not implemented ${this._reader.valueAsString}`, NotificationType.NotImplemented);
           break;
       }
 
-      this._reader.ReadNext();
+      this._reader.readNext();
     }
 
     if (this._document.header === null) {
       this._document.header = new CadHeader(this._document);
     }
 
-    this._builder.BuildDocument();
+    this._builder.buildDocument();
 
     return this._document;
   }
 
-  public override ReadHeader(): CadHeader {
-    this._reader = this.goToSection(DxfFileToken.HeaderSection);
+  public override readHeader(): CadHeader {
+    this._reader = this._goToSection(DxfFileToken.headerSection);
 
     const header = new CadHeader();
 
-    const headerMap: Map<string, CadSystemVariable> = CadHeader.GetHeaderMap();
+    const headerMap: Map<string, CadSystemVariable> = CadHeader.getHeaderMap();
 
-    this._reader.ReadNext();
+    this._reader.readNext();
 
-    while (this._reader.ValueAsString !== DxfFileToken.EndSection) {
-      const currVar = this._reader.ValueAsString;
+    while (this._reader.valueAsString !== DxfFileToken.endSection) {
+      const currVar = this._reader.valueAsString;
 
       if (currVar === null || currVar === undefined || !headerMap.has(currVar)) {
-        this._reader.ReadNext();
+        this._reader.readNext();
         continue;
       }
 
       const data = headerMap.get(currVar)!;
 
-      const parameters: unknown[] = new Array(data.DxfCodes.length);
-      for (let i = 0; i < data.DxfCodes.length; i++) {
-        this._reader.ReadNext();
+      const parameters: unknown[] = new Array(data.dxfCodes.length);
+      for (let i = 0; i < data.dxfCodes.length; i++) {
+        this._reader.readNext();
 
-        if (this._reader.DxfCode === DxfCode.CLShapeText) {
-          const c = data.DxfCodes[i];
+        if (this._reader.dxfCode === DxfCode.CLShapeText) {
+          const c = data.dxfCodes[i];
           const g = GroupCodeValue.transformValue(c);
           switch (g) {
             case GroupCodeValueType.Bool:
@@ -184,11 +184,11 @@ export class DxfReader extends CadReaderBase<DxfReaderConfiguration> {
           break;
         }
 
-        parameters[i] = this._reader.Value;
+        parameters[i] = this._reader.value;
       }
 
       try {
-        header.SetValue(currVar, parameters);
+        header.setValue(currVar, parameters);
 
         if (currVar === '$DWGCODEPAGE') {
           this._encoding = getDecoderEncodingLabel(header.codePage);
@@ -202,59 +202,71 @@ export class DxfReader extends CadReaderBase<DxfReaderConfiguration> {
         );
       }
 
-      if (this._reader.DxfCode !== DxfCode.CLShapeText) {
-        this._reader.ReadNext();
+      if (this._reader.dxfCode !== DxfCode.CLShapeText) {
+        this._reader.readNext();
       }
     }
 
     return header;
   }
 
-  public ReadTables(): CadDocument {
-    this._reader = this._reader ?? this.getReader();
+  public readTablesOnly(): CadDocument {
+    this._reader = this._reader ?? this._getReader();
 
-    this._builder = new DxfDocumentBuilder(this._version, this._document, this.Configuration);
-    this._builder.OnNotification = this.onNotificationEvent.bind(this);
+    this._builder = new DxfDocumentBuilder(this._version, this._document, this.configuration);
+    this._builder.onNotification = this.onNotificationEvent.bind(this);
 
-    this.readTables();
+    this._readTablesSection();
 
     this._document.header = new CadHeader(this._document);
 
-    this._builder.RegisterTables();
+    this._builder.registerTables();
 
-    this._builder.BuildTables();
+    this._builder.buildTables();
 
     return this._document;
   }
 
-  public ReadEntities(): Entity[] {
-    this._reader = this._reader ?? this.getReader();
-
-    this._builder = new DxfDocumentBuilder(this._version, this._document, this.Configuration);
-    this._builder.OnNotification = this.onNotificationEvent.bind(this);
-
-    this.readEntities();
-
-    return this._builder.BuildEntities();
+  public readTables(): CadDocument {
+    return this.readTablesOnly();
   }
 
-  public override Dispose(): void {
-    super.Dispose();
+  public readEntitiesOnly(): Entity[] {
+    this._reader = this._reader ?? this._getReader();
 
-    if (this.Configuration.ClearCache) {
+    this._builder = new DxfDocumentBuilder(this._version, this._document, this.configuration);
+    this._builder.onNotification = this.onNotificationEvent.bind(this);
+
+    this._readEntitiesSection();
+
+    return this._builder.buildEntities();
+  }
+
+  public readEntities(): Entity[] {
+    return this.readEntitiesOnly();
+  }
+
+  public getReader(): IDxfStreamReader {
+    return this._getReader();
+  }
+
+  public override dispose(): void {
+    super.dispose();
+
+    if (this.configuration.clearCache) {
       DxfMap.clearCache();
     }
   }
 
-  private readClasses(): DxfClassCollection {
-    this._reader = this.goToSection(DxfFileToken.ClassesSection);
+  private _readClasses(): DxfClassCollection {
+    this._reader = this._goToSection(DxfFileToken.classesSection);
 
     const classes = new DxfClassCollection();
 
-    this._reader.ReadNext();
-    while (this._reader.ValueAsString !== DxfFileToken.EndSection) {
-      if (this._reader.ValueAsString === DxfFileToken.ClassEntry) {
-        const dxfClass = this.readClass();
+    this._reader.readNext();
+    while (this._reader.valueAsString !== DxfFileToken.endSection) {
+      if (this._reader.valueAsString === DxfFileToken.classEntry) {
+        const dxfClass = this._readClass();
 
         if (dxfClass.classNumber < 500) {
           dxfClass.classNumber = 500 + classes.count;
@@ -262,111 +274,111 @@ export class DxfReader extends CadReaderBase<DxfReaderConfiguration> {
 
         classes.addOrUpdate(dxfClass);
       } else {
-        this._reader.ReadNext();
+        this._reader.readNext();
       }
     }
 
     return classes;
   }
 
-  private readClass(): DxfClass {
+  private _readClass(): DxfClass {
     const curr = new DxfClass();
 
-    this._reader.ReadNext();
-    while (this._reader.DxfCode !== DxfCode.Start) {
-      switch (this._reader.Code) {
+    this._reader.readNext();
+    while (this._reader.dxfCode !== DxfCode.Start) {
+      switch (this._reader.code) {
         case 1:
-          curr.dxfName = this._reader.ValueAsString;
+          curr.dxfName = this._reader.valueAsString;
           break;
         case 2:
-          curr.cppClassName = this._reader.ValueAsString;
+          curr.cppClassName = this._reader.valueAsString;
           break;
         case 3:
-          curr.applicationName = this._reader.ValueAsString;
+          curr.applicationName = this._reader.valueAsString;
           break;
         case 90:
-          curr.proxyFlags = this._reader.ValueAsInt as ProxyFlags;
+          curr.proxyFlags = this._reader.valueAsInt as ProxyFlags;
           break;
         case 91:
-          curr.instanceCount = this._reader.ValueAsInt;
+          curr.instanceCount = this._reader.valueAsInt;
           break;
         case 280:
-          curr.wasZombie = this._reader.ValueAsBool;
+          curr.wasZombie = this._reader.valueAsBool;
           break;
         case 281:
-          curr.isAnEntity = this._reader.ValueAsBool;
+          curr.isAnEntity = this._reader.valueAsBool;
           break;
         default:
           break;
       }
 
-      this._reader.ReadNext();
+      this._reader.readNext();
     }
 
     return curr;
   }
 
-  private readTables(): void {
-    this._reader = this.goToSection(DxfFileToken.TablesSection);
+  private _readTablesSection(): void {
+    this._reader = this._goToSection(DxfFileToken.tablesSection);
 
     const reader = new DxfTablesSectionReader(this._reader, this._builder);
 
-    reader.Read();
+    reader.read();
   }
 
-  private readBlocks(): void {
-    this._reader = this.goToSection(DxfFileToken.BlocksSection);
+  private _readBlocks(): void {
+    this._reader = this._goToSection(DxfFileToken.blocksSection);
 
     const reader = new DxfBlockSectionReader(this._reader, this._builder);
 
-    reader.Read();
+    reader.read();
   }
 
-  private readEntities(): void {
-    this._reader = this.goToSection(DxfFileToken.EntitiesSection);
+  private _readEntitiesSection(): void {
+    this._reader = this._goToSection(DxfFileToken.entitiesSection);
 
     const reader = new DxfEntitiesSectionReader(this._reader, this._builder);
 
-    reader.Read();
+    reader.read();
   }
 
-  private readObjects(): void {
-    this._reader = this.goToSection(DxfFileToken.ObjectsSection);
+  private _readObjects(): void {
+    this._reader = this._goToSection(DxfFileToken.objectsSection);
 
     const reader = new DxfObjectsSectionReader(this._reader, this._builder);
 
-    reader.Read();
+    reader.read();
   }
 
-  private getReader(): IDxfStreamReader {
+  private _getReader(): IDxfStreamReader {
     this._version = ACadVersion.Unknown;
     this._encoding = getDecoderEncodingLabel('ANSI_1252');
 
     const stream = this.fileStream;
-    const isBinary = DxfReader.IsBinaryStream(stream);
+    const isBinary = DxfReader.isBinaryStream(stream);
     let isAC1009Format = false;
 
-    if (isBinary && stream.length > DxfBinaryReader.SentinelBytes.length) {
-      const flag = stream[DxfBinaryReader.SentinelBytes.length];
+    if (isBinary && stream.length > DxfBinaryReader.sentinelBytes.length) {
+      const flag = stream[DxfBinaryReader.sentinelBytes.length];
       if (flag !== undefined && flag !== 0) {
         isAC1009Format = true;
       }
     }
 
-    let tmpReader = this.createReader(isBinary, isAC1009Format);
+    let tmpReader = this._createReader(isBinary, isAC1009Format);
 
-    if (!tmpReader.Find(DxfFileToken.HeaderSection)) {
+    if (!tmpReader.find(DxfFileToken.headerSection)) {
       this.triggerNotification('Header section not found, using a generic reader.', NotificationType.Warning);
 
       this._version = ACadVersion.Unknown;
-      tmpReader.Start();
+      tmpReader.start();
       return tmpReader;
     }
 
-    while (tmpReader.ValueAsString !== DxfFileToken.EndSection) {
-      if (tmpReader.ValueAsString === '$ACADVER') {
-        tmpReader.ReadNext();
-        this._version = CadUtils.getVersionFromName(tmpReader.ValueAsString);
+    while (tmpReader.valueAsString !== DxfFileToken.endSection) {
+      if (tmpReader.valueAsString === '$ACADVER') {
+        tmpReader.readNext();
+        this._version = CadUtils.getVersionFromName(tmpReader.valueAsString);
 
         if (this._version < ACadVersion.AC1002) {
           if (this._version === ACadVersion.Unknown) {
@@ -375,35 +387,35 @@ export class DxfReader extends CadReaderBase<DxfReaderConfiguration> {
             throw new CadNotSupportedException(this._version);
           }
         }
-      } else if (tmpReader.ValueAsString === '$DWGCODEPAGE') {
-        tmpReader.ReadNext();
-        this._encoding = getDecoderEncodingLabel(tmpReader.ValueAsString);
+      } else if (tmpReader.valueAsString === '$DWGCODEPAGE') {
+        tmpReader.readNext();
+        this._encoding = getDecoderEncodingLabel(tmpReader.valueAsString);
         tmpReader.encoding = this._encoding;
       }
 
-      tmpReader.ReadNext();
+      tmpReader.readNext();
     }
 
     if (this._version === ACadVersion.Unknown) {
       this.triggerNotification('Dxf version not found, using a generic reader.', NotificationType.Warning);
     }
 
-    return this.createReader(isBinary, isAC1009Format);
+    return this._createReader(isBinary, isAC1009Format);
   }
 
-  private goToSection(sectionName: string): IDxfStreamReader {
-    this._reader = this._reader ?? this.getReader();
+  private _goToSection(sectionName: string): IDxfStreamReader {
+    this._reader = this._reader ?? this._getReader();
 
-    if (this._reader.ValueAsString === sectionName) {
+    if (this._reader.valueAsString === sectionName) {
       return this._reader;
     }
 
-    this._reader.Find(sectionName);
+    this._reader.find(sectionName);
 
     return this._reader;
   }
 
-  private createReader(isBinary: boolean, isAC1009Format: boolean): IDxfStreamReader {
+  private _createReader(isBinary: boolean, isAC1009Format: boolean): IDxfStreamReader {
     const stream = this.fileStream;
     let reader: IDxfStreamReader;
 

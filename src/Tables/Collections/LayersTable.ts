@@ -10,11 +10,11 @@ export class LayersTable extends Table<Layer> {
 	}
 
 	public override get objectName(): string {
-		return DxfFileToken.TableLayer;
+		return DxfFileToken.tableLayer;
 	}
 
 	protected override get defaultEntries(): string[] {
-		return [Layer.DefaultName];
+		return [Layer.defaultName];
 	}
 
 	public constructor() {
@@ -22,9 +22,9 @@ export class LayersTable extends Table<Layer> {
 	}
 
 	public override createDefaultEntries(): void {
-		if (!this.contains(Layer.DefaultName)) {
-			const layer = Layer.Default;
-			layer.lineType = LineType.Continuous;
+		if (!this.contains(Layer.defaultName)) {
+			const layer = Layer.default;
+			layer.lineType = LineType.continuous;
 			this.add(layer);
 		}
 	}

@@ -17,7 +17,7 @@ export class DimensionLinear extends DimensionAligned {
 	}
 
 	override get objectName(): string {
-		return DxfFileToken.EntityDimension;
+		return DxfFileToken.entityDimension;
 	}
 
 	override get objectType(): ObjectType {
@@ -40,7 +40,7 @@ export class DimensionLinear extends DimensionAligned {
 	rotation: number = 0;
 
 	override get subclassMarker(): string {
-		return DxfSubclassMarker.LinearDimension;
+		return DxfSubclassMarker.linearDimension;
 	}
 
 	constructor() {

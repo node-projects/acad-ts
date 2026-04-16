@@ -29,7 +29,7 @@ export class Mesh extends Entity {
 	faces: number[][] = [];
 
 	override get objectName(): string {
-		return DxfFileToken.EntityMesh;
+		return DxfFileToken.entityMesh;
 	}
 
 	override get objectType(): ObjectType {
@@ -37,7 +37,7 @@ export class Mesh extends Entity {
 	}
 
 	override get subclassMarker(): string {
-		return DxfSubclassMarker.Mesh;
+		return DxfSubclassMarker.mesh;
 	}
 
 	subdivisionLevel: number = 0;
@@ -63,6 +63,6 @@ export class Mesh extends Entity {
 	}
 
 	override getBoundingBox(): BoundingBox | null {
-		return this.vertices.length > 0 ? BoundingBox.FromPoints(this.vertices) : null;
+		return this.vertices.length > 0 ? BoundingBox.fromPoints(this.vertices) : null;
 	}
 }

@@ -10,11 +10,11 @@ export class ImageDefinitionReactor extends NonGraphicalObject {
 	}
 
 	override get objectName(): string {
-		return DxfFileToken.ObjectImageDefinitionReactor;
+		return DxfFileToken.objectImageDefinitionReactor;
 	}
 
 	override get subclassMarker(): string {
-		return DxfSubclassMarker.RasterImageDefReactor;
+		return DxfSubclassMarker.rasterImageDefReactor;
 	}
 
 	classVersion: number = 2;

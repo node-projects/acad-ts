@@ -24,7 +24,7 @@ export class BlockVisibilityParameter extends Block1PtParameter {
 	entities: Entity[] = [];
 	name: string = '';
 
-	override get objectName(): string { return DxfFileToken.ObjectBlockVisibilityParameter; }
+	override get objectName(): string { return DxfFileToken.objectBlockVisibilityParameter; }
 
 	private _states: Map<string, BlockVisibilityState> = new Map();
 
@@ -32,7 +32,7 @@ export class BlockVisibilityParameter extends Block1PtParameter {
 		return this._states;
 	}
 
-	override get subclassMarker(): string { return DxfSubclassMarker.BlockVisibilityParameter; }
+	override get subclassMarker(): string { return DxfSubclassMarker.blockVisibilityParameter; }
 
 	value91: boolean = false;
 

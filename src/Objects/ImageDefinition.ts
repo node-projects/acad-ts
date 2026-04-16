@@ -11,11 +11,11 @@ export class ImageDefinition extends NonGraphicalObject {
 	}
 
 	override get objectName(): string {
-		return DxfFileToken.ObjectImageDefinition;
+		return DxfFileToken.objectImageDefinition;
 	}
 
 	override get subclassMarker(): string {
-		return DxfSubclassMarker.RasterImageDef;
+		return DxfSubclassMarker.rasterImageDef;
 	}
 
 	classVersion: number = 0;

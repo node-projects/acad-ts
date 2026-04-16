@@ -4,26 +4,26 @@ import { CadTemplate } from './CadTemplate.js';
 import { CadCellStyleTemplate } from './CadTableEntityTemplate.js';
 
 export class CadTableStyleTemplate extends CadTemplate<TableStyle> {
-	CellStyleTemplates: CadCellStyleTemplate[] = [];
+	cellStyleTemplates: CadCellStyleTemplate[] = [];
 
-	CurrentCellStyleTemplate!: CadCellStyleTemplate;
+	currentCellStyleTemplate!: CadCellStyleTemplate;
 
 	constructor(tableStyle?: TableStyle) {
 		super(tableStyle ?? new TableStyle());
 	}
 
-	CreateCurrentCellStyleTemplate(): CadCellStyleTemplate {
-		this.CurrentCellStyleTemplate = new CadCellStyleTemplate();
-		this.CellStyleTemplates.push(this.CurrentCellStyleTemplate);
-		return this.CurrentCellStyleTemplate;
+	createCurrentCellStyleTemplate(): CadCellStyleTemplate {
+		this.currentCellStyleTemplate = new CadCellStyleTemplate();
+		this.cellStyleTemplates.push(this.currentCellStyleTemplate);
+		return this.currentCellStyleTemplate;
 	}
 
-	protected override build(builder: CadDocumentBuilder): void {
-		super.build(builder);
-		const tableStyle = this.CadObject as TableStyle;
+	protected override _build(builder: CadDocumentBuilder): void {
+		super._build(builder);
+		const tableStyle = this.cadObject as TableStyle;
 
-		for (const item of this.CellStyleTemplates) {
-			tableStyle.cellStyles.push(item.CellStyle);
+		for (const item of this.cellStyleTemplates) {
+			tableStyle.cellStyles.push(item.cellStyle);
 		}
 	}
 }

@@ -5,8 +5,8 @@ import { ObjectType } from '../../Types/ObjectType.js';
 
 export class BlockLinearParameter extends Block2PtParameter {
 	override get objectType(): ObjectType { return ObjectType.UNLISTED; }
-	override get objectName(): string { return DxfFileToken.ObjectBlockLinearParameter; }
-	override get subclassMarker(): string { return DxfSubclassMarker.BlockLinearParameter; }
+	override get objectName(): string { return DxfFileToken.objectBlockLinearParameter; }
+	override get subclassMarker(): string { return DxfSubclassMarker.blockLinearParameter; }
 
 	label: string = '';
 	description: string = '';

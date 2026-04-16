@@ -4,39 +4,39 @@ import { CadDocumentBuilder } from '../CadDocumentBuilder.js';
 import { CadEntityTemplateT } from './CadEntityTemplate.js';
 
 export class CadOle2FrameTemplate extends CadEntityTemplateT<Ole2Frame> {
-	Chunks: Uint8Array[] = [];
+	chunks: Uint8Array[] = [];
 
 	constructor(ole?: Ole2Frame) {
 		super(ole ?? new Ole2Frame());
 	}
 
-	protected override build(builder: CadDocumentBuilder): void {
-		super.build(builder);
+	protected override _build(builder: CadDocumentBuilder): void {
+		super._build(builder);
 
-		if (this.Chunks.length > 0) {
-			const totalLength = this.Chunks.reduce((sum, c) => sum + c.length, 0);
+		if (this.chunks.length > 0) {
+			const totalLength = this.chunks.reduce((sum, c) => sum + c.length, 0);
 			const combined = new Uint8Array(totalLength);
 			let offset = 0;
-			for (const chunk of this.Chunks) {
+			for (const chunk of this.chunks) {
 				combined.set(chunk, offset);
 				offset += chunk.length;
 			}
-			this.CadObject.binaryData = combined;
+			this.cadObject.binaryData = combined;
 		}
 
-		if (this.CadObject.binaryData && this.CadObject.binaryData.length > 0) {
-			const view = new DataView(this.CadObject.binaryData.buffer, this.CadObject.binaryData.byteOffset);
+		if (this.cadObject.binaryData && this.cadObject.binaryData.length > 0) {
+			const view = new DataView(this.cadObject.binaryData.buffer, this.cadObject.binaryData.byteOffset);
 			let pos = 2; // skip 2 unknown bytes
 
-			this.CadObject.upperLeftCorner = this.read3Double(view, pos);
+			this.cadObject.upperLeftCorner = this._read3Double(view, pos);
 			pos += 24;
 			// upper right
 			pos += 24;
-			this.CadObject.lowerRightCorner = this.read3Double(view, pos);
+			this.cadObject.lowerRightCorner = this._read3Double(view, pos);
 		}
 	}
 
-	private read3Double(view: DataView, offset: number): XYZ {
+	private _read3Double(view: DataView, offset: number): XYZ {
 		const x = view.getFloat64(offset, true);
 		const y = view.getFloat64(offset + 8, true);
 		const z = view.getFloat64(offset + 16, true);

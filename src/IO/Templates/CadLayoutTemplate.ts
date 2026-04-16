@@ -6,48 +6,48 @@ import { CadDocumentBuilder } from '../CadDocumentBuilder.js';
 import { CadTemplateT } from './CadTemplate[T].js';
 
 export class CadLayoutTemplate extends CadTemplateT<Layout> {
-	PaperSpaceBlockHandle: number | null = null;
+	paperSpaceBlockHandle: number | null = null;
 
-	ActiveViewportHandle: number | null = null;
+	activeViewportHandle: number | null = null;
 
-	BaseUcsHandle: number | null = null;
+	baseUcsHandle: number | null = null;
 
-	NamesUcsHandle: number | null = null;
+	namesUcsHandle: number | null = null;
 
-	LasActiveViewportHandle: number | null = null;
+	lasActiveViewportHandle: number | null = null;
 
-	ViewportHandles: Set<number> = new Set();
+	viewportHandles: Set<number> = new Set();
 
 	constructor(layout?: Layout) {
 		super(layout ?? new Layout());
 	}
 
-	protected override build(builder: CadDocumentBuilder): void {
-		super.build(builder);
+	protected override _build(builder: CadDocumentBuilder): void {
+		super._build(builder);
 
-		const record = builder.TryGetCadObject<BlockRecord>(this.PaperSpaceBlockHandle);
+		const record = builder.tryGetCadObject<BlockRecord>(this.paperSpaceBlockHandle);
 		if (record) {
-			this.CadObject.associatedBlock = record;
+			this.cadObject.associatedBlock = record;
 		}
 
-		const viewportHandle = this.ActiveViewportHandle ?? this.LasActiveViewportHandle;
-		const viewport = builder.TryGetCadObject<Viewport>(viewportHandle);
+		const viewportHandle = this.activeViewportHandle ?? this.lasActiveViewportHandle;
+		const viewport = builder.tryGetCadObject<Viewport>(viewportHandle);
 		if (viewport instanceof Viewport) {
-			this.CadObject.lastActiveViewport = viewport;
+			this.cadObject.lastActiveViewport = viewport;
 		}
 
-		const ucs = builder.TryGetCadObject<UCS>(this.BaseUcsHandle);
+		const ucs = builder.tryGetCadObject<UCS>(this.baseUcsHandle);
 		if (ucs) {
-			this.CadObject.baseUCS = ucs;
+			this.cadObject.baseUCS = ucs;
 		}
 
-		const nameducs = builder.TryGetCadObject<UCS>(this.NamesUcsHandle);
+		const nameducs = builder.tryGetCadObject<UCS>(this.namesUcsHandle);
 		if (nameducs) {
-			this.CadObject.ucs = nameducs;
+			this.cadObject.ucs = nameducs;
 		}
 
-		for (const handle of this.ViewportHandles) {
-			const vp = builder.TryGetCadObject<Viewport>(handle);
+		for (const handle of this.viewportHandles) {
+			const vp = builder.tryGetCadObject<Viewport>(handle);
 		}
 	}
 }

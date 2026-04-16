@@ -8,15 +8,15 @@ import { Layout } from '../src/Objects/Layout.js';
 import { BlockRecord } from '../src/Tables/BlockRecord.js';
 
 class TestCadDocumentBuilder extends CadDocumentBuilder {
-	override get KeepUnknownEntities(): boolean {
+	override get keepUnknownEntities(): boolean {
 		return true;
 	}
 
-	override get KeepUnknownNonGraphicalObjects(): boolean {
+	override get keepUnknownNonGraphicalObjects(): boolean {
 
 		it('ClonesStandaloneLayoutsWithAssociatedBlocksWithoutRecursing', () => {
-			const layout = new Layout(Layout.PaperLayoutName);
-			const record = new BlockRecord(BlockRecord.PaperSpaceName);
+			const layout = new Layout(Layout.paperLayoutName);
+			const record = new BlockRecord(BlockRecord.paperSpaceName);
 			const viewport = new Viewport();
 
 			layout.associatedBlock = record;
@@ -43,7 +43,7 @@ class TestCadDocumentBuilder extends CadDocumentBuilder {
 
 describe('LayoutTests', () => {
 	it('AddsViewportsThroughTheOwnedCollection', () => {
-		const record = BlockRecord.PaperSpace;
+		const record = BlockRecord.paperSpace;
 		const layout = record.layout!;
 		const viewport = new Viewport();
 
@@ -54,14 +54,14 @@ describe('LayoutTests', () => {
 	});
 
 	it('CreatesAndReusesThePaperViewport', () => {
-		const record = new BlockRecord(BlockRecord.PaperSpaceName);
-		const layout = new Layout(Layout.PaperLayoutName);
+		const record = new BlockRecord(BlockRecord.paperSpaceName);
+		const layout = new Layout(Layout.paperLayoutName);
 		layout.associatedBlock = record;
 
 		layout.updatePaperViewport();
 
 		expect(record.viewports).toHaveLength(1);
-		expect(record.viewports[0].id).toBe(Viewport.PaperViewId);
+		expect(record.viewports[0].id).toBe(Viewport.paperViewId);
 		expect(layout.lastActiveViewport).toBe(record.viewports[0]);
 
 		layout.updatePaperViewport();
@@ -71,15 +71,15 @@ describe('LayoutTests', () => {
 	});
 
 	it('AppliesDxfLastActiveViewportHandles', () => {
-		const layout = new Layout(Layout.PaperLayoutName);
+		const layout = new Layout(Layout.paperLayoutName);
 		const viewport = new Viewport();
 		const template = new CadLayoutTemplate(layout);
 		const builder = new TestCadDocumentBuilder(ACadVersion.AC1018, new CadDocument());
 
 		viewport.handle = 42;
 		builder.registerObject(viewport);
-		template.LasActiveViewportHandle = viewport.handle;
-		template.Build(builder);
+		template.lasActiveViewportHandle = viewport.handle;
+		template.build(builder);
 
 		expect(layout.lastActiveViewport).toBe(viewport);
 	});

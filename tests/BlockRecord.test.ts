@@ -13,15 +13,15 @@ import { BlockRecord } from '../src/Tables/BlockRecord.js';
 
 describe('BlockRecordTests', () => {
 	it('CreatesModelAndPaperSpaceLayouts', () => {
-		const model = BlockRecord.ModelSpace;
-		const paper = BlockRecord.PaperSpace;
+		const model = BlockRecord.modelSpace;
+		const paper = BlockRecord.paperSpace;
 
 		expect(model.layout).toBeInstanceOf(Layout);
-		expect(model.layout?.name).toBe(Layout.ModelLayoutName);
+		expect(model.layout?.name).toBe(Layout.modelLayoutName);
 		expect(model.layout?.associatedBlock).toBe(model);
 
 		expect(paper.layout).toBeInstanceOf(Layout);
-		expect(paper.layout?.name).toBe(Layout.PaperLayoutName);
+		expect(paper.layout?.name).toBe(Layout.paperLayoutName);
 		expect(paper.layout?.associatedBlock).toBe(paper);
 	});
 
@@ -32,7 +32,7 @@ describe('BlockRecordTests', () => {
 		const attribute = new AttributeDefinition();
 		const viewport = new Viewport();
 
-		dictionary.addByKey(EvaluationGraph.DictionaryEntryName, evaluationGraph);
+		dictionary.addByKey(EvaluationGraph.dictionaryEntryName, evaluationGraph);
 		record.xDictionary = dictionary;
 		record.entities.add(attribute);
 		record.entities.add(viewport);

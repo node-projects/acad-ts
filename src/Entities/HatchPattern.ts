@@ -29,7 +29,7 @@ export class HatchPatternLine {
 }
 
 export class HatchPattern {
-	static get Solid(): HatchPattern {
+	static get solid(): HatchPattern {
 		return new HatchPattern('SOLID');
 	}
 
@@ -58,8 +58,8 @@ export class HatchPattern {
 		for (const line of this.lines) {
 			const scaledBasePoint = new XY(line.basePoint.x * scale, line.basePoint.y * scale);
 			const scaledOffset = new XY(line.offset.x * scale, line.offset.y * scale);
-			const rotatedBasePoint = XY.Rotate(scaledBasePoint, rotation);
-			const rotatedOffset = XY.Rotate(scaledOffset, rotation);
+			const rotatedBasePoint = XY.rotate(scaledBasePoint, rotation);
+			const rotatedOffset = XY.rotate(scaledOffset, rotation);
 			line.angle += rotation;
 			line.basePoint = new XY(rotatedBasePoint.x + translation.x, rotatedBasePoint.y + translation.y);
 			line.offset = rotatedOffset;

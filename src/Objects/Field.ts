@@ -22,11 +22,11 @@ export class Field extends NonGraphicalObject {
 	formatString: string = '';
 
 	override get objectName(): string {
-		return DxfFileToken.ObjectField;
+		return DxfFileToken.objectField;
 	}
 
 	override get subclassMarker(): string {
-		return DxfSubclassMarker.Field;
+		return DxfSubclassMarker.field;
 	}
 
 	value: CadValue = new CadValue();

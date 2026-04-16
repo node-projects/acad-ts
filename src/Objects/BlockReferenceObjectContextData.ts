@@ -7,7 +7,7 @@ export class BlockReferenceObjectContextData extends AnnotScaleObjectContextData
 	insertionPoint: XYZ = new XYZ(0, 0, 0);
 
 	override get objectName(): string {
-		return DxfFileToken.BlkRefObjectContextData;
+		return DxfFileToken.blkRefObjectContextData;
 	}
 
 	rotation: number = 0;

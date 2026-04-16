@@ -9,11 +9,11 @@ export class RasterVariables extends NonGraphicalObject {
 	isDisplayFrameShown: boolean = false;
 
 	override get objectName(): string {
-		return DxfFileToken.ObjectRasterVariables;
+		return DxfFileToken.objectRasterVariables;
 	}
 
 	override get subclassMarker(): string {
-		return DxfSubclassMarker.RasterVariables;
+		return DxfSubclassMarker.rasterVariables;
 	}
 
 	units: number = 0;

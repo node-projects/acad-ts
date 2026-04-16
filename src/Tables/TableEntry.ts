@@ -23,7 +23,7 @@ export abstract class TableEntry extends CadObject implements INamedCadObject {
 	}
 
 	public override get subclassMarker(): string {
-		return DxfSubclassMarker.TableRecord;
+		return DxfSubclassMarker.tableRecord;
 	}
 
 	protected _name: string = '';

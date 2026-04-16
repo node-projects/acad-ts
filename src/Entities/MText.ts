@@ -90,7 +90,7 @@ export class MText extends Entity implements IText {
 	normal: XYZ = new XYZ(0, 0, 1);
 
 	override get objectName(): string {
-		return DxfFileToken.EntityMText;
+		return DxfFileToken.entityMText;
 	}
 
 	override get objectType(): ObjectType {
@@ -127,7 +127,7 @@ export class MText extends Entity implements IText {
 	}
 
 	override get subclassMarker(): string {
-		return DxfSubclassMarker.MText;
+		return DxfSubclassMarker.mText;
 	}
 
 	get value(): string {
@@ -140,7 +140,7 @@ export class MText extends Entity implements IText {
 	verticalHeight: number = 0.2;
 
 	private _height: number = 1.0;
-	private _style: TextStyle = TextStyle.Default;
+	private _style: TextStyle = TextStyle.default;
 	private _value: string = '';
 	private _columnData: TextColumnData | null = new TextColumnData();
 
@@ -224,11 +224,11 @@ export class MText extends Entity implements IText {
 			new XY(offsetX, offsetY + estimatedHeight),
 			new XY(offsetX + estimatedWidth, offsetY + estimatedHeight),
 		].map((point) => {
-			const rotated = XY.Rotate(point, rotation);
+			const rotated = XY.rotate(point, rotation);
 			return new XYZ(this.insertPoint.x + rotated.x, this.insertPoint.y + rotated.y, this.insertPoint.z);
 		});
 
-		return BoundingBox.FromPoints(corners);
+		return BoundingBox.fromPoints(corners);
 	}
 
 	getPlainTextLines(): string[] {
@@ -255,7 +255,7 @@ export class MText extends Entity implements IText {
 	protected override _tableOnRemove(sender: unknown, e: CollectionChangedEventArgs): void {
 		super._tableOnRemove(sender, e);
 		if (e.item === this._style) {
-			this._style = this.document!.textStyles.get(TextStyle.DefaultName)!;
+			this._style = this.document!.textStyles.get(TextStyle.defaultName)!;
 		}
 	}
 }

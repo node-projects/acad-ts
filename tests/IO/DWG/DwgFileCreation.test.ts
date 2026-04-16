@@ -25,7 +25,7 @@ const writableVersions = [
 function writeDocumentToFile(doc: CadDocument, outPath: string): void {
   const buffer = new ArrayBuffer(4 * 1024 * 1024);
   const writer = new DwgWriter(buffer, doc);
-  writer.Write();
+  writer.write();
   fs.writeFileSync(outPath, new Uint8Array(buffer, 0, writer.bytesWritten));
 }
 
@@ -51,7 +51,7 @@ describe('DwgFileCreationTests', () => {
       expect(fs.statSync(outPath).size).toBeGreaterThan(0);
 
       const readBack = new DwgReader(readFileAsArrayBuffer(outPath));
-      const parsed = readBack.Read();
+      const parsed = readBack.read();
       expect(parsed).not.toBeNull();
     }
   });
@@ -96,7 +96,7 @@ describe('DwgFileCreationTests', () => {
       expect(fs.statSync(outPath).size).toBeGreaterThan(0);
 
       const readBack = new DwgReader(readFileAsArrayBuffer(outPath));
-      const parsed = readBack.Read();
+      const parsed = readBack.read();
       expect(parsed).not.toBeNull();
       expect(parsed.blockRecords).not.toBeNull();
       expect(parsed.layers).not.toBeNull();

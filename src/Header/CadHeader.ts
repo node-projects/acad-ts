@@ -76,7 +76,7 @@ export class CadHeader {
 	public codePage: string = 'ANSI_1252';
 	public createDateTime: Date = new Date();
 	public createEllipseAsPolyline: boolean = false;
-	public currentEntityColor: Color = Color.ByLayer;
+	public currentEntityColor: Color = Color.byLayer;
 	public currentEntityLinetypeScale: number = 1.0;
 	public currentEntityLineWeight: LineWeightType = LineWeightType.ByLayer;
 	public currentEntityPlotStyle: EntityPlotStyleType = EntityPlotStyleType.ByLayer;
@@ -403,12 +403,6 @@ export class CadHeader {
 	public displaySilhouetteCurves: boolean = false;
 
 	public document: CadDocument | null = null;
-	public get Document(): CadDocument | null {
-		return this.document;
-	}
-	public set Document(value: CadDocument | null) {
-		this.document = value;
-	}
 
 	public draftAngleFirstCrossSection: number = 0;
 	public draftAngleSecondCrossSection: number = 0;
@@ -442,12 +436,6 @@ export class CadHeader {
 	public fingerPrintGuid: string = crypto.randomUUID?.() ?? '';
 	public haloGapPercentage: number = 0;
 	public handleSeed: number = 0x01;
-	public get HandleSeed(): number {
-		return this.handleSeed;
-	}
-	public set HandleSeed(value: number) {
-		this.handleSeed = value;
-	}
 	public hideText: number = 0;
 	public hyperLinkBase: string | null = null;
 	public indexCreationFlags: IndexCreationFlags = IndexCreationFlags.NoIndex;
@@ -623,12 +611,6 @@ export class CadHeader {
 			default: this.maintenanceVersion = 0; break;
 		}
 	}
-	public get Version(): ACadVersion {
-		return this.version;
-	}
-	public set Version(value: ACadVersion) {
-		this.version = value;
-	}
 
 	public versionGuid: string = crypto.randomUUID?.() ?? '';
 
@@ -638,12 +620,6 @@ export class CadHeader {
 	public set versionString(value: string) {
 		this.version = CadUtils.getVersionFromName(value);
 	}
-	public get VersionString(): string {
-		return this.versionString;
-	}
-	public set VersionString(value: string) {
-		this.versionString = value;
-	}
 
 	public viewportDefaultViewScaleFactor: number = 0;
 	public worldView: boolean = true;
@@ -652,12 +628,12 @@ export class CadHeader {
 	// --- Private fields ---
 
 	private _angularUnitPrecision: number = 0;
-	private _currentLayer: Layer = Layer.Default;
-	private _currentLineType: LineType = LineType.ByLayer;
-	private _currentTextStyle: TextStyle = TextStyle.Default;
+	private _currentLayer: Layer = Layer.default;
+	private _currentLineType: LineType = LineType.byLayer;
+	private _currentTextStyle: TextStyle = TextStyle.default;
 	private _dimensionStyleOverrides: DimensionStyle = new DimensionStyle('override');
-	private _currentDimensionStyle: DimensionStyle = DimensionStyle.Default;
-	private _dimensionTextStyle: TextStyle = TextStyle.Default;
+	private _currentDimensionStyle: DimensionStyle = DimensionStyle.default;
+	private _dimensionTextStyle: TextStyle = TextStyle.default;
 	private _facetResolution: number = 0.5;
 	private _linearUnitPrecision: number = 4;
 	private _stepsPerSecond: number = 2.0;
@@ -678,7 +654,7 @@ export class CadHeader {
 	}
 
 	requiredVersions: number = 0;
-	DIMSAV: number = 0;
+	dimsav: number = 0;
 	polylineLineTypeGeneration: boolean = false;
 	regenerationMode: number = 0;
 	quickTextMode: boolean = false;
@@ -707,18 +683,18 @@ export class CadHeader {
 	shadowPlaneLocation: number = 0;
 	dimensionMzf: number = 0;
 
-	public GetValue(systemvar: string): unknown {
-		return CadHeader.GetHeaderMap().get(systemvar)?.getValue(this);
+	public getValue(systemvar: string): unknown {
+		return CadHeader.getHeaderMap().get(systemvar)?.getValue(this);
 	}
 
-	public GetValues(systemvar: string): Map<number, unknown> {
+	public getValues(systemvar: string): Map<number, unknown> {
 		const values = new Map<number, unknown>();
-		const metadata = CadHeader.GetHeaderMap().get(systemvar);
+		const metadata = CadHeader.getHeaderMap().get(systemvar);
 		if (!metadata) {
 			return values;
 		}
 
-		for (const code of metadata.DxfCodes) {
+		for (const code of metadata.dxfCodes) {
 			const value = metadata.getSystemValue(code, this);
 			if (value !== null && value !== undefined) {
 				values.set(code, value);
@@ -728,7 +704,7 @@ export class CadHeader {
 		return values;
 	}
 
-	static GetHeaderMap(): Map<string, CadSystemVariable> {
+	static getHeaderMap(): Map<string, CadSystemVariable> {
 		if (!CadHeader._headerMapCache) {
 			CadHeader._headerMapCache = new Map<string, CadSystemVariable>();
 			for (const metadata of getSystemVariableMetadataMap(CadHeader).values()) {
@@ -739,8 +715,8 @@ export class CadHeader {
 		return new Map(CadHeader._headerMapCache);
 	}
 
-	SetValue(variable: string | number, parameters: unknown[] | unknown): void {
-		const property = CadHeader.GetHeaderMap().get(String(variable));
+	setValue(variable: string | number, parameters: unknown[] | unknown): void {
+		const property = CadHeader.getHeaderMap().get(String(variable));
 		if (!property) {
 			return;
 		}

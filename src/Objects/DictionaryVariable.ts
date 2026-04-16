@@ -4,13 +4,13 @@ import { DxfSubclassMarker } from '../DxfSubclassMarker.js';
 import { ObjectType } from '../Types/ObjectType.js';
 
 export class DictionaryVariable extends NonGraphicalObject {
-	static readonly CurrentAnnotationScale = 'CANNOSCALE';
-	static readonly CurrentMultiLeaderStyle = 'CMLEADERSTYLE';
-	static readonly CurrentTableStyle = 'CTABLESTYLE';
-	static readonly WipeoutFrame = 'WIPEOUTFRAME';
+	static readonly currentAnnotationScale = 'CANNOSCALE';
+	static readonly currentMultiLeaderStyle = 'CMLEADERSTYLE';
+	static readonly currentTableStyle = 'CTABLESTYLE';
+	static readonly wipeoutFrame = 'WIPEOUTFRAME';
 
 	override get objectName(): string {
-		return DxfFileToken.ObjectDictionaryVar;
+		return DxfFileToken.objectDictionaryVar;
 	}
 
 	objectSchemaNumber: number = 0;
@@ -20,7 +20,7 @@ export class DictionaryVariable extends NonGraphicalObject {
 	}
 
 	override get subclassMarker(): string {
-		return DxfSubclassMarker.DictionaryVariables;
+		return DxfSubclassMarker.dictionaryVariables;
 	}
 
 	value: string = '';

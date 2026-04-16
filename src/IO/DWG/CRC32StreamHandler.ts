@@ -5,11 +5,11 @@ export class CRC32StreamHandler {
 	private _position: number = 0;
 	private _seed: number;
 
-	get Seed(): number { return (~this._seed) >>> 0; }
+	get seed(): number { return (~this._seed) >>> 0; }
 
-	get Length(): number { return this._data.length; }
-	get Position(): number { return this._position; }
-	set Position(value: number) { this._position = value; }
+	get length(): number { return this._data.length; }
+	get position(): number { return this._position; }
+	set position(value: number) { this._position = value; }
 
 	constructor(arr: Uint8Array, seed: number, decrypt: boolean = false) {
 		if (decrypt) {
@@ -30,23 +30,23 @@ export class CRC32StreamHandler {
 		return handler;
 	}
 
-	Read(buffer: Uint8Array, offset: number, count: number): number {
+	read(buffer: Uint8Array, offset: number, count: number): number {
 		const length = offset + count;
 		const nbytes = Math.min(count, this._data.length - this._position);
 
 		for (let index = 0; index < nbytes; ++index) {
 			buffer[offset + index] = this._data[this._position + index];
-			this._seed = ((this._seed >>> 8) ^ CRC.Crc32Table[((this._seed ^ this._data[this._position + index]) & 0xFF)]) >>> 0;
+			this._seed = ((this._seed >>> 8) ^ CRC.crc32Table[((this._seed ^ this._data[this._position + index]) & 0xFF)]) >>> 0;
 		}
 
 		this._position += nbytes;
 		return nbytes;
 	}
 
-	Write(buffer: Uint8Array, offset: number, count: number): void {
+	write(buffer: Uint8Array, offset: number, count: number): void {
 		const num = offset + count;
 		for (let index = offset; index < num; ++index) {
-			this._seed = ((this._seed >>> 8) ^ CRC.Crc32Table[((this._seed ^ buffer[index]) & 0xFF)]) >>> 0;
+			this._seed = ((this._seed >>> 8) ^ CRC.crc32Table[((this._seed ^ buffer[index]) & 0xFF)]) >>> 0;
 		}
 
 		for (let i = 0; i < count; i++) {

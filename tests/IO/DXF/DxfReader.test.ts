@@ -23,7 +23,7 @@ function createAsciiDxf(lines: string[], encoding: string): Uint8Array {
 }
 
 function createBinaryDxf(encoding: string): Uint8Array {
-  const bytes: number[] = Array.from(DxfBinaryReader.SentinelBytes);
+  const bytes: number[] = Array.from(DxfBinaryReader.sentinelBytes);
 
   const pushCode = (code: number): void => {
     bytes.push(code & 0xFF, (code >> 8) & 0xFF);
@@ -111,7 +111,7 @@ describe('DxfReaderTests', () => {
     const streamReader = (reader as any).getReader();
 
     expect(streamReader.encoding).toBe(getDecoderEncodingLabel('ANSI_1252'));
-    expect(streamReader.Find('layer-säöü')).toBe(true);
+    expect(streamReader.find('layer-säöü')).toBe(true);
   });
 
   it('ReadBinaryAnsi1252SpecialChars', () => {
@@ -119,14 +119,14 @@ describe('DxfReaderTests', () => {
     const streamReader = (reader as any).getReader();
 
     expect(streamReader.encoding).toBe(getDecoderEncodingLabel('ANSI_1252'));
-    expect(streamReader.Find('layer-säöü')).toBe(true);
+    expect(streamReader.find('layer-säöü')).toBe(true);
   });
 
   describe.each(dxfAsciiFiles.map(f => [f.fileName, f]))('ASCII: %s', (_name, test) => {
     it('ReadHeaderAscii', () => {
       const data = readFileAsUint8Array(test.path);
       const reader = new DxfReader(data);
-      const header = reader.ReadHeader();
+      const header = reader.readHeader();
       expect(header).not.toBeNull();
     });
 
@@ -134,7 +134,7 @@ describe('DxfReaderTests', () => {
       const data = readFileAsUint8Array(test.path);
       const reader = new DxfReader(data);
       try {
-        const doc = reader.Read();
+        const doc = reader.read();
         expect(doc).not.toBeNull();
       } catch (e) {
         if (isKnownDxfReadGap(e)) return;
@@ -149,7 +149,7 @@ describe('DxfReaderTests', () => {
       const data = readFileAsUint8Array(test.path);
       const reader = new DxfReader(data);
       try {
-        const header = reader.ReadHeader();
+        const header = reader.readHeader();
         expect(header).not.toBeNull();
       } catch (e) {
         if (isKnownDxfReadGap(e)) return;
@@ -162,7 +162,7 @@ describe('DxfReaderTests', () => {
       const data = readFileAsUint8Array(test.path);
       const reader = new DxfReader(data);
       try {
-        const doc = reader.Read();
+        const doc = reader.read();
         expect(doc).not.toBeNull();
       } catch (e) {
         if (isKnownDxfReadGap(e)) return;
@@ -177,7 +177,7 @@ describe('DxfReaderTests', () => {
       const data = readFileAsUint8Array(test.path);
       const reader = new DxfReader(data);
       try {
-        const entities = reader.ReadEntities();
+        const entities = reader.readEntities();
         expect(entities).not.toBeNull();
         expect(entities.length).toBeGreaterThan(0);
       } catch (e) {
@@ -191,7 +191,7 @@ describe('DxfReaderTests', () => {
       const data = readFileAsUint8Array(test.path);
       const reader = new DxfReader(data);
       try {
-        const doc = reader.ReadTables();
+        const doc = reader.readTables();
         expect(doc).not.toBeNull();
       } catch (e) {
         if (isKnownDxfReadGap(e)) return;
@@ -204,7 +204,7 @@ describe('DxfReaderTests', () => {
       const data = readFileAsUint8Array(test.path);
       const reader = new DxfReader(data);
       try {
-        const doc = reader.Read();
+        const doc = reader.read();
 
         expect(doc).not.toBeNull();
         expect(doc.summaryInfo).not.toBeNull();
@@ -228,7 +228,7 @@ describe('DxfReaderTests', () => {
       const data = readFileAsUint8Array(test.path);
       const reader = new DxfReader(data);
       try {
-        const doc = reader.Read();
+        const doc = reader.read();
 
         expect(doc).not.toBeNull();
         expect(doc.header).not.toBeNull();
@@ -243,7 +243,7 @@ describe('DxfReaderTests', () => {
     it('IsBinaryTest', () => {
       const data = readFileAsUint8Array(test.path);
       const reader = new DxfReader(data);
-      const isBinary = reader.IsBinary();
+      const isBinary = reader.isBinary();
 
       if (test.path.toLowerCase().includes('ascii')) {
         expect(isBinary).toBe(false);
@@ -254,7 +254,7 @@ describe('DxfReaderTests', () => {
 
     it('IsBinaryStream static', () => {
       const data = readFileAsUint8Array(test.path);
-      const isBinary = DxfReader.IsBinaryStream(data);
+      const isBinary = DxfReader.isBinaryStream(data);
 
       if (test.path.toLowerCase().includes('ascii')) {
         expect(isBinary).toBe(false);

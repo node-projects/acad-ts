@@ -10,11 +10,11 @@ import { CadHeader } from '../../../Header/CadHeader.js';
 import { CadSystemVariable } from '../../../CadSystemVariable.js';
 
 export class DxfHeaderSectionWriter extends DxfSectionWriterBase {
-  public get SectionName(): string {
-    return DxfFileToken.HeaderSection;
+  public get sectionName(): string {
+    return DxfFileToken.headerSection;
   }
 
-  public get Header(): CadHeader {
+  public get header(): CadHeader {
     return this._document.header;
   }
 
@@ -28,10 +28,10 @@ export class DxfHeaderSectionWriter extends DxfSectionWriterBase {
   }
 
   protected writeSection(): void {
-    const map: Map<string, CadSystemVariable> = CadHeader.GetHeaderMap();
+    const map: Map<string, CadSystemVariable> = CadHeader.getHeaderMap();
 
     for (const [key, item] of map) {
-      if (!this.Configuration.WriteAllHeaderVariables && !this.Configuration.HeaderVariables.has(key)) {
+      if (!this.configuration.writeAllHeaderVariables && !this.configuration.headerVariables.has(key)) {
         continue;
       }
 
@@ -39,30 +39,30 @@ export class DxfHeaderSectionWriter extends DxfSectionWriterBase {
         continue;
       }
 
-      if (item.getValue(this.Header) === null || item.getValue(this.Header) === undefined) {
+      if (item.getValue(this.header) === null || item.getValue(this.header) === undefined) {
         continue;
       }
 
-      this._writer.Write(DxfCode.CLShapeText, key);
+      this._writer.write(DxfCode.CLShapeText, key);
 
       if (key === '$HANDSEED') {
-        this._writer.Write(DxfCode.Handle, this._document.header.handleSeed);
+        this._writer.write(DxfCode.Handle, this._document.header.handleSeed);
         continue;
       }
 
       if (key === '$CECOLOR') {
-        this._writer.Write(62, this._document.header.currentEntityColor.getApproxIndex());
+        this._writer.write(62, this._document.header.currentEntityColor.getApproxIndex());
         continue;
       }
 
-      for (const csv of item.DxfCodes) {
+      for (const csv of item.dxfCodes) {
         const value = item.getSystemValue(csv, this._document.header);
 
         if (value === null || value === undefined) {
           continue;
         }
 
-        this._writer.Write(csv as number, value);
+        this._writer.write(csv as number, value);
       }
     }
   }

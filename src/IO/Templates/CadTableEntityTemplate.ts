@@ -6,21 +6,21 @@ import { CadValueTemplate } from './CadValueTemplate.js';
 import { ICadTemplate } from './ICadTemplate.js';
 
 export class CadTableEntityTemplate extends CadInsertTemplate {
-	BlockOwnerHandle: number | null = null;
+	blockOwnerHandle: number | null = null;
 
 	cadTableCellTemplates: CadTableCellTemplate[] = [];
 
-	get CurrentCell(): TableEntityCell { return this.CurrentCellTemplate.Cell; }
+	get currentCell(): TableEntityCell { return this.currentCellTemplate.cell; }
 
-	CurrentCellTemplate!: CadTableCellTemplate;
+	currentCellTemplate!: CadTableCellTemplate;
 
-	HorizontalMargin: number | null = null;
+	horizontalMargin: number | null = null;
 
-	NullHandle: number | null = null;
+	nullHandle: number | null = null;
 
 	styleHandle: number | null = null;
 
-	get TableEntity(): TableEntity { return this.CadObject as TableEntity; }
+	get tableEntity(): TableEntity { return this.cadObject as TableEntity; }
 
 	private _currCellIndex: number = 0;
 
@@ -28,50 +28,50 @@ export class CadTableEntityTemplate extends CadInsertTemplate {
 		super(table ?? new TableEntity());
 	}
 
-	CreateCell(type: CellType): void {
-		const rowIndex = Math.floor(this._currCellIndex / this.TableEntity.columns.length);
+	createCell(type: CellType): void {
+		const rowIndex = Math.floor(this._currCellIndex / this.tableEntity.columns.length);
 
 		const cell = new TableEntityCell();
 		cell.type = type;
 
-		this.TableEntity.rows[rowIndex].cells.push(cell);
+		this.tableEntity.rows[rowIndex].cells.push(cell);
 
-		this.CurrentCellTemplate = new CadTableCellTemplate(cell);
+		this.currentCellTemplate = new CadTableCellTemplate(cell);
 
-		this.cadTableCellTemplates.push(this.CurrentCellTemplate);
+		this.cadTableCellTemplates.push(this.currentCellTemplate);
 
 		this._currCellIndex++;
 	}
 
-	protected override build(builder: CadDocumentBuilder): void {
-		super.build(builder);
+	protected override _build(builder: CadDocumentBuilder): void {
+		super._build(builder);
 
 		for (const cellTemplate of this.cadTableCellTemplates) {
-			cellTemplate.Build(builder);
+			cellTemplate.build(builder);
 		}
 	}
 }
 
 export class CadTableCellContentFormatTemplate implements ICadTemplate {
-	Format: ContentFormat;
+	format: ContentFormat;
 
-	TextStyleHandle: number | null = null;
+	textStyleHandle: number | null = null;
 
-	TextStyleName: string | null = null;
+	textStyleName: string | null = null;
 
 	constructor(format: ContentFormat) {
-		this.Format = format;
+		this.format = format;
 	}
 
-	Build(builder: CadDocumentBuilder): void {
+	build(builder: CadDocumentBuilder): void {
 		throw new Error('Not implemented');
 	}
 }
 
 export class CadCellStyleTemplate extends CadTableCellContentFormatTemplate {
-	BorderLinetypePairs: [CellBorder, number][] = [];
+	borderLinetypePairs: [CellBorder, number][] = [];
 
-	get CellStyle(): CellStyle { return this.Format as CellStyle; }
+	get cellStyle(): CellStyle { return this.format as CellStyle; }
 
 	textStyleHandle: number | null = null;
 
@@ -81,7 +81,7 @@ export class CadCellStyleTemplate extends CadTableCellContentFormatTemplate {
 }
 
 export class CadTableAttributeTemplate implements ICadTemplate {
-	AttDefHandle: number | null = null;
+	attDefHandle: number | null = null;
 
 	private _tableAtt: TableAttribute;
 
@@ -89,51 +89,51 @@ export class CadTableAttributeTemplate implements ICadTemplate {
 		this._tableAtt = tableAtt;
 	}
 
-	Build(builder: CadDocumentBuilder): void {
+	build(builder: CadDocumentBuilder): void {
 		throw new Error('Not implemented');
 	}
 }
 
 export class CadTableCellContentTemplate implements ICadTemplate {
-	BlockRecordHandle: number | null = null;
+	blockRecordHandle: number | null = null;
 
-	CadValueTemplate: CadValueTemplate | null = null;
+	cadValueTemplate: CadValueTemplate | null = null;
 
-	Content: CellContent;
+	content: CellContent;
 
-	FieldHandle: number | null = null;
+	fieldHandle: number | null = null;
 
 	constructor(content: CellContent) {
-		this.Content = content;
+		this.content = content;
 	}
 
-	Build(builder: CadDocumentBuilder): void {
+	build(builder: CadDocumentBuilder): void {
 		throw new Error('Not implemented');
 	}
 }
 
 export class CadTableCellTemplate implements ICadTemplate {
-	AttributeHandles: Set<[number, string]> = new Set();
+	attributeHandles: Set<[number, string]> = new Set();
 
-	Cell: TableEntityCell;
+	cell: TableEntityCell;
 
-	ContentTemplates: CadTableCellContentTemplate[] = [];
+	contentTemplates: CadTableCellContentTemplate[] = [];
 
-	FormatTextHeight: number | null = null;
+	formatTextHeight: number | null = null;
 
-	StyleId: number = 0;
+	styleId: number = 0;
 
-	TextStyleOverrideHandle: number | null = null;
+	textStyleOverrideHandle: number | null = null;
 
-	UnknownHandle: number | null = null;
+	unknownHandle: number | null = null;
 
-	ValueHandle: number | null = null;
+	valueHandle: number | null = null;
 
 	constructor(cell: TableEntityCell) {
-		this.Cell = cell;
+		this.cell = cell;
 	}
 
-	Build(builder: CadDocumentBuilder): void {
-		const cadObject = builder.TryGetCadObject<CadObject>(this.ValueHandle);
+	build(builder: CadDocumentBuilder): void {
+		const cadObject = builder.tryGetCadObject<CadObject>(this.valueHandle);
 	}
 }

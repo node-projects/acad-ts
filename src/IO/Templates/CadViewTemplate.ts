@@ -7,47 +7,47 @@ import { NotificationType } from '../NotificationEventHandler.js';
 import { CadTableEntryTemplate } from './CadTableEntryTemplate.js';
 
 export class CadViewTemplate extends CadTableEntryTemplate<View> {
-	VisualStyleHandle: number | null = null;
+	visualStyleHandle: number | null = null;
 
-	NamedUcsHandle: number | null = null;
+	namedUcsHandle: number | null = null;
 
-	UcsHandle: number | null = null;
+	ucsHandle: number | null = null;
 
 	constructor(entry?: View) {
 		super(entry ?? new View());
 	}
 
-	protected override build(builder: CadDocumentBuilder): void {
-		super.build(builder);
+	protected override _build(builder: CadDocumentBuilder): void {
+		super._build(builder);
 
-		const visualStyle = builder.TryGetCadObject<VisualStyle>(this.VisualStyleHandle);
+		const visualStyle = builder.tryGetCadObject<VisualStyle>(this.visualStyleHandle);
 		if (visualStyle) {
-			this.CadObject.visualStyle = visualStyle;
-		} else if (this.VisualStyleHandle != null && this.VisualStyleHandle > 0) {
-			builder.Notify(`Visual style ${this.VisualStyleHandle} not found for view ${this.CadObject.handle}`, NotificationType.Warning);
+			this.cadObject.visualStyle = visualStyle;
+		} else if (this.visualStyleHandle != null && this.visualStyleHandle > 0) {
+			builder.notify(`Visual style ${this.visualStyleHandle} not found for view ${this.cadObject.handle}`, NotificationType.Warning);
 		}
 
 		const applyUcs = (ucs: UCS): void => {
-			this.CadObject.isUcsAssociated = true;
-			this.CadObject.ucsOrigin = new XYZ(ucs.origin.x, ucs.origin.y, ucs.origin.z);
-			this.CadObject.ucsXAxis = new XYZ(ucs.xAxis.x, ucs.xAxis.y, ucs.xAxis.z);
-			this.CadObject.ucsYAxis = new XYZ(ucs.yAxis.x, ucs.yAxis.y, ucs.yAxis.z);
-			this.CadObject.ucsElevation = ucs.elevation;
-			this.CadObject.ucsOrthographicType = ucs.orthographicType;
+			this.cadObject.isUcsAssociated = true;
+			this.cadObject.ucsOrigin = new XYZ(ucs.origin.x, ucs.origin.y, ucs.origin.z);
+			this.cadObject.ucsXAxis = new XYZ(ucs.xAxis.x, ucs.xAxis.y, ucs.xAxis.z);
+			this.cadObject.ucsYAxis = new XYZ(ucs.yAxis.x, ucs.yAxis.y, ucs.yAxis.z);
+			this.cadObject.ucsElevation = ucs.elevation;
+			this.cadObject.ucsOrthographicType = ucs.orthographicType;
 		};
 
-		const ucs = builder.TryGetCadObject<UCS>(this.UcsHandle);
+		const ucs = builder.tryGetCadObject<UCS>(this.ucsHandle);
 		if (ucs) {
 			applyUcs(ucs);
-		} else if (this.UcsHandle != null && this.UcsHandle > 0) {
-			builder.Notify(`Base ucs ${this.UcsHandle} not found for view ${this.CadObject.handle}`, NotificationType.Warning);
+		} else if (this.ucsHandle != null && this.ucsHandle > 0) {
+			builder.notify(`Base ucs ${this.ucsHandle} not found for view ${this.cadObject.handle}`, NotificationType.Warning);
 		}
 
-		const namedUcs = builder.TryGetCadObject<UCS>(this.NamedUcsHandle);
+		const namedUcs = builder.tryGetCadObject<UCS>(this.namedUcsHandle);
 		if (namedUcs) {
 			applyUcs(namedUcs);
-		} else if (this.NamedUcsHandle != null && this.NamedUcsHandle > 0) {
-			builder.Notify(`Named ucs ${this.NamedUcsHandle} not found for view ${this.CadObject.handle}`, NotificationType.Warning);
+		} else if (this.namedUcsHandle != null && this.namedUcsHandle > 0) {
+			builder.notify(`Named ucs ${this.namedUcsHandle} not found for view ${this.cadObject.handle}`, NotificationType.Warning);
 		}
 	}
 }

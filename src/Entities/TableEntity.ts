@@ -251,7 +251,7 @@ export class CellRange {
 
 export class ContentFormat {
 	alignment: number = 0;
-	color: Color = Color.ByBlock;
+	color: Color = Color.byBlock;
 	hasData: boolean = false;
 	propertyFlags: number = 0;
 	propertyOverrideFlags: TableCellStylePropertyFlags = 0;
@@ -265,7 +265,7 @@ export class ContentFormat {
 }
 
 export class CellBorder {
-	color: Color = Color.ByBlock;
+	color: Color = Color.byBlock;
 	doubleLineSpacing: number = 0;
 	readonly edgeFlags: CellEdgeFlags;
 	isInvisible: boolean = false;
@@ -285,11 +285,11 @@ export class CellContent {
 }
 
 export class CellStyle extends ContentFormat {
-	backgroundColor: Color = Color.ByBlock;
+	backgroundColor: Color = Color.byBlock;
 	bottomBorder: CellBorder = new CellBorder(CellEdgeFlags.Bottom);
 	bottomMargin: number = 0;
 	cellAlignment: CellAlignmentType = CellAlignmentType.None;
-	contentColor: Color = Color.ByBlock;
+	contentColor: Color = Color.byBlock;
 	contentLayoutFlags: TableCellContentLayoutFlags = 0;
 	horizontalInsideBorder: CellBorder = new CellBorder(CellEdgeFlags.InsideHorizontal);
 	horizontalMargin: number = 0.06;
@@ -303,7 +303,7 @@ export class CellStyle extends ContentFormat {
 	rightMargin: number = 0;
 	styleClass: CellStyleClass = CellStyleClass.Data;
 	tableCellStylePropertyFlags: TableCellStylePropertyFlags = 0;
-	textColor: Color = Color.ByBlock;
+	textColor: Color = Color.byBlock;
 	topBorder: CellBorder = new CellBorder(CellEdgeFlags.Right);
 	cellStyleType: CellStyleType = CellStyleType.Unknown;
 	verticalInsideBorder: CellBorder = new CellBorder(CellEdgeFlags.InsideVertical);
@@ -388,7 +388,7 @@ export class TableEntity extends Insert {
 	horizontalDirection: XYZ = new XYZ(0, 0, 0);
 
 	override get objectName(): string {
-		return DxfFileToken.EntityTable;
+		return DxfFileToken.entityTable;
 	}
 
 	override get objectType(): ObjectType {
@@ -415,7 +415,7 @@ export class TableEntity extends Insert {
 	}
 
 	override get subclassMarker(): string {
-		return DxfSubclassMarker.TableEntity;
+		return DxfSubclassMarker.tableEntity;
 	}
 
 	valueFlag: number = 0;

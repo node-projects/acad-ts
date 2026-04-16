@@ -4,7 +4,7 @@ import { SystemVariableMetadata } from './Metadata/MetadataTypes.js';
 
 export class CadSystemVariable extends DxfPropertyBase {
 	public name: string;
-	public DxfCodes: number[] = [];
+	public dxfCodes: number[] = [];
 	public isName: boolean = false;
 
 	constructor(metadata: SystemVariableMetadata);
@@ -13,13 +13,13 @@ export class CadSystemVariable extends DxfPropertyBase {
 		if (typeof propertyNameOrMetadata === 'string') {
 			super(propertyNameOrMetadata, dxfCodes);
 			this.name = name ?? propertyNameOrMetadata;
-			this.DxfCodes = [...dxfCodes];
+			this.dxfCodes = [...dxfCodes];
 			this.isName = false;
 			this.referenceType = 0;
 		} else {
 			super(propertyNameOrMetadata);
 			this.name = propertyNameOrMetadata.name;
-			this.DxfCodes = [...propertyNameOrMetadata.valueCodes];
+			this.dxfCodes = [...propertyNameOrMetadata.valueCodes];
 			this.isName = propertyNameOrMetadata.isName;
 			this.referenceType = propertyNameOrMetadata.referenceType;
 		}

@@ -26,7 +26,7 @@ function transformXYPoint(transform: Transform, point: XY): XY {
 }
 
 function transformXYZVector(transform: Transform, vector: XYZ): XYZ {
-	const origin = transform.applyTransform(XYZ.Zero);
+	const origin = transform.applyTransform(XYZ.zero);
 	const transformed = transform.applyTransform(vector);
 	return new XYZ(
 		transformed.x - origin.x,
@@ -87,7 +87,7 @@ export class HatchBoundaryPathArc extends HatchBoundaryPathEdge {
 
 	override getBoundingBox(): BoundingBox | null {
 		const points = this.polygonalVertexes(64);
-		return points.length > 0 ? BoundingBox.FromPoints(points) : null;
+		return points.length > 0 ? BoundingBox.fromPoints(points) : null;
 	}
 
 	polygonalVertexes(precision: number): XYZ[] {
@@ -129,7 +129,7 @@ export class HatchBoundaryPathEllipse extends HatchBoundaryPathEdge {
 
 	override getBoundingBox(): BoundingBox | null {
 		const points = this.polygonalVertexes(64);
-		return points.length > 0 ? BoundingBox.FromPoints(points) : null;
+		return points.length > 0 ? BoundingBox.fromPoints(points) : null;
 	}
 
 	polygonalVertexes(precision: number): XYZ[] {
@@ -163,7 +163,7 @@ export class HatchBoundaryPathLine extends HatchBoundaryPathEdge {
 	}
 
 	override getBoundingBox(): BoundingBox {
-		return BoundingBox.FromPoints([
+		return BoundingBox.fromPoints([
 			new XYZ(this.start.x, this.start.y, 0),
 			new XYZ(this.end.x, this.end.y, 0),
 		]);
@@ -342,7 +342,7 @@ export class HatchBoundaryPath {
 		}
 
 		const points = boxes.flatMap((box) => [box.min, box.max]);
-		return BoundingBox.FromPoints(points);
+		return BoundingBox.fromPoints(points);
 	}
 
 	getPoints(precision: number = 256): XYZ[] {
@@ -431,7 +431,7 @@ export class Hatch extends Entity {
 	normal: XYZ = new XYZ(0, 0, 1);
 
 	override get objectName(): string {
-		return DxfFileToken.EntityHatch;
+		return DxfFileToken.entityHatch;
 	}
 
 	override get objectType(): ObjectType {
@@ -440,7 +440,7 @@ export class Hatch extends Entity {
 
 	paths: HatchBoundaryPath[] = [];
 
-	pattern: HatchPattern = HatchPattern.Solid;
+	pattern: HatchPattern = HatchPattern.solid;
 
 	get patternAngle(): number {
 		return this._patternAngle;
@@ -467,7 +467,7 @@ export class Hatch extends Entity {
 	style: HatchStyleType = HatchStyleType.Normal;
 
 	override get subclassMarker(): string {
-		return DxfSubclassMarker.Hatch;
+		return DxfSubclassMarker.hatch;
 	}
 
 	private _patternAngle: number = 0;
@@ -481,8 +481,8 @@ export class Hatch extends Entity {
 			this.seedPoints = this.seedPoints.map((point) => transformXYPoint(transform, point));
 			this.normal = this.applyTransformToVector(transform, this.normal).normalize();
 			this.elevation = this.applyTransformToPoint(transform, new XYZ(0, 0, this.elevation)).z;
-			const transformedOrigin = transformXYPoint(transform, XY.Zero);
-			const transformedAxis = transformXYZVector(transform, XYZ.AxisX);
+			const transformedOrigin = transformXYPoint(transform, XY.zero);
+			const transformedAxis = transformXYZVector(transform, XYZ.axisX);
 			const patternRotation = Math.atan2(transformedAxis.y, transformedAxis.x);
 			const patternScale = Math.hypot(transformedAxis.x, transformedAxis.y) || 1;
 			this.pattern?.update(transformedOrigin, patternRotation, patternScale);
@@ -515,7 +515,7 @@ export class Hatch extends Entity {
 			return null;
 		}
 
-		return BoundingBox.FromPoints(boxes.flatMap((box) => [box.min, box.max]));
+		return BoundingBox.fromPoints(boxes.flatMap((box) => [box.min, box.max]));
 	}
 }
 

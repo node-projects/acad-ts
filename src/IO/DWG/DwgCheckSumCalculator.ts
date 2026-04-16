@@ -1,5 +1,5 @@
 export class DwgCheckSumCalculator {
-	static readonly MagicSequence: Uint8Array = (() => {
+	static readonly magicSequence: Uint8Array = (() => {
 		const seq = new Uint8Array(256);
 		let randSeed = 1;
 		for (let i = 0; i < 256; i++) {
@@ -9,11 +9,11 @@ export class DwgCheckSumCalculator {
 		return seq;
 	})();
 
-	static CompressionCalculator(length: number): number {
+	static compressionCalculator(length: number): number {
 		return 0x1F - (length + 0x20 - 1) % 0x20;
 	}
 
-	static Calculate(seed: number, buffer: Uint8Array, offset: number, size: number): number {
+	static calculate(seed: number, buffer: Uint8Array, offset: number, size: number): number {
 		let sum1 = seed & 0xFFFF;
 		let sum2 = (seed >>> 16) & 0xFFFF;
 		let index = offset;

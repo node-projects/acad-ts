@@ -8,55 +8,55 @@ import { CadEntityTemplate } from './CadEntityTemplate.js';
 import { ICadOwnerTemplate } from './ICadOwnerTemplate.js';
 
 export class CadInsertTemplate extends CadEntityTemplate implements ICadOwnerTemplate {
-	HasAtts: boolean = false;
+	hasAtts: boolean = false;
 
-	OwnedObjectsCount: number = 0;
+	ownedObjectsCount: number = 0;
 
-	BlockHeaderHandle: number | null = null;
+	blockHeaderHandle: number | null = null;
 
-	BlockName: string | null = null;
+	blockName: string | null = null;
 
-	FirstAttributeHandle: number | null = null;
+	firstAttributeHandle: number | null = null;
 
-	EndAttributeHandle: number | null = null;
+	endAttributeHandle: number | null = null;
 
-	SeqendHandle: number | null = null;
+	seqendHandle: number | null = null;
 
-	OwnedObjectsHandlers: Set<number> = new Set();
+	ownedObjectsHandlers: Set<number> = new Set();
 
 	constructor(insert?: Insert) {
 		super(insert ?? new Insert());
 	}
 
-	protected override build(builder: CadDocumentBuilder): void {
-		super.build(builder);
+	protected override _build(builder: CadDocumentBuilder): void {
+		super._build(builder);
 
-		const insert = this.CadObject as Insert;
+		const insert = this.cadObject as Insert;
 		if (!(insert instanceof Insert)) return;
 
-		const block = this.getTableReference<BlockRecord>(builder, this.BlockHeaderHandle, this.BlockName ?? '');
+		const block = this.getTableReference<BlockRecord>(builder, this.blockHeaderHandle, this.blockName ?? '');
 		if (block) {
 			insert.block = block;
 		} else {
-			builder.Notify(`Block ${this.BlockHeaderHandle} | ${this.BlockName} not found for Insert ${this.CadObject.handle}`, NotificationType.Warning);
+			builder.notify(`Block ${this.blockHeaderHandle} | ${this.blockName} not found for Insert ${this.cadObject.handle}`, NotificationType.Warning);
 		}
 
-		const seqend = builder.TryGetCadObject<Seqend>(this.SeqendHandle);
+		const seqend = builder.tryGetCadObject<Seqend>(this.seqendHandle);
 		if (seqend) {
-			insert.attributes.Seqend = seqend;
+			insert.attributes.seqend = seqend;
 			seqend.owner = insert;
 		}
 
-		if (this.FirstAttributeHandle != null) {
-			const attributes = this.getEntitiesCollection<AttributeEntity>(builder, this.FirstAttributeHandle, this.EndAttributeHandle!);
+		if (this.firstAttributeHandle != null) {
+			const attributes = this.getEntitiesCollection<AttributeEntity>(builder, this.firstAttributeHandle, this.endAttributeHandle!);
 			for (const att of attributes) {
 				insert.attributes.push(att);
 				att.owner = insert;
 				insert.applyAttributeTransform(att);
 			}
 		} else {
-			for (const handle of this.OwnedObjectsHandlers) {
-				const att = builder.TryGetCadObject<AttributeEntity>(handle);
+			for (const handle of this.ownedObjectsHandlers) {
+				const att = builder.tryGetCadObject<AttributeEntity>(handle);
 				if (att) {
 					insert.attributes.push(att);
 					att.owner = insert;

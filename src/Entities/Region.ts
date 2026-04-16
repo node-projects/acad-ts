@@ -8,6 +8,6 @@ export class Region extends ModelerGeometry {
 	}
 
 	override get objectName(): string {
-		return DxfFileToken.EntityRegion;
+		return DxfFileToken.entityRegion;
 	}
 }

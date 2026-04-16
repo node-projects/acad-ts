@@ -4,7 +4,7 @@ import { CadDocumentBuilder } from '../CadDocumentBuilder.js';
 import { CadBlockElementTemplate } from './CadBlockElementTemplate.js';
 
 export class CadBlockActionTemplate extends CadBlockElementTemplate {
-	get blockAction(): BlockAction { return this.CadObject as BlockAction; }
+	get blockAction(): BlockAction { return this.cadObject as BlockAction; }
 
 	entityHandles: Set<number> = new Set();
 
@@ -12,15 +12,15 @@ export class CadBlockActionTemplate extends CadBlockElementTemplate {
 		super(cadObject);
 	}
 
-	protected override build(builder: CadDocumentBuilder): void {
-		super.build(builder);
+	protected override _build(builder: CadDocumentBuilder): void {
+		super._build(builder);
 
 		for (const handle of this.entityHandles) {
-			const entity = builder.TryGetCadObject<Entity>(handle);
+			const entity = builder.tryGetCadObject<Entity>(handle);
 			if (entity) {
 				this.blockAction.entities.push(entity);
 			} else {
-				builder.Notify(`[${this.blockAction.toString()}] entity with handle ${handle} not found.`);
+				builder.notify(`[${this.blockAction.toString()}] entity with handle ${handle} not found.`);
 			}
 		}
 	}

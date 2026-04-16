@@ -15,11 +15,11 @@ export abstract class Table<T extends TableEntry> extends CadObject implements I
 	}
 
 	public override get objectName(): string {
-		return DxfFileToken.TableEntry;
+		return DxfFileToken.tableEntry;
 	}
 
 	public override get subclassMarker(): string {
-		return DxfSubclassMarker.Table;
+		return DxfSubclassMarker.table;
 	}
 
 	protected abstract get defaultEntries(): string[];
@@ -95,7 +95,7 @@ export abstract class Table<T extends TableEntry> extends CadObject implements I
 		item.owner = this;
 
 		item.onNameChanged = (sender: unknown, e: OnNameChangedArgs) => {
-			this.onEntryNameChanged(sender, e);
+			this._onEntryNameChanged(sender, e);
 		};
 
 		this.onAdd?.(this, new CollectionChangedEventArgs(item));
@@ -104,7 +104,7 @@ export abstract class Table<T extends TableEntry> extends CadObject implements I
 	protected addHandlePrefix(item: T): void {
 		item.owner = this;
 		item.onNameChanged = (sender: unknown, e: OnNameChangedArgs) => {
-			this.onEntryNameChanged(sender, e);
+			this._onEntryNameChanged(sender, e);
 		};
 
 		this.onAdd?.(this, new CollectionChangedEventArgs(item));
@@ -121,7 +121,7 @@ export abstract class Table<T extends TableEntry> extends CadObject implements I
 		return `${prefix}${i}`;
 	}
 
-	private onEntryNameChanged(sender: unknown, e: OnNameChangedArgs): void {
+	private _onEntryNameChanged(sender: unknown, e: OnNameChangedArgs): void {
 		if (this.defaultEntries.some(d => d.toUpperCase() === e.oldName.toUpperCase())) {
 			throw new Error(`The name ${e.oldName} belongs to a default entry.`);
 		}

@@ -43,7 +43,7 @@ export class DimensionAngular2Line extends Dimension {
 	}
 
 	override get objectName(): string {
-		return DxfFileToken.EntityDimension;
+		return DxfFileToken.entityDimension;
 	}
 
 	override get objectType(): ObjectType {
@@ -69,7 +69,7 @@ export class DimensionAngular2Line extends Dimension {
 	secondPoint: XYZ = new XYZ(0, 0, 0);
 
 	override get subclassMarker(): string {
-		return DxfSubclassMarker.Angular2LineDimension;
+		return DxfSubclassMarker.angular2LineDimension;
 	}
 
 	constructor() {
@@ -85,7 +85,7 @@ export class DimensionAngular2Line extends Dimension {
 	}
 
 	override getBoundingBox(): BoundingBox {
-		return BoundingBox.FromPoints([this.angleVertex, this.dimensionArc, this.firstPoint, this.secondPoint, this.definitionPoint]);
+		return BoundingBox.fromPoints([this.angleVertex, this.dimensionArc, this.firstPoint, this.secondPoint, this.definitionPoint]);
 	}
 
 	override updateBlock(): void {

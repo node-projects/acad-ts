@@ -10,20 +10,14 @@ export class XY implements IVector {
   get [1](): number { return this.y; }
   set [1](v: number) { this.y = v; }
 
-  // PascalCase aliases for C# compat
-  get X(): number { return this.x; }
-  set X(v: number) { this.x = v; }
-  get Y(): number { return this.y; }
-  set Y(v: number) { this.y = v; }
-
   constructor(x: number = 0, y: number = 0) {
     this.x = x;
     this.y = y;
   }
 
-  static readonly Zero = new XY(0, 0);
-  static readonly AxisX = new XY(1, 0);
-  static readonly AxisY = new XY(0, 1);
+  static readonly zero = new XY(0, 0);
+  static readonly axisX = new XY(1, 0);
+  static readonly axisY = new XY(0, 1);
 
   getLength(): number {
     return Math.sqrt(this.x * this.x + this.y * this.y);
@@ -47,18 +41,18 @@ export class XY implements IVector {
     return this.x * other.y - this.y * other.x;
   }
 
-  static Cross(a: XY, b: XY): number {
+  static cross(a: XY, b: XY): number {
     return a.x * b.y - a.y * b.x;
   }
 
-  static Polar(point: XY, angle: number, distance: number): XY {
+  static polar(point: XY, angle: number, distance: number): XY {
     return new XY(
       point.x + distance * Math.cos(angle),
       point.y + distance * Math.sin(angle)
     );
   }
 
-  static Rotate(point: XY, angle: number): XY {
+  static rotate(point: XY, angle: number): XY {
     const cos = Math.cos(angle);
     const sin = Math.sin(angle);
     return new XY(

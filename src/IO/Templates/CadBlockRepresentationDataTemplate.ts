@@ -4,18 +4,18 @@ import { CadDocumentBuilder } from '../CadDocumentBuilder.js';
 import { CadTemplateT } from './CadTemplate[T].js';
 
 export class CadBlockRepresentationDataTemplate extends CadTemplateT<BlockRepresentationData> {
-	BlockHandle: number | null = null;
+	blockHandle: number | null = null;
 
 	constructor(representation?: BlockRepresentationData) {
 		super(representation ?? new BlockRepresentationData());
 	}
 
-	protected override build(builder: CadDocumentBuilder): void {
-		super.build(builder);
+	protected override _build(builder: CadDocumentBuilder): void {
+		super._build(builder);
 
-		const record = this.getTableReference<BlockRecord>(builder, this.BlockHandle, '');
+		const record = this.getTableReference<BlockRecord>(builder, this.blockHandle, '');
 		if (record) {
-			this.CadObject.block = record;
+			this.cadObject.block = record;
 		}
 	}
 }

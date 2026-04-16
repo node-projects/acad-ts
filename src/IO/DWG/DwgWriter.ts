@@ -25,7 +25,7 @@ import { ViewportEntityControl } from '../../Tables/Collections/ViewportEntityCo
 import './DwgStreamWriters/DwgStreamWriterFactory.js';
 
 export class DwgWriter extends CadWriterBase<DwgWriterConfiguration> {
-	Preview: DwgPreview | null = null;
+	preview: DwgPreview | null = null;
 
 	private get _version(): ACadVersion { return this._document.header.version; }
 
@@ -38,15 +38,15 @@ export class DwgWriter extends CadWriterBase<DwgWriterConfiguration> {
 
 	constructor(stream: ArrayBuffer | Uint8Array, document: CadDocument) {
 		super(stream, document);
-		this._fileHeader = DwgFileHeader.CreateFileHeader(this._version)!;
+		this._fileHeader = DwgFileHeader.createFileHeader(this._version)!;
 	}
 
 	protected createDefaultConfiguration(): DwgWriterConfiguration {
 		return new DwgWriterConfiguration();
 	}
 
-	override Write(): void {
-		super.Write();
+	override write(): void {
+		super.write();
 
 		if (this._version < ACadVersion.AC1018 && !this._document.vEntityControl) {
 			const viewportEntityControl = new ViewportEntityControl();
@@ -54,39 +54,39 @@ export class DwgWriter extends CadWriterBase<DwgWriterConfiguration> {
 			this._document.vEntityControl = viewportEntityControl;
 		}
 
-		this.getFileHeaderWriter();
+		this._getFileHeaderWriter();
 
-		this.writeHeader();
-		this.writeClasses();
-		this.writeSummaryInfo();
-		this.writePreview();
-		this.writeAppInfo();
-		this.writeFileDepList();
-		this.writeRevHistory();
-		this.writeAuxHeader();
-		this.writeObjects();
-		this.writeObjFreeSpace();
-		this.writeTemplate();
-		this.writeHandles();
+		this._writeHeader();
+		this._writeClasses();
+		this._writeSummaryInfo();
+		this._writePreview();
+		this._writeAppInfo();
+		this._writeFileDepList();
+		this._writeRevHistory();
+		this._writeAuxHeader();
+		this._writeObjects();
+		this._writeObjFreeSpace();
+		this._writeTemplate();
+		this._writeHandles();
 
 		this._fileHeaderWriter.writeFile();
 	}
 
-	Dispose(): void {
+	dispose(): void {
 		// No-op in TS
 	}
 
-	static WriteToStream(stream: ArrayBuffer | Uint8Array, document: CadDocument, configuration: DwgWriterConfiguration | null = null, notification: NotificationEventHandler | null = null): void {
+	static writeToStream(stream: ArrayBuffer | Uint8Array, document: CadDocument, configuration: DwgWriterConfiguration | null = null, notification: NotificationEventHandler | null = null): void {
 		const writer = new DwgWriter(stream, document);
 		if (configuration) {
-			writer.Configuration = configuration;
+			writer.configuration = configuration;
 		}
-		writer.OnNotification = notification;
-		writer.Write();
-		writer.Dispose();
+		writer.onNotification = notification;
+		writer.write();
+		writer.dispose();
 	}
 
-	private getFileHeaderWriter(): void {
+	private _getFileHeaderWriter(): void {
 		switch (this._document.header.version) {
 			case ACadVersion.MC0_0:
 			case ACadVersion.AC1_2:
@@ -121,65 +121,65 @@ export class DwgWriter extends CadWriterBase<DwgWriterConfiguration> {
 		}
 	}
 
-	private writeHeader(): void {
+	private _writeHeader(): void {
 		const stream = new Uint8Array(0);
 		const writer = new DwgHeaderWriter(stream, this._document, this._encoding);
-		writer.OnNotification = (sender, e) => this.triggerNotification(sender, e);
+		writer.onNotification = (sender, e) => this.triggerNotification(sender, e);
 		writer.write();
 
 		const data = new Uint8Array(writer.startWriterStream).slice(0, writer.bytesWritten);
-		this._fileHeaderWriter.addSection(DwgSectionDefinition.Header, data, true);
+		this._fileHeaderWriter.addSection(DwgSectionDefinition.header, data, true);
 	}
 
-	private writeClasses(): void {
+	private _writeClasses(): void {
 		const stream = new Uint8Array(0);
 		const writer = new DwgClassesWriter(stream, this._document, this._encoding);
 		writer.write();
 
 		const data = new Uint8Array(writer.startWriterStream).slice(0, writer.bytesWritten);
-		this._fileHeaderWriter.addSection(DwgSectionDefinition.Classes, data, true);
+		this._fileHeaderWriter.addSection(DwgSectionDefinition.classes, data, true);
 	}
 
-	private writeSummaryInfo(): void {
-		if (this._fileHeader.AcadVersion < ACadVersion.AC1018) return;
+	private _writeSummaryInfo(): void {
+		if (this._fileHeader.acadVersion < ACadVersion.AC1018) return;
 
 		if (this._document.summaryInfo) {
 			const stream = new Uint8Array(8192);
 			const writer = new DwgSummaryInfoWriter(this._version, stream, this._encoding);
 			writer.write(this._document.summaryInfo);
 			const data = new Uint8Array(writer.writerStream).slice(0, writer.bytesWritten);
-			this._fileHeaderWriter.addSection(DwgSectionDefinition.SummaryInfo, data, false, 0x100);
+			this._fileHeaderWriter.addSection(DwgSectionDefinition.summaryInfo, data, false, 0x100);
 		} else {
-			this._fileHeaderWriter.addSection(DwgSectionDefinition.SummaryInfo, new Uint8Array(0), false, 0x100);
+			this._fileHeaderWriter.addSection(DwgSectionDefinition.summaryInfo, new Uint8Array(0), false, 0x100);
 		}
 	}
 
-	private writePreview(): void {
+	private _writePreview(): void {
 		const stream = new Uint8Array(4096);
 		const writer = new DwgPreviewWriter(this._version, stream);
 
-		if (this.Preview && this.Preview.code !== 0) {
-			writer.writePreview(this.Preview, 0);
+		if (this.preview && this.preview.code !== 0) {
+			writer.writePreview(this.preview, 0);
 		} else {
 			writer.write();
 		}
 		const data = new Uint8Array(writer.writerStream).slice(0, writer.bytesWritten);
-		this._fileHeaderWriter.addSection(DwgSectionDefinition.Preview, data, false, 0x400);
+		this._fileHeaderWriter.addSection(DwgSectionDefinition.preview, data, false, 0x400);
 	}
 
-	private writeAppInfo(): void {
-		if (this._fileHeader.AcadVersion < ACadVersion.AC1018) return;
+	private _writeAppInfo(): void {
+		if (this._fileHeader.acadVersion < ACadVersion.AC1018) return;
 
 		const stream = new Uint8Array(4096);
 		const writer = new DwgAppInfoWriter(this._version, stream);
 		writer.write();
 
 		const data = new Uint8Array(writer.writerStream).slice(0, writer.bytesWritten);
-		this._fileHeaderWriter.addSection(DwgSectionDefinition.AppInfo, data, false, 0x80);
+		this._fileHeaderWriter.addSection(DwgSectionDefinition.appInfo, data, false, 0x80);
 	}
 
-	private writeFileDepList(): void {
-		if (this._fileHeader.AcadVersion < ACadVersion.AC1018) return;
+	private _writeFileDepList(): void {
+		if (this._fileHeader.acadVersion < ACadVersion.AC1018) return;
 
 		const data = new Uint8Array(8);
 		const view = new DataView(data.buffer);
@@ -188,11 +188,11 @@ export class DwgWriter extends CadWriterBase<DwgWriterConfiguration> {
 		// UInt32: File count
 		view.setUint32(4, 0, true);
 
-		this._fileHeaderWriter.addSection(DwgSectionDefinition.FileDepList, data, false, 0x80);
+		this._fileHeaderWriter.addSection(DwgSectionDefinition.fileDepList, data, false, 0x80);
 	}
 
-	private writeRevHistory(): void {
-		if (this._fileHeader.AcadVersion < ACadVersion.AC1018) return;
+	private _writeRevHistory(): void {
+		if (this._fileHeader.acadVersion < ACadVersion.AC1018) return;
 
 		const data = new Uint8Array(12);
 		const view = new DataView(data.buffer);
@@ -200,28 +200,28 @@ export class DwgWriter extends CadWriterBase<DwgWriterConfiguration> {
 		view.setUint32(4, 0, true);
 		view.setUint32(8, 0, true);
 
-		this._fileHeaderWriter.addSection(DwgSectionDefinition.RevHistory, data, true);
+		this._fileHeaderWriter.addSection(DwgSectionDefinition.revHistory, data, true);
 	}
 
-	private writeObjects(): void {
+	private _writeObjects(): void {
 		const stream = new Uint8Array(0);
 		const writer = new DwgObjectWriter(
 			stream,
 			this._document,
 			this._encoding,
-			this.Configuration.WriteXRecords,
-			this.Configuration.WriteXData,
-			this.Configuration.WriteShapes,
+			this.configuration.writeXRecords,
+			this.configuration.writeXData,
+			this.configuration.writeShapes,
 		);
-		writer.OnNotification = (sender, e) => this.triggerNotification(sender, e);
+		writer.onNotification = (sender, e) => this.triggerNotification(sender, e);
 		writer.write();
 
-		this._handlesMap = writer.Map;
+		this._handlesMap = writer.map;
 
-		this._fileHeaderWriter.addSection(DwgSectionDefinition.AcDbObjects, writer.getWrittenData(), true);
+		this._fileHeaderWriter.addSection(DwgSectionDefinition.acDbObjects, writer.getWrittenData(), true);
 	}
 
-	private writeObjFreeSpace(): void {
+	private _writeObjFreeSpace(): void {
 		const data = new Uint8Array(53);
 		const view = new DataView(data.buffer);
 		let offset = 0;
@@ -251,10 +251,10 @@ export class DwgWriter extends CadWriterBase<DwgWriterConfiguration> {
 		view.setUint32(offset, 0xffffffff, true); offset += 4;
 		view.setUint32(offset, 0x00000000, true); offset += 4;
 
-		this._fileHeaderWriter.addSection(DwgSectionDefinition.ObjFreeSpace, data, true);
+		this._fileHeaderWriter.addSection(DwgSectionDefinition.objFreeSpace, data, true);
 	}
 
-	private writeTemplate(): void {
+	private _writeTemplate(): void {
 		const data = new Uint8Array(4);
 		const view = new DataView(data.buffer);
 		// Int16: Template description string length (always 0)
@@ -262,22 +262,22 @@ export class DwgWriter extends CadWriterBase<DwgWriterConfiguration> {
 		// UInt16: MEASUREMENT system variable (0 = English, 1 = Metric)
 		view.setUint16(2, this._document.header.measurementUnits, true);
 
-		this._fileHeaderWriter.addSection(DwgSectionDefinition.Template, data, true);
+		this._fileHeaderWriter.addSection(DwgSectionDefinition.template, data, true);
 	}
 
-	private writeHandles(): void {
+	private _writeHandles(): void {
 		const writer = new DwgHandleWriter(this._version, this._handlesMap);
-		const data = writer.write(this._fileHeaderWriter.HandleSectionOffset);
+		const data = writer.write(this._fileHeaderWriter.handleSectionOffset);
 
-		this._fileHeaderWriter.addSection(DwgSectionDefinition.Handles, data, true);
+		this._fileHeaderWriter.addSection(DwgSectionDefinition.handles, data, true);
 	}
 
-	private writeAuxHeader(): void {
+	private _writeAuxHeader(): void {
 		const stream = new Uint8Array(4096);
 		const writer = new DwgAuxHeaderWriter(stream, this._encoding, this._document.header);
 		writer.write();
 
 		const data = new Uint8Array(writer.writerStream).slice(0, writer.bytesWritten);
-		this._fileHeaderWriter.addSection(DwgSectionDefinition.AuxHeader, data, true);
+		this._fileHeaderWriter.addSection(DwgSectionDefinition.auxHeader, data, true);
 	}
 }

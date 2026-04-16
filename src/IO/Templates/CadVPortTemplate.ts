@@ -6,39 +6,39 @@ import { NotificationType } from '../NotificationEventHandler.js';
 import { CadTableEntryTemplate } from './CadTableEntryTemplate.js';
 
 export class CadVPortTemplate extends CadTableEntryTemplate<VPort> {
-	VportControlHandle: number = 0;
+	vportControlHandle: number = 0;
 
-	BackgroundHandle: number | null = null;
+	backgroundHandle: number | null = null;
 
-	StyleHandle: number | null = null;
+	styleHandle: number | null = null;
 
-	SunHandle: number | null = null;
+	sunHandle: number | null = null;
 
-	NamedUcsHandle: number | null = null;
+	namedUcsHandle: number | null = null;
 
-	BaseUcsHandle: number | null = null;
+	baseUcsHandle: number | null = null;
 
 	constructor(cadObject?: VPort) {
 		super(cadObject ?? new VPort());
 	}
 
-	protected override build(builder: CadDocumentBuilder): void {
-		super.build(builder);
+	protected override _build(builder: CadDocumentBuilder): void {
+		super._build(builder);
 
-		const baseUcs = builder.TryGetCadObject<UCS>(this.BaseUcsHandle);
+		const baseUcs = builder.tryGetCadObject<UCS>(this.baseUcsHandle);
 		if (baseUcs) {
-			this.CadObject.baseUcs = baseUcs;
-		} else if (this.BaseUcsHandle != null && this.BaseUcsHandle > 0) {
-			builder.Notify(`Boundary ${this.BaseUcsHandle} not found for viewport ${this.CadObject.handle}`, NotificationType.Warning);
+			this.cadObject.baseUcs = baseUcs;
+		} else if (this.baseUcsHandle != null && this.baseUcsHandle > 0) {
+			builder.notify(`Boundary ${this.baseUcsHandle} not found for viewport ${this.cadObject.handle}`, NotificationType.Warning);
 		}
 
-		const namedUcs = builder.TryGetCadObject<UCS>(this.NamedUcsHandle);
+		const namedUcs = builder.tryGetCadObject<UCS>(this.namedUcsHandle);
 		if (namedUcs) {
-			this.CadObject.baseUcs = namedUcs;
-		} else if (this.NamedUcsHandle != null && this.NamedUcsHandle > 0) {
-			builder.Notify(`Boundary ${this.BaseUcsHandle} not found for viewport ${this.CadObject.handle}`, NotificationType.Warning);
+			this.cadObject.baseUcs = namedUcs;
+		} else if (this.namedUcsHandle != null && this.namedUcsHandle > 0) {
+			builder.notify(`Boundary ${this.baseUcsHandle} not found for viewport ${this.cadObject.handle}`, NotificationType.Warning);
 		}
 
-		const style = builder.TryGetCadObject<CadObject>(this.StyleHandle);
+		const style = builder.tryGetCadObject<CadObject>(this.styleHandle);
 	}
 }

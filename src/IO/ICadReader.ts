@@ -3,8 +3,8 @@ import { CadHeader } from '../Header/CadHeader.js';
 import { NotificationEventHandler } from './NotificationEventHandler.js';
 
 export interface ICadReader {
-	OnNotification: NotificationEventHandler | null;
-	ReadHeader(): CadHeader;
-	Read(): CadDocument;
-	Dispose(): void;
+	onNotification: NotificationEventHandler | null;
+	readHeader(): CadHeader;
+	read(): CadDocument;
+	dispose(): void;
 }

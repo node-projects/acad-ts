@@ -109,23 +109,23 @@ export class DxfObjectsSectionReader extends DxfSectionReaderBase {
     super(reader, builder);
   }
 
-  public Read(): void {
-    this._reader.ReadNext();
+  public read(): void {
+    this._reader.readNext();
 
-    while (this._reader.ValueAsString !== DxfFileToken.EndSection) {
+    while (this._reader.valueAsString !== DxfFileToken.endSection) {
       let template: CadTemplate | null = null;
 
       try {
-        template = this.readObject();
+        template = this._readObject();
       } catch (ex: unknown) {
-        if (!this._builder.Configuration.Failsafe) {
+        if (!this._builder.configuration.failsafe) {
           throw ex;
         }
 
-        this._builder.Notify(`Error while reading an object at line ${this._reader.Position}`, NotificationType.Error, ex instanceof Error ? ex : null);
+        this._builder.notify(`Error while reading an object at line ${this._reader.position}`, NotificationType.Error, ex instanceof Error ? ex : null);
 
-        while (this._reader.DxfCode !== DxfCode.Start) {
-          this._reader.ReadNext();
+        while (this._reader.dxfCode !== DxfCode.Start) {
+          this._reader.readNext();
         }
       }
 
@@ -133,110 +133,110 @@ export class DxfObjectsSectionReader extends DxfSectionReaderBase {
         continue;
       }
 
-      this._builder.AddTemplate(template);
+      this._builder.addTemplate(template);
     }
   }
 
-  private readObject(): CadTemplate | null {
+  private _readObject(): CadTemplate | null {
     this.currentSubclass = '';
-    switch (this._reader.ValueAsString as string) {
-      case DxfFileToken.BlkRefObjectContextData:
-        return this.readObjectCodes(new CadAnnotScaleObjectContextDataTemplate(new BlockReferenceObjectContextData()), this.readAnnotScaleObjectContextData.bind(this), BlockReferenceObjectContextData);
-      case DxfFileToken.MTextAttributeObjectContextData:
-        return this.readObjectCodes(new CadAnnotScaleObjectContextDataTemplate(new MTextAttributeObjectContextData()), this.readAnnotScaleObjectContextData.bind(this), MTextAttributeObjectContextData);
-      case DxfFileToken.ObjectPlaceholder:
-        return this.readObjectCodes(new CadNonGraphicalObjectTemplate(new AcdbPlaceHolder()), this.readObjectSubclassMap.bind(this), AcdbPlaceHolder);
-      case DxfFileToken.ObjectDBColor:
-        return this.readObjectCodes(new CadNonGraphicalObjectTemplate(new BookColor()), this.readBookColor.bind(this), BookColor);
-      case DxfFileToken.ObjectDimensionAssociation:
-        return this.readObjectCodes(new CadDimensionAssociationTemplate(), this.readDimensionAssociation.bind(this), DimensionAssociation);
-      case DxfFileToken.ObjectDictionary:
-        return this.readObjectCodes(new CadDictionaryTemplate(), this.readDictionary.bind(this), CadDictionary);
-      case DxfFileToken.ObjectDictionaryWithDefault:
-        return this.readObjectCodes(new CadDictionaryWithDefaultTemplate(), this.readDictionaryWithDefault.bind(this), CadDictionaryWithDefault);
-      case DxfFileToken.ObjectLayout:
-        return this.readObjectCodes(new CadLayoutTemplate(), this.readLayout.bind(this), Layout);
-      case DxfFileToken.ObjectPlotSettings:
-        return this.readObjectCodes(new CadNonGraphicalObjectTemplate(new PlotSettings()), this.readPlotSettings.bind(this), PlotSettings);
-      case DxfFileToken.ObjectEvalGraph:
-        return this.readObjectCodes(new CadEvaluationGraphTemplate(), this.readEvaluationGraph.bind(this), EvaluationGraph);
-      case DxfFileToken.ObjectImageDefinition:
-        return this.readObjectCodes(new CadNonGraphicalObjectTemplate(new ImageDefinition()), this.readObjectSubclassMap.bind(this), ImageDefinition);
-      case DxfFileToken.ObjectDictionaryVar:
-        return this.readObjectCodes(new CadNonGraphicalObjectTemplate(new DictionaryVariable()), this.readObjectSubclassMap.bind(this), DictionaryVariable);
-      case DxfFileToken.ObjectPdfDefinition:
-        return this.readObjectCodes(new CadNonGraphicalObjectTemplate(new PdfUnderlayDefinition()), this.readObjectSubclassMap.bind(this), PdfUnderlayDefinition);
-      case DxfFileToken.ObjectSortEntsTable:
-        return this.readSortentsTable();
-      case DxfFileToken.ObjectImageDefinitionReactor:
-        return this.readObjectCodes(new CadNonGraphicalObjectTemplate(new ImageDefinitionReactor()), this.readObjectSubclassMap.bind(this), ImageDefinitionReactor);
-      case DxfFileToken.ObjectProxyObject:
-        return this.readObjectCodes(new CadProxyObjectTemplate(), this.readProxyObject.bind(this), ProxyObject);
-      case DxfFileToken.ObjectRasterVariables:
-        return this.readObjectCodes(new CadNonGraphicalObjectTemplate(new RasterVariables()), this.readObjectSubclassMap.bind(this), RasterVariables);
-      case DxfFileToken.ObjectGroup:
-        return this.readObjectCodes(new CadGroupTemplate(), this.readGroup.bind(this), Group);
-      case DxfFileToken.ObjectGeoData:
-        return this.readObjectCodes(new CadGeoDataTemplate(), this.readGeoData.bind(this), GeoData);
-      case DxfFileToken.ObjectMaterial:
-        return this.readObjectCodes(new CadMaterialTemplate(), this.readMaterial.bind(this), Material);
-      case DxfFileToken.ObjectScale:
-        return this.readObjectCodes(new CadNonGraphicalObjectTemplate(new Scale()), this.readScale.bind(this), Scale);
-      case DxfFileToken.ObjectTableContent:
-        return this.readObjectCodes(new CadTableContentTemplate(), this.readTableContent.bind(this), TableContent);
-      case DxfFileToken.ObjectVisualStyle:
-        return this.readObjectCodes(new CadNonGraphicalObjectTemplate(new VisualStyle()), this.readVisualStyle.bind(this), VisualStyle);
-      case DxfFileToken.ObjectSpatialFilter:
-        return this.readObjectCodes(new CadSpatialFilterTemplate(), this.readSpatialFilter.bind(this), SpatialFilter);
-      case DxfFileToken.ObjectMLineStyle:
-        return this.readObjectCodes(new CadMLineStyleTemplate(), this.readMLineStyle.bind(this), MLineStyle);
-      case DxfFileToken.ObjectMLeaderStyle:
-        return this.readObjectCodes(new CadMLeaderStyleTemplate(), this.readMLeaderStyle.bind(this), MultiLeaderStyle);
-      case DxfFileToken.ObjectTableStyle:
-        return this.readObjectCodes(new CadTableStyleTemplate(), this.readTableStyle.bind(this), TableStyle);
-      case DxfFileToken.ObjectXRecord:
-        return this.readObjectCodes(new CadXRecordTemplate(), this.readXRecord.bind(this), XRecord);
-      case DxfFileToken.ObjectBlockRepresentationData:
-        return this.readObjectCodes(new CadBlockRepresentationDataTemplate(), this.readBlockRepresentationData.bind(this), BlockRepresentationData);
-      case DxfFileToken.ObjectBlockGripLocationComponent:
-        return this.readObjectCodes(new CadBlockGripExpressionTemplate(), this.readBlockGripExpression.bind(this), BlockGripExpression);
-      case DxfFileToken.ObjectBlockVisibilityGrip:
-        return this.readObjectCodes(new CadBlockVisibilityGripTemplate(), this.readBlockVisibilityGrip.bind(this), BlockVisibilityGrip);
-      case DxfFileToken.ObjectBlockVisibilityParameter:
-        return this.readObjectCodes(new CadBlockVisibilityParameterTemplate(), this.readBlockVisibilityParameter.bind(this), BlockVisibilityParameter);
-      case DxfFileToken.ObjectBlockRotationParameter:
-        return this.readObjectCodes(new CadBlockRotationParameterTemplate(), this.readBlockRotationParameter.bind(this), BlockRotationParameter);
-      case DxfFileToken.ObjectBlockRotationGrip:
-        return this.readObjectCodes(new CadBlockRotationGripTemplate(), this.readBlockRotationGrip.bind(this), BlockRotationGrip);
-      case DxfFileToken.ObjectBlockRotateAction:
-        return this.readObjectCodes(new CadBlockRotationActionTemplate(), this.readBlockRotationAction.bind(this), BlockRotationAction);
-      case DxfFileToken.ObjectField:
-        return this.readObjectCodes(new CadFieldTemplate(new Field()), this.readField.bind(this), Field);
-      case DxfFileToken.ObjectFieldList:
-        return this.readObjectCodes(new CadFieldListTemplate(new FieldList()), this.readFieldList.bind(this), FieldList);
+    switch (this._reader.valueAsString as string) {
+      case DxfFileToken.blkRefObjectContextData:
+        return this.readObjectCodes(new CadAnnotScaleObjectContextDataTemplate(new BlockReferenceObjectContextData()), this._readAnnotScaleObjectContextData.bind(this), BlockReferenceObjectContextData);
+      case DxfFileToken.mTextAttributeObjectContextData:
+        return this.readObjectCodes(new CadAnnotScaleObjectContextDataTemplate(new MTextAttributeObjectContextData()), this._readAnnotScaleObjectContextData.bind(this), MTextAttributeObjectContextData);
+      case DxfFileToken.objectPlaceholder:
+        return this.readObjectCodes(new CadNonGraphicalObjectTemplate(new AcdbPlaceHolder()), this._readObjectSubclassMap.bind(this), AcdbPlaceHolder);
+      case DxfFileToken.objectDBColor:
+        return this.readObjectCodes(new CadNonGraphicalObjectTemplate(new BookColor()), this._readBookColor.bind(this), BookColor);
+      case DxfFileToken.objectDimensionAssociation:
+        return this.readObjectCodes(new CadDimensionAssociationTemplate(), this._readDimensionAssociation.bind(this), DimensionAssociation);
+      case DxfFileToken.objectDictionary:
+        return this.readObjectCodes(new CadDictionaryTemplate(), this._readDictionary.bind(this), CadDictionary);
+      case DxfFileToken.objectDictionaryWithDefault:
+        return this.readObjectCodes(new CadDictionaryWithDefaultTemplate(), this._readDictionaryWithDefault.bind(this), CadDictionaryWithDefault);
+      case DxfFileToken.objectLayout:
+        return this.readObjectCodes(new CadLayoutTemplate(), this._readLayout.bind(this), Layout);
+      case DxfFileToken.objectPlotSettings:
+        return this.readObjectCodes(new CadNonGraphicalObjectTemplate(new PlotSettings()), this._readPlotSettings.bind(this), PlotSettings);
+      case DxfFileToken.objectEvalGraph:
+        return this.readObjectCodes(new CadEvaluationGraphTemplate(), this._readEvaluationGraph.bind(this), EvaluationGraph);
+      case DxfFileToken.objectImageDefinition:
+        return this.readObjectCodes(new CadNonGraphicalObjectTemplate(new ImageDefinition()), this._readObjectSubclassMap.bind(this), ImageDefinition);
+      case DxfFileToken.objectDictionaryVar:
+        return this.readObjectCodes(new CadNonGraphicalObjectTemplate(new DictionaryVariable()), this._readObjectSubclassMap.bind(this), DictionaryVariable);
+      case DxfFileToken.objectPdfDefinition:
+        return this.readObjectCodes(new CadNonGraphicalObjectTemplate(new PdfUnderlayDefinition()), this._readObjectSubclassMap.bind(this), PdfUnderlayDefinition);
+      case DxfFileToken.objectSortEntsTable:
+        return this._readSortentsTable();
+      case DxfFileToken.objectImageDefinitionReactor:
+        return this.readObjectCodes(new CadNonGraphicalObjectTemplate(new ImageDefinitionReactor()), this._readObjectSubclassMap.bind(this), ImageDefinitionReactor);
+      case DxfFileToken.objectProxyObject:
+        return this.readObjectCodes(new CadProxyObjectTemplate(), this._readProxyObject.bind(this), ProxyObject);
+      case DxfFileToken.objectRasterVariables:
+        return this.readObjectCodes(new CadNonGraphicalObjectTemplate(new RasterVariables()), this._readObjectSubclassMap.bind(this), RasterVariables);
+      case DxfFileToken.objectGroup:
+        return this.readObjectCodes(new CadGroupTemplate(), this._readGroup.bind(this), Group);
+      case DxfFileToken.objectGeoData:
+        return this.readObjectCodes(new CadGeoDataTemplate(), this._readGeoData.bind(this), GeoData);
+      case DxfFileToken.objectMaterial:
+        return this.readObjectCodes(new CadMaterialTemplate(), this._readMaterial.bind(this), Material);
+      case DxfFileToken.objectScale:
+        return this.readObjectCodes(new CadNonGraphicalObjectTemplate(new Scale()), this._readScale.bind(this), Scale);
+      case DxfFileToken.objectTableContent:
+        return this.readObjectCodes(new CadTableContentTemplate(), this._readTableContent.bind(this), TableContent);
+      case DxfFileToken.objectVisualStyle:
+        return this.readObjectCodes(new CadNonGraphicalObjectTemplate(new VisualStyle()), this._readVisualStyle.bind(this), VisualStyle);
+      case DxfFileToken.objectSpatialFilter:
+        return this.readObjectCodes(new CadSpatialFilterTemplate(), this._readSpatialFilter.bind(this), SpatialFilter);
+      case DxfFileToken.objectMLineStyle:
+        return this.readObjectCodes(new CadMLineStyleTemplate(), this._readMLineStyle.bind(this), MLineStyle);
+      case DxfFileToken.objectMLeaderStyle:
+        return this.readObjectCodes(new CadMLeaderStyleTemplate(), this._readMLeaderStyle.bind(this), MultiLeaderStyle);
+      case DxfFileToken.objectTableStyle:
+        return this.readObjectCodes(new CadTableStyleTemplate(), this._readTableStyle.bind(this), TableStyle);
+      case DxfFileToken.objectXRecord:
+        return this.readObjectCodes(new CadXRecordTemplate(), this._readXRecord.bind(this), XRecord);
+      case DxfFileToken.objectBlockRepresentationData:
+        return this.readObjectCodes(new CadBlockRepresentationDataTemplate(), this._readBlockRepresentationData.bind(this), BlockRepresentationData);
+      case DxfFileToken.objectBlockGripLocationComponent:
+        return this.readObjectCodes(new CadBlockGripExpressionTemplate(), this._readBlockGripExpression.bind(this), BlockGripExpression);
+      case DxfFileToken.objectBlockVisibilityGrip:
+        return this.readObjectCodes(new CadBlockVisibilityGripTemplate(), this._readBlockVisibilityGrip.bind(this), BlockVisibilityGrip);
+      case DxfFileToken.objectBlockVisibilityParameter:
+        return this.readObjectCodes(new CadBlockVisibilityParameterTemplate(), this._readBlockVisibilityParameter.bind(this), BlockVisibilityParameter);
+      case DxfFileToken.objectBlockRotationParameter:
+        return this.readObjectCodes(new CadBlockRotationParameterTemplate(), this._readBlockRotationParameter.bind(this), BlockRotationParameter);
+      case DxfFileToken.objectBlockRotationGrip:
+        return this.readObjectCodes(new CadBlockRotationGripTemplate(), this._readBlockRotationGrip.bind(this), BlockRotationGrip);
+      case DxfFileToken.objectBlockRotateAction:
+        return this.readObjectCodes(new CadBlockRotationActionTemplate(), this._readBlockRotationAction.bind(this), BlockRotationAction);
+      case DxfFileToken.objectField:
+        return this.readObjectCodes(new CadFieldTemplate(new Field()), this._readField.bind(this), Field);
+      case DxfFileToken.objectFieldList:
+        return this.readObjectCodes(new CadFieldListTemplate(new FieldList()), this._readFieldList.bind(this), FieldList);
       default: {
         const map = DxfMap.create(CadObject);
         let unknownEntityTemplate: CadUnknownNonGraphicalObjectTemplate | null = null;
-        const dxfClass = this._builder.DocumentToBuild.classes.tryGetByName(this._reader.ValueAsString);
+        const dxfClass = this._builder.documentToBuild.classes.tryGetByName(this._reader.valueAsString);
         if (dxfClass) {
-          this._builder.Notify(`NonGraphicalObject not supported read as an UnknownNonGraphicalObject: ${this._reader.ValueAsString}`, NotificationType.NotImplemented);
+          this._builder.notify(`NonGraphicalObject not supported read as an UnknownNonGraphicalObject: ${this._reader.valueAsString}`, NotificationType.NotImplemented);
           unknownEntityTemplate = new CadUnknownNonGraphicalObjectTemplate(new UnknownNonGraphicalObject(dxfClass));
         } else {
-          this._builder.Notify(`UnknownNonGraphicalObject not supported: ${this._reader.ValueAsString}`, NotificationType.NotImplemented);
+          this._builder.notify(`UnknownNonGraphicalObject not supported: ${this._reader.valueAsString}`, NotificationType.NotImplemented);
         }
 
-        this._reader.ReadNext();
+        this._reader.readNext();
 
         do {
-          if (unknownEntityTemplate !== null && this._builder.KeepUnknownEntities) {
+          if (unknownEntityTemplate !== null && this._builder.keepUnknownEntities) {
             const isExtendedData = { value: false };
             this.readCommonCodes(unknownEntityTemplate, isExtendedData, map);
             if (isExtendedData.value) {
               continue;
             }
           }
-          this._reader.ReadNext();
-        } while (this._reader.DxfCode !== DxfCode.Start);
+          this._reader.readNext();
+        } while (this._reader.dxfCode !== DxfCode.Start);
 
         return unknownEntityTemplate;
       }
@@ -244,11 +244,27 @@ export class DxfObjectsSectionReader extends DxfSectionReaderBase {
   }
 
   protected readObjectCodes(template: CadTemplate, readObject: ReadObjectDelegate, objectType: Function): CadTemplate {
-    this._reader.ReadNext();
+    this._reader.readNext();
+
+    const commonData = this.readCommonObjectData() as {
+      name: string | null;
+      handle: number;
+      ownerHandle: number | null;
+      xdictHandle: number | null;
+      reactors: Set<number>;
+    };
+    template.cadObject.handle = commonData.handle;
+    template.ownerHandle = commonData.ownerHandle;
+    template.xDictHandle = commonData.xdictHandle;
+    template.reactorsHandles = commonData.reactors;
+    const namedObject = template.cadObject as unknown as { name?: string };
+    if (commonData.name && 'name' in namedObject) {
+      namedObject.name = commonData.name;
+    }
 
     const map = DxfMap.create(typeof objectType === 'string' ? objectType : objectType.name);
 
-    while (this._reader.DxfCode !== DxfCode.Start) {
+    while (this._reader.dxfCode !== DxfCode.Start) {
       if (!readObject(template, map)) {
         const isExtendedData = { value: false };
         this.readCommonCodes(template, isExtendedData, map);
@@ -262,92 +278,92 @@ export class DxfObjectsSectionReader extends DxfSectionReaderBase {
         continue;
       }
 
-      if (this._reader.Code !== DxfCode.Start) {
-        this._reader.ReadNext();
+      if (this._reader.code !== DxfCode.Start) {
+        this._reader.readNext();
       }
     }
 
     return template;
   }
 
-  private readFieldList(template: CadTemplate, map: DxfMap): boolean {
+  private _readFieldList(template: CadTemplate, map: DxfMap): boolean {
     const tmp = template as CadFieldListTemplate;
 
-    switch (this._reader.Code as number) {
+    switch (this._reader.code as number) {
       case 100:
-        if (this._reader.ValueAsString === DxfSubclassMarker.IdSet) {
-          this.currentSubclass = this._reader.ValueAsString;
+        if (this._reader.valueAsString === DxfSubclassMarker.idSet) {
+          this.currentSubclass = this._reader.valueAsString;
           return true;
         }
         return false;
       case 90:
-        if (this.currentSubclass === DxfSubclassMarker.IdSet) {
+        if (this.currentSubclass === DxfSubclassMarker.idSet) {
           return true;
         }
         return false;
       case 330:
-        if (this.currentSubclass === DxfSubclassMarker.IdSet) {
-          tmp.OwnedObjectsHandlers.add(this._reader.ValueAsHandle);
+        if (this.currentSubclass === DxfSubclassMarker.idSet) {
+          tmp.ownedObjectsHandlers.add(this._reader.valueAsHandle);
           return true;
         }
         return false;
       default:
-        return this.tryAssignCurrentValue(template.CadObject, map.subClasses.get(DxfSubclassMarker.FieldList)!);
+        return this.tryAssignCurrentValue(template.cadObject, map.subClasses.get(DxfSubclassMarker.fieldList)!);
     }
   }
 
-  private readField(template: CadTemplate, map: DxfMap): boolean {
+  private _readField(template: CadTemplate, map: DxfMap): boolean {
     const tmp = template as CadFieldTemplate;
 
-    switch (this._reader.Code as number) {
+    switch (this._reader.code as number) {
       case 3:
-        tmp.CadObject.fieldCode += this._reader.ValueAsString;
+        tmp.cadObject.fieldCode += this._reader.valueAsString;
         return true;
       case 98:
         return true;
       case 6: {
-        const key = this._reader.ValueAsString;
+        const key = this._reader.valueAsString;
         const t = this.readCadValue(new CadValue());
-        tmp.CadObject.values.set(key, t.CadValue);
-        tmp.CadValueTemplates.push(t);
+        tmp.cadObject.values.set(key, t.cadValue);
+        tmp.cadValueTemplates.push(t);
         return true;
       }
       case 7: {
         const t = this.readCadValue(new CadValue());
-        tmp.CadObject.value = t.CadValue;
-        tmp.CadValueTemplates.push(t);
+        tmp.cadObject.value = t.cadValue;
+        tmp.cadValueTemplates.push(t);
         return true;
       }
       case 331:
-        tmp.CadObjectsHandles.push(this._reader.ValueAsHandle);
+        tmp.cadObjectsHandles.push(this._reader.valueAsHandle);
         return true;
       case 360:
-        tmp.ChildrenHandles.push(this._reader.ValueAsHandle);
+        tmp.childrenHandles.push(this._reader.valueAsHandle);
         return true;
       default:
-        return this.tryAssignCurrentValue(template.CadObject, map.subClasses.get(DxfSubclassMarker.Field)!);
+        return this.tryAssignCurrentValue(template.cadObject, map.subClasses.get(DxfSubclassMarker.field)!);
     }
   }
 
-  private readProxyObject(template: CadTemplate, map: DxfMap): boolean {
+  private _readProxyObject(template: CadTemplate, map: DxfMap): boolean {
     const tmp = template as CadProxyObjectTemplate;
-    const proxy = template.CadObject as ProxyObject;
+    const proxy = template.cadObject as ProxyObject;
 
-    switch (this._reader.Code as number) {
+    switch (this._reader.code as number) {
       case 90:
       case 94:
       case 97:
       case 71:
         return true;
       case 95: {
-        const format = this._reader.ValueAsInt;
+        const format = this._reader.valueAsInt;
         proxy.version = (format & 0xFFFF) as ACadVersion;
         proxy.maintenanceVersion = (format >> 16);
         return true;
       }
       case 91: {
-        const classId = this._reader.ValueAsShort;
-        const dxfClass = this._builder.DocumentToBuild.classes.tryGetByClassNumber(classId);
+        const classId = this._reader.valueAsShort;
+        const dxfClass = this._builder.documentToBuild.classes.tryGetByClassNumber(classId);
         if (dxfClass.found && dxfClass.result) {
           proxy.dxfClass = dxfClass.result;
         }
@@ -360,239 +376,239 @@ export class DxfObjectsSectionReader extends DxfSectionReaderBase {
         if (proxy.binaryData === null) {
           proxy.binaryData = new Uint8Array(0);
         }
-        proxy.binaryData = this.appendBinaryChunk(proxy.binaryData, this._reader.ValueAsBinaryChunk);
+        proxy.binaryData = this._appendBinaryChunk(proxy.binaryData, this._reader.valueAsBinaryChunk);
         return true;
       case 311:
         if (proxy.data === null) {
           proxy.data = new Uint8Array(0);
         }
-        proxy.data = this.appendBinaryChunk(proxy.data, this._reader.ValueAsBinaryChunk);
+        proxy.data = this._appendBinaryChunk(proxy.data, this._reader.valueAsBinaryChunk);
         return true;
       case 330:
       case 340:
       case 350:
       case 360:
-        tmp.Entries.push(this._reader.ValueAsHandle);
+        tmp.entries.push(this._reader.valueAsHandle);
         return true;
       default:
-        return this.tryAssignCurrentValue(template.CadObject, map.subClasses.get(DxfSubclassMarker.ProxyObject)!);
+        return this.tryAssignCurrentValue(template.cadObject, map.subClasses.get(DxfSubclassMarker.proxyObject)!);
     }
   }
 
-  private readObjectSubclassMap(template: CadTemplate, map: DxfMap): boolean {
-    switch (this._reader.Code as number) {
+  private _readObjectSubclassMap(template: CadTemplate, map: DxfMap): boolean {
+    switch (this._reader.code as number) {
       default:
         if (!this.currentSubclass) {
-          return this.tryAssignCurrentValue(template.CadObject, map.subClasses.get(template.CadObject.subclassMarker)!);
+          return this.tryAssignCurrentValue(template.cadObject, map.subClasses.get(template.cadObject.subclassMarker)!);
         } else {
-          return this.tryAssignCurrentValue(template.CadObject, map.subClasses.get(this.currentSubclass)!);
+          return this.tryAssignCurrentValue(template.cadObject, map.subClasses.get(this.currentSubclass)!);
         }
     }
   }
 
-  private readAnnotScaleObjectContextData(template: CadTemplate, map: DxfMap): boolean {
+  private _readAnnotScaleObjectContextData(template: CadTemplate, map: DxfMap): boolean {
     const tmp = template as CadAnnotScaleObjectContextDataTemplate;
-    switch (this._reader.Code as number) {
+    switch (this._reader.code as number) {
       case 340:
-        tmp.scaleHandle = this._reader.ValueAsHandle;
+        tmp.scaleHandle = this._reader.valueAsHandle;
         return true;
       default:
         if (!this.currentSubclass) {
-          return this.tryAssignCurrentValue(template.CadObject, map.subClasses.get(template.CadObject.subclassMarker)!);
+          return this.tryAssignCurrentValue(template.cadObject, map.subClasses.get(template.cadObject.subclassMarker)!);
         } else {
-          return this.tryAssignCurrentValue(template.CadObject, map.subClasses.get(this.currentSubclass)!);
+          return this.tryAssignCurrentValue(template.cadObject, map.subClasses.get(this.currentSubclass)!);
         }
     }
   }
 
-  private readPlotSettings(template: CadTemplate, map: DxfMap): boolean {
-    switch (this._reader.Code as number) {
+  private _readPlotSettings(template: CadTemplate, map: DxfMap): boolean {
+    switch (this._reader.code as number) {
       default:
-        return this.tryAssignCurrentValue(template.CadObject, map.subClasses.get(DxfSubclassMarker.PlotSettings)!);
+        return this.tryAssignCurrentValue(template.cadObject, map.subClasses.get(DxfSubclassMarker.plotSettings)!);
     }
   }
 
-  private readEvaluationGraph(template: CadTemplate, map: DxfMap): boolean {
+  private _readEvaluationGraph(template: CadTemplate, map: DxfMap): boolean {
     const tmp = template as CadEvaluationGraphTemplate;
-    const evGraph = tmp.CadObject as EvaluationGraph;
+    const evGraph = tmp.cadObject as EvaluationGraph;
 
-    switch (this._reader.Code as number) {
+    switch (this._reader.code as number) {
       case 91:
-        while (this._reader.Code === 91) {
+        while (this._reader.code === 91) {
           const nodeTemplate = new CadEvaluationGraphTemplate.GraphNodeTemplate();
-          const node = nodeTemplate.Node;
+          const node = nodeTemplate.node;
 
-          node.index = this._reader.ValueAsInt;
+          node.index = this._reader.valueAsInt;
 
-          this._reader.ExpectedCode(93);
-          node.flags = this._reader.ValueAsInt;
+          this._reader.expectedCode(93);
+          node.flags = this._reader.valueAsInt;
 
-          this._reader.ExpectedCode(95);
-          node.nextNodeIndex = this._reader.ValueAsInt;
+          this._reader.expectedCode(95);
+          node.nextNodeIndex = this._reader.valueAsInt;
 
-          this._reader.ExpectedCode(360);
-          nodeTemplate.ExpressionHandle = this._reader.ValueAsHandle;
+          this._reader.expectedCode(360);
+          nodeTemplate.expressionHandle = this._reader.valueAsHandle;
 
-          this._reader.ExpectedCode(92);
-          node.data1 = this._reader.ValueAsInt;
-          this._reader.ExpectedCode(92);
-          node.data2 = this._reader.ValueAsInt;
-          this._reader.ExpectedCode(92);
-          node.data3 = this._reader.ValueAsInt;
-          this._reader.ExpectedCode(92);
-          node.data4 = this._reader.ValueAsInt;
+          this._reader.expectedCode(92);
+          node.data1 = this._reader.valueAsInt;
+          this._reader.expectedCode(92);
+          node.data2 = this._reader.valueAsInt;
+          this._reader.expectedCode(92);
+          node.data3 = this._reader.valueAsInt;
+          this._reader.expectedCode(92);
+          node.data4 = this._reader.valueAsInt;
 
-          this._reader.ReadNext();
+          this._reader.readNext();
 
-          tmp.NodeTemplates.push(nodeTemplate);
+          tmp.nodeTemplates.push(nodeTemplate);
         }
 
         this.lockPointer = true;
         return true;
       case 92:
-        while (this._reader.Code === 92) {
-          this._reader.ExpectedCode(93);
-          this._reader.ExpectedCode(94);
-          this._reader.ExpectedCode(91);
-          this._reader.ExpectedCode(91);
-          this._reader.ExpectedCode(92);
-          this._reader.ExpectedCode(92);
-          this._reader.ExpectedCode(92);
-          this._reader.ExpectedCode(92);
-          this._reader.ExpectedCode(92);
+        while (this._reader.code === 92) {
+          this._reader.expectedCode(93);
+          this._reader.expectedCode(94);
+          this._reader.expectedCode(91);
+          this._reader.expectedCode(91);
+          this._reader.expectedCode(92);
+          this._reader.expectedCode(92);
+          this._reader.expectedCode(92);
+          this._reader.expectedCode(92);
+          this._reader.expectedCode(92);
 
-          this._reader.ReadNext();
+          this._reader.readNext();
         }
 
         this.lockPointer = true;
         return true;
       default:
-        return this.tryAssignCurrentValue(template.CadObject, map.subClasses.get(DxfSubclassMarker.EvalGraph)!);
+        return this.tryAssignCurrentValue(template.cadObject, map.subClasses.get(DxfSubclassMarker.evalGraph)!);
     }
   }
 
-  private readLayout(template: CadTemplate, map: DxfMap): boolean {
+  private _readLayout(template: CadTemplate, map: DxfMap): boolean {
     const tmp = template as CadLayoutTemplate;
 
-    switch (this._reader.Code as number) {
+    switch (this._reader.code as number) {
       case 330:
-        if (template.OwnerHandle !== null) {
-          tmp.PaperSpaceBlockHandle = this._reader.ValueAsHandle;
+        if (template.ownerHandle !== null) {
+          tmp.paperSpaceBlockHandle = this._reader.valueAsHandle;
           return true;
         }
         return false;
       case 331:
-        tmp.LasActiveViewportHandle = this._reader.ValueAsHandle;
+        tmp.lasActiveViewportHandle = this._reader.valueAsHandle;
         return true;
       default:
-        if (!this.tryAssignCurrentValue(template.CadObject, map.subClasses.get(DxfSubclassMarker.Layout)!)) {
-          return this.readPlotSettings(template, map);
+        if (!this.tryAssignCurrentValue(template.cadObject, map.subClasses.get(DxfSubclassMarker.layout)!)) {
+          return this._readPlotSettings(template, map);
         }
         return true;
     }
   }
 
-  private readGroup(template: CadTemplate, map: DxfMap): boolean {
+  private _readGroup(template: CadTemplate, map: DxfMap): boolean {
     const tmp = template as CadGroupTemplate;
 
-    switch (this._reader.Code as number) {
+    switch (this._reader.code as number) {
       case 70:
         return true;
       case 340:
-        tmp.Handles.add(this._reader.ValueAsHandle);
+        tmp.handles.add(this._reader.valueAsHandle);
         return true;
       default:
-        return this.tryAssignCurrentValue(template.CadObject, map.subClasses.get(template.CadObject.subclassMarker)!);
+        return this.tryAssignCurrentValue(template.cadObject, map.subClasses.get(template.cadObject.subclassMarker)!);
     }
   }
 
-  private readGeoData(template: CadTemplate, map: DxfMap): boolean {
+  private _readGeoData(template: CadTemplate, map: DxfMap): boolean {
     const tmp = template as CadGeoDataTemplate;
 
-    switch (this._reader.Code as number) {
+    switch (this._reader.code as number) {
       case 40:
-        if (tmp.CadObject.version === GeoDataVersion.R2009) {
-          tmp.CadObject.referencePoint = new XYZ(
-            tmp.CadObject.referencePoint.x,
-            this._reader.ValueAsDouble,
-            tmp.CadObject.referencePoint.z
+        if (tmp.cadObject.version === GeoDataVersion.R2009) {
+          tmp.cadObject.referencePoint = new XYZ(
+            tmp.cadObject.referencePoint.x,
+            this._reader.valueAsDouble,
+            tmp.cadObject.referencePoint.z
           );
           return true;
         }
         return false;
       case 41:
-        if (tmp.CadObject.version === GeoDataVersion.R2009) {
-          tmp.CadObject.referencePoint = new XYZ(
-            this._reader.ValueAsDouble,
-            tmp.CadObject.referencePoint.y,
-            tmp.CadObject.referencePoint.z
+        if (tmp.cadObject.version === GeoDataVersion.R2009) {
+          tmp.cadObject.referencePoint = new XYZ(
+            this._reader.valueAsDouble,
+            tmp.cadObject.referencePoint.y,
+            tmp.cadObject.referencePoint.z
           );
           return true;
         }
         return false;
       case 42:
-        if (tmp.CadObject.version === GeoDataVersion.R2009) {
-          tmp.CadObject.referencePoint = new XYZ(
-            tmp.CadObject.referencePoint.x,
-            tmp.CadObject.referencePoint.y,
-            this._reader.ValueAsDouble
+        if (tmp.cadObject.version === GeoDataVersion.R2009) {
+          tmp.cadObject.referencePoint = new XYZ(
+            tmp.cadObject.referencePoint.x,
+            tmp.cadObject.referencePoint.y,
+            this._reader.valueAsDouble
           );
           return true;
         }
         return false;
       case 46:
-        if (tmp.CadObject.version === GeoDataVersion.R2009) {
-          tmp.CadObject.horizontalUnitScale = this._reader.ValueAsDouble;
+        if (tmp.cadObject.version === GeoDataVersion.R2009) {
+          tmp.cadObject.horizontalUnitScale = this._reader.valueAsDouble;
           return true;
         }
         return false;
       case 52:
-        if (tmp.CadObject.version === GeoDataVersion.R2009) {
-          const angle = Math.PI / 2.0 - this._reader.ValueAsAngle;
-          tmp.CadObject.northDirection = new XY(Math.cos(angle), Math.sin(angle));
+        if (tmp.cadObject.version === GeoDataVersion.R2009) {
+          const angle = Math.PI / 2.0 - this._reader.valueAsAngle;
+          tmp.cadObject.northDirection = new XY(Math.cos(angle), Math.sin(angle));
           return true;
         }
         return false;
       case 93: {
-        const npts = this._reader.ValueAsInt;
+        const npts = this._reader.valueAsInt;
         for (let i = 0; i < npts; i++) {
-          this._reader.ReadNext();
-          const sourceX = this._reader.ValueAsDouble;
-          this._reader.ReadNext();
-          const sourceY = this._reader.ValueAsDouble;
+          this._reader.readNext();
+          const sourceX = this._reader.valueAsDouble;
+          this._reader.readNext();
+          const sourceY = this._reader.valueAsDouble;
 
-          this._reader.ReadNext();
-          const destX = this._reader.ValueAsDouble;
-          this._reader.ReadNext();
-          const destY = this._reader.ValueAsDouble;
+          this._reader.readNext();
+          const destX = this._reader.valueAsDouble;
+          this._reader.readNext();
+          const destY = this._reader.valueAsDouble;
 
           const point = new GeoMeshPoint();
           point.source = new XY(sourceX, sourceY);
           point.destination = new XY(destX, destY);
-          tmp.CadObject.points.push(point);
+          tmp.cadObject.points.push(point);
         }
         return true;
       }
       case 96: {
-        const nfaces = this._reader.ValueAsInt;
+        const nfaces = this._reader.valueAsInt;
         for (let i = 0; i < nfaces; i++) {
-          this._reader.ReadNext();
-          const index1 = this._reader.ValueAsInt;
-          this._reader.ReadNext();
-          const index2 = this._reader.ValueAsInt;
-          this._reader.ReadNext();
-          const index3 = this._reader.ValueAsInt;
+          this._reader.readNext();
+          const index1 = this._reader.valueAsInt;
+          this._reader.readNext();
+          const index2 = this._reader.valueAsInt;
+          this._reader.readNext();
+          const index3 = this._reader.valueAsInt;
 
           const face = new GeoMeshFace();
           face.index1 = index1;
           face.index2 = index2;
           face.index3 = index3;
-          tmp.CadObject.faces.push(face);
+          tmp.cadObject.faces.push(face);
         }
         return true;
       }
       case 303:
-        tmp.CadObject.coordinateSystemDefinition += this._reader.ValueAsString;
+        tmp.cadObject.coordinateSystemDefinition += this._reader.valueAsString;
         return true;
       case 3:
       case 4:
@@ -615,89 +631,89 @@ export class DxfObjectsSectionReader extends DxfSectionReaderBase {
       case 292:
         return true;
       default:
-        return this.tryAssignCurrentValue(template.CadObject, map.subClasses.get(tmp.CadObject.subclassMarker)!);
+        return this.tryAssignCurrentValue(template.cadObject, map.subClasses.get(tmp.cadObject.subclassMarker)!);
     }
   }
 
-  private readMaterial(template: CadTemplate, map: DxfMap): boolean {
+  private _readMaterial(template: CadTemplate, map: DxfMap): boolean {
     const tmp = template as CadMaterialTemplate;
 
     const readMatrix = (expectedCode: number, assignFn: (m: number[]) => void): boolean => {
       const arr: number[] = [];
       for (let i = 0; i < 16; i++) {
-        arr.push(this._reader.ValueAsDouble);
-        this._reader.ReadNext();
+        arr.push(this._reader.valueAsDouble);
+        this._reader.readNext();
       }
       assignFn(arr);
-      return this.checkObjectEnd(template, map, this.readMaterial.bind(this));
+      return this.checkObjectEnd(template, map, this._readMaterial.bind(this));
     };
 
-    switch (this._reader.Code as number) {
+    switch (this._reader.code as number) {
       case 43:
-        return readMatrix(43, m => tmp.CadObject.diffuseMatrix = m);
+        return readMatrix(43, m => tmp.cadObject.diffuseMatrix = m);
       case 47:
-        return readMatrix(47, m => tmp.CadObject.specularMatrix = m);
+        return readMatrix(47, m => tmp.cadObject.specularMatrix = m);
       case 49:
-        return readMatrix(49, m => tmp.CadObject.reflectionMatrix = m);
+        return readMatrix(49, m => tmp.cadObject.reflectionMatrix = m);
       case 142:
-        return readMatrix(142, m => tmp.CadObject.opacityMatrix = m);
+        return readMatrix(142, m => tmp.cadObject.opacityMatrix = m);
       case 144:
-        return readMatrix(144, m => tmp.CadObject.bumpMatrix = m);
+        return readMatrix(144, m => tmp.cadObject.bumpMatrix = m);
       case 147:
-        return readMatrix(147, m => tmp.CadObject.refractionMatrix = m);
+        return readMatrix(147, m => tmp.cadObject.refractionMatrix = m);
       default:
-        return this.tryAssignCurrentValue(template.CadObject, map.subClasses.get(tmp.CadObject.subclassMarker)!);
+        return this.tryAssignCurrentValue(template.cadObject, map.subClasses.get(tmp.cadObject.subclassMarker)!);
     }
   }
 
-  private readScale(template: CadTemplate, map: DxfMap): boolean {
-    switch (this._reader.Code as number) {
+  private _readScale(template: CadTemplate, map: DxfMap): boolean {
+    switch (this._reader.code as number) {
       case 70:
         return true;
       default:
-        return this.tryAssignCurrentValue(template.CadObject, map.subClasses.get(DxfSubclassMarker.Scale)!);
+        return this.tryAssignCurrentValue(template.cadObject, map.subClasses.get(DxfSubclassMarker.scale)!);
     }
   }
 
-  private readLinkedData(template: CadTemplate, map: DxfMap): void {
+  private _readLinkedData(template: CadTemplate, map: DxfMap): void {
     const tmp = template as CadTableContentTemplate;
-    const linkedData = tmp.CadObject as LinkedData;
+    const linkedData = tmp.cadObject as LinkedData;
 
-    this._reader.ReadNext();
+    this._reader.readNext();
 
-    while (this._reader.DxfCode !== DxfCode.Start && this._reader.DxfCode !== DxfCode.Subclass) {
-      switch (this._reader.Code as number) {
+    while (this._reader.dxfCode !== DxfCode.Start && this._reader.dxfCode !== DxfCode.Subclass) {
+      switch (this._reader.code as number) {
         default:
-          if (!this.tryAssignCurrentValue(linkedData, map.subClasses.get(DxfSubclassMarker.LinkedData)!)) {
-            this._builder.Notify(`Unhandled dxf code ${this._reader.Code} value ${this._reader.ValueAsString} at readLinkedData ${this._reader.Position}.`, NotificationType.None);
+          if (!this.tryAssignCurrentValue(linkedData, map.subClasses.get(DxfSubclassMarker.linkedData)!)) {
+            this._builder.notify(`Unhandled dxf code ${this._reader.code} value ${this._reader.valueAsString} at readLinkedData ${this._reader.position}.`, NotificationType.None);
           }
           break;
       }
 
-      this._reader.ReadNext();
+      this._reader.readNext();
     }
   }
 
-  private readTableContent(template: CadTemplate, map: DxfMap): boolean {
-    switch (this._reader.Code as number) {
+  private _readTableContent(template: CadTemplate, map: DxfMap): boolean {
+    switch (this._reader.code as number) {
       case 100:
-        if (this._reader.ValueAsString.toUpperCase() === DxfSubclassMarker.TableContent.toUpperCase()) {
-          this.readTableContentSubclass(template, map);
+        if (this._reader.valueAsString.toUpperCase() === DxfSubclassMarker.tableContent.toUpperCase()) {
+          this._readTableContentSubclass(template, map);
           this.lockPointer = true;
           return true;
         }
-        if (this._reader.ValueAsString.toUpperCase() === DxfSubclassMarker.FormattedTableData.toUpperCase()) {
-          this.readFormattedTableDataSubclass(template, map);
+        if (this._reader.valueAsString.toUpperCase() === DxfSubclassMarker.formattedTableData.toUpperCase()) {
+          this._readFormattedTableDataSubclass(template, map);
           this.lockPointer = true;
           return true;
         }
-        if (this._reader.ValueAsString.toUpperCase() === DxfSubclassMarker.LinkedTableData.toUpperCase()) {
-          this.readLinkedTableDataSubclass(template, map);
+        if (this._reader.valueAsString.toUpperCase() === DxfSubclassMarker.linkedTableData.toUpperCase()) {
+          this._readLinkedTableDataSubclass(template, map);
           this.lockPointer = true;
           return true;
         }
-        if (this._reader.ValueAsString.toUpperCase() === DxfSubclassMarker.LinkedData.toUpperCase()) {
-          this.readLinkedData(template, map);
+        if (this._reader.valueAsString.toUpperCase() === DxfSubclassMarker.linkedData.toUpperCase()) {
+          this._readLinkedData(template, map);
           this.lockPointer = true;
           return true;
         }
@@ -707,37 +723,37 @@ export class DxfObjectsSectionReader extends DxfSectionReaderBase {
     }
   }
 
-  private readTableContentSubclass(template: CadTemplate, map: DxfMap): void {
+  private _readTableContentSubclass(template: CadTemplate, map: DxfMap): void {
     const tmp = template as CadTableContentTemplate;
-    const tableContent = tmp.CadObject as TableContent;
+    const tableContent = tmp.cadObject as TableContent;
 
-    this._reader.ReadNext();
+    this._reader.readNext();
 
-    while (this._reader.DxfCode !== DxfCode.Start && this._reader.DxfCode !== DxfCode.Subclass) {
-      switch (this._reader.Code as number) {
+    while (this._reader.dxfCode !== DxfCode.Start && this._reader.dxfCode !== DxfCode.Subclass) {
+      switch (this._reader.code as number) {
         case 340:
-          tmp.SytleHandle = this._reader.ValueAsHandle;
+          tmp.sytleHandle = this._reader.valueAsHandle;
           break;
         default:
-          if (!this.tryAssignCurrentValue(tableContent, map.subClasses.get(DxfSubclassMarker.TableContent)!)) {
-            this._builder.Notify(`Unhandled dxf code ${this._reader.Code} value ${this._reader.ValueAsString} at readTableContentSubclass ${this._reader.Position}.`, NotificationType.None);
+          if (!this.tryAssignCurrentValue(tableContent, map.subClasses.get(DxfSubclassMarker.tableContent)!)) {
+            this._builder.notify(`Unhandled dxf code ${this._reader.code} value ${this._reader.valueAsString} at readTableContentSubclass ${this._reader.position}.`, NotificationType.None);
           }
           break;
       }
 
-      this._reader.ReadNext();
+      this._reader.readNext();
     }
   }
 
-  private readFormattedTableDataSubclass(template: CadTemplate, map: DxfMap): void {
+  private _readFormattedTableDataSubclass(template: CadTemplate, map: DxfMap): void {
     const tmp = template as CadTableContentTemplate;
-    const formattedTable = tmp.CadObject as FormattedTableData;
+    const formattedTable = tmp.cadObject as FormattedTableData;
 
-    this._reader.ReadNext();
+    this._reader.readNext();
 
     let cellRange: CellRange | null = null;
-    while (this._reader.DxfCode !== DxfCode.Start && this._reader.DxfCode !== DxfCode.Subclass) {
-      switch (this._reader.Code as number) {
+    while (this._reader.dxfCode !== DxfCode.Start && this._reader.dxfCode !== DxfCode.Subclass) {
+      switch (this._reader.code as number) {
         case 90:
           break;
         case 91:
@@ -745,99 +761,99 @@ export class DxfObjectsSectionReader extends DxfSectionReaderBase {
             cellRange = new CellRange();
             formattedTable.mergedCellRanges.push(cellRange);
           }
-          cellRange.topRowIndex = this._reader.ValueAsInt;
+          cellRange.topRowIndex = this._reader.valueAsInt;
           break;
         case 92:
           if (cellRange === null) {
             cellRange = new CellRange();
             formattedTable.mergedCellRanges.push(cellRange);
           }
-          cellRange.leftColumnIndex = this._reader.ValueAsInt;
+          cellRange.leftColumnIndex = this._reader.valueAsInt;
           break;
         case 93:
           if (cellRange === null) {
             cellRange = new CellRange();
             formattedTable.mergedCellRanges.push(cellRange);
           }
-          cellRange.bottomRowIndex = this._reader.ValueAsInt;
+          cellRange.bottomRowIndex = this._reader.valueAsInt;
           break;
         case 94:
           if (cellRange === null) {
             cellRange = new CellRange();
             formattedTable.mergedCellRanges.push(cellRange);
           }
-          cellRange.rightColumnIndex = this._reader.ValueAsInt;
+          cellRange.rightColumnIndex = this._reader.valueAsInt;
           cellRange = null;
           break;
         case 300:
-          if (this._reader.ValueAsString.toUpperCase() === 'TABLEFORMAT') {
-            this.readStyleOverride(new CadCellStyleTemplate(formattedTable.cellStyleOverride));
+          if (this._reader.valueAsString.toUpperCase() === 'TABLEFORMAT') {
+            this._readStyleOverride(new CadCellStyleTemplate(formattedTable.cellStyleOverride));
           }
           break;
         default:
-          if (!this.tryAssignCurrentValue(formattedTable, map.subClasses.get(DxfSubclassMarker.FormattedTableData)!)) {
-            this._builder.Notify(`Unhandled dxf code ${this._reader.Code} value ${this._reader.ValueAsString} at readFormattedTableDataSubclass ${this._reader.Position}.`, NotificationType.None);
+          if (!this.tryAssignCurrentValue(formattedTable, map.subClasses.get(DxfSubclassMarker.formattedTableData)!)) {
+            this._builder.notify(`Unhandled dxf code ${this._reader.code} value ${this._reader.valueAsString} at readFormattedTableDataSubclass ${this._reader.position}.`, NotificationType.None);
           }
           break;
       }
 
-      this._reader.ReadNext();
+      this._reader.readNext();
     }
   }
 
-  private readLinkedTableDataSubclass(template: CadTemplate, map: DxfMap): void {
+  private _readLinkedTableDataSubclass(template: CadTemplate, map: DxfMap): void {
     const tmp = template as CadTableContentTemplate;
-    const tableContent = tmp.CadObject as TableContent;
+    const tableContent = tmp.cadObject as TableContent;
 
-    this._reader.ReadNext();
+    this._reader.readNext();
 
-    while (this._reader.DxfCode !== DxfCode.Start && this._reader.DxfCode !== DxfCode.Subclass) {
-      switch (this._reader.Code as number) {
+    while (this._reader.dxfCode !== DxfCode.Start && this._reader.dxfCode !== DxfCode.Subclass) {
+      switch (this._reader.code as number) {
         case 90:
         case 91:
         case 92:
           break;
         case 300:
-          if (this._reader.ValueAsString.toUpperCase() === DxfFileToken.ObjectTableColumn.toUpperCase()) {
-            this.readTableColumn();
+          if (this._reader.valueAsString.toUpperCase() === DxfFileToken.objectTableColumn.toUpperCase()) {
+            this._readTableColumn();
           }
           break;
         case 301:
-          if (this._reader.ValueAsString.toUpperCase() === DxfFileToken.ObjectTableRow.toUpperCase()) {
-            this.readTableRow();
+          if (this._reader.valueAsString.toUpperCase() === DxfFileToken.objectTableRow.toUpperCase()) {
+            this._readTableRow();
           }
           break;
         default:
-          if (!this.tryAssignCurrentValue(tableContent, map.subClasses.get(DxfSubclassMarker.LinkedTableData)!)) {
-            this._builder.Notify(`Unhandled dxf code ${this._reader.Code} value ${this._reader.ValueAsString} at readLinkedTableDataSubclass ${this._reader.Position}.`, NotificationType.None);
+          if (!this.tryAssignCurrentValue(tableContent, map.subClasses.get(DxfSubclassMarker.linkedTableData)!)) {
+            this._builder.notify(`Unhandled dxf code ${this._reader.code} value ${this._reader.valueAsString} at readLinkedTableDataSubclass ${this._reader.position}.`, NotificationType.None);
           }
           break;
       }
 
-      this._reader.ReadNext();
+      this._reader.readNext();
     }
   }
 
-  private readTableColumn(): TableEntityColumn {
-    this._reader.ReadNext();
+  private _readTableColumn(): TableEntityColumn {
+    this._reader.readNext();
 
     const column = new TableEntityColumn();
 
     let end = false;
-    while (this._reader.DxfCode !== DxfCode.Start) {
-      switch (this._reader.Code as number) {
+    while (this._reader.dxfCode !== DxfCode.Start) {
+      switch (this._reader.code as number) {
         case 1:
-          if (this._reader.ValueAsString.toUpperCase() === DxfFileToken.LinkedTableDataColumn_BEGIN.toUpperCase()) {
-            this.readLinkedTableColumn(column);
-          } else if (this._reader.ValueAsString.toUpperCase() === DxfFileToken.FormattedTableDataColumn_BEGIN.toUpperCase()) {
-            this.readFormattedTableColumn(column);
-          } else if (this._reader.ValueAsString.toUpperCase() === DxfFileToken.ObjectTableColumnBegin.toUpperCase()) {
-            this.readTableColumnData(column);
+          if (this._reader.valueAsString.toUpperCase() === DxfFileToken.linkedTableDataColumn_BEGIN.toUpperCase()) {
+            this._readLinkedTableColumn(column);
+          } else if (this._reader.valueAsString.toUpperCase() === DxfFileToken.formattedTableDataColumn_BEGIN.toUpperCase()) {
+            this._readFormattedTableColumn(column);
+          } else if (this._reader.valueAsString.toUpperCase() === DxfFileToken.objectTableColumnBegin.toUpperCase()) {
+            this._readTableColumnData(column);
             end = true;
           }
           break;
         default:
-          this._builder.Notify(`Unhandled dxf code ${this._reader.Code} value ${this._reader.ValueAsString} at readTableColumn method.`, NotificationType.None);
+          this._builder.notify(`Unhandled dxf code ${this._reader.code} value ${this._reader.valueAsString} at readTableColumn method.`, NotificationType.None);
           break;
       }
 
@@ -845,32 +861,32 @@ export class DxfObjectsSectionReader extends DxfSectionReaderBase {
         return column;
       }
 
-      this._reader.ReadNext();
+      this._reader.readNext();
     }
 
     return column;
   }
 
-  private readTableRow(): TableEntityRow {
-    this._reader.ReadNext();
+  private _readTableRow(): TableEntityRow {
+    this._reader.readNext();
 
     const row = new TableEntityRow();
 
     let end = false;
-    while (this._reader.DxfCode !== DxfCode.Start) {
-      switch (this._reader.Code as number) {
+    while (this._reader.dxfCode !== DxfCode.Start) {
+      switch (this._reader.code as number) {
         case 1:
-          if (this._reader.ValueAsString.toUpperCase() === DxfFileToken.LinkedTableDataRow_BEGIN.toUpperCase()) {
-            this.readLinkedTableRow(row);
-          } else if (this._reader.ValueAsString.toUpperCase() === DxfFileToken.FormattedTableDataRow_BEGIN.toUpperCase()) {
-            this.readFormattedTableRow(row);
-          } else if (this._reader.ValueAsString.toUpperCase() === DxfFileToken.ObjectTableRowBegin.toUpperCase()) {
-            this.readTableRowData(row);
+          if (this._reader.valueAsString.toUpperCase() === DxfFileToken.linkedTableDataRow_BEGIN.toUpperCase()) {
+            this._readLinkedTableRow(row);
+          } else if (this._reader.valueAsString.toUpperCase() === DxfFileToken.formattedTableDataRow_BEGIN.toUpperCase()) {
+            this._readFormattedTableRow(row);
+          } else if (this._reader.valueAsString.toUpperCase() === DxfFileToken.objectTableRowBegin.toUpperCase()) {
+            this._readTableRowData(row);
             end = true;
           }
           break;
         default:
-          this._builder.Notify(`Unhandled dxf code ${this._reader.Code} value ${this._reader.ValueAsString} at readTableRow method.`, NotificationType.None);
+          this._builder.notify(`Unhandled dxf code ${this._reader.code} value ${this._reader.valueAsString} at readTableRow method.`, NotificationType.None);
           break;
       }
 
@@ -878,28 +894,28 @@ export class DxfObjectsSectionReader extends DxfSectionReaderBase {
         return row;
       }
 
-      this._reader.ReadNext();
+      this._reader.readNext();
     }
 
     return row;
   }
 
-  private readTableRowData(row: TableEntityRow): void {
-    this._reader.ReadNext();
+  private _readTableRowData(row: TableEntityRow): void {
+    this._reader.readNext();
 
     let end = false;
-    while (this._reader.DxfCode !== DxfCode.Start) {
-      switch (this._reader.Code as number) {
+    while (this._reader.dxfCode !== DxfCode.Start) {
+      switch (this._reader.code as number) {
         case 40:
-          row.height = this._reader.ValueAsDouble;
+          row.height = this._reader.valueAsDouble;
           break;
         case 90:
           break;
         case 309:
-          end = this._reader.ValueAsString.toUpperCase() === 'TABLEROW_END';
+          end = this._reader.valueAsString.toUpperCase() === 'TABLEROW_END';
           break;
         default:
-          this._builder.Notify(`Unhandled dxf code ${this._reader.Code} value ${this._reader.ValueAsString} at readTableRowData method.`, NotificationType.None);
+          this._builder.notify(`Unhandled dxf code ${this._reader.code} value ${this._reader.valueAsString} at readTableRowData method.`, NotificationType.None);
           break;
       }
 
@@ -907,28 +923,28 @@ export class DxfObjectsSectionReader extends DxfSectionReaderBase {
         break;
       }
 
-      this._reader.ReadNext();
+      this._reader.readNext();
     }
   }
 
-  private readFormattedTableRow(row: TableEntityRow): void {
-    this._reader.ReadNext();
+  private _readFormattedTableRow(row: TableEntityRow): void {
+    this._reader.readNext();
 
     let end = false;
-    while (this._reader.DxfCode !== DxfCode.Start) {
-      switch (this._reader.Code as number) {
+    while (this._reader.dxfCode !== DxfCode.Start) {
+      switch (this._reader.code as number) {
         case 300:
           break;
         case 1:
-          if (this._reader.ValueAsString.toUpperCase() === 'TABLEFORMAT_BEGIN') {
-            this.readStyleOverride(new CadCellStyleTemplate(row.cellStyleOverride));
+          if (this._reader.valueAsString.toUpperCase() === 'TABLEFORMAT_BEGIN') {
+            this._readStyleOverride(new CadCellStyleTemplate(row.cellStyleOverride));
           }
           break;
         case 309:
-          end = this._reader.ValueAsString.toUpperCase() === 'FORMATTEDTABLEDATAROW_END';
+          end = this._reader.valueAsString.toUpperCase() === 'FORMATTEDTABLEDATAROW_END';
           break;
         default:
-          this._builder.Notify(`Unhandled dxf code ${this._reader.Code} value ${this._reader.ValueAsString} at readFormattedTableRow method.`, NotificationType.None);
+          this._builder.notify(`Unhandled dxf code ${this._reader.code} value ${this._reader.valueAsString} at readFormattedTableRow method.`, NotificationType.None);
           break;
       }
 
@@ -936,32 +952,32 @@ export class DxfObjectsSectionReader extends DxfSectionReaderBase {
         break;
       }
 
-      this._reader.ReadNext();
+      this._reader.readNext();
     }
   }
 
-  private readTableColumnData(column: TableEntityColumn): void {
-    this._reader.ReadNext();
+  private _readTableColumnData(column: TableEntityColumn): void {
+    this._reader.readNext();
 
     let end = false;
-    while (this._reader.DxfCode !== DxfCode.Start) {
-      switch (this._reader.Code as number) {
+    while (this._reader.dxfCode !== DxfCode.Start) {
+      switch (this._reader.code as number) {
         case 1:
-          if (this._reader.ValueAsString.toUpperCase() === 'TABLECOLUMN_BEGIN') {
+          if (this._reader.valueAsString.toUpperCase() === 'TABLECOLUMN_BEGIN') {
             break;
           }
           end = true;
           break;
         case 40:
-          column.width = this._reader.ValueAsDouble;
+          column.width = this._reader.valueAsDouble;
           break;
         case 90:
           break;
         case 309:
-          end = this._reader.ValueAsString.toUpperCase() === 'TABLECOLUMN_END';
+          end = this._reader.valueAsString.toUpperCase() === 'TABLECOLUMN_END';
           break;
         default:
-          this._builder.Notify(`Unhandled dxf code ${this._reader.Code} value ${this._reader.ValueAsString} at readTableColumnData method.`, NotificationType.None);
+          this._builder.notify(`Unhandled dxf code ${this._reader.code} value ${this._reader.valueAsString} at readTableColumnData method.`, NotificationType.None);
           break;
       }
 
@@ -969,38 +985,38 @@ export class DxfObjectsSectionReader extends DxfSectionReaderBase {
         break;
       }
 
-      this._reader.ReadNext();
+      this._reader.readNext();
     }
   }
 
-  private readLinkedTableColumn(column: TableEntityColumn): void {
-    this._reader.ReadNext();
+  private _readLinkedTableColumn(column: TableEntityColumn): void {
+    this._reader.readNext();
 
     let end = false;
-    while (this._reader.DxfCode !== DxfCode.Start) {
-      switch (this._reader.Code as number) {
+    while (this._reader.dxfCode !== DxfCode.Start) {
+      switch (this._reader.code as number) {
         case 1:
-          if (this._reader.ValueAsString.toUpperCase() === DxfFileToken.LinkedTableDataColumn_BEGIN.toUpperCase()) {
+          if (this._reader.valueAsString.toUpperCase() === DxfFileToken.linkedTableDataColumn_BEGIN.toUpperCase()) {
             break;
           }
           end = true;
           break;
         case 91:
-          column.customData = this._reader.ValueAsInt;
+          column.customData = this._reader.valueAsInt;
           break;
         case 300:
-          column.name = this._reader.ValueAsString;
+          column.name = this._reader.valueAsString;
           break;
         case 301:
-          if (this._reader.ValueAsString.toUpperCase() === DxfFileToken.CustomData.toUpperCase()) {
-            this.readCustomData();
+          if (this._reader.valueAsString.toUpperCase() === DxfFileToken.customData.toUpperCase()) {
+            this._readCustomData();
           }
           break;
         case 309:
-          end = this._reader.ValueAsString.toUpperCase() === DxfFileToken.LinkedTableDataColumn_END.toUpperCase();
+          end = this._reader.valueAsString.toUpperCase() === DxfFileToken.linkedTableDataColumn_END.toUpperCase();
           break;
         default:
-          this._builder.Notify(`Unhandled dxf code ${this._reader.Code} value ${this._reader.ValueAsString} at readLinkedTableColumn method.`, NotificationType.None);
+          this._builder.notify(`Unhandled dxf code ${this._reader.code} value ${this._reader.valueAsString} at readLinkedTableColumn method.`, NotificationType.None);
           break;
       }
 
@@ -1008,41 +1024,41 @@ export class DxfObjectsSectionReader extends DxfSectionReaderBase {
         break;
       }
 
-      this._reader.ReadNext();
+      this._reader.readNext();
     }
   }
 
-  private readLinkedTableRow(row: TableEntityRow): void {
-    this._reader.ReadNext();
+  private _readLinkedTableRow(row: TableEntityRow): void {
+    this._reader.readNext();
 
     let end = false;
-    while (this._reader.DxfCode !== DxfCode.Start) {
-      switch (this._reader.Code as number) {
+    while (this._reader.dxfCode !== DxfCode.Start) {
+      switch (this._reader.code as number) {
         case 1:
-          if (this._reader.ValueAsString.toUpperCase() === DxfFileToken.LinkedTableDataRow_BEGIN.toUpperCase()) {
+          if (this._reader.valueAsString.toUpperCase() === DxfFileToken.linkedTableDataRow_BEGIN.toUpperCase()) {
             break;
           }
           break;
         case 90:
           break;
         case 91:
-          row.customData = this._reader.ValueAsInt;
+          row.customData = this._reader.valueAsInt;
           break;
         case 300:
-          if (this._reader.ValueAsString.toUpperCase() === DxfFileToken.ObjectCell.toUpperCase()) {
-            this.readCell();
+          if (this._reader.valueAsString.toUpperCase() === DxfFileToken.objectCell.toUpperCase()) {
+            this._readCell();
           }
           break;
         case 301:
-          if (this._reader.ValueAsString.toUpperCase() === DxfFileToken.CustomData.toUpperCase()) {
-            this.readCustomData();
+          if (this._reader.valueAsString.toUpperCase() === DxfFileToken.customData.toUpperCase()) {
+            this._readCustomData();
           }
           break;
         case 309:
-          end = this._reader.ValueAsString.toUpperCase() === DxfFileToken.LinkedTableDataRow_END.toUpperCase();
+          end = this._reader.valueAsString.toUpperCase() === DxfFileToken.linkedTableDataRow_END.toUpperCase();
           break;
         default:
-          this._builder.Notify(`Unhandled dxf code ${this._reader.Code} value ${this._reader.ValueAsString} at readLinkedTableRow method.`, NotificationType.None);
+          this._builder.notify(`Unhandled dxf code ${this._reader.code} value ${this._reader.valueAsString} at readLinkedTableRow method.`, NotificationType.None);
           break;
       }
 
@@ -1050,30 +1066,30 @@ export class DxfObjectsSectionReader extends DxfSectionReaderBase {
         break;
       }
 
-      this._reader.ReadNext();
+      this._reader.readNext();
     }
   }
 
-  private readCell(): TableEntityCell {
-    this._reader.ReadNext();
+  private _readCell(): TableEntityCell {
+    this._reader.readNext();
 
     const cell = new TableEntityCell();
 
     let end = false;
-    while (this._reader.DxfCode !== DxfCode.Start) {
-      switch (this._reader.Code as number) {
+    while (this._reader.dxfCode !== DxfCode.Start) {
+      switch (this._reader.code as number) {
         case 1:
-          if (this._reader.ValueAsString.toUpperCase() === 'LINKEDTABLEDATACELL_BEGIN') {
-            this.readLinkedTableCell(cell);
-          } else if (this._reader.ValueAsString.toUpperCase() === 'FORMATTEDTABLEDATACELL_BEGIN') {
-            this.readFormattedTableCell(cell);
-          } else if (this._reader.ValueAsString.toUpperCase() === 'TABLECELL_BEGIN') {
-            this.readTableCellData(cell);
+          if (this._reader.valueAsString.toUpperCase() === 'LINKEDTABLEDATACELL_BEGIN') {
+            this._readLinkedTableCell(cell);
+          } else if (this._reader.valueAsString.toUpperCase() === 'FORMATTEDTABLEDATACELL_BEGIN') {
+            this._readFormattedTableCell(cell);
+          } else if (this._reader.valueAsString.toUpperCase() === 'TABLECELL_BEGIN') {
+            this._readTableCellData(cell);
             end = true;
           }
           break;
         default:
-          this._builder.Notify(`Unhandled dxf code ${this._reader.Code} value ${this._reader.ValueAsString} at readCell method.`, NotificationType.None);
+          this._builder.notify(`Unhandled dxf code ${this._reader.code} value ${this._reader.valueAsString} at readCell method.`, NotificationType.None);
           break;
       }
 
@@ -1081,31 +1097,31 @@ export class DxfObjectsSectionReader extends DxfSectionReaderBase {
         return cell;
       }
 
-      this._reader.ReadNext();
+      this._reader.readNext();
     }
 
     return cell;
   }
 
-  private readTableCellData(cell: TableEntityCell): void {
-    const map = DxfClassMap.Create(cell.constructor, 'TABLECELL_BEGIN');
+  private _readTableCellData(cell: TableEntityCell): void {
+    const map = DxfClassMap.create(cell.constructor, 'TABLECELL_BEGIN');
 
-    this._reader.ReadNext();
+    this._reader.readNext();
 
     let end = false;
-    while (this._reader.DxfCode !== DxfCode.Start) {
-      switch (this._reader.Code as number) {
+    while (this._reader.dxfCode !== DxfCode.Start) {
+      switch (this._reader.code as number) {
         case 40:
         case 41:
           break;
         case 309:
-          end = this._reader.ValueAsString.toUpperCase() === 'TABLECELL_END';
+          end = this._reader.valueAsString.toUpperCase() === 'TABLECELL_END';
           break;
         case 330:
           break;
         default:
           if (!this.tryAssignCurrentValue(cell, map)) {
-            this._builder.Notify(`Unhandled dxf code ${this._reader.Code} value ${this._reader.ValueAsString} at readTableCellData ${this._reader.Position}.`, NotificationType.None);
+            this._builder.notify(`Unhandled dxf code ${this._reader.code} value ${this._reader.valueAsString} at readTableCellData ${this._reader.position}.`, NotificationType.None);
           }
           break;
       }
@@ -1114,30 +1130,30 @@ export class DxfObjectsSectionReader extends DxfSectionReaderBase {
         break;
       }
 
-      this._reader.ReadNext();
+      this._reader.readNext();
     }
   }
 
-  private readFormattedTableCell(cell: TableEntityCell): void {
-    const map = DxfClassMap.Create(cell.constructor, 'FORMATTEDTABLEDATACELL_BEGIN');
+  private _readFormattedTableCell(cell: TableEntityCell): void {
+    const map = DxfClassMap.create(cell.constructor, 'FORMATTEDTABLEDATACELL_BEGIN');
 
-    this._reader.ReadNext();
+    this._reader.readNext();
 
     let end = false;
-    while (this._reader.DxfCode !== DxfCode.Start) {
-      switch (this._reader.Code as number) {
+    while (this._reader.dxfCode !== DxfCode.Start) {
+      switch (this._reader.code as number) {
         case 300:
-          if (this._reader.ValueAsString.toUpperCase() === 'CELLTABLEFORMAT') {
-            this.readCellTableFormat(cell);
+          if (this._reader.valueAsString.toUpperCase() === 'CELLTABLEFORMAT') {
+            this._readCellTableFormat(cell);
             continue;
           }
           break;
         case 309:
-          end = this._reader.ValueAsString.toUpperCase() === 'FORMATTEDTABLEDATACELL_END';
+          end = this._reader.valueAsString.toUpperCase() === 'FORMATTEDTABLEDATACELL_END';
           break;
         default:
           if (!this.tryAssignCurrentValue(cell, map)) {
-            this._builder.Notify(`Unhandled dxf code ${this._reader.Code} value ${this._reader.ValueAsString} at readFormattedTableCell ${this._reader.Position}.`, NotificationType.None);
+            this._builder.notify(`Unhandled dxf code ${this._reader.code} value ${this._reader.valueAsString} at readFormattedTableCell ${this._reader.position}.`, NotificationType.None);
           }
           break;
       }
@@ -1146,24 +1162,24 @@ export class DxfObjectsSectionReader extends DxfSectionReaderBase {
         break;
       }
 
-      this._reader.ReadNext();
+      this._reader.readNext();
     }
   }
 
-  private readCellTableFormat(cell: TableEntityCell): void {
-    const map = DxfClassMap.Create(cell.constructor, 'CELLTABLEFORMAT');
+  private _readCellTableFormat(cell: TableEntityCell): void {
+    const map = DxfClassMap.create(cell.constructor, 'CELLTABLEFORMAT');
 
-    this._reader.ReadNext();
+    this._reader.readNext();
 
     let end = false;
-    while (this._reader.Code === 1) {
-      if (this._reader.ValueAsString.toUpperCase() === 'TABLEFORMAT_BEGIN') {
-        this.readStyleOverride(new CadCellStyleTemplate(cell.styleOverride));
-      } else if (this._reader.ValueAsString.toUpperCase() === 'CELLSTYLE_BEGIN') {
-        this.readCellStyle(new CadCellStyleTemplate());
+    while (this._reader.code === 1) {
+      if (this._reader.valueAsString.toUpperCase() === 'TABLEFORMAT_BEGIN') {
+        this._readStyleOverride(new CadCellStyleTemplate(cell.styleOverride));
+      } else if (this._reader.valueAsString.toUpperCase() === 'CELLSTYLE_BEGIN') {
+        this._readCellStyle(new CadCellStyleTemplate());
       } else {
         if (!this.tryAssignCurrentValue(cell, map)) {
-          this._builder.Notify(`Unhandled dxf code ${this._reader.Code} value ${this._reader.ValueAsString} at readCellTableFormat ${this._reader.Position}.`, NotificationType.None);
+          this._builder.notify(`Unhandled dxf code ${this._reader.code} value ${this._reader.valueAsString} at readCellTableFormat ${this._reader.position}.`, NotificationType.None);
         }
       }
 
@@ -1171,21 +1187,21 @@ export class DxfObjectsSectionReader extends DxfSectionReaderBase {
         break;
       }
 
-      this._reader.ReadNext();
+      this._reader.readNext();
     }
   }
 
-  private readCellStyle(template: CadCellStyleTemplate): void {
-    this._reader.ReadNext();
+  private _readCellStyle(template: CadCellStyleTemplate): void {
+    this._reader.readNext();
 
     let end = false;
-    while (this._reader.Code !== 1) {
-      switch (this._reader.Code as number) {
+    while (this._reader.code !== 1) {
+      switch (this._reader.code as number) {
         case 309:
-          end = this._reader.ValueAsString.toUpperCase() === 'CELLSTYLE_END';
+          end = this._reader.valueAsString.toUpperCase() === 'CELLSTYLE_END';
           break;
         default:
-          this._builder.Notify(`Unhandled dxf code ${this._reader.Code} value ${this._reader.ValueAsString} at readCellStyle ${this._reader.Position}.`, NotificationType.None);
+          this._builder.notify(`Unhandled dxf code ${this._reader.code} value ${this._reader.valueAsString} at readCellStyle ${this._reader.position}.`, NotificationType.None);
           break;
       }
 
@@ -1193,36 +1209,36 @@ export class DxfObjectsSectionReader extends DxfSectionReaderBase {
         break;
       }
 
-      this._reader.ReadNext();
+      this._reader.readNext();
     }
   }
 
-  private readLinkedTableCell(cell: TableEntityCell): void {
-    const map = DxfClassMap.Create(cell.constructor, 'LINKEDTABLEDATACELL_BEGIN');
+  private _readLinkedTableCell(cell: TableEntityCell): void {
+    const map = DxfClassMap.create(cell.constructor, 'LINKEDTABLEDATACELL_BEGIN');
 
-    this._reader.ReadNext();
+    this._reader.readNext();
 
     let end = false;
-    while (this._reader.DxfCode !== DxfCode.Start) {
-      switch (this._reader.Code as number) {
+    while (this._reader.dxfCode !== DxfCode.Start) {
+      switch (this._reader.code as number) {
         case 95:
           break;
         case 301:
-          if (this._reader.ValueAsString.toUpperCase() === DxfFileToken.CustomData.toUpperCase()) {
-            this.readCustomData();
+          if (this._reader.valueAsString.toUpperCase() === DxfFileToken.customData.toUpperCase()) {
+            this._readCustomData();
           }
           break;
         case 302:
-          if (this._reader.ValueAsString.toUpperCase() === 'CONTENT') {
-            this.readLinkedTableCellContent();
+          if (this._reader.valueAsString.toUpperCase() === 'CONTENT') {
+            this._readLinkedTableCellContent();
           }
           break;
         case 309:
-          end = this._reader.ValueAsString.toUpperCase() === 'LINKEDTABLEDATACELL_END';
+          end = this._reader.valueAsString.toUpperCase() === 'LINKEDTABLEDATACELL_END';
           break;
         default:
           if (!this.tryAssignCurrentValue(cell, map)) {
-            this._builder.Notify(`Unhandled dxf code ${this._reader.Code} value ${this._reader.ValueAsString} at readLinkedTableCell ${this._reader.Position}.`, NotificationType.None);
+            this._builder.notify(`Unhandled dxf code ${this._reader.code} value ${this._reader.valueAsString} at readLinkedTableCell ${this._reader.position}.`, NotificationType.None);
           }
           break;
       }
@@ -1231,31 +1247,31 @@ export class DxfObjectsSectionReader extends DxfSectionReaderBase {
         break;
       }
 
-      this._reader.ReadNext();
+      this._reader.readNext();
     }
   }
 
-  private readLinkedTableCellContent(): CadTableCellContentTemplate {
+  private _readLinkedTableCellContent(): CadTableCellContentTemplate {
     const content = new CellContent();
     const template = new CadTableCellContentTemplate(content);
-    const map = DxfClassMap.Create(content.constructor, 'CONTENT');
+    const map = DxfClassMap.create(content.constructor, 'CONTENT');
 
-    this._reader.ReadNext();
+    this._reader.readNext();
 
     let end = false;
-    while (this._reader.DxfCode !== DxfCode.Start) {
-      switch (this._reader.Code as number) {
+    while (this._reader.dxfCode !== DxfCode.Start) {
+      switch (this._reader.code as number) {
         case 1:
-          if (this._reader.ValueAsString.toUpperCase() === 'FORMATTEDCELLCONTENT_BEGIN') {
-            this.readFormattedCellContent();
+          if (this._reader.valueAsString.toUpperCase() === 'FORMATTEDCELLCONTENT_BEGIN') {
+            this._readFormattedCellContent();
             end = true;
-          } else if (this._reader.ValueAsString.toUpperCase() === 'CELLCONTENT_BEGIN') {
-            this.readCellContent(template);
+          } else if (this._reader.valueAsString.toUpperCase() === 'CELLCONTENT_BEGIN') {
+            this._readCellContent(template);
           }
           break;
         default:
           if (!this.tryAssignCurrentValue(content, map)) {
-            this._builder.Notify(`Unhandled dxf code ${this._reader.Code} value ${this._reader.ValueAsString} at readLinkedTableCellContent ${this._reader.Position}.`, NotificationType.None);
+            this._builder.notify(`Unhandled dxf code ${this._reader.code} value ${this._reader.valueAsString} at readLinkedTableCellContent ${this._reader.position}.`, NotificationType.None);
           }
           break;
       }
@@ -1264,38 +1280,38 @@ export class DxfObjectsSectionReader extends DxfSectionReaderBase {
         break;
       }
 
-      this._reader.ReadNext();
+      this._reader.readNext();
     }
 
     return template;
   }
 
-  private readCellContent(template: CadTableCellContentTemplate): void {
-    const content = template.Content;
-    const map = DxfClassMap.Create(content.constructor, 'CELLCONTENT_BEGIN');
+  private _readCellContent(template: CadTableCellContentTemplate): void {
+    const content = template.content;
+    const map = DxfClassMap.create(content.constructor, 'CELLCONTENT_BEGIN');
 
-    this._reader.ReadNext();
+    this._reader.readNext();
 
     let end = false;
-    while (this._reader.DxfCode !== DxfCode.Start) {
-      switch (this._reader.Code as number) {
+    while (this._reader.dxfCode !== DxfCode.Start) {
+      switch (this._reader.code as number) {
         case 91:
           break;
         case 300:
-          if (this._reader.ValueAsString.toUpperCase() === 'VALUE') {
+          if (this._reader.valueAsString.toUpperCase() === 'VALUE') {
             const valueTemplate = this.readCadValue(content.cadValue);
-            template.CadValueTemplate = valueTemplate;
+            template.cadValueTemplate = valueTemplate;
           }
           break;
         case 309:
-          end = this._reader.ValueAsString.toUpperCase() === 'CELLCONTENT_END';
+          end = this._reader.valueAsString.toUpperCase() === 'CELLCONTENT_END';
           break;
         case 340:
-          template.BlockRecordHandle = this._reader.ValueAsHandle;
+          template.blockRecordHandle = this._reader.valueAsHandle;
           break;
         default:
           if (!this.tryAssignCurrentValue(content, map)) {
-            this._builder.Notify(`Unhandled dxf code ${this._reader.Code} value ${this._reader.ValueAsString} at readCellContent ${this._reader.Position}.`, NotificationType.None);
+            this._builder.notify(`Unhandled dxf code ${this._reader.code} value ${this._reader.valueAsString} at readCellContent ${this._reader.position}.`, NotificationType.None);
           }
           break;
       }
@@ -1304,31 +1320,31 @@ export class DxfObjectsSectionReader extends DxfSectionReaderBase {
         break;
       }
 
-      this._reader.ReadNext();
+      this._reader.readNext();
     }
   }
 
-  private readFormattedCellContent(): void {
+  private _readFormattedCellContent(): void {
     const format = new ContentFormat();
     const template = new CadTableCellContentFormatTemplate(format);
-    const map = DxfClassMap.Create(format.constructor, 'FORMATTEDCELLCONTENT');
+    const map = DxfClassMap.create(format.constructor, 'FORMATTEDCELLCONTENT');
 
-    this._reader.ReadNext();
+    this._reader.readNext();
 
     let end = false;
-    while (this._reader.DxfCode !== DxfCode.Start) {
-      switch (this._reader.Code as number) {
+    while (this._reader.dxfCode !== DxfCode.Start) {
+      switch (this._reader.code as number) {
         case 300:
-          if (this._reader.ValueAsString.toUpperCase() === 'CONTENTFORMAT') {
-            this.readContentFormat(template);
+          if (this._reader.valueAsString.toUpperCase() === 'CONTENTFORMAT') {
+            this._readContentFormat(template);
           }
           break;
         case 309:
-          end = this._reader.ValueAsString.toUpperCase() === 'FORMATTEDCELLCONTENT_END';
+          end = this._reader.valueAsString.toUpperCase() === 'FORMATTEDCELLCONTENT_END';
           break;
         default:
           if (!this.tryAssignCurrentValue(format, map)) {
-            this._builder.Notify(`Unhandled dxf code ${this._reader.Code} value ${this._reader.ValueAsString} at readFormattedCellContent method.`, NotificationType.None);
+            this._builder.notify(`Unhandled dxf code ${this._reader.code} value ${this._reader.valueAsString} at readFormattedCellContent method.`, NotificationType.None);
           }
           break;
       }
@@ -1337,33 +1353,33 @@ export class DxfObjectsSectionReader extends DxfSectionReaderBase {
         break;
       }
 
-      this._reader.ReadNext();
+      this._reader.readNext();
     }
   }
 
-  private readContentFormat(template: CadTableCellContentFormatTemplate): void {
-    const format = template.Format;
-    const map = DxfClassMap.Create(format.constructor, 'CONTENTFORMAT_BEGIN');
+  private _readContentFormat(template: CadTableCellContentFormatTemplate): void {
+    const format = template.format;
+    const map = DxfClassMap.create(format.constructor, 'CONTENTFORMAT_BEGIN');
 
-    this._reader.ReadNext();
+    this._reader.readNext();
 
     let end = false;
-    while (this._reader.DxfCode !== DxfCode.Start) {
-      switch (this._reader.Code as number) {
+    while (this._reader.dxfCode !== DxfCode.Start) {
+      switch (this._reader.code as number) {
         case 1:
-          if (this._reader.ValueAsString.toUpperCase() === 'CONTENTFORMAT_BEGIN') {
+          if (this._reader.valueAsString.toUpperCase() === 'CONTENTFORMAT_BEGIN') {
             break;
           }
           break;
         case 309:
-          end = this._reader.ValueAsString.toUpperCase() === 'CONTENTFORMAT_END';
+          end = this._reader.valueAsString.toUpperCase() === 'CONTENTFORMAT_END';
           break;
         case 340:
-          template.TextStyleHandle = this._reader.ValueAsHandle;
+          template.textStyleHandle = this._reader.valueAsHandle;
           break;
         default:
           if (!this.tryAssignCurrentValue(format, map)) {
-            this._builder.Notify(`Unhandled dxf code ${this._reader.Code} value ${this._reader.ValueAsString} at readContentFormat method.`, NotificationType.None);
+            this._builder.notify(`Unhandled dxf code ${this._reader.code} value ${this._reader.valueAsString} at readContentFormat method.`, NotificationType.None);
           }
           break;
       }
@@ -1372,28 +1388,28 @@ export class DxfObjectsSectionReader extends DxfSectionReaderBase {
         break;
       }
 
-      this._reader.ReadNext();
+      this._reader.readNext();
     }
   }
 
-  private readFormattedTableColumn(column: TableEntityColumn): void {
-    this._reader.ReadNext();
+  private _readFormattedTableColumn(column: TableEntityColumn): void {
+    this._reader.readNext();
 
     let end = false;
-    while (this._reader.DxfCode !== DxfCode.Start) {
-      switch (this._reader.Code as number) {
+    while (this._reader.dxfCode !== DxfCode.Start) {
+      switch (this._reader.code as number) {
         case 300:
           break;
         case 1:
-          if (this._reader.ValueAsString.toUpperCase() === 'TABLEFORMAT_BEGIN') {
-            this.readStyleOverride(new CadCellStyleTemplate(column.cellStyleOverride));
+          if (this._reader.valueAsString.toUpperCase() === 'TABLEFORMAT_BEGIN') {
+            this._readStyleOverride(new CadCellStyleTemplate(column.cellStyleOverride));
           }
           break;
         case 309:
-          end = this._reader.ValueAsString.toUpperCase() === DxfFileToken.FormattedTableDataColumn_END.toUpperCase();
+          end = this._reader.valueAsString.toUpperCase() === DxfFileToken.formattedTableDataColumn_END.toUpperCase();
           break;
         default:
-          this._builder.Notify(`Unhandled dxf code ${this._reader.Code} value ${this._reader.ValueAsString} at readFormattedTableColumn method.`, NotificationType.None);
+          this._builder.notify(`Unhandled dxf code ${this._reader.code} value ${this._reader.valueAsString} at readFormattedTableColumn method.`, NotificationType.None);
           break;
       }
 
@@ -1401,48 +1417,48 @@ export class DxfObjectsSectionReader extends DxfSectionReaderBase {
         break;
       }
 
-      this._reader.ReadNext();
+      this._reader.readNext();
     }
   }
 
-  private readStyleOverride(template: CadCellStyleTemplate): void {
-    const style = template.Format as CellStyle;
-    const mapstyle = DxfClassMap.Create(style.constructor, 'TABLEFORMAT_STYLE');
-    const mapformat = DxfClassMap.Create(ContentFormat, 'TABLEFORMAT_BEGIN');
+  private _readStyleOverride(template: CadCellStyleTemplate): void {
+    const style = template.format as CellStyle;
+    const mapstyle = DxfClassMap.create(style.constructor, 'TABLEFORMAT_STYLE');
+    const mapformat = DxfClassMap.create(ContentFormat, 'TABLEFORMAT_BEGIN');
 
-    this._reader.ReadNext();
+    this._reader.readNext();
 
     let end = false;
     let currBorder: CellEdgeFlags = CellEdgeFlags.Unknown;
-    while (this._reader.DxfCode !== DxfCode.Start) {
-      switch (this._reader.Code as number) {
+    while (this._reader.dxfCode !== DxfCode.Start) {
+      switch (this._reader.code as number) {
         case 95:
-          currBorder = this._reader.ValueAsInt as CellEdgeFlags;
+          currBorder = this._reader.valueAsInt as CellEdgeFlags;
           break;
         case 1:
           break;
         case 300:
-          if (this._reader.ValueAsString.toUpperCase() === 'CONTENTFORMAT') {
-            this.readContentFormat(new CadTableCellContentFormatTemplate(new ContentFormat()));
+          if (this._reader.valueAsString.toUpperCase() === 'CONTENTFORMAT') {
+            this._readContentFormat(new CadTableCellContentFormatTemplate(new ContentFormat()));
           }
           break;
         case 301:
-          if (this._reader.ValueAsString.toUpperCase() === 'MARGIN') {
-            this.readCellMargin(template);
+          if (this._reader.valueAsString.toUpperCase() === 'MARGIN') {
+            this._readCellMargin(template);
           }
           break;
         case 302:
-          if (this._reader.ValueAsString.toUpperCase() === 'GRIDFORMAT') {
+          if (this._reader.valueAsString.toUpperCase() === 'GRIDFORMAT') {
             const border = new CellBorder(currBorder);
-            this.readGridFormat(template, border);
+            this._readGridFormat(template, border);
           }
           break;
         case 309:
-          end = this._reader.ValueAsString.toUpperCase() === 'TABLEFORMAT_END';
+          end = this._reader.valueAsString.toUpperCase() === 'TABLEFORMAT_END';
           break;
         default:
           if (!this.tryAssignCurrentValue(style, mapstyle) && !this.tryAssignCurrentValue(style, mapformat)) {
-            this._builder.Notify(`Unhandled dxf code ${this._reader.Code} value ${this._reader.ValueAsString} at readStyleOverride method.`, NotificationType.None);
+            this._builder.notify(`Unhandled dxf code ${this._reader.code} value ${this._reader.valueAsString} at readStyleOverride method.`, NotificationType.None);
           }
           break;
       }
@@ -1451,38 +1467,38 @@ export class DxfObjectsSectionReader extends DxfSectionReaderBase {
         break;
       }
 
-      this._reader.ReadNext();
+      this._reader.readNext();
     }
   }
 
-  private readGridFormat(template: CadCellStyleTemplate, border: CellBorder): void {
-    const map = DxfClassMap.Create(border.constructor, 'CellBorder');
+  private _readGridFormat(template: CadCellStyleTemplate, border: CellBorder): void {
+    const map = DxfClassMap.create(border.constructor, 'CellBorder');
 
-    this._reader.ReadNext();
+    this._reader.readNext();
 
     let end = false;
-    while (this._reader.DxfCode !== DxfCode.Start) {
-      switch (this._reader.Code as number) {
+    while (this._reader.dxfCode !== DxfCode.Start) {
+      switch (this._reader.code as number) {
         case 1:
           break;
         case 62:
-          border.color = new Color(this._reader.ValueAsShort);
+          border.color = new Color(this._reader.valueAsShort);
           break;
         case 92:
-          border.lineWeight = this._reader.ValueAsInt as LineWeightType;
+          border.lineWeight = this._reader.valueAsInt as LineWeightType;
           break;
         case 93:
-          border.isInvisible = this._reader.ValueAsBool;
+          border.isInvisible = this._reader.valueAsBool;
           break;
         case 340:
-          template.BorderLinetypePairs.push([border, this._reader.ValueAsHandle]);
+          template.borderLinetypePairs.push([border, this._reader.valueAsHandle]);
           break;
         case 309:
-          end = this._reader.ValueAsString.toUpperCase() === 'GRIDFORMAT_END';
+          end = this._reader.valueAsString.toUpperCase() === 'GRIDFORMAT_END';
           break;
         default:
           if (!this.tryAssignCurrentValue(border, map)) {
-            this._builder.Notify(`Unhandled dxf code ${this._reader.Code} value ${this._reader.ValueAsString} at readGridFormat method.`, NotificationType.None);
+            this._builder.notify(`Unhandled dxf code ${this._reader.code} value ${this._reader.valueAsString} at readGridFormat method.`, NotificationType.None);
           }
           break;
       }
@@ -1491,37 +1507,37 @@ export class DxfObjectsSectionReader extends DxfSectionReaderBase {
         break;
       }
 
-      this._reader.ReadNext();
+      this._reader.readNext();
     }
   }
 
-  private readCellMargin(template: CadCellStyleTemplate): void {
-    const style = template.Format as CellStyle;
+  private _readCellMargin(template: CadCellStyleTemplate): void {
+    const style = template.format as CellStyle;
 
-    this._reader.ReadNext();
+    this._reader.readNext();
 
     let end = false;
     let i = 0;
-    while (this._reader.DxfCode !== DxfCode.Start) {
-      switch (this._reader.Code as number) {
+    while (this._reader.dxfCode !== DxfCode.Start) {
+      switch (this._reader.code as number) {
         case 1:
           break;
         case 40:
           switch (i) {
-            case 0: style.verticalMargin = this._reader.ValueAsDouble; break;
-            case 1: style.horizontalMargin = this._reader.ValueAsDouble; break;
-            case 2: style.bottomMargin = this._reader.ValueAsDouble; break;
-            case 3: style.rightMargin = this._reader.ValueAsDouble; break;
-            case 4: style.marginHorizontalSpacing = this._reader.ValueAsDouble; break;
-            case 5: style.marginVerticalSpacing = this._reader.ValueAsDouble; break;
+            case 0: style.verticalMargin = this._reader.valueAsDouble; break;
+            case 1: style.horizontalMargin = this._reader.valueAsDouble; break;
+            case 2: style.bottomMargin = this._reader.valueAsDouble; break;
+            case 3: style.rightMargin = this._reader.valueAsDouble; break;
+            case 4: style.marginHorizontalSpacing = this._reader.valueAsDouble; break;
+            case 5: style.marginVerticalSpacing = this._reader.valueAsDouble; break;
           }
           i++;
           break;
         case 309:
-          end = this._reader.ValueAsString.toUpperCase() === 'CELLMARGIN_END';
+          end = this._reader.valueAsString.toUpperCase() === 'CELLMARGIN_END';
           break;
         default:
-          this._builder.Notify(`Unhandled dxf code ${this._reader.Code} value ${this._reader.ValueAsString} at readCellMargin method.`, NotificationType.None);
+          this._builder.notify(`Unhandled dxf code ${this._reader.code} value ${this._reader.valueAsString} at readCellMargin method.`, NotificationType.None);
           break;
       }
 
@@ -1529,34 +1545,34 @@ export class DxfObjectsSectionReader extends DxfSectionReaderBase {
         break;
       }
 
-      this._reader.ReadNext();
+      this._reader.readNext();
     }
   }
 
-  private readCustomData(): void {
-    this._reader.ReadNext();
+  private _readCustomData(): void {
+    this._reader.readNext();
 
     let ndata = 0;
     let end = false;
-    while (this._reader.DxfCode !== DxfCode.Start) {
-      switch (this._reader.Code as number) {
+    while (this._reader.dxfCode !== DxfCode.Start) {
+      switch (this._reader.code as number) {
         case 1:
           break;
         case 90:
-          ndata = this._reader.ValueAsInt;
+          ndata = this._reader.valueAsInt;
           break;
         case 300:
           break;
         case 301:
-          if (this._reader.ValueAsString.toUpperCase() === 'DATAMAP_VALUE') {
-            this.readDataMapValue();
+          if (this._reader.valueAsString.toUpperCase() === 'DATAMAP_VALUE') {
+            this._readDataMapValue();
           }
           break;
         case 309:
-          end = this._reader.ValueAsString.toUpperCase() === 'DATAMAP_END';
+          end = this._reader.valueAsString.toUpperCase() === 'DATAMAP_END';
           break;
         default:
-          this._builder.Notify(`Unhandled dxf code ${this._reader.Code} value ${this._reader.ValueAsString} at readCustomData method.`, NotificationType.None);
+          this._builder.notify(`Unhandled dxf code ${this._reader.code} value ${this._reader.valueAsString} at readCustomData method.`, NotificationType.None);
           break;
       }
 
@@ -1564,19 +1580,19 @@ export class DxfObjectsSectionReader extends DxfSectionReaderBase {
         break;
       }
 
-      this._reader.ReadNext();
+      this._reader.readNext();
     }
   }
 
-  private readDataMapValue(): void {
+  private _readDataMapValue(): void {
     const value = new CadValue();
-    const map = DxfClassMap.Create(value.constructor, 'DATAMAP_VALUE');
+    const map = DxfClassMap.create(value.constructor, 'DATAMAP_VALUE');
 
-    this._reader.ReadNext();
+    this._reader.readNext();
 
     let end = false;
-    while (this._reader.DxfCode !== DxfCode.Start) {
-      switch (this._reader.Code as number) {
+    while (this._reader.dxfCode !== DxfCode.Start) {
+      switch (this._reader.code as number) {
         case 11:
         case 21:
         case 31:
@@ -1586,11 +1602,11 @@ export class DxfObjectsSectionReader extends DxfSectionReaderBase {
         case 310:
           break;
         case 304:
-          end = this._reader.ValueAsString.toUpperCase() === 'ACVALUE_END';
+          end = this._reader.valueAsString.toUpperCase() === 'ACVALUE_END';
           break;
         default:
           if (!this.tryAssignCurrentValue(value, map)) {
-            this._builder.Notify(`Unhandled dxf code ${this._reader.Code} value ${this._reader.ValueAsString} at readDataMapValue method.`, NotificationType.None);
+            this._builder.notify(`Unhandled dxf code ${this._reader.code} value ${this._reader.valueAsString} at readDataMapValue method.`, NotificationType.None);
           }
           break;
       }
@@ -1599,12 +1615,12 @@ export class DxfObjectsSectionReader extends DxfSectionReaderBase {
         break;
       }
 
-      this._reader.ReadNext();
+      this._reader.readNext();
     }
   }
 
-  private readVisualStyle(template: CadTemplate, map: DxfMap): boolean {
-    switch (this._reader.Code as number) {
+  private _readVisualStyle(template: CadTemplate, map: DxfMap): boolean {
+    switch (this._reader.code as number) {
       case 176:
       case 177:
       case 420:
@@ -1614,23 +1630,23 @@ export class DxfObjectsSectionReader extends DxfSectionReaderBase {
     }
   }
 
-  private readSpatialFilter(template: CadTemplate, map: DxfMap): boolean {
+  private _readSpatialFilter(template: CadTemplate, map: DxfMap): boolean {
     const tmp = template as CadSpatialFilterTemplate;
-    const filter = tmp.CadObject as SpatialFilter;
+    const filter = tmp.cadObject as SpatialFilter;
 
-    switch (this._reader.Code as number) {
+    switch (this._reader.code as number) {
       case 10:
-        filter.boundaryPoints.push(new XY(this._reader.ValueAsDouble, 0));
+        filter.boundaryPoints.push(new XY(this._reader.valueAsDouble, 0));
         return true;
       case 20: {
         const pt = filter.boundaryPoints[filter.boundaryPoints.length - 1];
-        filter.boundaryPoints.push(new XY(pt.x, this._reader.ValueAsDouble));
+        filter.boundaryPoints.push(new XY(pt.x, this._reader.valueAsDouble));
         return true;
       }
       case 40: {
-        if (filter.clipFrontPlane && !tmp.HasFrontPlane) {
-          filter.frontDistance = this._reader.ValueAsDouble;
-          tmp.HasFrontPlane = true;
+        if (filter.clipFrontPlane && !tmp.hasFrontPlane) {
+          filter.frontDistance = this._reader.valueAsDouble;
+          tmp.hasFrontPlane = true;
         }
 
         const array: number[] = [
@@ -1641,15 +1657,15 @@ export class DxfObjectsSectionReader extends DxfSectionReaderBase {
         ];
 
         for (let i = 0; i < 12; i++) {
-          array[i] = this._reader.ValueAsDouble;
+          array[i] = this._reader.valueAsDouble;
           if (i < 11) {
-            this._reader.ReadNext();
+            this._reader.readNext();
           }
         }
 
-        if (tmp.InsertTransformRead) {
+        if (tmp.insertTransformRead) {
           filter.insertTransform = new Matrix4(array);
-          tmp.InsertTransformRead = true;
+          tmp.insertTransformRead = true;
         } else {
           filter.inverseInsertTransform = new Matrix4(array);
         }
@@ -1658,303 +1674,303 @@ export class DxfObjectsSectionReader extends DxfSectionReaderBase {
       }
       case 73:
       default:
-        return this.tryAssignCurrentValue(template.CadObject, map.subClasses.get(DxfSubclassMarker.SpatialFilter)!);
+        return this.tryAssignCurrentValue(template.cadObject, map.subClasses.get(DxfSubclassMarker.spatialFilter)!);
     }
   }
 
-  private readMLineStyle(template: CadTemplate, map: DxfMap): boolean {
+  private _readMLineStyle(template: CadTemplate, map: DxfMap): boolean {
     const tmp = template as CadMLineStyleTemplate;
-    const mLineStyle = template.CadObject as MLineStyle;
+    const mLineStyle = template.cadObject as MLineStyle;
 
-    switch (this._reader.Code as number) {
+    switch (this._reader.code as number) {
       case 6: {
-        const t = tmp.ElementTemplates[tmp.ElementTemplates.length - 1];
+        const t = tmp.elementTemplates[tmp.elementTemplates.length - 1];
         if (!t) {
           return true;
         }
-        t.LineTypeName = this._reader.ValueAsString;
+        t.lineTypeName = this._reader.valueAsString;
         return true;
       }
       case 49: {
         const element = new MLineStyleElement();
         const elementTemplate = new CadMLineStyleTemplate.ElementTemplate(element);
-        element.offset = this._reader.ValueAsDouble;
+        element.offset = this._reader.valueAsDouble;
 
-        tmp.ElementTemplates.push(elementTemplate);
+        tmp.elementTemplates.push(elementTemplate);
         mLineStyle.addElement(element);
         return true;
       }
       default:
-        return this.tryAssignCurrentValue(template.CadObject, map.subClasses.get(tmp.CadObject.subclassMarker)!);
+        return this.tryAssignCurrentValue(template.cadObject, map.subClasses.get(tmp.cadObject.subclassMarker)!);
     }
   }
 
-  private readTableStyle(template: CadTemplate, map: DxfMap): boolean {
+  private _readTableStyle(template: CadTemplate, map: DxfMap): boolean {
     const tmp = template as CadTableStyleTemplate;
-    const style = tmp.CadObject as TableStyle;
-    const cellStyle = tmp.CurrentCellStyleTemplate?.CellStyle ?? null;
+    const style = tmp.cadObject as TableStyle;
+    const cellStyle = tmp.currentCellStyleTemplate?.cellStyle ?? null;
 
-    switch (this._reader.Code as number) {
+    switch (this._reader.code as number) {
       case 7:
-        tmp.CreateCurrentCellStyleTemplate();
-        tmp.CurrentCellStyleTemplate!.TextStyleName = this._reader.ValueAsString;
+        tmp.createCurrentCellStyleTemplate();
+        tmp.currentCellStyleTemplate!.textStyleName = this._reader.valueAsString;
         return true;
       case 94:
-        if (cellStyle) cellStyle.alignment = this._reader.ValueAsInt;
+        if (cellStyle) cellStyle.alignment = this._reader.valueAsInt;
         return true;
       case 62:
-        if (cellStyle) cellStyle.color = new Color(this._reader.ValueAsShort);
+        if (cellStyle) cellStyle.color = new Color(this._reader.valueAsShort);
         return true;
       case 63:
-        if (cellStyle) cellStyle.backgroundColor = new Color(this._reader.ValueAsShort);
+        if (cellStyle) cellStyle.backgroundColor = new Color(this._reader.valueAsShort);
         return true;
       case 140:
-        if (cellStyle) cellStyle.textHeight = this._reader.ValueAsDouble;
+        if (cellStyle) cellStyle.textHeight = this._reader.valueAsDouble;
         return true;
       case 170:
-        if (cellStyle) cellStyle.cellAlignment = this._reader.ValueAsShort as CellAlignmentType;
+        if (cellStyle) cellStyle.cellAlignment = this._reader.valueAsShort as CellAlignmentType;
         return true;
       case 283:
-        if (cellStyle) cellStyle.isFillColorOn = this._reader.ValueAsBool;
+        if (cellStyle) cellStyle.isFillColorOn = this._reader.valueAsBool;
         return true;
       case 90:
-        if (cellStyle) cellStyle.cellStyleType = this._reader.ValueAsShort as CellStyleType;
+        if (cellStyle) cellStyle.cellStyleType = this._reader.valueAsShort as CellStyleType;
         return true;
       case 91:
-        if (cellStyle) cellStyle.styleClass = this._reader.ValueAsShort as CellStyleClass;
+        if (cellStyle) cellStyle.styleClass = this._reader.valueAsShort as CellStyleClass;
         return true;
       case 1:
         return true;
       case 274:
-        if (cellStyle) cellStyle.topBorder.lineWeight = this._reader.ValueAsInt as LineWeightType;
+        if (cellStyle) cellStyle.topBorder.lineWeight = this._reader.valueAsInt as LineWeightType;
         return true;
       case 275:
-        if (cellStyle) cellStyle.horizontalInsideBorder.lineWeight = this._reader.ValueAsInt as LineWeightType;
+        if (cellStyle) cellStyle.horizontalInsideBorder.lineWeight = this._reader.valueAsInt as LineWeightType;
         return true;
       case 276:
-        if (cellStyle) cellStyle.bottomBorder.lineWeight = this._reader.ValueAsInt as LineWeightType;
+        if (cellStyle) cellStyle.bottomBorder.lineWeight = this._reader.valueAsInt as LineWeightType;
         return true;
       case 277:
-        if (cellStyle) cellStyle.leftBorder.lineWeight = this._reader.ValueAsInt as LineWeightType;
+        if (cellStyle) cellStyle.leftBorder.lineWeight = this._reader.valueAsInt as LineWeightType;
         return true;
       case 278:
-        if (cellStyle) cellStyle.verticalInsideBorder.lineWeight = this._reader.ValueAsInt as LineWeightType;
+        if (cellStyle) cellStyle.verticalInsideBorder.lineWeight = this._reader.valueAsInt as LineWeightType;
         return true;
       case 279:
-        if (cellStyle) cellStyle.rightBorder.lineWeight = this._reader.ValueAsInt as LineWeightType;
+        if (cellStyle) cellStyle.rightBorder.lineWeight = this._reader.valueAsInt as LineWeightType;
         return true;
       case 284:
-        if (cellStyle) cellStyle.topBorder.isInvisible = this._reader.ValueAsBool;
+        if (cellStyle) cellStyle.topBorder.isInvisible = this._reader.valueAsBool;
         return true;
       case 285:
-        if (cellStyle) cellStyle.horizontalInsideBorder.isInvisible = this._reader.ValueAsBool;
+        if (cellStyle) cellStyle.horizontalInsideBorder.isInvisible = this._reader.valueAsBool;
         return true;
       case 286:
-        if (cellStyle) cellStyle.bottomBorder.isInvisible = this._reader.ValueAsBool;
+        if (cellStyle) cellStyle.bottomBorder.isInvisible = this._reader.valueAsBool;
         return true;
       case 287:
-        if (cellStyle) cellStyle.leftBorder.isInvisible = this._reader.ValueAsBool;
+        if (cellStyle) cellStyle.leftBorder.isInvisible = this._reader.valueAsBool;
         return true;
       case 288:
-        if (cellStyle) cellStyle.verticalInsideBorder.isInvisible = this._reader.ValueAsBool;
+        if (cellStyle) cellStyle.verticalInsideBorder.isInvisible = this._reader.valueAsBool;
         return true;
       case 289:
-        if (cellStyle) cellStyle.rightBorder.isInvisible = this._reader.ValueAsBool;
+        if (cellStyle) cellStyle.rightBorder.isInvisible = this._reader.valueAsBool;
         return true;
       case 64:
-        if (cellStyle) cellStyle.topBorder.color = new Color(this._reader.ValueAsShort);
+        if (cellStyle) cellStyle.topBorder.color = new Color(this._reader.valueAsShort);
         return true;
       case 65:
-        if (cellStyle) cellStyle.horizontalInsideBorder.color = new Color(this._reader.ValueAsShort);
+        if (cellStyle) cellStyle.horizontalInsideBorder.color = new Color(this._reader.valueAsShort);
         return true;
       case 66:
-        if (cellStyle) cellStyle.bottomBorder.color = new Color(this._reader.ValueAsShort);
+        if (cellStyle) cellStyle.bottomBorder.color = new Color(this._reader.valueAsShort);
         return true;
       case 67:
-        if (cellStyle) cellStyle.leftBorder.color = new Color(this._reader.ValueAsShort);
+        if (cellStyle) cellStyle.leftBorder.color = new Color(this._reader.valueAsShort);
         return true;
       case 68:
-        if (cellStyle) cellStyle.verticalInsideBorder.color = new Color(this._reader.ValueAsShort);
+        if (cellStyle) cellStyle.verticalInsideBorder.color = new Color(this._reader.valueAsShort);
         return true;
       case 69:
-        if (cellStyle) cellStyle.rightBorder.color = new Color(this._reader.ValueAsShort);
+        if (cellStyle) cellStyle.rightBorder.color = new Color(this._reader.valueAsShort);
         return true;
       default:
-        return this.tryAssignCurrentValue(template.CadObject, map.subClasses.get(tmp.CadObject.subclassMarker)!);
+        return this.tryAssignCurrentValue(template.cadObject, map.subClasses.get(tmp.cadObject.subclassMarker)!);
     }
   }
 
-  private readMLeaderStyle(template: CadTemplate, map: DxfMap): boolean {
+  private _readMLeaderStyle(template: CadTemplate, map: DxfMap): boolean {
     const tmp = template as CadMLeaderStyleTemplate;
 
-    switch (this._reader.Code as number) {
+    switch (this._reader.code as number) {
       case 179:
         return true;
       case 340:
-        tmp.LeaderLineTypeHandle = this._reader.ValueAsHandle;
+        tmp.leaderLineTypeHandle = this._reader.valueAsHandle;
         return true;
       case 342:
-        tmp.MTextStyleHandle = this._reader.ValueAsHandle;
+        tmp.mTextStyleHandle = this._reader.valueAsHandle;
         return true;
       default:
-        return this.tryAssignCurrentValue(template.CadObject, map.subClasses.get(tmp.CadObject.subclassMarker)!);
+        return this.tryAssignCurrentValue(template.cadObject, map.subClasses.get(tmp.cadObject.subclassMarker)!);
     }
   }
 
-  private readEvaluationExpression(template: CadTemplate, map: DxfMap): boolean {
+  private _readEvaluationExpression(template: CadTemplate, map: DxfMap): boolean {
     const tmp = template as CadEvaluationExpressionTemplate;
 
-    switch (this._reader.Code as number) {
+    switch (this._reader.code as number) {
       case 1:
-        this._reader.ExpectedCode(70);
-        this._reader.ExpectedCode(140);
+        this._reader.expectedCode(70);
+        this._reader.expectedCode(140);
         return true;
       default:
-        return this.tryAssignCurrentValue(template.CadObject, map.subClasses.get(DxfSubclassMarker.EvalGraphExpr)!);
+        return this.tryAssignCurrentValue(template.cadObject, map.subClasses.get(DxfSubclassMarker.evalGraphExpr)!);
     }
   }
 
-  private readBlockElement(template: CadTemplate, map: DxfMap): boolean {
-    switch (this._reader.Code as number) {
+  private _readBlockElement(template: CadTemplate, map: DxfMap): boolean {
+    switch (this._reader.code as number) {
       default:
-        if (!this.tryAssignCurrentValue(template.CadObject, map.subClasses.get(DxfSubclassMarker.BlockElement)!)) {
-          return this.readEvaluationExpression(template, map);
+        if (!this.tryAssignCurrentValue(template.cadObject, map.subClasses.get(DxfSubclassMarker.blockElement)!)) {
+          return this._readEvaluationExpression(template, map);
         }
         return true;
     }
   }
 
-  private readBlockAction(template: CadTemplate, map: DxfMap): boolean {
-    switch (this._reader.Code as number) {
+  private _readBlockAction(template: CadTemplate, map: DxfMap): boolean {
+    switch (this._reader.code as number) {
       default:
-        if (!this.tryAssignCurrentValue(template.CadObject, map.subClasses.get(DxfSubclassMarker.BlockAction)!)) {
-          return this.readBlockElement(template, map);
+        if (!this.tryAssignCurrentValue(template.cadObject, map.subClasses.get(DxfSubclassMarker.blockAction)!)) {
+          return this._readBlockElement(template, map);
         }
         return true;
     }
   }
 
-  private readBlockActionBasePt(template: CadTemplate, map: DxfMap): boolean {
-    switch (this._reader.Code as number) {
+  private _readBlockActionBasePt(template: CadTemplate, map: DxfMap): boolean {
+    switch (this._reader.code as number) {
       default:
-        if (!this.tryAssignCurrentValue(template.CadObject, map.subClasses.get(DxfSubclassMarker.BlockActionBasePt)!)) {
-          return this.readBlockAction(template, map);
+        if (!this.tryAssignCurrentValue(template.cadObject, map.subClasses.get(DxfSubclassMarker.blockActionBasePt)!)) {
+          return this._readBlockAction(template, map);
         }
         return true;
     }
   }
 
-  private readBlockRotationAction(template: CadTemplate, map: DxfMap): boolean {
-    switch (this._reader.Code as number) {
+  private _readBlockRotationAction(template: CadTemplate, map: DxfMap): boolean {
+    switch (this._reader.code as number) {
       default:
-        if (!this.tryAssignCurrentValue(template.CadObject, map.subClasses.get(DxfSubclassMarker.BlockRotationAction)!)) {
-          return this.readBlockActionBasePt(template, map);
+        if (!this.tryAssignCurrentValue(template.cadObject, map.subClasses.get(DxfSubclassMarker.blockRotationAction)!)) {
+          return this._readBlockActionBasePt(template, map);
         }
         return true;
     }
   }
 
-  private readBlockParameter(template: CadTemplate, map: DxfMap): boolean {
-    switch (this._reader.Code as number) {
+  private _readBlockParameter(template: CadTemplate, map: DxfMap): boolean {
+    switch (this._reader.code as number) {
       default:
-        if (!this.tryAssignCurrentValue(template.CadObject, map.subClasses.get(DxfSubclassMarker.BlockParameter)!)) {
-          return this.readBlockElement(template, map);
+        if (!this.tryAssignCurrentValue(template.cadObject, map.subClasses.get(DxfSubclassMarker.blockParameter)!)) {
+          return this._readBlockElement(template, map);
         }
         return true;
     }
   }
 
-  private readBlock1PtParameter(template: CadTemplate, map: DxfMap): boolean {
-    switch (this._reader.Code as number) {
+  private _readBlock1PtParameter(template: CadTemplate, map: DxfMap): boolean {
+    switch (this._reader.code as number) {
       default:
-        if (!this.tryAssignCurrentValue(template.CadObject, map.subClasses.get(DxfSubclassMarker.Block1PtParameter)!)) {
-          return this.readBlockParameter(template, map);
+        if (!this.tryAssignCurrentValue(template.cadObject, map.subClasses.get(DxfSubclassMarker.block1PtParameter)!)) {
+          return this._readBlockParameter(template, map);
         }
         return true;
     }
   }
 
-  private readBlock2PtParameter(template: CadTemplate, map: DxfMap): boolean {
-    switch (this._reader.Code as number) {
+  private _readBlock2PtParameter(template: CadTemplate, map: DxfMap): boolean {
+    switch (this._reader.code as number) {
       case 91:
         return true;
       default:
-        if (!this.tryAssignCurrentValue(template.CadObject, map)) {
-          return this.readBlockParameter(template, map);
+        if (!this.tryAssignCurrentValue(template.cadObject, map)) {
+          return this._readBlockParameter(template, map);
         }
         return true;
     }
   }
 
-  private readBlockVisibilityParameter(template: CadTemplate, map: DxfMap): boolean {
+  private _readBlockVisibilityParameter(template: CadTemplate, map: DxfMap): boolean {
     const tmp = template as CadBlockVisibilityParameterTemplate;
 
-    switch (this._reader.Code as number) {
+    switch (this._reader.code as number) {
       case 92: {
-        const stateCount = this._reader.ValueAsInt;
+        const stateCount = this._reader.valueAsInt;
         for (let i = 0; i < stateCount; i++) {
-          this._reader.ReadNext();
-          tmp.StateTemplates.push(this.readState());
+          this._reader.readNext();
+          tmp.stateTemplates.push(this._readState());
         }
         return true;
       }
       case 93:
-        if (this.currentSubclass === DxfSubclassMarker.BlockVisibilityParameter) {
-          const entityCount = this._reader.ValueAsInt;
+        if (this.currentSubclass === DxfSubclassMarker.blockVisibilityParameter) {
+          const entityCount = this._reader.valueAsInt;
           for (let i = 0; i < entityCount; i++) {
-            this._reader.ReadNext();
-            tmp.entityHandles.push(this._reader.ValueAsHandle);
+            this._reader.readNext();
+            tmp.entityHandles.push(this._reader.valueAsHandle);
           }
           return true;
         }
         return false;
       default:
-        if (!this.tryAssignCurrentValue(template.CadObject, map.subClasses.get(DxfSubclassMarker.BlockVisibilityParameter)!)) {
-          return this.readBlock1PtParameter(template, map);
+        if (!this.tryAssignCurrentValue(template.cadObject, map.subClasses.get(DxfSubclassMarker.blockVisibilityParameter)!)) {
+          return this._readBlock1PtParameter(template, map);
         }
         return true;
     }
   }
 
-  private readBlockRotationParameter(template: CadTemplate, map: DxfMap): boolean {
-    switch (this._reader.Code as number) {
+  private _readBlockRotationParameter(template: CadTemplate, map: DxfMap): boolean {
+    switch (this._reader.code as number) {
       default:
-        if (!this.tryAssignCurrentValue(template.CadObject, map)) {
-          return this.readBlock2PtParameter(template, map);
+        if (!this.tryAssignCurrentValue(template.cadObject, map)) {
+          return this._readBlock2PtParameter(template, map);
         }
         return true;
     }
   }
 
-  private readState(): CadBlockVisibilityParameterTemplate.StateTemplate {
+  private _readState(): CadBlockVisibilityParameterTemplate.StateTemplate {
     const state = new BlockVisibilityState();
     const template = new CadBlockVisibilityParameterTemplate.StateTemplate(state);
 
     const expectedCodes: number[] = [303, 94, 95];
 
-    while (this._reader.DxfCode !== DxfCode.Start) {
-      const idx = expectedCodes.indexOf(this._reader.Code);
+    while (this._reader.dxfCode !== DxfCode.Start) {
+      const idx = expectedCodes.indexOf(this._reader.code);
       if (idx >= 0) {
         expectedCodes.splice(idx, 1);
       }
 
-      switch (this._reader.Code as number) {
+      switch (this._reader.code as number) {
         case 303:
-          state.name = this._reader.ValueAsString;
+          state.name = this._reader.valueAsString;
           break;
         case 94: {
-          const count = this._reader.ValueAsInt;
+          const count = this._reader.valueAsInt;
           for (let i = 0; i < count; i++) {
-            this._reader.ReadNext();
-            template.entityHandles.add(this._reader.ValueAsHandle);
+            this._reader.readNext();
+            template.entityHandles.add(this._reader.valueAsHandle);
           }
           break;
         }
         case 95: {
-          const count = this._reader.ValueAsInt;
+          const count = this._reader.valueAsInt;
           for (let i = 0; i < count; i++) {
-            this._reader.ReadNext();
-            template.expressionHandles.add(this._reader.ValueAsHandle);
+            this._reader.readNext();
+            template.expressionHandles.add(this._reader.valueAsHandle);
           }
           break;
         }
@@ -1966,134 +1982,134 @@ export class DxfObjectsSectionReader extends DxfSectionReaderBase {
         break;
       }
 
-      this._reader.ReadNext();
+      this._reader.readNext();
     }
 
     return template;
   }
 
-  private readBlockGrip(template: CadTemplate, map: DxfMap): boolean {
-    switch (this._reader.Code as number) {
+  private _readBlockGrip(template: CadTemplate, map: DxfMap): boolean {
+    switch (this._reader.code as number) {
       default:
-        if (!this.tryAssignCurrentValue(template.CadObject, map.subClasses.get(DxfSubclassMarker.BlockGrip)!)) {
-          return this.readBlockElement(template, map);
+        if (!this.tryAssignCurrentValue(template.cadObject, map.subClasses.get(DxfSubclassMarker.blockGrip)!)) {
+          return this._readBlockElement(template, map);
         }
         return true;
     }
   }
 
-  private readBlockRotationGrip(template: CadTemplate, map: DxfMap): boolean {
-    switch (this._reader.Code as number) {
+  private _readBlockRotationGrip(template: CadTemplate, map: DxfMap): boolean {
+    switch (this._reader.code as number) {
       default:
-        if (!this.tryAssignCurrentValue(template.CadObject, map.subClasses.get(DxfSubclassMarker.BlockRotationGrip)!)) {
-          return this.readBlockGrip(template, map);
+        if (!this.tryAssignCurrentValue(template.cadObject, map.subClasses.get(DxfSubclassMarker.blockRotationGrip)!)) {
+          return this._readBlockGrip(template, map);
         }
         return true;
     }
   }
 
-  private readBlockVisibilityGrip(template: CadTemplate, map: DxfMap): boolean {
-    switch (this._reader.Code as number) {
+  private _readBlockVisibilityGrip(template: CadTemplate, map: DxfMap): boolean {
+    switch (this._reader.code as number) {
       default:
-        if (!this.tryAssignCurrentValue(template.CadObject, map.subClasses.get(DxfSubclassMarker.BlockVisibilityGrip)!)) {
-          return this.readBlockGrip(template, map);
+        if (!this.tryAssignCurrentValue(template.cadObject, map.subClasses.get(DxfSubclassMarker.blockVisibilityGrip)!)) {
+          return this._readBlockGrip(template, map);
         }
         return true;
     }
   }
 
-  private readBlockRepresentationData(template: CadTemplate, map: DxfMap): boolean {
+  private _readBlockRepresentationData(template: CadTemplate, map: DxfMap): boolean {
     const tmp = template as CadBlockRepresentationDataTemplate;
 
-    switch (this._reader.Code as number) {
+    switch (this._reader.code as number) {
       case 340:
-        tmp.BlockHandle = this._reader.ValueAsHandle;
+        tmp.blockHandle = this._reader.valueAsHandle;
         return true;
       default:
-        return this.tryAssignCurrentValue(template.CadObject, map.subClasses.get(tmp.CadObject.subclassMarker)!);
+        return this.tryAssignCurrentValue(template.cadObject, map.subClasses.get(tmp.cadObject.subclassMarker)!);
     }
   }
 
-  private readBlockGripExpression(template: CadTemplate, map: DxfMap): boolean {
-    switch (this._reader.Code as number) {
+  private _readBlockGripExpression(template: CadTemplate, map: DxfMap): boolean {
+    switch (this._reader.code as number) {
       default:
-        if (!this.tryAssignCurrentValue(template.CadObject, map.subClasses.get(DxfSubclassMarker.BlockGripExpression)!)) {
-          return this.readEvaluationExpression(template, map);
+        if (!this.tryAssignCurrentValue(template.cadObject, map.subClasses.get(DxfSubclassMarker.blockGripExpression)!)) {
+          return this._readEvaluationExpression(template, map);
         }
         return true;
     }
   }
 
-  private readXRecord(template: CadTemplate, map: DxfMap): boolean {
+  private _readXRecord(template: CadTemplate, map: DxfMap): boolean {
     const tmp = template as CadXRecordTemplate;
 
-    switch (this._reader.Code as number) {
+    switch (this._reader.code as number) {
       case 100:
-        if (this._reader.ValueAsString === DxfSubclassMarker.XRecord) {
-          this.readXRecordEntries(tmp);
+        if (this._reader.valueAsString === DxfSubclassMarker.xRecord) {
+          this._readXRecordEntries(tmp);
           return true;
         }
         return false;
       default:
-        return this.tryAssignCurrentValue(template.CadObject, map.subClasses.get(DxfSubclassMarker.XRecord)!);
+        return this.tryAssignCurrentValue(template.cadObject, map.subClasses.get(DxfSubclassMarker.xRecord)!);
     }
   }
 
-  private readXRecordEntries(template: CadXRecordTemplate): void {
-    const xRecord = template.CadObject as XRecord;
-    this._reader.ReadNext();
+  private _readXRecordEntries(template: CadXRecordTemplate): void {
+    const xRecord = template.cadObject as XRecord;
+    this._reader.readNext();
 
-    while (this._reader.DxfCode !== DxfCode.Start) {
-      switch (this._reader.GroupCodeValue) {
+    while (this._reader.dxfCode !== DxfCode.Start) {
+      switch (this._reader.groupCodeValue) {
         case GroupCodeValueType.Point3D: {
-          const code = this._reader.Code;
-          const x = this._reader.ValueAsDouble;
-          this._reader.ReadNext();
-          const y = this._reader.ValueAsDouble;
-          this._reader.ReadNext();
-          const z = this._reader.ValueAsDouble;
+          const code = this._reader.code;
+          const x = this._reader.valueAsDouble;
+          this._reader.readNext();
+          const y = this._reader.valueAsDouble;
+          this._reader.readNext();
+          const z = this._reader.valueAsDouble;
           const pt = new XYZ(x, y, z);
-          xRecord.CreateEntry(code, pt);
+          xRecord.createEntry(code, pt);
           break;
         }
         case GroupCodeValueType.Handle:
         case GroupCodeValueType.ObjectId:
         case GroupCodeValueType.ExtendedDataHandle:
-          template.AddHandleReference(this._reader.Code, this._reader.ValueAsHandle);
+          template.addHandleReference(this._reader.code, this._reader.valueAsHandle);
           break;
         default:
-          xRecord.CreateEntry(this._reader.Code, this._reader.Value);
+          xRecord.createEntry(this._reader.code, this._reader.value);
           break;
       }
 
-      this._reader.ReadNext();
+      this._reader.readNext();
     }
   }
 
-  private readBookColor(template: CadTemplate, map: DxfMap): boolean {
+  private _readBookColor(template: CadTemplate, map: DxfMap): boolean {
     const tmp = template as CadNonGraphicalObjectTemplate;
-    const color = tmp.CadObject as BookColor;
+    const color = tmp.cadObject as BookColor;
 
-    switch (this._reader.Code as number) {
+    switch (this._reader.code as number) {
       case 430:
-        color.name = this._reader.ValueAsString;
+        color.name = this._reader.valueAsString;
         return true;
       default:
-        return this.tryAssignCurrentValue(template.CadObject, map.subClasses.get(DxfSubclassMarker.DbColor)!);
+        return this.tryAssignCurrentValue(template.cadObject, map.subClasses.get(DxfSubclassMarker.dbColor)!);
     }
   }
 
-  private readDimensionAssociation(template: CadTemplate, map: DxfMap): boolean {
+  private _readDimensionAssociation(template: CadTemplate, map: DxfMap): boolean {
     const tmp = template as CadDimensionAssociationTemplate;
-    const dimassoc = tmp.CadObject as DimensionAssociation;
+    const dimassoc = tmp.cadObject as DimensionAssociation;
 
-    switch (this._reader.Code as number) {
+    switch (this._reader.code as number) {
       case 1:
-        if (this._reader.ValueAsString === DimensionAssociation.OsnapPointRefClassName) {
+        if (this._reader.valueAsString === DimensionAssociation.osnapPointRefClassName) {
           if ((dimassoc.associativityFlags & AssociativityFlags.FirstPointReference) !== 0
             && dimassoc.firstPointRef === null) {
             dimassoc.firstPointRef = new OsnapPointRef();
-            this.readOsnapPointRef(dimassoc.firstPointRef);
+            this._readOsnapPointRef(dimassoc.firstPointRef);
             this.lockPointer = true;
             return true;
           }
@@ -2101,7 +2117,7 @@ export class DxfObjectsSectionReader extends DxfSectionReaderBase {
           if ((dimassoc.associativityFlags & AssociativityFlags.SecondPointReference) !== 0
             && dimassoc.secondPointRef === null) {
             dimassoc.secondPointRef = new OsnapPointRef();
-            this.readOsnapPointRef(dimassoc.secondPointRef);
+            this._readOsnapPointRef(dimassoc.secondPointRef);
             this.lockPointer = true;
             return true;
           }
@@ -2109,7 +2125,7 @@ export class DxfObjectsSectionReader extends DxfSectionReaderBase {
           if ((dimassoc.associativityFlags & AssociativityFlags.ThirdPointReference) !== 0
             && dimassoc.thirdPointRef === null) {
             dimassoc.thirdPointRef = new OsnapPointRef();
-            this.readOsnapPointRef(dimassoc.thirdPointRef);
+            this._readOsnapPointRef(dimassoc.thirdPointRef);
             this.lockPointer = true;
             return true;
           }
@@ -2117,7 +2133,7 @@ export class DxfObjectsSectionReader extends DxfSectionReaderBase {
           if ((dimassoc.associativityFlags & AssociativityFlags.FourthPointReference) !== 0
             && dimassoc.fourthPointRef === null) {
             dimassoc.fourthPointRef = new OsnapPointRef();
-            this.readOsnapPointRef(dimassoc.fourthPointRef);
+            this._readOsnapPointRef(dimassoc.fourthPointRef);
             this.lockPointer = true;
             return true;
           }
@@ -2126,56 +2142,56 @@ export class DxfObjectsSectionReader extends DxfSectionReaderBase {
         }
         return false;
       case 330:
-        if (template.OwnerHandle !== null) {
-          tmp.DimensionHandle = this._reader.ValueAsHandle;
+        if (template.ownerHandle !== null) {
+          tmp.dimensionHandle = this._reader.valueAsHandle;
           return true;
         }
         return false;
       default:
-        return this.tryAssignCurrentValue(template.CadObject, map.subClasses.get(tmp.CadObject.subclassMarker)!);
+        return this.tryAssignCurrentValue(template.cadObject, map.subClasses.get(tmp.cadObject.subclassMarker)!);
     }
   }
 
-  private readOsnapPointRef(osnapPoint: OsnapPointRef): CadDimensionAssociationTemplate.OsnapPointRefTemplate {
+  private _readOsnapPointRef(osnapPoint: OsnapPointRef): CadDimensionAssociationTemplate.OsnapPointRefTemplate {
     const template = new CadDimensionAssociationTemplate.OsnapPointRefTemplate(osnapPoint);
 
-    this._reader.ReadNext();
+    this._reader.readNext();
 
     let end = false;
     while (!end) {
-      switch (this._reader.Code as number) {
+      switch (this._reader.code as number) {
         case 10:
-          osnapPoint.osnapPoint = new XYZ(this._reader.ValueAsDouble, osnapPoint.osnapPoint.Y, osnapPoint.osnapPoint.Z);
+          osnapPoint.osnapPoint = new XYZ(this._reader.valueAsDouble, osnapPoint.osnapPoint.y, osnapPoint.osnapPoint.z);
           break;
         case 20:
-          osnapPoint.osnapPoint = new XYZ(osnapPoint.osnapPoint.X, this._reader.ValueAsDouble, osnapPoint.osnapPoint.Z);
+          osnapPoint.osnapPoint = new XYZ(osnapPoint.osnapPoint.x, this._reader.valueAsDouble, osnapPoint.osnapPoint.z);
           break;
         case 30:
-          osnapPoint.osnapPoint = new XYZ(osnapPoint.osnapPoint.X, osnapPoint.osnapPoint.Y, this._reader.ValueAsDouble);
+          osnapPoint.osnapPoint = new XYZ(osnapPoint.osnapPoint.x, osnapPoint.osnapPoint.y, this._reader.valueAsDouble);
           break;
         case 40:
-          osnapPoint.geometryParameter = this._reader.ValueAsDouble;
+          osnapPoint.geometryParameter = this._reader.valueAsDouble;
           break;
         case 72:
-          osnapPoint.objectOsnapType = this._reader.ValueAsShort as ObjectOsnapType;
+          osnapPoint.objectOsnapType = this._reader.valueAsShort as ObjectOsnapType;
           break;
         case 73:
-          osnapPoint.subentType = this._reader.ValueAsShort as SubentType;
+          osnapPoint.subentType = this._reader.valueAsShort as SubentType;
           break;
         case 74:
-          osnapPoint.intersectionSubType = this._reader.ValueAsShort as SubentType;
+          osnapPoint.intersectionSubType = this._reader.valueAsShort as SubentType;
           break;
         case 75:
-          osnapPoint.hasLastPointRef = this._reader.ValueAsBool;
+          osnapPoint.hasLastPointRef = this._reader.valueAsBool;
           break;
         case 91:
-          osnapPoint.gsMarker = this._reader.ValueAsInt;
+          osnapPoint.gsMarker = this._reader.valueAsInt;
           break;
         case 92:
-          osnapPoint.intersectionGsMarker = this._reader.ValueAsInt;
+          osnapPoint.intersectionGsMarker = this._reader.valueAsInt;
           break;
         case 331:
-          template.ObjectHandle = this._reader.ValueAsHandle;
+          template.objectHandle = this._reader.valueAsHandle;
           break;
         case 302:
         case 332:
@@ -2185,95 +2201,95 @@ export class DxfObjectsSectionReader extends DxfSectionReaderBase {
           continue;
       }
 
-      this._reader.ReadNext();
+      this._reader.readNext();
     }
 
     return template;
   }
 
-  private readDictionary(template: CadTemplate, map: DxfMap): boolean {
+  private _readDictionary(template: CadTemplate, map: DxfMap): boolean {
     const tmp = template as CadDictionaryTemplate;
-    const cadDictionary = tmp.CadObject as CadDictionary;
+    const cadDictionary = tmp.cadObject as CadDictionary;
 
-    switch (this._reader.Code as number) {
+    switch (this._reader.code as number) {
       case 280:
-        cadDictionary.hardOwnerFlag = this._reader.ValueAsBool;
+        cadDictionary.hardOwnerFlag = this._reader.valueAsBool;
         return true;
       case 281:
-        cadDictionary.clonningFlags = this._reader.Value as DictionaryCloningFlags;
+        cadDictionary.clonningFlags = this._reader.value as DictionaryCloningFlags;
         return true;
       case 3:
-        tmp.Entries.set(this._reader.ValueAsString, null);
+        tmp.entries.set(this._reader.valueAsString, null);
         return true;
       case 350:
       case 360: {
-        const keys = Array.from(tmp.Entries.keys());
+        const keys = Array.from(tmp.entries.keys());
         const lastKey = keys[keys.length - 1];
-        tmp.Entries.set(lastKey, this._reader.ValueAsHandle);
+        tmp.entries.set(lastKey, this._reader.valueAsHandle);
         return true;
       }
       default:
-        return this.tryAssignCurrentValue(template.CadObject, map.subClasses.get(DxfSubclassMarker.Dictionary)!);
+        return this.tryAssignCurrentValue(template.cadObject, map.subClasses.get(DxfSubclassMarker.dictionary)!);
     }
   }
 
-  private readDictionaryWithDefault(template: CadTemplate, map: DxfMap): boolean {
+  private _readDictionaryWithDefault(template: CadTemplate, map: DxfMap): boolean {
     const tmp = template as CadDictionaryWithDefaultTemplate;
 
-    switch (this._reader.Code as number) {
+    switch (this._reader.code as number) {
       case 340:
-        tmp.DefaultEntryHandle = this._reader.ValueAsHandle;
+        tmp.defaultEntryHandle = this._reader.valueAsHandle;
         return true;
       default:
-        if (!this.tryAssignCurrentValue(template.CadObject, map.subClasses.get(DxfSubclassMarker.DictionaryWithDefault)!)) {
-          return this.readDictionary(template, map);
+        if (!this.tryAssignCurrentValue(template.cadObject, map.subClasses.get(DxfSubclassMarker.dictionaryWithDefault)!)) {
+          return this._readDictionary(template, map);
         }
         return true;
     }
   }
 
-  private readSortentsTable(): CadTemplate {
+  private _readSortentsTable(): CadTemplate {
     const sortTable = new SortEntitiesTable();
     const template = new CadSortensTableTemplate(sortTable);
 
-    this._reader.ReadNext();
+    this._reader.readNext();
 
     this.readCommonObjectData(template);
 
     // Debug.Assert(DxfSubclassMarker.SortentsTable == this._reader.ValueAsString);
 
-    this._reader.ReadNext();
+    this._reader.readNext();
 
     let pair: { item1: number | null, item2: number | null } = { item1: null, item2: null };
 
-    while (this._reader.DxfCode !== DxfCode.Start) {
-      switch (this._reader.Code as number) {
+    while (this._reader.dxfCode !== DxfCode.Start) {
+      switch (this._reader.code as number) {
         case 5:
-          pair.item1 = this._reader.ValueAsHandle;
+          pair.item1 = this._reader.valueAsHandle;
           break;
         case 330:
-          template.BlockOwnerHandle = this._reader.ValueAsHandle;
+          template.blockOwnerHandle = this._reader.valueAsHandle;
           break;
         case 331:
-          pair.item2 = this._reader.ValueAsHandle;
+          pair.item2 = this._reader.valueAsHandle;
           break;
         default:
-          this._builder.Notify(`Group Code not handled ${this._reader.GroupCodeValue} for SortEntitiesTable, code : ${this._reader.Code} | value : ${this._reader.ValueAsString}`);
+          this._builder.notify(`Group Code not handled ${this._reader.groupCodeValue} for SortEntitiesTable, code : ${this._reader.code} | value : ${this._reader.valueAsString}`);
           break;
       }
 
       if (pair.item1 !== null && pair.item2 !== null) {
-        template.Values.push([pair.item1, pair.item2]);
+        template.values.push([pair.item1, pair.item2]);
         pair = { item1: null, item2: null };
       }
 
-      this._reader.ReadNext();
+      this._reader.readNext();
     }
 
     return template;
   }
 
-  private appendBinaryChunk(current: Uint8Array | null, chunk: Uint8Array): Uint8Array {
+  private _appendBinaryChunk(current: Uint8Array | null, chunk: Uint8Array): Uint8Array {
     if (current === null || current.length === 0) {
       return new Uint8Array(chunk);
     }

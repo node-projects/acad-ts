@@ -13,12 +13,12 @@ import { LineType } from './LineType.js';
 import { StandardFlags } from './StandardFlags.js';
 
 export class Layer extends TableEntry {
-	public static get Default(): Layer {
-		return new Layer(Layer.DefaultName);
+	public static get default(): Layer {
+		return new Layer(Layer.defaultName);
 	}
 
-	public static get Defpoints(): Layer {
-		const l = new Layer(Layer.DefpointsName);
+	public static get defpoints(): Layer {
+		const l = new Layer(Layer.defpointsName);
 		l.plotFlag = false;
 		return l;
 	}
@@ -49,7 +49,7 @@ export class Layer extends TableEntry {
 	public material: Material | null = null;
 
 	public override get objectName(): string {
-		return DxfFileToken.TableLayer;
+		return DxfFileToken.tableLayer;
 	}
 
 	public override get objectType(): ObjectType {
@@ -57,7 +57,7 @@ export class Layer extends TableEntry {
 	}
 
 	public get plotFlag(): boolean {
-		if (this._name.toLowerCase() === Layer.DefpointsName.toLowerCase()) {
+		if (this._name.toLowerCase() === Layer.defpointsName.toLowerCase()) {
 			return false;
 		}
 		return this._plotFlag;
@@ -69,11 +69,11 @@ export class Layer extends TableEntry {
 	public plotStyleName: number = 0;
 
 	public override get subclassMarker(): string {
-		return DxfSubclassMarker.Layer;
+		return DxfSubclassMarker.layer;
 	}
 
-	public static readonly DefaultName: string = '0';
-	public static readonly DefpointsName: string = 'defpoints';
+	public static readonly defaultName: string = '0';
+	public static readonly defpointsName: string = 'defpoints';
 
 	private _color: Color = new Color(7);
 	private _plotFlag: boolean = true;
@@ -92,14 +92,14 @@ export class Layer extends TableEntry {
 	/** @internal */
 	assignDocument(doc: CadDocument): void {
 		super.assignDocument(doc);
-		this.lineType = CadObject.updateCollection(this.lineType ?? LineType.Continuous, doc.lineTypes);
+		this.lineType = CadObject.updateCollection(this.lineType ?? LineType.continuous, doc.lineTypes);
 		this.material = CadObject.updateCollection(this.material, doc.materials);
 	}
 
 	/** @internal */
 	unassignDocument(): void {
 		super.unassignDocument();
-		this.lineType = this.lineType?.clone() as LineType | null ?? LineType.Continuous;
+		this.lineType = this.lineType?.clone() as LineType | null ?? LineType.continuous;
 		this.material = this.material?.clone() as Material | null ?? null;
 	}
 }

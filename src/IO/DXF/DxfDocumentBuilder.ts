@@ -18,101 +18,101 @@ import { NotificationType } from '../NotificationEventHandler.js';
 import { ICadOwnerTemplate } from '../Templates/ICadOwnerTemplate.js';
 
 export class DxfDocumentBuilder extends CadDocumentBuilder {
-  public Configuration: DxfReaderConfiguration;
+  public configuration: DxfReaderConfiguration;
 
-  public override get KeepUnknownEntities(): boolean {
-    return this.Configuration.KeepUnknownEntities;
+  public override get keepUnknownEntities(): boolean {
+    return this.configuration.keepUnknownEntities;
   }
 
-  public override get KeepUnknownNonGraphicalObjects(): boolean {
-    return this.Configuration.KeepUnknownNonGraphicalObjects;
+  public override get keepUnknownNonGraphicalObjects(): boolean {
+    return this.configuration.keepUnknownNonGraphicalObjects;
   }
 
-  public ModelSpaceEntities: Set<Entity> = new Set<Entity>();
+  public modelSpaceEntities: Set<Entity> = new Set<Entity>();
 
-  public ModelSpaceTemplate: CadBlockRecordTemplate | null = null;
+  public modelSpaceTemplate: CadBlockRecordTemplate | null = null;
 
-  public OrphanTemplates: CadTemplate[] = [];
+  public orphanTemplates: CadTemplate[] = [];
 
   public constructor(version: ACadVersion, document: CadDocument, configuration: DxfReaderConfiguration) {
     super(version, document);
-    this.Configuration = configuration;
+    this.configuration = configuration;
   }
 
-  public override BuildDocument(): void {
-    if (this.ModelSpaceTemplate === null) {
-      const record = BlockRecord.ModelSpace;
-      this.BlockRecords.add(record);
-      this.ModelSpaceTemplate = new CadBlockRecordTemplate(record);
-      this.AddTemplate(this.ModelSpaceTemplate);
+  public override buildDocument(): void {
+    if (this.modelSpaceTemplate === null) {
+      const record = BlockRecord.modelSpace;
+      this.blockRecords.add(record);
+      this.modelSpaceTemplate = new CadBlockRecordTemplate(record);
+      this.addTemplate(this.modelSpaceTemplate);
     }
 
     this.createMissingHandles();
 
-    for (const entity of this.ModelSpaceEntities) {
-      this.ModelSpaceTemplate!.OwnedObjectsHandlers.add(entity.handle);
+    for (const entity of this.modelSpaceEntities) {
+      this.modelSpaceTemplate!.ownedObjectsHandlers.add(entity.handle);
     }
 
-    this.RegisterTables();
+    this.registerTables();
 
-    this.BuildTables();
+    this.buildTables();
 
     this.buildDictionaries();
 
-    for (const template of this.OrphanTemplates) {
-      this.assignOwner(template);
+    for (const template of this.orphanTemplates) {
+      this._assignOwner(template);
     }
 
-    super.BuildDocument();
+    super.buildDocument();
 
-    if (this.Configuration.CreateDefaults) {
-      this.DocumentToBuild.createDefaults();
+    if (this.configuration.createDefaults) {
+      this.documentToBuild.createDefaults();
     }
   }
 
-  public BuildEntities(): Entity[] {
+  public buildEntities(): Entity[] {
     const entities: Entity[] = [];
 
     for (const item of this.cadObjectsTemplates.values()) {
       if (item instanceof CadEntityTemplate) {
-        item.Build(this);
-        item.SetUnlinkedReferences();
+        item.build(this);
+        item.setUnlinkedReferences();
       }
     }
 
     for (const item of this.cadObjectsTemplates.values()) {
-      if (item instanceof CadEntityTemplate && item.CadObject.owner === null) {
-        item.CadObject.handle = 0;
-        entities.push(item.CadObject);
+      if (item instanceof CadEntityTemplate && item.cadObject.owner === null) {
+        item.cadObject.handle = 0;
+        entities.push(item.cadObject);
       }
     }
 
     return entities;
   }
 
-  private assignOwner(template: CadTemplate): void {
-    if (template.CadObject.owner !== null || template.CadObject instanceof CadDictionary || !template.OwnerHandle) {
+  private _assignOwner(template: CadTemplate): void {
+    if (template.cadObject.owner !== null || template.cadObject instanceof CadDictionary || !template.ownerHandle) {
       return;
     }
 
-    const ownerResult = this.TryGetObjectTemplate(template.OwnerHandle);
+    const ownerResult = this.tryGetObjectTemplate(template.ownerHandle);
     if (ownerResult) {
       const owner = ownerResult;
-      if (owner instanceof CadBlockRecordTemplate && template.CadObject instanceof Entity) {
+      if (owner instanceof CadBlockRecordTemplate && template.cadObject instanceof Entity) {
         // The entries should be assigned in the blocks or entities section
-      } else if (owner instanceof CadPolyLineTemplate && template.CadObject instanceof Vertex) {
-        owner.OwnedObjectsHandlers.add(template.CadObject.handle);
-      } else if (owner instanceof CadPolyLineTemplate && template.CadObject instanceof Seqend) {
-        owner.SeqendHandle = template.CadObject.handle;
-      } else if (owner instanceof CadInsertTemplate && template.CadObject instanceof AttributeEntity) {
-        owner.OwnedObjectsHandlers.add(template.CadObject.handle);
-      } else if (owner instanceof CadInsertTemplate && template.CadObject instanceof Seqend) {
-        owner.SeqendHandle = template.CadObject.handle;
+      } else if (owner instanceof CadPolyLineTemplate && template.cadObject instanceof Vertex) {
+        owner.ownedObjectsHandlers.add(template.cadObject.handle);
+      } else if (owner instanceof CadPolyLineTemplate && template.cadObject instanceof Seqend) {
+        owner.seqendHandle = template.cadObject.handle;
+      } else if (owner instanceof CadInsertTemplate && template.cadObject instanceof AttributeEntity) {
+        owner.ownedObjectsHandlers.add(template.cadObject.handle);
+      } else if (owner instanceof CadInsertTemplate && template.cadObject instanceof Seqend) {
+        owner.seqendHandle = template.cadObject.handle;
       } else {
-        this.Notify(`Owner ${owner.constructor.name} with handle ${template.OwnerHandle} assignation not implemented for ${template.CadObject.constructor.name} with handle ${template.CadObject.handle}`, NotificationType.Warning);
+        this.notify(`Owner ${owner.constructor.name} with handle ${template.ownerHandle} assignation not implemented for ${template.cadObject.constructor.name} with handle ${template.cadObject.handle}`, NotificationType.Warning);
       }
     } else {
-      this.Notify(`Owner ${template.OwnerHandle} not found for ${template.constructor.name} with handle ${template.CadObject.handle}`, NotificationType.Warning);
+      this.notify(`Owner ${template.ownerHandle} not found for ${template.constructor.name} with handle ${template.cadObject.handle}`, NotificationType.Warning);
     }
   }
 }

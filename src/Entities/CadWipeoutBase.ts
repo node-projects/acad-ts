@@ -121,7 +121,7 @@ export abstract class CadWipeoutBase extends Entity {
 			this.insertPoint.z + this.uVector.z * vertex.x + this.vVector.z * vertex.y,
 		));
 
-		return BoundingBox.FromPoints(points);
+		return BoundingBox.fromPoints(points);
 	}
 
 	/** @internal */
@@ -136,7 +136,7 @@ export abstract class CadWipeoutBase extends Entity {
 		this._definition = this._definition?.clone() as ImageDefinition | null ?? null;
 	}
 
-	private imageDefinitionsOnRemove(sender: unknown, e: CollectionChangedEventArgs): void {
+	private _imageDefinitionsOnRemove(sender: unknown, e: CollectionChangedEventArgs): void {
 		if (e.item === this._definition) {
 			this._definition = null;
 		}

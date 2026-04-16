@@ -9,11 +9,11 @@ export class BlockRecordsTable extends Table<BlockRecord> {
 	}
 
 	public override get objectName(): string {
-		return DxfFileToken.TableBlockRecord;
+		return DxfFileToken.tableBlockRecord;
 	}
 
 	protected override get defaultEntries(): string[] {
-		return [BlockRecord.ModelSpaceName, BlockRecord.PaperSpaceName];
+		return [BlockRecord.modelSpaceName, BlockRecord.paperSpaceName];
 	}
 
 	public constructor() {
@@ -21,11 +21,11 @@ export class BlockRecordsTable extends Table<BlockRecord> {
 	}
 
 	public override createDefaultEntries(): void {
-		if (!this.contains(BlockRecord.ModelSpaceName)) {
-			this.add(BlockRecord.ModelSpace);
+		if (!this.contains(BlockRecord.modelSpaceName)) {
+			this.add(BlockRecord.modelSpace);
 		}
-		if (!this.contains(BlockRecord.PaperSpaceName)) {
-			this.add(BlockRecord.PaperSpace);
+		if (!this.contains(BlockRecord.paperSpaceName)) {
+			this.add(BlockRecord.paperSpace);
 		}
 	}
 
@@ -35,7 +35,7 @@ export class BlockRecordsTable extends Table<BlockRecord> {
 			if (existing && existing === item) {
 				throw new Error(`The BlockRecord with name ${item.name} has already been added.`);
 			}
-			item.name = this.createName(BlockRecord.AnonymousPrefix);
+			item.name = this.createName(BlockRecord.anonymousPrefix);
 		}
 
 		super.add(item);

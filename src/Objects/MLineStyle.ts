@@ -9,7 +9,7 @@ import type { LineType } from '../Tables/LineType.js';
 import { MLineStyleFlags } from './MLineStyleFlags.js';
 
 export class MLineStyleElement {
-	color: Color = Color.ByLayer;
+	color: Color = Color.byLayer;
 
 	private _lineType: LineType | null = null;
 	get lineType(): LineType | null { return this._lineType; }
@@ -40,7 +40,7 @@ export class MLineStyleElement {
 
 export class MLineStyle extends NonGraphicalObject {
 	static get default_(): MLineStyle {
-		const def = new MLineStyle(MLineStyle.DefaultName);
+		const def = new MLineStyle(MLineStyle.defaultName);
 		def.startAngle = Math.PI / 2;
 		def.endAngle = Math.PI / 2;
 		const e1 = new MLineStyleElement();
@@ -59,17 +59,17 @@ export class MLineStyle extends NonGraphicalObject {
 	}
 
 	endAngle: number = Math.PI / 2;
-	fillColor: Color = Color.ByLayer;
+	fillColor: Color = Color.byLayer;
 	flags: MLineStyleFlags = MLineStyleFlags.None;
 
-	override get objectName(): string { return DxfFileToken.ObjectMLineStyle; }
+	override get objectName(): string { return DxfFileToken.objectMLineStyle; }
 	override get objectType(): ObjectType { return ObjectType.MLINESTYLE; }
 
 	startAngle: number = Math.PI / 2;
 
-	override get subclassMarker(): string { return DxfSubclassMarker.MLineStyle; }
+	override get subclassMarker(): string { return DxfSubclassMarker.mLineStyle; }
 
-	static readonly DefaultName = 'Standard';
+	static readonly defaultName = 'Standard';
 
 	private _elements: MLineStyleElement[] = [];
 

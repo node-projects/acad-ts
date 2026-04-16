@@ -24,8 +24,8 @@ import { ToleranceAlignment } from './ToleranceAlignment.js';
 import { ZeroHandling, AngularZeroHandling } from './ZeroHandling.js';
 
 export class DimensionStyle extends TableEntry {
-	public static get Default(): DimensionStyle {
-		return new DimensionStyle(DimensionStyle.DefaultName);
+	public static get default(): DimensionStyle {
+		return new DimensionStyle(DimensionStyle.defaultName);
 	}
 
 	public alternateDimensioningSuffix: string = '[]';
@@ -79,14 +79,14 @@ export class DimensionStyle extends TableEntry {
 	}
 
 	public dimensionFit: number = 0;
-	public dimensionLineColor: Color = Color.ByBlock;
+	public dimensionLineColor: Color = Color.byBlock;
 	public dimensionLineExtension: number = 0.0;
 	public dimensionLineGap: number = 0.6250;
 	public dimensionLineIncrement: number = 3.75;
 	public dimensionLineWeight: LineWeightType = LineWeightType.ByBlock;
 	public dimensionTextArrowFit: TextArrowFitType = TextArrowFitType.BestFit;
 	public dimensionUnit: number = 2;
-	public extensionLineColor: Color = Color.ByBlock;
+	public extensionLineColor: Color = Color.byBlock;
 	public extensionLineExtension: number = 1.2500;
 	public extensionLineOffset: number = 0.6250;
 	public extensionLineWeight: LineWeightType = LineWeightType.ByBlock;
@@ -143,7 +143,7 @@ export class DimensionStyle extends TableEntry {
 	public minusTolerance: number = 0.0;
 
 	public override get objectName(): string {
-		return DxfFileToken.TableDimstyle;
+		return DxfFileToken.tableDimstyle;
 	}
 
 	public override get objectType(): ObjectType {
@@ -154,11 +154,11 @@ export class DimensionStyle extends TableEntry {
 	public postFix: string = '<>';
 
 	public get prefix(): string {
-		const { prefix } = this.getDimStylePrefixAndSuffix(this.postFix, '<', '>');
+		const { prefix } = this._getDimStylePrefixAndSuffix(this.postFix, '<', '>');
 		return prefix;
 	}
 	public set prefix(value: string) {
-		const { suffix } = this.getDimStylePrefixAndSuffix(this.postFix, '<', '>');
+		const { suffix } = this._getDimStylePrefixAndSuffix(this.postFix, '<', '>');
 		this.postFix = `${value}${this.postFix}${suffix}`;
 	}
 
@@ -187,15 +187,15 @@ export class DimensionStyle extends TableEntry {
 	}
 
 	public override get subclassMarker(): string {
-		return DxfSubclassMarker.DimensionStyle;
+		return DxfSubclassMarker.dimensionStyle;
 	}
 
 	public get suffix(): string {
-		const { suffix } = this.getDimStylePrefixAndSuffix(this.postFix, '<', '>');
+		const { suffix } = this._getDimStylePrefixAndSuffix(this.postFix, '<', '>');
 		return suffix;
 	}
 	public set suffix(value: string) {
-		const { prefix } = this.getDimStylePrefixAndSuffix(this.postFix, '<', '>');
+		const { prefix } = this._getDimStylePrefixAndSuffix(this.postFix, '<', '>');
 		this.postFix = `${prefix}${this.postFix}${value}`;
 	}
 
@@ -204,9 +204,9 @@ export class DimensionStyle extends TableEntry {
 	public suppressOutsideExtensions: boolean = false;
 	public suppressSecondDimensionLine: boolean = false;
 	public suppressSecondExtensionLine: boolean = false;
-	public textBackgroundColor: Color = Color.ByBlock;
+	public textBackgroundColor: Color = Color.byBlock;
 	public textBackgroundFillMode: DimensionTextBackgroundFillMode = DimensionTextBackgroundFillMode.NoBackground;
-	public textColor: Color = Color.ByBlock;
+	public textColor: Color = Color.byBlock;
 	public textDirection: TextDirection = TextDirection.LeftToRight;
 
 	public get textHeight(): number {
@@ -234,8 +234,8 @@ export class DimensionStyle extends TableEntry {
 	public toleranceZeroHandling: ZeroHandling = ZeroHandling.SuppressDecimalTrailingZeroes;
 	public zeroHandling: ZeroHandling = ZeroHandling.SuppressDecimalTrailingZeroes;
 
-	public static readonly DefaultName: string = 'Standard';
-	public static readonly StyleOverrideEntryName: string = 'DSTYLE';
+	public static readonly defaultName: string = 'Standard';
+	public static readonly styleOverrideEntryName: string = 'DSTYLE';
 
 	private _arrowSize: number = 0.18;
 	private _dimArrow1: BlockRecord | null = null;
@@ -247,7 +247,7 @@ export class DimensionStyle extends TableEntry {
 	private _lineTypeExt1: LineType | null = null;
 	private _lineTypeExt2: LineType | null = null;
 	private _scaleFactor: number = 1.0;
-	private _style: TextStyle = TextStyle.Default;
+	private _style: TextStyle = TextStyle.default;
 	private _textHeight: number = 0.18;
 
 	public constructor(name?: string) {
@@ -301,7 +301,7 @@ export class DimensionStyle extends TableEntry {
 		return format;
 	}
 
-	private getDimStylePrefixAndSuffix(text: string, start: string, end: string): { prefix: string; suffix: string } {
+	private _getDimStylePrefixAndSuffix(text: string, start: string, end: string): { prefix: string; suffix: string } {
 		let index = -1;
 		for (let i = 0; i < text.length; i++) {
 			if (text[i] === start) {

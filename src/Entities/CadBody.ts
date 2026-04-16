@@ -8,6 +8,6 @@ export class CadBody extends ModelerGeometry {
 	}
 
 	override get objectName(): string {
-		return DxfFileToken.EntityBody;
+		return DxfFileToken.entityBody;
 	}
 }

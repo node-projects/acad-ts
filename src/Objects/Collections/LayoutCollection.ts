@@ -9,8 +9,8 @@ export class LayoutCollection extends ObjectDictionaryCollection<Layout> {
 	}
 
 	override remove(name: string): boolean {
-		if (name.toLowerCase() === Layout.ModelLayoutName.toLowerCase()
-			|| name.toLowerCase() === Layout.PaperLayoutName.toLowerCase()) {
+		if (name.toLowerCase() === Layout.modelLayoutName.toLowerCase()
+			|| name.toLowerCase() === Layout.paperLayoutName.toLowerCase()) {
 			throw new Error(`The Layout ${name} cannot be removed.`);
 		}
 		return super.remove(name);

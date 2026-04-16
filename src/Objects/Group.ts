@@ -15,7 +15,7 @@ export class Group extends NonGraphicalObject {
 	}
 
 	override get objectName(): string {
-		return DxfFileToken.TableGroup;
+		return DxfFileToken.tableGroup;
 	}
 
 	override get objectType(): ObjectType {
@@ -25,7 +25,7 @@ export class Group extends NonGraphicalObject {
 	selectable: boolean = true;
 
 	override get subclassMarker(): string {
-		return DxfSubclassMarker.Group;
+		return DxfSubclassMarker.group;
 	}
 
 	private _entities: Entity[] = [];

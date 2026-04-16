@@ -9,7 +9,7 @@ export class Vertex2D extends Vertex {
 	}
 
 	override get subclassMarker(): string {
-		return DxfSubclassMarker.PolylineVertex;
+		return DxfSubclassMarker.polylineVertex;
 	}
 
 	constructor(location?: XYZ) {

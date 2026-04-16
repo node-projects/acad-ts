@@ -10,17 +10,17 @@ export class DxfAsciiWriter extends DxfStreamWriterBase {
     this._writer = writer;
   }
 
-  public override Close(): void {
+  public override close(): void {
     if (this._writer.close) {
       this._writer.close();
     }
   }
 
-  public override Dispose(): void {
-    this.Close();
+  public override dispose(): void {
+    this.close();
   }
 
-  public override Flush(): void {
+  public override flush(): void {
     if (this._writer.flush) {
       this._writer.flush();
     }
@@ -51,7 +51,7 @@ export class DxfAsciiWriter extends DxfStreamWriterBase {
       case GroupCodeValueType.Point3D:
       case GroupCodeValueType.Double:
       case GroupCodeValueType.ExtendedDataDouble:
-        line = this.formatDouble(value as number);
+        line = this._formatDouble(value as number);
         break;
       case GroupCodeValueType.Byte:
       case GroupCodeValueType.Int16:
@@ -94,7 +94,7 @@ export class DxfAsciiWriter extends DxfStreamWriterBase {
     this._writer.write(line + '\n');
   }
 
-  private formatDouble(value: number): string {
+  private _formatDouble(value: number): string {
     if (typeof value !== 'number' || isNaN(value)) {
       return '0.0';
     }

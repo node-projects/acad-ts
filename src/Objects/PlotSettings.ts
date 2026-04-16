@@ -53,7 +53,7 @@ export class PlotSettings extends NonGraphicalObject {
 		this._numeratorScale = value;
 	}
 
-	override get objectName(): string { return DxfFileToken.ObjectPlotSettings; }
+	override get objectName(): string { return DxfFileToken.objectPlotSettings; }
 	override get objectType(): ObjectType { return ObjectType.UNLISTED; }
 
 	pageName: string = 'none_device';
@@ -93,7 +93,7 @@ export class PlotSettings extends NonGraphicalObject {
 	standardScale: number = 1.0;
 	styleSheet: string = '';
 
-	override get subclassMarker(): string { return DxfSubclassMarker.PlotSettings; }
+	override get subclassMarker(): string { return DxfSubclassMarker.plotSettings; }
 
 	systemPrinterName: string = '';
 	unprintableMargin: PaperMargin = new PaperMargin();

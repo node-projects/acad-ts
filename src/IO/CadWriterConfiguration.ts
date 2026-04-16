@@ -1,9 +1,9 @@
 export class CadWriterConfiguration {
-	CloseStream: boolean = true;
-	ResetDxfClasses: boolean = false;
-	UpdateDimensionsInBlocks: boolean = false;
-	UpdateDimensionsInModel: boolean = false;
-	WriteXData: boolean = true;
-	WriteXRecords: boolean = true;
-	WriteShapes: boolean = true;
+	closeStream: boolean = true;
+	resetDxfClasses: boolean = false;
+	updateDimensionsInBlocks: boolean = false;
+	updateDimensionsInModel: boolean = false;
+	writeXData: boolean = true;
+	writeXRecords: boolean = true;
+	writeShapes: boolean = true;
 }

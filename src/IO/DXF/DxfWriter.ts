@@ -42,7 +42,7 @@ class Uint8ArrayTextOutput implements DxfTextOutput {
 
   public write(value: string): void {
     const bytes = encodeCadString(value, this._encoding);
-    this.ensureCapacity(bytes.length);
+    this._ensureCapacity(bytes.length);
     this._stream.set(bytes, this._position);
     this._position += bytes.length;
   }
@@ -51,7 +51,7 @@ class Uint8ArrayTextOutput implements DxfTextOutput {
 
   public close(): void {}
 
-  private ensureCapacity(length: number): void {
+  private _ensureCapacity(length: number): void {
     if (this._position + length > this._stream.length) {
       throw new Error('DXF output buffer is too small.');
     }
@@ -67,7 +67,7 @@ class Uint8ArrayBinaryOutput implements DxfBinaryOutput {
   }
 
   public write(value: Uint8Array): void {
-    this.ensureCapacity(value.length);
+    this._ensureCapacity(value.length);
     this._stream.set(value, this._position);
     this._position += value.length;
   }
@@ -76,7 +76,7 @@ class Uint8ArrayBinaryOutput implements DxfBinaryOutput {
 
   public close(): void {}
 
-  private ensureCapacity(length: number): void {
+  private _ensureCapacity(length: number): void {
     if (this._position + length > this._stream.length) {
       throw new Error('DXF output buffer is too small.');
     }
@@ -84,52 +84,52 @@ class Uint8ArrayBinaryOutput implements DxfBinaryOutput {
 }
 
 export class DxfWriter extends CadWriterBase<DxfWriterConfiguration, DxfWriteTarget> {
-  public IsBinary: boolean;
+  public isBinary: boolean;
 
   private _writer!: IDxfStreamWriter;
   private _objectHolder: CadObjectHolder = new CadObjectHolder();
 
   public constructor(stream: DxfWriteTarget, document: CadDocument, binary: boolean = false) {
     super(stream, document);
-    this.IsBinary = binary;
-    this.Configuration = new DxfWriterConfiguration();
+    this.isBinary = binary;
+    this.configuration = new DxfWriterConfiguration();
   }
 
-  public override Write(): void {
-    super.Write();
+  public override write(): void {
+    super.write();
 
-    this.createStreamWriter();
+    this._createStreamWriter();
 
-    this._objectHolder.Objects.push(this._document.rootDictionary);
+    this._objectHolder.objects.push(this._document.rootDictionary);
 
-    this.writeHeader();
+    this._writeHeader();
 
-    this.writeDxfClasses();
+    this._writeDxfClasses();
 
-    this.writeTables();
+    this._writeTables();
 
-    this.writeBlocks();
+    this._writeBlocks();
 
-    this.writeEntities();
+    this._writeEntities();
 
-    this.writeObjects();
+    this._writeObjects();
 
-    this.writeACDSData();
+    this._writeACDSData();
 
-    this._writer.Write(DxfCode.Start, DxfFileToken.EndOfFile);
+    this._writer.write(DxfCode.Start, DxfFileToken.endOfFile);
 
-    this._writer.Flush();
+    this._writer.flush();
 
-    if (this.Configuration.CloseStream) {
-      this._writer.Close();
+    if (this.configuration.closeStream) {
+      this._writer.close();
     }
   }
 
-  public override Dispose(): void {
-    this._writer.Dispose();
+  public override dispose(): void {
+    this._writer.dispose();
   }
 
-  public static WriteToStream(
+  public static writeToStream(
     stream: DxfWriteTarget,
     document: CadDocument,
     binary: boolean = false,
@@ -139,25 +139,25 @@ export class DxfWriter extends CadWriterBase<DxfWriterConfiguration, DxfWriteTar
     const writer = new DxfWriter(stream, document, binary);
 
     if (configuration) {
-      writer.Configuration = configuration;
+      writer.configuration = configuration;
     }
 
-    writer.OnNotification = notification ?? null;
-    writer.Write();
-    writer.Dispose();
+    writer.onNotification = notification ?? null;
+    writer.write();
+    writer.dispose();
   }
 
-  private createStreamWriter(): void {
-    if (this.IsBinary) {
-      this._writer = new DxfBinaryWriter(this.createBinaryTarget(), this._encoding);
+  private _createStreamWriter(): void {
+    if (this.isBinary) {
+      this._writer = new DxfBinaryWriter(this._createBinaryTarget(), this._encoding);
     } else {
-      this._writer = new DxfAsciiWriter(this.createTextTarget());
+      this._writer = new DxfAsciiWriter(this._createTextTarget());
     }
 
-    this._writer.WriteOptional = this.Configuration.WriteOptionalValues;
+    this._writer.writeOptional = this.configuration.writeOptionalValues;
   }
 
-  private createTextTarget(): DxfTextOutput {
+  private _createTextTarget(): DxfTextOutput {
     if (this._stream instanceof Uint8Array) {
       return new Uint8ArrayTextOutput(this._stream, this._encoding);
     }
@@ -165,7 +165,7 @@ export class DxfWriter extends CadWriterBase<DxfWriterConfiguration, DxfWriteTar
     return this._stream as DxfTextOutput;
   }
 
-  private createBinaryTarget(): DxfBinaryOutput {
+  private _createBinaryTarget(): DxfBinaryOutput {
     if (this._stream instanceof Uint8Array) {
       return new Uint8ArrayBinaryOutput(this._stream);
     }
@@ -173,49 +173,49 @@ export class DxfWriter extends CadWriterBase<DxfWriterConfiguration, DxfWriteTar
     return this._stream as DxfBinaryOutput;
   }
 
-  private writeHeader(): void {
-    const writer = new DxfHeaderSectionWriter(this._writer, this._document, this._objectHolder, this.Configuration);
-    writer.OnNotification = this.triggerNotification.bind(this);
+  private _writeHeader(): void {
+    const writer = new DxfHeaderSectionWriter(this._writer, this._document, this._objectHolder, this.configuration);
+    writer.onNotification = this.triggerNotification.bind(this);
 
-    writer.Write();
+    writer.write();
   }
 
-  private writeDxfClasses(): void {
-    const writer = new DxfClassesSectionWriter(this._writer, this._document, this._objectHolder, this.Configuration);
-    writer.OnNotification = this.triggerNotification.bind(this);
+  private _writeDxfClasses(): void {
+    const writer = new DxfClassesSectionWriter(this._writer, this._document, this._objectHolder, this.configuration);
+    writer.onNotification = this.triggerNotification.bind(this);
 
-    writer.Write();
+    writer.write();
   }
 
-  private writeTables(): void {
-    const writer = new DxfTablesSectionWriter(this._writer, this._document, this._objectHolder, this.Configuration);
-    writer.OnNotification = this.triggerNotification.bind(this);
+  private _writeTables(): void {
+    const writer = new DxfTablesSectionWriter(this._writer, this._document, this._objectHolder, this.configuration);
+    writer.onNotification = this.triggerNotification.bind(this);
 
-    writer.Write();
+    writer.write();
   }
 
-  private writeBlocks(): void {
-    const writer = new DxfBlocksSectionWriter(this._writer, this._document, this._objectHolder, this.Configuration);
-    writer.OnNotification = this.triggerNotification.bind(this);
+  private _writeBlocks(): void {
+    const writer = new DxfBlocksSectionWriter(this._writer, this._document, this._objectHolder, this.configuration);
+    writer.onNotification = this.triggerNotification.bind(this);
 
-    writer.Write();
+    writer.write();
   }
 
-  private writeEntities(): void {
-    const writer = new DxfEntitiesSectionWriter(this._writer, this._document, this._objectHolder, this.Configuration);
-    writer.OnNotification = this.triggerNotification.bind(this);
+  private _writeEntities(): void {
+    const writer = new DxfEntitiesSectionWriter(this._writer, this._document, this._objectHolder, this.configuration);
+    writer.onNotification = this.triggerNotification.bind(this);
 
-    writer.Write();
+    writer.write();
   }
 
-  private writeObjects(): void {
-    const writer = new DxfObjectsSectionWriter(this._writer, this._document, this._objectHolder, this.Configuration);
-    writer.OnNotification = this.triggerNotification.bind(this);
+  private _writeObjects(): void {
+    const writer = new DxfObjectsSectionWriter(this._writer, this._document, this._objectHolder, this.configuration);
+    writer.onNotification = this.triggerNotification.bind(this);
 
-    writer.Write();
+    writer.write();
   }
 
-  private writeACDSData(): void {
+  private _writeACDSData(): void {
     // not implemented
   }
 

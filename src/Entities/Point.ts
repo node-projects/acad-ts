@@ -11,7 +11,7 @@ export class Point extends Entity {
 	normal: XYZ = new XYZ(0, 0, 1);
 
 	override get objectName(): string {
-		return DxfFileToken.EntityPoint;
+		return DxfFileToken.entityPoint;
 	}
 
 	override get objectType(): ObjectType {
@@ -21,7 +21,7 @@ export class Point extends Entity {
 	rotation: number = 0.0;
 
 	override get subclassMarker(): string {
-		return DxfSubclassMarker.Point;
+		return DxfSubclassMarker.point;
 	}
 
 	thickness: number = 0.0;
@@ -39,6 +39,6 @@ export class Point extends Entity {
 	}
 
 	override getBoundingBox(): BoundingBox {
-		return BoundingBox.FromPoints([this.location]);
+		return BoundingBox.fromPoints([this.location]);
 	}
 }

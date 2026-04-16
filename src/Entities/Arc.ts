@@ -11,7 +11,7 @@ export class Arc extends Circle {
 	endAngle: number = Math.PI;
 
 	override get objectName(): string {
-		return DxfFileToken.EntityArc;
+		return DxfFileToken.entityArc;
 	}
 
 	override get objectType(): ObjectType {
@@ -21,7 +21,7 @@ export class Arc extends Circle {
 	startAngle: number = 0.0;
 
 	override get subclassMarker(): string {
-		return DxfSubclassMarker.Arc;
+		return DxfSubclassMarker.arc;
 	}
 
 	get sweep(): number {
@@ -119,7 +119,7 @@ export class Arc extends Circle {
 
 	override getBoundingBox(): BoundingBox | null {
 		const points = this.polygonalVertexes(64);
-		return points.length > 0 ? BoundingBox.FromPoints(points) : null;
+		return points.length > 0 ? BoundingBox.fromPoints(points) : null;
 	}
 
 	getEndVertices(): { start: XYZ; end: XYZ } {

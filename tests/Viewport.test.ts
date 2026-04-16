@@ -7,11 +7,11 @@ import { CadViewportTemplate } from '../src/IO/Templates/CadViewportTemplate.js'
 import { BlockRecord } from '../src/Tables/BlockRecord.js';
 
 class TestCadDocumentBuilder extends CadDocumentBuilder {
-	override get KeepUnknownEntities(): boolean {
+	override get keepUnknownEntities(): boolean {
 		return true;
 	}
 
-	override get KeepUnknownNonGraphicalObjects(): boolean {
+	override get keepUnknownNonGraphicalObjects(): boolean {
 		return true;
 	}
 }
@@ -36,8 +36,8 @@ describe('ViewportTests', () => {
 		const template = new CadViewportTemplate(viewport);
 		const builder = new TestCadDocumentBuilder(ACadVersion.AC1018, new CadDocument());
 
-		template.ViewportId = 7;
-		template.Build(builder);
+		template.viewportId = 7;
+		template.build(builder);
 
 		expect(viewport.id).toBe(7);
 		expect(viewport.representsPaper).toBe(false);

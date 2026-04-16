@@ -5,12 +5,12 @@ import { DwgSectionDefinition } from '../FileHeaders/DwgSectionDefinition.js';
 import { IDwgStreamReader } from './IDwgStreamReader.js';
 
 export class DwgPreviewReader extends DwgSectionIO {
-	override get SectionName(): string {
-		return DwgSectionDefinition.Preview;
+	override get sectionName(): string {
+		return DwgSectionDefinition.preview;
 	}
 
-	private readonly _startSentinel: Uint8Array = DwgSectionDefinition.StartSentinels.get(DwgSectionDefinition.Preview)!;
-	private readonly _endSentinel: Uint8Array = DwgSectionDefinition.EndSentinels.get(DwgSectionDefinition.Preview)!;
+	private readonly _startSentinel: Uint8Array = DwgSectionDefinition.startSentinels.get(DwgSectionDefinition.preview)!;
+	private readonly _endSentinel: Uint8Array = DwgSectionDefinition.endSentinels.get(DwgSectionDefinition.preview)!;
 
 	private readonly _reader: IDwgStreamReader;
 	private readonly _previewAddress: number;
@@ -23,7 +23,7 @@ export class DwgPreviewReader extends DwgSectionIO {
 
 	public read(): DwgPreview {
 		const sentinel: Uint8Array = this._reader.readSentinel();
-		console.assert(DwgSectionIO.CheckSentinel(sentinel, this._startSentinel));
+		console.assert(DwgSectionIO.checkSentinel(sentinel, this._startSentinel));
 
 		const overallSize: number = this._reader.readRawLong();
 		const imagespresent: number = this._reader.readRawChar() & 0xFF;
@@ -60,7 +60,7 @@ export class DwgPreviewReader extends DwgSectionIO {
 		}
 
 		const endSentinel: Uint8Array = this._reader.readSentinel();
-		console.assert(DwgSectionIO.CheckSentinel(endSentinel, this._endSentinel));
+		console.assert(DwgSectionIO.checkSentinel(endSentinel, this._endSentinel));
 
 		return new DwgPreview(previewCode, header!, body);
 	}

@@ -5,22 +5,22 @@ import { CadDocumentBuilder } from '../CadDocumentBuilder.js';
 import { CadEntityTemplate } from './CadEntityTemplate.js';
 
 export class CadUnderlayTemplate<T extends UnderlayDefinition = UnderlayDefinition> extends CadEntityTemplate {
-	DefinitionHandle: number | null = null;
+	definitionHandle: number | null = null;
 
 	constructor(entity: UnderlayEntity) {
 		super(entity);
 	}
 
-	protected override build(builder: CadDocumentBuilder): void {
-		super.build(builder);
+	protected override _build(builder: CadDocumentBuilder): void {
+		super._build(builder);
 
-		const underlay = this.CadObject as UnderlayEntity;
+		const underlay = this.cadObject as UnderlayEntity;
 
-		const definition = builder.TryGetCadObject<T>(this.DefinitionHandle);
+		const definition = builder.tryGetCadObject<T>(this.definitionHandle);
 		if (definition) {
 			underlay.definition = definition;
 		} else {
-			builder.Notify(`UnderlayDefinition not found for ${this.CadObject.handle}`, NotificationType.Warning);
+			builder.notify(`UnderlayDefinition not found for ${this.cadObject.handle}`, NotificationType.Warning);
 		}
 	}
 }

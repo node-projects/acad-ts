@@ -11,27 +11,27 @@ describe('DwgReaderTests', () => {
     it('ReadHeader', () => {
       const data = readFileAsArrayBuffer(test.path);
       const reader = new DwgReader(data);
-      const header = reader.ReadHeader();
+      const header = reader.readHeader();
       expect(header).not.toBeNull();
     });
 
     it('Read', () => {
       const data = readFileAsArrayBuffer(test.path);
       const reader = new DwgReader(data);
-      const doc = reader.Read();
+      const doc = reader.read();
       expect(doc).not.toBeNull();
     });
 
     it('ReadPreview', () => {
       const data = readFileAsArrayBuffer(test.path);
       const reader = new DwgReader(data);
-      reader.ReadPreview();
+      reader.readPreview();
     });
 
     it('AssertDocumentDefaults', () => {
       const data = readFileAsArrayBuffer(test.path);
       const reader = new DwgReader(data);
-      const doc: any = reader.Read();
+      const doc: any = reader.read();
 
       expect(doc).not.toBeNull();
 
@@ -47,7 +47,7 @@ describe('DwgReaderTests', () => {
     it('AssertDocumentHeader', () => {
       const data = readFileAsArrayBuffer(test.path);
       const reader = new DwgReader(data);
-      const doc: any = reader.Read();
+      const doc: any = reader.read();
 
       expect(doc).not.toBeNull();
       expect(doc.header).not.toBeNull();
@@ -56,7 +56,7 @@ describe('DwgReaderTests', () => {
     it('ReadSummaryInfo', () => {
       const data = readFileAsArrayBuffer(test.path);
       const reader = new DwgReader(data);
-      reader.ReadSummaryInfo();
+      reader.readSummaryInfo();
     });
   });
 });

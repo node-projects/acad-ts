@@ -9,81 +9,81 @@ import { CadTemplateT } from './CadTemplate[T].js';
 export class CadEntityTemplate extends CadTemplateT<Entity> {
 	bookColorName: string | null = null;
 
-	ColorHandle: number | null = null;
+	colorHandle: number | null = null;
 
-	EntityMode: number = 0;
+	entityMode: number = 0;
 
-	LayerHandle: number | null = null;
+	layerHandle: number | null = null;
 
-	LayerName: string | null = null;
+	layerName: string | null = null;
 
-	LineTypeHandle: number | null = null;
+	lineTypeHandle: number | null = null;
 
-	LineTypeName: string | null = null;
+	lineTypeName: string | null = null;
 
-	LtypeFlags: number | null = null;
+	ltypeFlags: number | null = null;
 
-	MaterialHandle: number | null = null;
+	materialHandle: number | null = null;
 
-	NextEntity: number | null = null;
+	nextEntity: number | null = null;
 
-	PrevEntity: number | null = null;
+	prevEntity: number | null = null;
 
 	constructor(entity: Entity) {
 		super(entity);
 	}
 
-	SetUnlinkedReferences(): void {
-		if (this.LayerName && this.LayerName.length > 0) {
-			this.CadObject.layer = new Layer(this.LayerName);
+	setUnlinkedReferences(): void {
+		if (this.layerName && this.layerName.length > 0) {
+			this.cadObject.layer = new Layer(this.layerName);
 		}
 
-		if (this.LineTypeName && this.LineTypeName.length > 0) {
-			this.CadObject.lineType = new LineType(this.LineTypeName);
+		if (this.lineTypeName && this.lineTypeName.length > 0) {
+			this.cadObject.lineType = new LineType(this.lineTypeName);
 		}
 	}
 
-	protected override build(builder: CadDocumentBuilder): void {
-		super.build(builder);
+	protected override _build(builder: CadDocumentBuilder): void {
+		super._build(builder);
 
-		const layer = this.getTableReference<Layer>(builder, this.LayerHandle, this.LayerName ?? '');
+		const layer = this.getTableReference<Layer>(builder, this.layerHandle, this.layerName ?? '');
 		if (layer) {
-			this.CadObject.layer = layer;
+			this.cadObject.layer = layer;
 		}
 
-		switch (this.LtypeFlags) {
+		switch (this.ltypeFlags) {
 			case 0:
-				this.LineTypeName = LineType.ByLayerName;
+				this.lineTypeName = LineType.byLayerName;
 				break;
 			case 1:
-				this.LineTypeName = LineType.ByBlockName;
+				this.lineTypeName = LineType.byBlockName;
 				break;
 			case 2:
-				this.LineTypeName = LineType.ContinuousName;
+				this.lineTypeName = LineType.continuousName;
 				break;
 		}
 
-		const ltype = this.getTableReference<LineType>(builder, this.LineTypeHandle, this.LineTypeName ?? '');
+		const ltype = this.getTableReference<LineType>(builder, this.lineTypeHandle, this.lineTypeName ?? '');
 		if (ltype) {
-			this.CadObject.lineType = ltype;
+			this.cadObject.lineType = ltype;
 		}
 
-		const color = builder.TryGetCadObject<BookColor>(this.ColorHandle);
+		const color = builder.tryGetCadObject<BookColor>(this.colorHandle);
 		if (color) {
-			this.CadObject.bookColor = color;
+			this.cadObject.bookColor = color;
 		} else if (this.bookColorName && this.bookColorName.length > 0 &&
-			builder.DocumentToBuild != null &&
-			builder.DocumentToBuild.colors != null) {
-			const bookColor = builder.DocumentToBuild.colors.tryGet(this.bookColorName);
+			builder.documentToBuild != null &&
+			builder.documentToBuild.colors != null) {
+			const bookColor = builder.documentToBuild.colors.tryGet(this.bookColorName);
 			if (bookColor) {
-				this.CadObject.bookColor = bookColor;
+				this.cadObject.bookColor = bookColor;
 			}
 		}
 	}
 }
 
 export class CadEntityTemplateT<T extends Entity = Entity> extends CadEntityTemplate {
-	declare CadObject: T;
+	declare cadObject: T;
 
 	constructor(entity: T) {
 		super(entity);

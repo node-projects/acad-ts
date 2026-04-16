@@ -17,7 +17,7 @@ export class ProxyObject extends NonGraphicalObject {
 	maintenanceVersion: number = 0;
 
 	override get objectName(): string {
-		return DxfFileToken.ObjectProxyObject;
+		return DxfFileToken.objectProxyObject;
 	}
 
 	originalDataFormatDxf: boolean = false;
@@ -26,7 +26,7 @@ export class ProxyObject extends NonGraphicalObject {
 	data: Uint8Array | null = null;
 
 	override get subclassMarker(): string {
-		return DxfSubclassMarker.ProxyObject;
+		return DxfSubclassMarker.proxyObject;
 	}
 
 	version: ACadVersion = ACadVersion.Unknown;

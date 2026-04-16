@@ -8,7 +8,7 @@ export class CadDictionaryWithDefault extends CadDictionary {
 	defaultEntry: CadObject | null = null;
 
 	override get objectName(): string {
-		return DxfFileToken.ObjectDictionaryWithDefault;
+		return DxfFileToken.objectDictionaryWithDefault;
 	}
 
 	override get objectType(): ObjectType {
@@ -16,7 +16,7 @@ export class CadDictionaryWithDefault extends CadDictionary {
 	}
 
 	override get subclassMarker(): string {
-		return DxfSubclassMarker.DictionaryWithDefault;
+		return DxfSubclassMarker.dictionaryWithDefault;
 	}
 
 	constructor(name?: string, defaultEntry?: CadObject) {

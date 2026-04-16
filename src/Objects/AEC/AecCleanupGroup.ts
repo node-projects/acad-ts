@@ -5,8 +5,8 @@ import { ObjectType } from '../../Types/ObjectType.js';
 
 export class AecCleanupGroup extends NonGraphicalObject {
 	override get objectType(): ObjectType { return ObjectType.UNLISTED; }
-	override get objectName(): string { return DxfFileToken.ObjectAecCleanupGroupDef; }
-	override get subclassMarker(): string { return DxfSubclassMarker.AecDbCleanupGroupDef; }
+	override get objectName(): string { return DxfFileToken.objectAecCleanupGroupDef; }
+	override get subclassMarker(): string { return DxfSubclassMarker.aecDbCleanupGroupDef; }
 
 	version: number = 0;
 	description: string = '';

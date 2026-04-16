@@ -4,11 +4,11 @@ import { DxfSubclassMarker } from '../DxfSubclassMarker.js';
 import { ObjectType } from '../Types/ObjectType.js';
 
 export class Scale extends NonGraphicalObject {
-	static readonly DefaultName = '1:1';
+	static readonly defaultName = '1:1';
 
-	static get Default(): Scale {
+	static get default(): Scale {
 		const s = new Scale();
-		s.name = Scale.DefaultName;
+		s.name = Scale.defaultName;
 		s.paperUnits = 1.0;
 		s.drawingUnits = 1.0;
 		s.isUnitScale = true;
@@ -20,11 +20,11 @@ export class Scale extends NonGraphicalObject {
 	}
 
 	override get objectName(): string {
-		return DxfFileToken.ObjectScale;
+		return DxfFileToken.objectScale;
 	}
 
 	override get subclassMarker(): string {
-		return DxfSubclassMarker.Scale;
+		return DxfSubclassMarker.scale;
 	}
 
 	paperUnits: number = 0;

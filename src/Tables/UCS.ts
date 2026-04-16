@@ -11,11 +11,11 @@ export class UCS extends TableEntry {
 	}
 
 	public override get objectName(): string {
-		return DxfFileToken.TableUcs;
+		return DxfFileToken.tableUcs;
 	}
 
 	public override get subclassMarker(): string {
-		return DxfSubclassMarker.Ucs;
+		return DxfSubclassMarker.ucs;
 	}
 
 	public origin: XYZ = new XYZ(0, 0, 0);

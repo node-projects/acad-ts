@@ -9,7 +9,7 @@ export class VertexFaceRecord extends Vertex {
 	}
 
 	override get subclassMarker(): string {
-		return DxfSubclassMarker.PolyfaceMeshFace;
+		return DxfSubclassMarker.polyfaceMeshFace;
 	}
 
 	index1: number = 0;

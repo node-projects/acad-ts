@@ -8,7 +8,7 @@ export class DwgStreamReaderAC18 extends DwgStreamReaderAC15 {
 	}
 
 	public override readCmColor(useTextStream: boolean = false): Color {
-		let color: Color = Color.ByLayer;
+		let color: Color = Color.byLayer;
 		const colorIndex: number = this.readBitShort();
 		const rgb: number = this.readBitLong() >>> 0;
 		const arr = new Uint8Array(4);
@@ -18,7 +18,7 @@ export class DwgStreamReaderAC18 extends DwgStreamReaderAC15 {
 		arr[3] = (rgb >>> 24) & 0xFF;
 
 		if (rgb === 0xC0000000) {
-			color = Color.ByLayer;
+			color = Color.byLayer;
 		} else if ((rgb & 0b0000_0001_0000_0000_0000_0000_0000_0000) !== 0) {
 			color = new Color(arr[0]);
 		} else {
@@ -42,7 +42,7 @@ export class DwgStreamReaderAC18 extends DwgStreamReaderAC15 {
 
 	public override readEnColor(): { color: Color; transparency: Transparency; flag: boolean } {
 		let color: Color = new Color(0);
-		let transparency: Transparency = Transparency.ByLayer;
+		let transparency: Transparency = Transparency.byLayer;
 		let isBookColor: boolean = false;
 
 		const size: number = this.readBitShort();
@@ -51,7 +51,7 @@ export class DwgStreamReaderAC18 extends DwgStreamReaderAC15 {
 			const flags: number = (size & 0b1111111100000000) & 0xFFFF;
 
 			if ((flags & 0x4000) > 0) {
-				color = Color.ByBlock;
+				color = Color.byBlock;
 				isBookColor = true;
 			} else if ((flags & 0x8000) > 0) {
 				const rgb: number = this.readBitLong() >>> 0;
@@ -69,11 +69,11 @@ export class DwgStreamReaderAC18 extends DwgStreamReaderAC15 {
 				const value: number = this.readBitLong();
 				transparency = Transparency.fromAlphaValue(value);
 			} else {
-				transparency = Transparency.ByLayer;
+				transparency = Transparency.byLayer;
 			}
 		} else {
-			color = Color.ByBlock;
-			transparency = Transparency.Opaque;
+			color = Color.byBlock;
+			transparency = Transparency.opaque;
 		}
 
 		return { color, transparency, flag: isBookColor };

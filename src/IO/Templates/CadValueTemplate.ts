@@ -5,18 +5,18 @@ import { CadDocumentBuilder } from '../CadDocumentBuilder.js';
 import { ICadTemplate } from './ICadTemplate.js';
 
 export class CadValueTemplate implements ICadTemplate {
-	CadValue: CadValue;
+	cadValue: CadValue;
 
-	ValueHandle: number | null = null;
+	valueHandle: number | null = null;
 
 	constructor(value: CadValue) {
-		this.CadValue = value;
+		this.cadValue = value;
 	}
 
-	Build(builder: CadDocumentBuilder): void {
-		const cadObject = builder.TryGetCadObject<CadObject>(this.ValueHandle);
+	build(builder: CadDocumentBuilder): void {
+		const cadObject = builder.tryGetCadObject<CadObject>(this.valueHandle);
 		if (cadObject) {
-			this.CadValue.setValue(cadObject, CadValueType.Handle);
+			this.cadValue.setValue(cadObject, CadValueType.Handle);
 		}
 	}
 }

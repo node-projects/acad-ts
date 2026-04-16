@@ -1,5 +1,5 @@
 export abstract class CadReaderConfiguration {
-	Failsafe: boolean = true;
-	KeepUnknownEntities: boolean = false;
-	KeepUnknownNonGraphicalObjects: boolean = false;
+	failsafe: boolean = true;
+	keepUnknownEntities: boolean = false;
+	keepUnknownNonGraphicalObjects: boolean = false;
 }

@@ -8,14 +8,14 @@ import { IDwgStreamWriter } from './IDwgStreamWriter.js';
 import { DwgFileHeaderWriterBase } from './DwgFileHeaderWriterBase.js';
 
 export class DwgFileHeaderWriterAC15 extends DwgFileHeaderWriterBase<DwgFileHeaderAC15> {
-	override get FileHeaderSize(): number { return 0x61; }
+	override get fileHeaderSize(): number { return 0x61; }
 
-	override get HandleSectionOffset(): number {
-		return this.FileHeaderSize
-			+ (this._records.get(DwgSectionDefinition.AuxHeader)!.Stream?.length ?? 0)
-			+ (this._records.get(DwgSectionDefinition.Preview)!.Stream?.length ?? 0)
-			+ (this._records.get(DwgSectionDefinition.Header)!.Stream?.length ?? 0)
-			+ (this._records.get(DwgSectionDefinition.Classes)!.Stream?.length ?? 0);
+	override get handleSectionOffset(): number {
+		return this.fileHeaderSize
+			+ (this._records.get(DwgSectionDefinition.auxHeader)!.stream?.length ?? 0)
+			+ (this._records.get(DwgSectionDefinition.preview)!.stream?.length ?? 0)
+			+ (this._records.get(DwgSectionDefinition.header)!.stream?.length ?? 0)
+			+ (this._records.get(DwgSectionDefinition.classes)!.stream?.length ?? 0);
 	}
 
 	private static readonly _nRecords = 6;
@@ -29,35 +29,35 @@ export class DwgFileHeaderWriterAC15 extends DwgFileHeaderWriterBase<DwgFileHead
 	constructor(stream: Uint8Array, encoding: string, document: CadDocument) {
 		super(stream, encoding, document, new DwgFileHeaderAC15());
 
-		this._records.set(DwgSectionDefinition.AuxHeader, new DwgSectionLocatorRecord(5));
-		this._records.set(DwgSectionDefinition.Preview, new DwgSectionLocatorRecord(null));
-		this._records.set(DwgSectionDefinition.Header, new DwgSectionLocatorRecord(0));
-		this._records.set(DwgSectionDefinition.Classes, new DwgSectionLocatorRecord(1));
-		this._records.set(DwgSectionDefinition.AcDbObjects, new DwgSectionLocatorRecord(null));
-		this._records.set(DwgSectionDefinition.Handles, new DwgSectionLocatorRecord(2));
-		this._records.set(DwgSectionDefinition.ObjFreeSpace, new DwgSectionLocatorRecord(3));
-		this._records.set(DwgSectionDefinition.Template, new DwgSectionLocatorRecord(4));
+		this._records.set(DwgSectionDefinition.auxHeader, new DwgSectionLocatorRecord(5));
+		this._records.set(DwgSectionDefinition.preview, new DwgSectionLocatorRecord(null));
+		this._records.set(DwgSectionDefinition.header, new DwgSectionLocatorRecord(0));
+		this._records.set(DwgSectionDefinition.classes, new DwgSectionLocatorRecord(1));
+		this._records.set(DwgSectionDefinition.acDbObjects, new DwgSectionLocatorRecord(null));
+		this._records.set(DwgSectionDefinition.handles, new DwgSectionLocatorRecord(2));
+		this._records.set(DwgSectionDefinition.objFreeSpace, new DwgSectionLocatorRecord(3));
+		this._records.set(DwgSectionDefinition.template, new DwgSectionLocatorRecord(4));
 	}
 
 	override addSection(name: string, stream: Uint8Array, isCompressed: boolean, decompsize: number = 29696): void {
-		this._records.get(name)!.Stream = stream;
+		this._records.get(name)!.stream = stream;
 	}
 
 	override writeFile(): void {
-		this.setSeekers();
-		this.writeFileHeader();
-		this.writeRecordStreams();
+		this._setSeekers();
+		this._writeFileHeader();
+		this._writeRecordStreams();
 	}
 
-	private setSeekers(): void {
-		let currOffset = this.FileHeaderSize;
+	private _setSeekers(): void {
+		let currOffset = this.fileHeaderSize;
 		for (const [, record] of this._records) {
-			record.Seeker = currOffset;
-			currOffset += (record.Stream?.length ?? 0);
+			record.seeker = currOffset;
+			currOffset += (record.stream?.length ?? 0);
 		}
 	}
 
-	private writeFileHeader(): void {
+	private _writeFileHeader(): void {
 		const ms: number[] = [];
 
 		const msWriter = {
@@ -87,7 +87,7 @@ export class DwgFileHeaderWriterAC15 extends DwgFileHeaderWriterBase<DwgFileHead
 		msWriter.writeBytes(new Uint8Array([0, 0, 0, 0, 0, 15, 1]));
 
 		//At 0x0D is the preview seeker
-		msWriter.writeRawLong(this._records.get(DwgSectionDefinition.Preview)!.Seeker);
+		msWriter.writeRawLong(this._records.get(DwgSectionDefinition.preview)!.seeker);
 
 		msWriter.writeByte(0x1B);
 		msWriter.writeByte(0x19);
@@ -96,12 +96,12 @@ export class DwgFileHeaderWriterAC15 extends DwgFileHeaderWriterBase<DwgFileHead
 		msWriter.writeRawShort(this.getFileCodePage());
 		msWriter.writeRawLong(DwgFileHeaderWriterAC15._nRecords);
 
-		this.writeRecord(msWriter, this._records.get(DwgSectionDefinition.Header)!);
-		this.writeRecord(msWriter, this._records.get(DwgSectionDefinition.Classes)!);
-		this.writeRecord(msWriter, this._records.get(DwgSectionDefinition.Handles)!);
-		this.writeRecord(msWriter, this._records.get(DwgSectionDefinition.ObjFreeSpace)!);
-		this.writeRecord(msWriter, this._records.get(DwgSectionDefinition.Template)!);
-		this.writeRecord(msWriter, this._records.get(DwgSectionDefinition.AuxHeader)!);
+		this._writeRecord(msWriter, this._records.get(DwgSectionDefinition.header)!);
+		this._writeRecord(msWriter, this._records.get(DwgSectionDefinition.classes)!);
+		this._writeRecord(msWriter, this._records.get(DwgSectionDefinition.handles)!);
+		this._writeRecord(msWriter, this._records.get(DwgSectionDefinition.objFreeSpace)!);
+		this._writeRecord(msWriter, this._records.get(DwgSectionDefinition.template)!);
+		this._writeRecord(msWriter, this._records.get(DwgSectionDefinition.auxHeader)!);
 
 		//Pad to align
 		const bitPad = (8 - (ms.length * 8) % 8) % 8;
@@ -111,7 +111,7 @@ export class DwgFileHeaderWriterAC15 extends DwgFileHeaderWriterBase<DwgFileHead
 
 		//CRC
 		const msArr = new Uint8Array(ms);
-		const crc = CRC8StreamHandler.GetCRCValue(0xC0C1, msArr, 0, msArr.length);
+		const crc = CRC8StreamHandler.getCRCValue(0xC0C1, msArr, 0, msArr.length);
 		msWriter.writeRawShort(crc);
 
 		//End sentinel
@@ -121,16 +121,16 @@ export class DwgFileHeaderWriterAC15 extends DwgFileHeaderWriterBase<DwgFileHead
 		this.writeToStream(finalArr);
 	}
 
-	private writeRecord(writer: { writeByte(b: number): void; writeRawLong(v: number): void }, record: DwgSectionLocatorRecord): void {
-		writer.writeByte(record.Number!);
-		writer.writeRawLong(record.Seeker);
-		writer.writeRawLong(record.Stream?.length ?? 0);
+	private _writeRecord(writer: { writeByte(b: number): void; writeRawLong(v: number): void }, record: DwgSectionLocatorRecord): void {
+		writer.writeByte(record.number!);
+		writer.writeRawLong(record.seeker);
+		writer.writeRawLong(record.stream?.length ?? 0);
 	}
 
-	private writeRecordStreams(): void {
+	private _writeRecordStreams(): void {
 		for (const [, item] of this._records) {
-			if (item.Stream == null) continue;
-			this.writeToStream(item.Stream);
+			if (item.stream == null) continue;
+			this.writeToStream(item.stream);
 		}
 	}
 }

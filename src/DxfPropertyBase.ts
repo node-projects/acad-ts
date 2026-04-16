@@ -274,11 +274,11 @@ export abstract class DxfPropertyBase {
 		if (handled == null || typeof handled !== 'object') {
 			return null;
 		}
-		const candidate = handled as { handle?: unknown; Handle?: unknown };
+		const candidate = handled as { handle?: unknown; };
 		return typeof candidate.handle === 'number'
 			? candidate.handle
-			: typeof candidate.Handle === 'number'
-				? candidate.Handle
+			: typeof candidate.handle === 'number'
+				? candidate.handle
 				: null;
 	}
 
@@ -287,11 +287,11 @@ export abstract class DxfPropertyBase {
 		if (named == null || typeof named !== 'object') {
 			return null;
 		}
-		const candidate = named as { name?: unknown; Name?: unknown };
+		const candidate = named as { name?: unknown; };
 		return typeof candidate.name === 'string'
 			? candidate.name
-			: typeof candidate.Name === 'string'
-				? candidate.Name
+			: typeof candidate.name === 'string'
+				? candidate.name
 				: null;
 	}
 

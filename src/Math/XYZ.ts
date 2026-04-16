@@ -13,25 +13,17 @@ export class XYZ implements IVector {
   get [2](): number { return this.z; }
   set [2](v: number) { this.z = v; }
 
-  // PascalCase aliases for C# compat
-  get X(): number { return this.x; }
-  set X(v: number) { this.x = v; }
-  get Y(): number { return this.y; }
-  set Y(v: number) { this.y = v; }
-  get Z(): number { return this.z; }
-  set Z(v: number) { this.z = v; }
-
   constructor(x: number = 0, y: number = 0, z: number = 0) {
     this.x = x;
     this.y = y;
     this.z = z;
   }
 
-  static readonly Zero = new XYZ(0, 0, 0);
-  static readonly AxisX = new XYZ(1, 0, 0);
-  static readonly AxisY = new XYZ(0, 1, 0);
-  static readonly AxisZ = new XYZ(0, 0, 1);
-  static readonly NaN = new XYZ(Number.NaN, Number.NaN, Number.NaN);
+  static readonly zero = new XYZ(0, 0, 0);
+  static readonly axisX = new XYZ(1, 0, 0);
+  static readonly axisY = new XYZ(0, 1, 0);
+  static readonly axisZ = new XYZ(0, 0, 1);
+  static readonly naN = new XYZ(Number.NaN, Number.NaN, Number.NaN);
 
   getLength(): number {
     return Math.sqrt(this.x * this.x + this.y * this.y + this.z * this.z);
@@ -59,7 +51,7 @@ export class XYZ implements IVector {
     );
   }
 
-  static Cross(a: XYZ, b: XYZ): XYZ {
+  static cross(a: XYZ, b: XYZ): XYZ {
     return new XYZ(
       a.y * b.z - a.z * b.y,
       a.z * b.x - a.x * b.z,

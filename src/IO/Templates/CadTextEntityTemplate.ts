@@ -5,20 +5,20 @@ import { CadDocumentBuilder } from '../CadDocumentBuilder.js';
 import { CadEntityTemplate } from './CadEntityTemplate.js';
 
 export class CadTextEntityTemplate extends CadEntityTemplate {
-	StyleHandle: number | null = null;
+	styleHandle: number | null = null;
 
-	StyleName: string | null = null;
+	styleName: string | null = null;
 
 	constructor(entity: Entity) {
 		super(entity);
 	}
 
-	protected override build(builder: CadDocumentBuilder): void {
-		super.build(builder);
+	protected override _build(builder: CadDocumentBuilder): void {
+		super._build(builder);
 
-		const text = this.CadObject as unknown as IText;
+		const text = this.cadObject as unknown as IText;
 
-		const style = this.getTableReference<TextStyle>(builder, this.StyleHandle, this.StyleName ?? '');
+		const style = this.getTableReference<TextStyle>(builder, this.styleHandle, this.styleName ?? '');
 		if (style) {
 			text.style = style;
 		}

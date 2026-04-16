@@ -2,7 +2,7 @@ import { Color } from '../Color.js';
 
 export class GradientColor {
 	value: number = 0;
-	color: Color = Color.ByLayer;
+	color: Color = Color.byLayer;
 
 	clone(): GradientColor {
 		const c = new GradientColor();

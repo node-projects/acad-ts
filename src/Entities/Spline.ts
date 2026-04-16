@@ -74,7 +74,7 @@ export class Spline extends Entity {
 	normal: XYZ = new XYZ(0, 0, 1);
 
 	override get objectName(): string {
-		return DxfFileToken.EntitySpline;
+		return DxfFileToken.entitySpline;
 	}
 
 	override get objectType(): ObjectType {
@@ -84,12 +84,12 @@ export class Spline extends Entity {
 	startTangent: XYZ = new XYZ(0, 0, 0);
 
 	override get subclassMarker(): string {
-		return DxfSubclassMarker.Spline;
+		return DxfSubclassMarker.spline;
 	}
 
 	weights: number[] = [];
 
-	static readonly MaxDegree: number = 10;
+	static readonly maxDegree: number = 10;
 
 	private _flags: SplineFlags = SplineFlags.None;
 	private _flags1: SplineFlags1 = SplineFlags1.None;
@@ -118,11 +118,11 @@ export class Spline extends Entity {
 	override getBoundingBox(): BoundingBox | null {
 		const polygon = this.tryPolygonalVertexes(64);
 		if (polygon.success && polygon.points.length > 0) {
-			return BoundingBox.FromPoints(polygon.points);
+			return BoundingBox.fromPoints(polygon.points);
 		}
 
 		const points = this.controlPoints.length > 0 ? this.controlPoints : this.fitPoints;
-		return points.length > 0 ? BoundingBox.FromPoints(points) : null;
+		return points.length > 0 ? BoundingBox.fromPoints(points) : null;
 	}
 
 	pointOnSpline(t: number): XYZ {
@@ -134,12 +134,12 @@ export class Spline extends Entity {
 			t -= Number.EPSILON;
 		}
 
-		const { controlPts, weights, knots } = this.prepare();
-		const { uStart, uEnd } = this.getStartAndEndKnots(knots);
+		const { controlPts, weights, knots } = this._prepare();
+		const { uStart, uEnd } = this._getStartAndEndKnots(knots);
 
 		const uDelta = (uEnd - uStart) * t;
 		const u = uStart + uDelta;
-		return Spline.c(controlPts, weights, knots, this.degree, u);
+		return Spline._c(controlPts, weights, knots, this.degree, u);
 	}
 
 	polygonalVertexes(precision: number): XYZ[] {
@@ -148,8 +148,8 @@ export class Spline extends Entity {
 		}
 
 		const vertexes: XYZ[] = [];
-		const { controlPts, weights, knots } = this.prepare();
-		const { uStart, uEnd } = this.getStartAndEndKnots(knots);
+		const { controlPts, weights, knots } = this._prepare();
+		const { uStart, uEnd } = this._getStartAndEndKnots(knots);
 
 		if (!this.isClosed && !this.isPeriodic) {
 			precision -= 1;
@@ -159,7 +159,7 @@ export class Spline extends Entity {
 
 		for (let i = 0; i < precision; i++) {
 			const u = uStart + uDelta * i;
-			vertexes.push(Spline.c(controlPts, weights, knots, this.degree, u));
+			vertexes.push(Spline._c(controlPts, weights, knots, this.degree, u));
 		}
 
 		if (!(this.isClosed || this.isPeriodic)) {
@@ -197,7 +197,7 @@ export class Spline extends Entity {
 		this.degree = 1;
 		this.controlPoints = this.fitPoints.map((point) => new XYZ(point.x, point.y, point.z));
 		this.weights = new Array(this.controlPoints.length).fill(1);
-		this.knots = Spline.createKnotVector(this.controlPoints.length, this.degree, this.isPeriodic);
+		this.knots = Spline._createKnotVector(this.controlPoints.length, this.degree, this.isPeriodic);
 
 		if (this.fitPoints.length >= 2) {
 			const first = this.fitPoints[0];
@@ -211,12 +211,12 @@ export class Spline extends Entity {
 		return true;
 	}
 
-	private static c(ctrlPoints: XYZ[], weights: number[], knots: number[], degree: number, u: number): XYZ {
+	private static _c(ctrlPoints: XYZ[], weights: number[], knots: number[], degree: number, u: number): XYZ {
 		let sumX = 0, sumY = 0, sumZ = 0;
 		let denominatorSum = 0;
 
 		for (let i = 0; i < ctrlPoints.length; i++) {
-			const nurb = Spline.computeNurb(knots, i, degree, u);
+			const nurb = Spline._computeNurb(knots, i, degree, u);
 			denominatorSum += nurb * weights[i];
 			sumX += weights[i] * nurb * ctrlPoints[i].x;
 			sumY += weights[i] * nurb * ctrlPoints[i].y;
@@ -231,7 +231,7 @@ export class Spline extends Entity {
 		return new XYZ(inv * sumX, inv * sumY, inv * sumZ);
 	}
 
-	private static computeNurb(knots: number[], i: number, p: number, u: number): number {
+	private static _computeNurb(knots: number[], i: number, p: number, u: number): number {
 		if (p <= 0) {
 			if (knots[i] <= u && u < knots[i + 1]) {
 				return 1;
@@ -249,11 +249,11 @@ export class Spline extends Entity {
 			rightCoefficient = (knots[i + p + 1] - u) / (knots[i + p + 1] - knots[i + 1]);
 		}
 
-		return leftCoefficient * Spline.computeNurb(knots, i, p - 1, u) +
-			rightCoefficient * Spline.computeNurb(knots, i + 1, p - 1, u);
+		return leftCoefficient * Spline._computeNurb(knots, i, p - 1, u) +
+			rightCoefficient * Spline._computeNurb(knots, i + 1, p - 1, u);
 	}
 
-	private static createKnotVector(numControlPoints: number, degree: number, isPeriodic: boolean): number[] {
+	private static _createKnotVector(numControlPoints: number, degree: number, isPeriodic: boolean): number[] {
 		let knots: number[];
 
 		if (!isPeriodic) {
@@ -282,7 +282,7 @@ export class Spline extends Entity {
 		return knots;
 	}
 
-	private getStartAndEndKnots(knots: number[]): { uStart: number; uEnd: number } {
+	private _getStartAndEndKnots(knots: number[]): { uStart: number; uEnd: number } {
 		if (this.isClosed) {
 			return { uStart: knots[0], uEnd: knots[knots.length - 1] };
 		} else if (this.isPeriodic) {
@@ -292,7 +292,7 @@ export class Spline extends Entity {
 		}
 	}
 
-	private prepare(): { controlPts: XYZ[]; weights: number[]; knots: number[] } {
+	private _prepare(): { controlPts: XYZ[]; weights: number[]; knots: number[] } {
 		if (this.controlPoints.length === 0 && this.fitPoints.length > 0) {
 			this.updateFromFitPoints();
 		}
@@ -311,7 +311,7 @@ export class Spline extends Entity {
 		}
 
 		if (knots.length === 0 || !this.hasValidKnotCount) {
-			knots = Spline.createKnotVector(numCtrlPoints, this.degree, this.isPeriodic);
+			knots = Spline._createKnotVector(numCtrlPoints, this.degree, this.isPeriodic);
 		}
 
 		let controlPts: XYZ[];

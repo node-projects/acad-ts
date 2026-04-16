@@ -67,7 +67,7 @@ describe('ColorTests', () => {
   });
 
   it('ByLayerTest', () => {
-    const byLayer = Color.ByLayer;
+    const byLayer = Color.byLayer;
 
     expect(byLayer.isByLayer).toBe(true);
     expect(byLayer.isByBlock).toBe(false);
@@ -75,7 +75,7 @@ describe('ColorTests', () => {
   });
 
   it('ByBlockTest', () => {
-    const byBlock = Color.ByBlock;
+    const byBlock = Color.byBlock;
 
     expect(byBlock.isByBlock).toBe(true);
     expect(byBlock.isByLayer).toBe(false);

@@ -50,12 +50,12 @@ function expectFileWritten(filePath: string): void {
 
 function readDwgDocument(filePath: string): CadDocument {
   const reader = new DwgReader(readFileAsArrayBuffer(filePath));
-  return reader.Read();
+  return reader.read();
 }
 
 function readDxfDocument(filePath: string): CadDocument {
   const reader = new DxfReader(readFileAsUint8Array(filePath));
-  return reader.Read();
+  return reader.read();
 }
 
 function transferEntities(source: CadDocument): CadDocument {
@@ -120,7 +120,7 @@ function writeDwgFile(outPath: string, doc: CadDocument): boolean {
 
   const buffer = new ArrayBuffer(16 * 1024 * 1024);
   const writer = new DwgWriter(buffer, doc);
-  writer.Write();
+  writer.write();
 
   fs.writeFileSync(outPath, new Uint8Array(buffer, 0, writer.bytesWritten));
   expectFileWritten(outPath);
@@ -132,7 +132,7 @@ function writeDxfFile(outPath: string, doc: CadDocument): void {
 
   const stream = new InMemoryAsciiStream();
   const writer = new DxfWriter(stream as any, doc, false);
-  writer.Write();
+  writer.write();
 
   fs.writeFileSync(outPath, stream.toUint8Array());
   expectFileWritten(outPath);

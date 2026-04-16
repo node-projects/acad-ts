@@ -6,25 +6,25 @@ import { IHandledCadObject } from '../../../IHandledCadObject.js';
 import { INamedCadObject } from '../../../INamedCadObject.js';
 
 export interface IDxfStreamWriter {
-  WriteOptional: boolean;
+  writeOptional: boolean;
 
-  Close(): void;
+  close(): void;
 
-  Flush(): void;
+  flush(): void;
 
-  Write(code: DxfCode | number, value: unknown, map?: DxfClassMap | null): void;
+  write(code: DxfCode | number, value: unknown, map?: DxfClassMap | null): void;
 
-  WriteVector(code: DxfCode | number, value: IVector, map?: DxfClassMap | null): void;
+  writeVector(code: DxfCode | number, value: IVector, map?: DxfClassMap | null): void;
 
-  WriteIfNotDefault<T>(code: number, value: T, defaultValue: T, map?: DxfClassMap | null): void;
+  writeIfNotDefault<T>(code: number, value: T, defaultValue: T, map?: DxfClassMap | null): void;
 
-  WriteCmColor(code: number, color: Color, map?: DxfClassMap | null): void;
+  writeCmColor(code: number, color: Color, map?: DxfClassMap | null): void;
 
-  WriteHandle(code: number, value: IHandledCadObject | null, map?: DxfClassMap | null): void;
+  writeHandle(code: number, value: IHandledCadObject | null, map?: DxfClassMap | null): void;
 
-  WriteName(code: number, value: INamedCadObject | null, map?: DxfClassMap | null): void;
+  writeName(code: number, value: INamedCadObject | null, map?: DxfClassMap | null): void;
 
-  WriteTrueColor(code: number, color: Color, map?: DxfClassMap | null): void;
+  writeTrueColor(code: number, color: Color, map?: DxfClassMap | null): void;
 
-  Dispose(): void;
+  dispose(): void;
 }

@@ -11,7 +11,7 @@ import { ProjectionMethod } from './ProjectionMethod.js';
 import { TilingMethod } from './TilingMethod.js';
 
 export class Material extends NonGraphicalObject {
-	ambientColor: Color = Color.ByLayer;
+	ambientColor: Color = Color.byLayer;
 
 	private _ambientColorFactor: number = 1.0;
 	get ambientColorFactor(): number { return this._ambientColorFactor; }
@@ -34,7 +34,7 @@ export class Material extends NonGraphicalObject {
 	description: string = '';
 
 	diffuseAutoTransform: AutoTransformMethodFlags = AutoTransformMethodFlags.NoAutoTransform;
-	diffuseColor: Color = Color.ByLayer;
+	diffuseColor: Color = Color.byLayer;
 
 	private _diffuseColorFactor: number = 1.0;
 	get diffuseColorFactor(): number { return this._diffuseColorFactor; }
@@ -53,7 +53,7 @@ export class Material extends NonGraphicalObject {
 
 	illuminationModel: number = 0;
 
-	override get objectName(): string { return DxfFileToken.ObjectMaterial; }
+	override get objectName(): string { return DxfFileToken.objectMaterial; }
 	override get objectType(): ObjectType { return ObjectType.UNLISTED; }
 
 	opacity: number = 1.0;
@@ -86,7 +86,7 @@ export class Material extends NonGraphicalObject {
 	refractionTilingMethod: TilingMethod = TilingMethod.Tile;
 
 	specularAutoTransform: AutoTransformMethodFlags = AutoTransformMethodFlags.NoAutoTransform;
-	specularColor: Color = Color.ByLayer;
+	specularColor: Color = Color.byLayer;
 
 	private _specularColorFactor: number = 1.0;
 	get specularColorFactor(): number { return this._specularColorFactor; }
@@ -104,13 +104,13 @@ export class Material extends NonGraphicalObject {
 	specularProjectionMethod: ProjectionMethod = ProjectionMethod.Planar;
 	specularTilingMethod: TilingMethod = TilingMethod.Tile;
 
-	override get subclassMarker(): string { return DxfSubclassMarker.Material; }
+	override get subclassMarker(): string { return DxfSubclassMarker.material; }
 
 	translucence: number = 0.0;
 
-	static readonly ByBlockName = 'ByBlock';
-	static readonly ByLayerName = 'ByLayer';
-	static readonly GlobalName = 'Global';
+	static readonly byBlockName = 'ByBlock';
+	static readonly byLayerName = 'ByLayer';
+	static readonly globalName = 'Global';
 
 	constructor(name?: string) {
 		super(name);

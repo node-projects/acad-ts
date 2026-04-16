@@ -4,12 +4,12 @@ import { ObjectType } from '../Types/ObjectType.js';
 import { TableEntry } from './TableEntry.js';
 
 export class AppId extends TableEntry {
-	public static get Default(): AppId {
-		return new AppId(AppId.DefaultName);
+	public static get default(): AppId {
+		return new AppId(AppId.defaultName);
 	}
 
 	public override get objectName(): string {
-		return DxfFileToken.TableAppId;
+		return DxfFileToken.tableAppId;
 	}
 
 	public override get objectType(): ObjectType {
@@ -17,12 +17,12 @@ export class AppId extends TableEntry {
 	}
 
 	public override get subclassMarker(): string {
-		return DxfSubclassMarker.ApplicationId;
+		return DxfSubclassMarker.applicationId;
 	}
 
-	public static readonly BlockRepBTag: string = 'AcDbBlockRepBTag';
-	public static readonly BlockRepETag: string = 'AcDbBlockRepETag';
-	public static readonly DefaultName: string = 'ACAD';
+	public static readonly blockRepBTag: string = 'AcDbBlockRepBTag';
+	public static readonly blockRepETag: string = 'AcDbBlockRepETag';
+	public static readonly defaultName: string = 'ACAD';
 
 	public constructor(name?: string) {
 		super(name);

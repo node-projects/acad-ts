@@ -15,11 +15,11 @@ export class Shape extends Entity {
 	}
 
 	override get objectName(): string {
-		return DxfFileToken.EntityShape;
+		return DxfFileToken.entityShape;
 	}
 
 	override get subclassMarker(): string {
-		return DxfSubclassMarker.Shape;
+		return DxfSubclassMarker.shape;
 	}
 
 	thickness: number = 0.0;
@@ -78,11 +78,11 @@ export class Shape extends Entity {
 			new XY(0, this.size),
 			new XY(width, this.size),
 		].map((corner) => {
-			const rotated = XY.Rotate(corner, this.rotation);
+			const rotated = XY.rotate(corner, this.rotation);
 			return new XYZ(this.insertionPoint.x + rotated.x, this.insertionPoint.y + rotated.y, this.insertionPoint.z);
 		});
 
-		return BoundingBox.FromPoints(corners);
+		return BoundingBox.fromPoints(corners);
 	}
 
 	override applyTransform(transform: unknown): void {

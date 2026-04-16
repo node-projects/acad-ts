@@ -5,7 +5,7 @@ import { XYZ } from '../../Math/XYZ.js';
 export abstract class BlockGrip extends BlockElement {
 	location: XYZ = new XYZ(0, 0, 0);
 
-	override get subclassMarker(): string { return DxfSubclassMarker.BlockGrip; }
+	override get subclassMarker(): string { return DxfSubclassMarker.blockGrip; }
 
 	value280: number = 0;
 	value91: number = 0;

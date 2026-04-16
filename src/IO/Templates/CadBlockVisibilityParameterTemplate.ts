@@ -11,28 +11,28 @@ import { ICadTemplate } from './ICadTemplate.js';
 export class CadBlockVisibilityParameterTemplate extends CadBlock1PtParameterTemplate {
 	entityHandles: number[] = [];
 
-	StateTemplates: CadBlockVisibilityParameterTemplate.StateTemplate[] = [];
+	stateTemplates: CadBlockVisibilityParameterTemplate.StateTemplate[] = [];
 
 	constructor(cadObject?: BlockVisibilityParameter) {
 		super(cadObject ?? new BlockVisibilityParameter());
 	}
 
-	protected override build(builder: CadDocumentBuilder): void {
-		super.build(builder);
+	protected override _build(builder: CadDocumentBuilder): void {
+		super._build(builder);
 
-		const bvp = this.CadObject as BlockVisibilityParameter;
+		const bvp = this.cadObject as BlockVisibilityParameter;
 
 		for (const handle of this.entityHandles) {
-			const entity = builder.TryGetCadObject<Entity>(handle);
+			const entity = builder.tryGetCadObject<Entity>(handle);
 			if (entity) {
 				bvp.entities.push(entity);
 			} else {
-				builder.Notify(`[${bvp.toString()}] entity with handle ${handle} not found.`);
+				builder.notify(`[${bvp.toString()}] entity with handle ${handle} not found.`);
 			}
 		}
 
-		for (const item of this.StateTemplates) {
-			item.Build(builder, this.entityHandles);
+		for (const item of this.stateTemplates) {
+			item.build(builder, this.entityHandles);
 			bvp.addState(item.state);
 		}
 	}
@@ -52,22 +52,22 @@ export namespace CadBlockVisibilityParameterTemplate {
 			}
 		}
 
-		Build(builder: CadDocumentBuilder, parentEntityHandles: number[]): void {
-			this.setEntities<Entity>(builder, this.state.entities, this.entityHandles, parentEntityHandles);
-			this.setEntities<EvaluationExpression>(builder, this.state.expressions, this.expressionHandles, null);
+		build(builder: CadDocumentBuilder, parentEntityHandles: number[]): void {
+			this._setEntities<Entity>(builder, this.state.entities, this.entityHandles, parentEntityHandles);
+			this._setEntities<EvaluationExpression>(builder, this.state.expressions, this.expressionHandles, null);
 		}
 
-		private setEntities<T extends CadObject>(builder: CadDocumentBuilder, subset: T[], handles: Set<number>, entities: number[] | null): void {
+		private _setEntities<T extends CadObject>(builder: CadDocumentBuilder, subset: T[], handles: Set<number>, entities: number[] | null): void {
 			for (const h of handles) {
 				if (entities !== null && !entities.includes(h)) {
-					builder.Notify(`[${this.state.toString()}] parent does not contain handle ${h}.`);
+					builder.notify(`[${this.state.toString()}] parent does not contain handle ${h}.`);
 				}
 
-				const obj = builder.TryGetCadObject<T>(h);
+				const obj = builder.tryGetCadObject<T>(h);
 				if (obj) {
 					subset.push(obj);
 				} else {
-					builder.Notify(`[${this.state.toString()}] object with handle ${h} not found.`);
+					builder.notify(`[${this.state.toString()}] object with handle ${h} not found.`);
 				}
 			}
 		}

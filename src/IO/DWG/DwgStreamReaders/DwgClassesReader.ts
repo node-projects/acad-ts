@@ -10,8 +10,8 @@ import { DwgStreamReaderBase } from './DwgStreamReaderBase.js';
 import { DwgMergedReader } from './DwgMergedReader.js';
 
 export class DwgClassesReader extends DwgSectionIO {
-	override get SectionName(): string {
-		return DwgSectionDefinition.Classes;
+	override get sectionName(): string {
+		return DwgSectionDefinition.classes;
 	}
 
 	private _fileHeader: DwgFileHeader;
@@ -26,19 +26,19 @@ export class DwgClassesReader extends DwgSectionIO {
 	public read(): DxfClassCollection {
 		const classes: DxfClassCollection = new DxfClassCollection();
 
-		this.checkSentinel(this._sreader, DwgSectionDefinition.StartSentinels.get(this.SectionName)!);
+		this.checkSentinel(this._sreader, DwgSectionDefinition.startSentinels.get(this.sectionName)!);
 
 		const size: number = this._sreader.readRawLong();
 		let endSection: number = this._sreader.position + size;
 
-		if (this._fileHeader.AcadVersion >= ACadVersion.AC1024
-			&& this._fileHeader.AcadMaintenanceVersion > 3
-			|| this._fileHeader.AcadVersion > ACadVersion.AC1027) {
+		if (this._fileHeader.acadVersion >= ACadVersion.AC1024
+			&& this._fileHeader.acadMaintenanceVersion > 3
+			|| this._fileHeader.acadVersion > ACadVersion.AC1027) {
 			const unknown: number = this._sreader.readRawLong();
 		}
 
 		let flagPos: number = 0;
-		if (this.R2007Plus) {
+		if (this.r2007Plus) {
 			flagPos = this._sreader.positionInBits() + this._sreader.readRawLong() - 1;
 			const savedOffset: number = this._sreader.positionInBits();
 			endSection = this._sreader.setPositionByFlag(flagPos);
@@ -55,14 +55,14 @@ export class DwgClassesReader extends DwgSectionIO {
 			this._sreader.readBit();
 		}
 
-		if (this._fileHeader.AcadVersion === ACadVersion.AC1018) {
+		if (this._fileHeader.acadVersion === ACadVersion.AC1018) {
 			this._sreader.readBitShort();
 			this._sreader.readRawChar();
 			this._sreader.readRawChar();
 			this._sreader.readBit();
 		}
 
-		while (this.getCurrPos(this._sreader) < endSection) {
+		while (this._getCurrPos(this._sreader) < endSection) {
 			const dxfClass: DxfClass = new DxfClass();
 			dxfClass.classNumber = this._sreader.readBitShort();
 			dxfClass.proxyFlags = this._sreader.readBitShort() as ProxyFlags;
@@ -74,7 +74,7 @@ export class DwgClassesReader extends DwgSectionIO {
 			dxfClass.wasZombie = this._sreader.readBit();
 			dxfClass.itemClassId = this._sreader.readBitShort();
 
-			if (this.R2004Plus) {
+			if (this.r2004Plus) {
 				dxfClass.instanceCount = this._sreader.readBitLong();
 				dxfClass.dwgVersion = this._sreader.readBitLong() as ACadVersion;
 				dxfClass.maintenanceVersion = this._sreader.readBitLong();
@@ -85,18 +85,18 @@ export class DwgClassesReader extends DwgSectionIO {
 			classes.addOrUpdate(dxfClass);
 		}
 
-		if (this.R2007Plus) {
+		if (this.r2007Plus) {
 			this._sreader.setPositionInBits(flagPos + 1);
 		}
 
 		this._sreader.resetShift();
-		this.checkSentinel(this._sreader, DwgSectionDefinition.EndSentinels.get(this.SectionName)!);
+		this.checkSentinel(this._sreader, DwgSectionDefinition.endSentinels.get(this.sectionName)!);
 
 		return classes;
 	}
 
-	private getCurrPos(sreader: IDwgStreamReader): number {
-		if (this.R2007Plus) {
+	private _getCurrPos(sreader: IDwgStreamReader): number {
+		if (this.r2007Plus) {
 			return sreader.positionInBits();
 		} else {
 			return sreader.position;

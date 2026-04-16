@@ -28,15 +28,15 @@ describe('LegacyAc1014Roundtrip', () => {
 	it('preserves block chains and shape styles for sample_AC1014', () => {
 		const samplePath = path.join(TestVariables.samplesFolder, 'sample_AC1014.dwg');
 		const originalReader = new DwgReader(readFileAsArrayBuffer(samplePath));
-		const original = originalReader.Read();
+		const original = originalReader.read();
 
 		const buffer = new ArrayBuffer(32 * 1024 * 1024);
 		const writer = new DwgWriter(buffer, original);
-		writer.Write();
+		writer.write();
 
 		const roundtripBuffer = buffer.slice(0, writer.bytesWritten);
 		const roundtripReader = new DwgReader(roundtripBuffer);
-		const roundtrip = roundtripReader.Read();
+		const roundtrip = roundtripReader.read();
 
 		expect([...roundtrip.entities].length).toBe([...original.entities].length);
 		expect(roundtrip.blockRecords.get('MYBLOCK').entities.length).toBe(original.blockRecords.get('MYBLOCK').entities.length);

@@ -23,22 +23,22 @@ export class TextProcessor {
 						index += 2;
 						break;
 					case 'A':
-						index = TextProcessor.jump(text, index);
+						index = TextProcessor._jump(text, index);
 						break;
 					case 'c':
 					case 'C':
-						index = TextProcessor.processColor(text, index);
+						index = TextProcessor._processColor(text, index);
 						break;
 					case 'f':
 					case 'F':
-						index = TextProcessor.processFont(text, index);
+						index = TextProcessor._processFont(text, index);
 						break;
 					case 'h':
 					case 'H':
-						index = TextProcessor.processHeight(text, index);
+						index = TextProcessor._processHeight(text, index);
 						break;
 					case 'p':
-						index = TextProcessor.processJustification(text, index);
+						index = TextProcessor._processJustification(text, index);
 						break;
 					case 'P':
 					case 'n':
@@ -107,12 +107,12 @@ export class TextProcessor {
 			switch (next) {
 				case 'f':
 				case 'F':
-					f = TextProcessor.processFont(text, currIndex);
+					f = TextProcessor._processFont(text, currIndex);
 					currIndex = f;
 					break;
 				case 'c':
 				case 'C':
-					f = TextProcessor.processColor(text, currIndex);
+					f = TextProcessor._processColor(text, currIndex);
 					currIndex = f;
 					break;
 				case 'P':
@@ -135,7 +135,7 @@ export class TextProcessor {
 		return sb;
 	}
 
-	private static processFont(text: string, start: number): number {
+	private static _processFont(text: string, start: number): number {
 		let end = text.indexOf(';', start);
 		end += 1;
 		// const data = text.substring(start, end).split('|');
@@ -143,25 +143,25 @@ export class TextProcessor {
 		return end;
 	}
 
-	private static jump(text: string, start: number): number {
+	private static _jump(text: string, start: number): number {
 		let end = text.indexOf(';', start);
 		end += 1;
 		return end;
 	}
 
-	private static processColor(text: string, start: number): number {
+	private static _processColor(text: string, start: number): number {
 		let end = text.indexOf(';', start);
 		end += 1;
 		return end;
 	}
 
-	private static processHeight(text: string, start: number): number {
+	private static _processHeight(text: string, start: number): number {
 		let end = text.indexOf(';', start);
 		end += 1;
 		return end;
 	}
 
-	private static processJustification(text: string, start: number): number {
+	private static _processJustification(text: string, start: number): number {
 		let end = text.indexOf(';', start);
 		end += 1;
 		return end;

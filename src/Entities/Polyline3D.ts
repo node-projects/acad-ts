@@ -18,7 +18,7 @@ export class Polyline3D extends Polyline {
 	}
 
 	override get objectName(): string {
-		return DxfFileToken.EntityPolyline;
+		return DxfFileToken.entityPolyline;
 	}
 
 	override get objectType(): ObjectType {
@@ -26,7 +26,7 @@ export class Polyline3D extends Polyline {
 	}
 
 	override get subclassMarker(): string {
-		return DxfSubclassMarker.Polyline3d;
+		return DxfSubclassMarker.polyline3d;
 	}
 
 	constructor(vertices?: Vertex3D[] | XYZ[]) {

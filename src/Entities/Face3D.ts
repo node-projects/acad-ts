@@ -12,11 +12,11 @@ export class Face3D extends Entity {
 	}
 
 	override get objectName(): string {
-		return DxfFileToken.Entity3DFace;
+		return DxfFileToken.entity3DFace;
 	}
 
 	override get subclassMarker(): string {
-		return DxfSubclassMarker.Face3d;
+		return DxfSubclassMarker.face3d;
 	}
 
 	firstCorner: XYZ = new XYZ(0, 0, 0);
@@ -34,7 +34,7 @@ export class Face3D extends Entity {
 	}
 
 	override getBoundingBox(): BoundingBox {
-		return BoundingBox.FromPoints([
+		return BoundingBox.fromPoints([
 			this.firstCorner,
 			this.secondCorner,
 			this.thirdCorner,

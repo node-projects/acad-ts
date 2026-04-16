@@ -23,7 +23,7 @@ export class DimensionRadius extends Dimension {
 	}
 
 	override get objectName(): string {
-		return DxfFileToken.EntityDimension;
+		return DxfFileToken.entityDimension;
 	}
 
 	override get objectType(): ObjectType {
@@ -31,7 +31,7 @@ export class DimensionRadius extends Dimension {
 	}
 
 	override get subclassMarker(): string {
-		return DxfSubclassMarker.RadialDimension;
+		return DxfSubclassMarker.radialDimension;
 	}
 
 	constructor() {
@@ -44,7 +44,7 @@ export class DimensionRadius extends Dimension {
 	}
 
 	override getBoundingBox(): BoundingBox {
-		return BoundingBox.FromPoints([this.definitionPoint, this.angleVertex, this.insertionPoint, this.textMiddlePoint]);
+		return BoundingBox.fromPoints([this.definitionPoint, this.angleVertex, this.insertionPoint, this.textMiddlePoint]);
 	}
 
 	override updateBlock(): void {

@@ -25,7 +25,7 @@ export abstract class Vertex extends Entity implements IVertex {
 	location: XYZ = new XYZ(0, 0, 0);
 
 	override get objectName(): string {
-		return DxfFileToken.EntityVertex;
+		return DxfFileToken.entityVertex;
 	}
 
 	startWidth: number = 0.0;
@@ -44,7 +44,7 @@ export abstract class Vertex extends Entity implements IVertex {
 	}
 
 	override getBoundingBox(): BoundingBox {
-		return BoundingBox.FromPoints([this.location]);
+		return BoundingBox.fromPoints([this.location]);
 	}
 
 	override toString(): string {

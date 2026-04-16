@@ -16,7 +16,7 @@ describe('EntityTransformTests', () => {
 		ellipse.majorAxisEndPoint = new XYZ(2, 0, 0);
 		ellipse.radiusRatio = 0.5;
 
-		ellipse.applyRotation(XYZ.AxisZ, Math.PI / 2);
+		ellipse.applyRotation(XYZ.axisZ, Math.PI / 2);
 
 		expect(ellipse.center.x).toBeCloseTo(0, 6);
 		expect(ellipse.center.y).toBeCloseTo(1, 6);

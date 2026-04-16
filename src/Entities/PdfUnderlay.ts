@@ -6,7 +6,7 @@ import type { PdfUnderlayDefinition } from '../Objects/PdfUnderlayDefinition.js'
 
 export class PdfUnderlay extends UnderlayEntity {
 	override get objectName(): string {
-		return DxfFileToken.EntityPdfUnderlay;
+		return DxfFileToken.entityPdfUnderlay;
 	}
 
 	override get objectType(): ObjectType {

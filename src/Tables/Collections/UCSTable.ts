@@ -9,7 +9,7 @@ export class UCSTable extends Table<UCS> {
 	}
 
 	public override get objectName(): string {
-		return DxfFileToken.TableUcs;
+		return DxfFileToken.tableUcs;
 	}
 
 	protected override get defaultEntries(): string[] {

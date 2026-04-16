@@ -39,7 +39,7 @@ export class DimensionOrdinate extends Dimension {
 	}
 
 	override get objectName(): string {
-		return DxfFileToken.EntityDimension;
+		return DxfFileToken.entityDimension;
 	}
 
 	override get objectType(): ObjectType {
@@ -47,7 +47,7 @@ export class DimensionOrdinate extends Dimension {
 	}
 
 	override get subclassMarker(): string {
-		return DxfSubclassMarker.OrdinateDimension;
+		return DxfSubclassMarker.ordinateDimension;
 	}
 
 	constructor() {
@@ -61,7 +61,7 @@ export class DimensionOrdinate extends Dimension {
 	}
 
 	override getBoundingBox(): BoundingBox {
-		return BoundingBox.FromPoints([this.featureLocation, this.leaderEndpoint, this.definitionPoint]);
+		return BoundingBox.fromPoints([this.featureLocation, this.leaderEndpoint, this.definitionPoint]);
 	}
 
 	override updateBlock(): void {

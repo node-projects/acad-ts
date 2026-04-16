@@ -101,7 +101,7 @@ describe('DxfWriterTests', () => {
       // Write using a stream-like target expected by the current TS DXF writer.
       const stream = new InMemoryAsciiStream();
       const writer = new DxfWriter(stream as any, doc, false);
-      writer.Write();
+      writer.write();
       const data = stream.toUint8Array();
 
       // Save output
@@ -109,7 +109,7 @@ describe('DxfWriterTests', () => {
 
       // Read back
       const reader = new DxfReader(data);
-      const readed = reader.Read();
+      const readed = reader.read();
       expect(readed).not.toBeNull();
     });
 
@@ -124,7 +124,7 @@ describe('DxfWriterTests', () => {
       // Write using a stream-like target expected by the current TS DXF writer.
       const stream = new InMemoryBinaryStream();
       const writer = new DxfWriter(stream as any, doc, true);
-      writer.Write();
+      writer.write();
       const data = stream.toUint8Array();
 
       // Save output
@@ -133,7 +133,7 @@ describe('DxfWriterTests', () => {
       // Read back
       const reader = new DxfReader(data);
       try {
-        const readed = reader.Read();
+        const readed = reader.read();
         expect(readed).not.toBeNull();
       } catch (e) {
         if (isKnownDxfReadGap(e)) return;
@@ -164,7 +164,7 @@ describe('DxfWriterTests', () => {
 
       const stream = new InMemoryAsciiStream();
       const writer = new DxfWriter(stream as any, doc, false);
-      writer.Write();
+      writer.write();
       const data = stream.toUint8Array();
 
       fs.writeFileSync(outPath, data);
@@ -183,7 +183,7 @@ describe('DxfWriterTests', () => {
 
       const output = new Uint8Array(1024 * 1024);
       const writer = new DxfWriter(output, doc, false);
-      writer.Write();
+      writer.write();
 
       expect(containsByteSequence(output, [0x6C, 0x61, 0x79, 0x65, 0x72, 0x2D, 0x73, 0xE4, 0xF6, 0xFC])).toBe(true);
     });
@@ -201,7 +201,7 @@ describe('DxfWriterTests', () => {
 
       const stream = new InMemoryBinaryStream();
       const writer = new DxfWriter(stream as any, doc, true);
-      writer.Write();
+      writer.write();
       const data = stream.toUint8Array();
 
       expect(containsByteSequence(data, [0x6C, 0x61, 0x79, 0x65, 0x72, 0x2D, 0x73, 0xE4, 0xF6, 0xFC])).toBe(true);

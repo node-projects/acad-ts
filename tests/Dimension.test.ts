@@ -23,7 +23,7 @@ class TestDimension extends Dimension {
 	}
 
 	override get objectName(): string {
-		return DxfFileToken.EntityDimension;
+		return DxfFileToken.entityDimension;
 	}
 
 	override get objectType(): ObjectType {
@@ -69,7 +69,7 @@ describe('DimensionTests', () => {
 		const point = dimension.createDefinitionPointForTest(new XYZ(1, 2, 3));
 
 		expect(point.location).toEqual(new XYZ(1, 2, 3));
-		expect(point.layer.name.toLowerCase()).toBe(Layer.DefpointsName);
+		expect(point.layer.name.toLowerCase()).toBe(Layer.defpointsName);
 	});
 
 	it('CreatesTextEntitiesUsingTheActiveDimensionStyle', () => {
@@ -123,7 +123,7 @@ describe('DimensionTests', () => {
 
 	it('UpdatesAlignedOffsetBoundsAndTransforms', () => {
 		const dimension = new DimensionAligned(new XYZ(0, 0, 0), new XYZ(10, 0, 0));
-		dimension.normal = XYZ.AxisZ;
+		dimension.normal = XYZ.axisZ;
 
 		dimension.offset = 3;
 

@@ -5,7 +5,7 @@ import { DwgStreamWriterBase } from './DwgStreamWriterBase.js';
 import { IDwgStreamWriter } from './IDwgStreamWriter.js';
 
 export class DwgAuxHeaderWriter extends DwgSectionIO {
-	override get SectionName(): string { return DwgSectionDefinition.AuxHeader; }
+	override get sectionName(): string { return DwgSectionDefinition.auxHeader; }
 
 	get bytesWritten(): number { return Math.ceil(this._writer.positionInBits / 8); }
 	get writerStream(): ArrayBuffer { return this._writer.main.stream; }
@@ -119,7 +119,7 @@ export class DwgAuxHeaderWriter extends DwgSectionIO {
 		this._writer.writeRawLong(0);
 
 		//R2018 +
-		if (this.R2018Plus) {
+		if (this.r2018Plus) {
 			//RS : 0
 			this._writer.writeRawShort(0);
 			//RS : 0

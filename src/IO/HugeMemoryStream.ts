@@ -8,7 +8,7 @@ export class HugeMemoryStream {
 	private _position: number = 0;
 	private readonly _chunks: Uint8Array[];
 
-	static Create(length: number): Uint8Array | HugeMemoryStream {
+	static create(length: number): Uint8Array | HugeMemoryStream {
 		if (length <= 0x7FFFFFFF) {
 			return new Uint8Array(length);
 		} else {
@@ -30,80 +30,80 @@ export class HugeMemoryStream {
 				this._chunks.push(new Uint8Array(chunkSize));
 				lengthLeft -= chunkSize;
 			}
-			this.Position = 0;
+			this.position = 0;
 		} else {
 			this._chunks = arg;
 			this._length = arg.reduce((sum, x) => sum + x.length, 0);
-			this.Position = 0;
+			this.position = 0;
 		}
 	}
 
-	get CanRead(): boolean { return true; }
-	get CanSeek(): boolean { return true; }
-	get CanWrite(): boolean { return true; }
-	get Length(): number { return this._length; }
+	get canRead(): boolean { return true; }
+	get canSeek(): boolean { return true; }
+	get canWrite(): boolean { return true; }
+	get length(): number { return this._length; }
 
-	get Position(): number { return this._position; }
-	set Position(value: number) {
+	get position(): number { return this._position; }
+	set position(value: number) {
 		this._position = value;
 		this._currentChunk = this._chunks[value >> HugeMemoryStream._maxChunkShift];
 		this._currentInChunk = value & HugeMemoryStream._maxChunkMask;
 	}
 
-	Read(buffer: Uint8Array, offset: number, count: number): number {
+	read(buffer: Uint8Array, offset: number, count: number): number {
 		if (count === 1) {
 			buffer[offset] = this._currentChunk[this._currentInChunk];
-			this.Position++;
+			this.position++;
 			return 1;
 		}
 		if (this._currentInChunk + count > HugeMemoryStream._maxChunkSize) {
 			const toRead = HugeMemoryStream._maxChunkSize - this._currentInChunk;
 			buffer.set(this._currentChunk.subarray(this._currentInChunk, this._currentInChunk + toRead), offset);
-			this.Position += toRead;
-			return toRead + this.Read(buffer, offset + toRead, count - toRead);
+			this.position += toRead;
+			return toRead + this.read(buffer, offset + toRead, count - toRead);
 		} else {
 			buffer.set(this._currentChunk.subarray(this._currentInChunk, this._currentInChunk + count), offset);
-			this.Position += count;
+			this.position += count;
 			return count;
 		}
 	}
 
-	ReadByte(): number {
+	readByte(): number {
 		const value = this._currentChunk[this._currentInChunk];
-		this.Position++;
+		this.position++;
 		return value;
 	}
 
-	Write(buffer: Uint8Array, offset: number, count: number): void {
+	write(buffer: Uint8Array, offset: number, count: number): void {
 		if (count === 1) {
 			this._currentChunk[this._currentInChunk] = buffer[offset];
-			this.Position++;
+			this.position++;
 			return;
 		}
 
 		if (this._currentInChunk + count > HugeMemoryStream._maxChunkSize) {
 			const toWrite = HugeMemoryStream._maxChunkSize - this._currentInChunk;
 			this._currentChunk.set(buffer.subarray(offset, offset + toWrite), this._currentInChunk);
-			this.Position += toWrite;
-			this.Write(buffer, offset + toWrite, count - toWrite);
+			this.position += toWrite;
+			this.write(buffer, offset + toWrite, count - toWrite);
 		} else {
 			this._currentChunk.set(buffer.subarray(offset, offset + count), this._currentInChunk);
-			this.Position += count;
+			this.position += count;
 		}
 	}
 
-	WriteByte(value: number): void {
+	writeByte(value: number): void {
 		this._currentChunk[this._currentInChunk] = value;
-		this.Position++;
+		this.position++;
 	}
 
-	Clone(): HugeMemoryStream {
+	clone(): HugeMemoryStream {
 		return new HugeMemoryStream(this._chunks);
 	}
 
-	static CloneStream(stream: Uint8Array | HugeMemoryStream): Uint8Array | HugeMemoryStream {
+	static cloneStream(stream: Uint8Array | HugeMemoryStream): Uint8Array | HugeMemoryStream {
 		if (stream instanceof HugeMemoryStream) {
-			return stream.Clone();
+			return stream.clone();
 		} else if (stream instanceof Uint8Array) {
 			return new Uint8Array(stream);
 		} else {

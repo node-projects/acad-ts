@@ -6,34 +6,34 @@ import { CadTemplateT } from './CadTemplate[T].js';
 import { ICadTemplate } from './ICadTemplate.js';
 
 export class CadEvaluationGraphTemplate extends CadTemplateT<EvaluationGraph> {
-	NodeTemplates: CadEvaluationGraphTemplate.GraphNodeTemplate[] = [];
+	nodeTemplates: CadEvaluationGraphTemplate.GraphNodeTemplate[] = [];
 
 	constructor(evaluationGraph?: EvaluationGraph) {
 		super(evaluationGraph ?? new EvaluationGraph());
 	}
 
-	protected override build(builder: CadDocumentBuilder): void {
-		super.build(builder);
+	protected override _build(builder: CadDocumentBuilder): void {
+		super._build(builder);
 
-		for (const item of this.NodeTemplates) {
-			item.Build(builder);
-			this.CadObject.nodes.push(item.Node);
+		for (const item of this.nodeTemplates) {
+			item.build(builder);
+			this.cadObject.nodes.push(item.node);
 		}
 	}
 }
 
 export namespace CadEvaluationGraphTemplate {
 	export class GraphNodeTemplate implements ICadTemplate {
-		Node: EvaluationGraphNode = new EvaluationGraphNode();
+		node: EvaluationGraphNode = new EvaluationGraphNode();
 
-		ExpressionHandle: number | null = null;
+		expressionHandle: number | null = null;
 
-		Build(builder: CadDocumentBuilder): void {
-			const evExpression = builder.TryGetCadObject<EvaluationExpression>(this.ExpressionHandle);
+		build(builder: CadDocumentBuilder): void {
+			const evExpression = builder.tryGetCadObject<EvaluationExpression>(this.expressionHandle);
 			if (evExpression) {
-				this.Node.expression = evExpression;
+				this.node.expression = evExpression;
 			} else {
-				builder.Notify(`Evaluation graph couldn't find the EvaluationExpression with handle ${this.ExpressionHandle}`, NotificationType.Warning);
+				builder.notify(`Evaluation graph couldn't find the EvaluationExpression with handle ${this.expressionHandle}`, NotificationType.Warning);
 			}
 		}
 	}

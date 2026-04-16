@@ -22,22 +22,22 @@ function normalizeXYZ(v: XYZ): XYZ {
 }
 
 export class VPort extends TableEntry {
-	public static readonly DefaultName: string = '*Active';
+	public static readonly defaultName: string = '*Active';
 
 	public override get objectType(): ObjectType {
 		return ObjectType.VPORT;
 	}
 
 	public override get objectName(): string {
-		return DxfFileToken.TableVport;
+		return DxfFileToken.tableVport;
 	}
 
 	public override get subclassMarker(): string {
-		return DxfSubclassMarker.VPort;
+		return DxfSubclassMarker.vPort;
 	}
 
-	public static get Default(): VPort {
-		return new VPort(VPort.DefaultName);
+	public static get default(): VPort {
+		return new VPort(VPort.defaultName);
 	}
 
 	public bottomLeft: XY = new XY(0, 0);

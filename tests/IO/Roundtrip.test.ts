@@ -88,11 +88,11 @@ describe('Roundtrip Tests', () => {
       expect(sample).toBeDefined();
 
       const data = readFileAsArrayBuffer(sample!.path);
-      const doc = new DwgReader(data).Read();
+      const doc = new DwgReader(data).read();
 
       const buffer = new ArrayBuffer(16 * 1024 * 1024);
       const writer = new DwgWriter(buffer, doc);
-      writer.Write();
+      writer.write();
 
       const outPath = path.join(roundtripOutDir, 'rt_sample_AC1018.dwg');
       fs.writeFileSync(outPath, new Uint8Array(buffer, 0, writer.bytesWritten));
@@ -100,8 +100,8 @@ describe('Roundtrip Tests', () => {
       const rereadData = readFileAsArrayBuffer(outPath);
       const notifications: string[] = [];
       const reread = new DwgReader(rereadData);
-      reread.OnNotification = (_sender, e) => notifications.push(e.message);
-      const doc2 = reread.Read();
+      reread.onNotification = (_sender, e) => notifications.push(e.message);
+      const doc2 = reread.read();
       const entities = [...doc2.entities];
 
       expect(entities.length).toBeGreaterThanOrEqual(142);
@@ -119,21 +119,21 @@ describe('Roundtrip Tests', () => {
       expect(sample).toBeDefined();
 
       const data = readFileAsArrayBuffer(sample!.path);
-      const doc = new DwgReader(data).Read();
+      const doc = new DwgReader(data).read();
 
       expect(doc.getCadObject(135)).toBeInstanceOf(TableStyle);
 
       const buffer = new ArrayBuffer(16 * 1024 * 1024);
       const writer = new DwgWriter(buffer, doc);
-      writer.Write();
+      writer.write();
 
       const outPath = path.join(roundtripOutDir, 'rt_sample_AC1018_table-style-layout.dwg');
       fs.writeFileSync(outPath, new Uint8Array(buffer, 0, writer.bytesWritten));
 
       const rereadData = readFileAsArrayBuffer(outPath);
       const reread = new DwgReader(rereadData);
-      const doc2 = reread.Read();
-      const xrecordTemplate = (reread as any)._builder.GetObjectTemplate(3966) as { _entries: Array<[number, number]> };
+      const doc2 = reread.read();
+      const xrecordTemplate = (reread as any)._builder.getObjectTemplate(3966) as { _entries: Array<[number, number]> };
 
       expect(xrecordTemplate._entries).toContainEqual([330, 135]);
 
@@ -146,7 +146,7 @@ describe('Roundtrip Tests', () => {
       expect(sample).toBeDefined();
 
       const data = readFileAsArrayBuffer(sample!.path);
-      const doc = new DwgReader(data).Read();
+      const doc = new DwgReader(data).read();
       const tables = [...doc.entities].filter((entity): entity is TableEntity => entity instanceof TableEntity);
       const contentCount = tables.reduce(
         (sum, table) => sum + table.rows.reduce((rowSum, row) => rowSum + row.cells.reduce((cellSum, cell) => cellSum + cell.contents.length, 0), 0),
@@ -161,7 +161,7 @@ describe('Roundtrip Tests', () => {
       const sample = dwgFiles.find(f => f.fileName === 'sample_AC1018.dwg');
       expect(sample).toBeDefined();
 
-      const doc = new DwgReader(readFileAsArrayBuffer(sample!.path)).Read();
+      const doc = new DwgReader(readFileAsArrayBuffer(sample!.path)).read();
       const tables = [...doc.entities].filter((entity): entity is TableEntity => entity instanceof TableEntity);
       const sourceTexts = tables
         .flatMap(table => table.rows.flatMap(row => row.cells))
@@ -174,12 +174,12 @@ describe('Roundtrip Tests', () => {
 
       const buffer = new ArrayBuffer(16 * 1024 * 1024);
       const writer = new DwgWriter(buffer, doc);
-      writer.Write();
+      writer.write();
 
       const outPath = path.join(roundtripOutDir, 'rt_sample_AC1018_tables.dwg');
       fs.writeFileSync(outPath, new Uint8Array(buffer, 0, writer.bytesWritten));
 
-      const reread = new DwgReader(readFileAsArrayBuffer(outPath)).Read();
+      const reread = new DwgReader(readFileAsArrayBuffer(outPath)).read();
       const rereadTables = [...reread.entities].filter((entity): entity is TableEntity => entity instanceof TableEntity);
       const rereadTexts = rereadTables
         .flatMap(table => table.rows.flatMap(row => row.cells))
@@ -197,7 +197,7 @@ describe('Roundtrip Tests', () => {
       expect(sample).toBeDefined();
 
       const data = readFileAsArrayBuffer(sample!.path);
-      const doc = new DwgReader(data).Read();
+      const doc = new DwgReader(data).read();
       const sourceNames = [...doc.blockRecords]
         .map(record => record.source?.name ?? null)
         .filter((name): name is string => name !== null)
@@ -214,7 +214,7 @@ describe('Roundtrip Tests', () => {
       const sample = dwgFiles.find(f => f.fileName === 'sample_AC1018.dwg');
       expect(sample).toBeDefined();
 
-      const doc = new DwgReader(readFileAsArrayBuffer(sample!.path)).Read();
+      const doc = new DwgReader(readFileAsArrayBuffer(sample!.path)).read();
       const originalObjects = [...(doc as any)._cadObjects.values()];
       const blockRepresentationCount = originalObjects.filter(
         (cadObject): cadObject is BlockRepresentationData => cadObject instanceof BlockRepresentationData,
@@ -228,12 +228,12 @@ describe('Roundtrip Tests', () => {
 
       const buffer = new ArrayBuffer(16 * 1024 * 1024);
       const writer = new DwgWriter(buffer, doc);
-      writer.Write();
+      writer.write();
 
       const outPath = path.join(roundtripOutDir, 'rt_sample_AC1018_object-links.dwg');
       fs.writeFileSync(outPath, new Uint8Array(buffer, 0, writer.bytesWritten));
 
-      const reread = new DwgReader(readFileAsArrayBuffer(outPath)).Read();
+      const reread = new DwgReader(readFileAsArrayBuffer(outPath)).read();
       const rereadObjects = [...(reread as any)._cadObjects.values()];
 
       expect(rereadObjects.filter((cadObject): cadObject is BlockRepresentationData => cadObject instanceof BlockRepresentationData)).toHaveLength(blockRepresentationCount);
@@ -244,19 +244,19 @@ describe('Roundtrip Tests', () => {
       const sample = dwgFiles.find(f => f.fileName === 'sample_AC1018.dwg');
       expect(sample).toBeDefined();
 
-      const doc = new DwgReader(readFileAsArrayBuffer(sample!.path)).Read();
+      const doc = new DwgReader(readFileAsArrayBuffer(sample!.path)).read();
       const multiLeaderCount = [...doc.entities].filter((entity): entity is MultiLeader => entity instanceof MultiLeader).length;
 
       expect(multiLeaderCount).toBeGreaterThan(0);
 
       const buffer = new ArrayBuffer(16 * 1024 * 1024);
       const writer = new DwgWriter(buffer, doc);
-      writer.Write();
+      writer.write();
 
       const outPath = path.join(roundtripOutDir, 'rt_sample_AC1018_multileaders.dwg');
       fs.writeFileSync(outPath, new Uint8Array(buffer, 0, writer.bytesWritten));
 
-      const reread = new DwgReader(readFileAsArrayBuffer(outPath)).Read();
+      const reread = new DwgReader(readFileAsArrayBuffer(outPath)).read();
       const rereadCount = [...reread.entities].filter((entity): entity is MultiLeader => entity instanceof MultiLeader).length;
 
       expect(rereadCount).toBe(multiLeaderCount);
@@ -266,7 +266,7 @@ describe('Roundtrip Tests', () => {
       const sample = dwgFiles.find(f => f.fileName === 'sample_AC1018.dwg');
       expect(sample).toBeDefined();
 
-      const doc = new DwgReader(readFileAsArrayBuffer(sample!.path)).Read();
+      const doc = new DwgReader(readFileAsArrayBuffer(sample!.path)).read();
       const originalObjects = [...(doc as any)._cadObjects.values()];
       const evaluationGraphCount = originalObjects.filter(
         (cadObject): cadObject is EvaluationGraph => cadObject instanceof EvaluationGraph,
@@ -276,12 +276,12 @@ describe('Roundtrip Tests', () => {
 
       const buffer = new ArrayBuffer(16 * 1024 * 1024);
       const writer = new DwgWriter(buffer, doc);
-      writer.Write();
+      writer.write();
 
       const outPath = path.join(roundtripOutDir, 'rt_sample_AC1018_evaluation-graphs.dwg');
       fs.writeFileSync(outPath, new Uint8Array(buffer, 0, writer.bytesWritten));
 
-      const reread = new DwgReader(readFileAsArrayBuffer(outPath)).Read();
+      const reread = new DwgReader(readFileAsArrayBuffer(outPath)).read();
       const rereadObjects = [...(reread as any)._cadObjects.values()];
 
       expect(rereadObjects.filter((cadObject): cadObject is EvaluationGraph => cadObject instanceof EvaluationGraph)).toHaveLength(evaluationGraphCount);
@@ -291,7 +291,7 @@ describe('Roundtrip Tests', () => {
       const sample = dwgFiles.find(f => f.fileName === 'sample_AC1018.dwg');
       expect(sample).toBeDefined();
 
-      const doc = new DwgReader(readFileAsArrayBuffer(sample!.path)).Read();
+      const doc = new DwgReader(readFileAsArrayBuffer(sample!.path)).read();
       const originalObjects = [...(doc as any)._cadObjects.values()];
       const visualStyleCount = originalObjects.filter(
         (cadObject): cadObject is VisualStyle => cadObject instanceof VisualStyle,
@@ -301,12 +301,12 @@ describe('Roundtrip Tests', () => {
 
       const buffer = new ArrayBuffer(16 * 1024 * 1024);
       const writer = new DwgWriter(buffer, doc);
-      writer.Write();
+      writer.write();
 
       const outPath = path.join(roundtripOutDir, 'rt_sample_AC1018_visual-styles.dwg');
       fs.writeFileSync(outPath, new Uint8Array(buffer, 0, writer.bytesWritten));
 
-      const reread = new DwgReader(readFileAsArrayBuffer(outPath)).Read();
+      const reread = new DwgReader(readFileAsArrayBuffer(outPath)).read();
       const rereadObjects = [...(reread as any)._cadObjects.values()];
 
       expect(rereadObjects.filter((cadObject): cadObject is VisualStyle => cadObject instanceof VisualStyle)).toHaveLength(visualStyleCount);
@@ -316,7 +316,7 @@ describe('Roundtrip Tests', () => {
       const sample = dwgFiles.find(f => f.fileName === 'sample_AC1018.dwg');
       expect(sample).toBeDefined();
 
-      const doc = new DwgReader(readFileAsArrayBuffer(sample!.path)).Read();
+      const doc = new DwgReader(readFileAsArrayBuffer(sample!.path)).read();
       const originalObjects = [...(doc as any)._cadObjects.values()];
       const tableStyleCount = originalObjects.filter(
         (cadObject): cadObject is TableStyle => cadObject instanceof TableStyle,
@@ -326,12 +326,12 @@ describe('Roundtrip Tests', () => {
 
       const buffer = new ArrayBuffer(16 * 1024 * 1024);
       const writer = new DwgWriter(buffer, doc);
-      writer.Write();
+      writer.write();
 
       const outPath = path.join(roundtripOutDir, 'rt_sample_AC1018_table-styles.dwg');
       fs.writeFileSync(outPath, new Uint8Array(buffer, 0, writer.bytesWritten));
 
-      const reread = new DwgReader(readFileAsArrayBuffer(outPath)).Read();
+      const reread = new DwgReader(readFileAsArrayBuffer(outPath)).read();
       const rereadObjects = [...(reread as any)._cadObjects.values()];
 
       expect(rereadObjects.filter((cadObject): cadObject is TableStyle => cadObject instanceof TableStyle)).toHaveLength(tableStyleCount);
@@ -341,7 +341,7 @@ describe('Roundtrip Tests', () => {
       const sample = dwgFiles.find(f => f.fileName === 'sample_AC1018.dwg');
       expect(sample).toBeDefined();
 
-      const doc = new DwgReader(readFileAsArrayBuffer(sample!.path)).Read();
+      const doc = new DwgReader(readFileAsArrayBuffer(sample!.path)).read();
       const originalObjects = [...(doc as any)._cadObjects.values()];
       const materialCount = originalObjects.filter(
         (cadObject): cadObject is Material => cadObject instanceof Material,
@@ -351,12 +351,12 @@ describe('Roundtrip Tests', () => {
 
       const buffer = new ArrayBuffer(16 * 1024 * 1024);
       const writer = new DwgWriter(buffer, doc);
-      writer.Write();
+      writer.write();
 
       const outPath = path.join(roundtripOutDir, 'rt_sample_AC1018_materials.dwg');
       fs.writeFileSync(outPath, new Uint8Array(buffer, 0, writer.bytesWritten));
 
-      const reread = new DwgReader(readFileAsArrayBuffer(outPath)).Read();
+      const reread = new DwgReader(readFileAsArrayBuffer(outPath)).read();
       const rereadObjects = [...(reread as any)._cadObjects.values()];
 
       expect(rereadObjects.filter((cadObject): cadObject is Material => cadObject instanceof Material)).toHaveLength(materialCount);
@@ -367,7 +367,7 @@ describe('Roundtrip Tests', () => {
       expect(sample).toBeDefined();
 
       const data = readFileAsArrayBuffer(sample!.path);
-      const doc = new DwgReader(data).Read();
+      const doc = new DwgReader(data).read();
       const dimensions = [...doc.entities].filter((entity): entity is Dimension => entity instanceof Dimension);
       const overrides = dimensions.filter(dimension => dimension.hasStyleOverride);
 
@@ -379,7 +379,7 @@ describe('Roundtrip Tests', () => {
       const sample = dwgFiles.find(f => f.fileName === 'sample_AC1018.dwg');
       expect(sample).toBeDefined();
 
-      const doc = new DwgReader(readFileAsArrayBuffer(sample!.path)).Read();
+      const doc = new DwgReader(readFileAsArrayBuffer(sample!.path)).read();
       const solidCount = [...doc.entities].filter((entity): entity is Solid3D => entity instanceof Solid3D).length;
       const regionCount = [...doc.entities].filter((entity): entity is Region => entity instanceof Region).length;
 
@@ -388,12 +388,12 @@ describe('Roundtrip Tests', () => {
 
       const buffer = new ArrayBuffer(16 * 1024 * 1024);
       const writer = new DwgWriter(buffer, doc);
-      writer.Write();
+      writer.write();
 
       const outPath = path.join(roundtripOutDir, 'rt_sample_AC1018_modeler-geometry.dwg');
       fs.writeFileSync(outPath, new Uint8Array(buffer, 0, writer.bytesWritten));
 
-      const reread = new DwgReader(readFileAsArrayBuffer(outPath)).Read();
+      const reread = new DwgReader(readFileAsArrayBuffer(outPath)).read();
 
       expect([...reread.entities].filter((entity): entity is Solid3D => entity instanceof Solid3D)).toHaveLength(solidCount);
       expect([...reread.entities].filter((entity): entity is Region => entity instanceof Region)).toHaveLength(regionCount);
@@ -403,7 +403,7 @@ describe('Roundtrip Tests', () => {
       const sample = path.join(process.cwd(), 'samples', 'aec_objects', 'AecObjects.dwg');
       expect(fs.existsSync(sample)).toBe(true);
 
-      const doc = new DwgReader(readFileAsArrayBuffer(sample)).Read();
+      const doc = new DwgReader(readFileAsArrayBuffer(sample)).read();
       const walls = [...doc.entities].filter((entity): entity is Wall => entity instanceof Wall);
       const wallCount = walls.length;
       const originalWall = walls[0];
@@ -413,12 +413,12 @@ describe('Roundtrip Tests', () => {
 
       const buffer = new ArrayBuffer(16 * 1024 * 1024);
       const writer = new DwgWriter(buffer, doc);
-      writer.Write();
+      writer.write();
 
       const outPath = path.join(roundtripOutDir, 'rt_aec_objects.dwg');
       fs.writeFileSync(outPath, new Uint8Array(buffer, 0, writer.bytesWritten));
 
-      const reread = new DwgReader(readFileAsArrayBuffer(outPath)).Read();
+      const reread = new DwgReader(readFileAsArrayBuffer(outPath)).read();
       const rereadWalls = [...reread.entities].filter((entity): entity is Wall => entity instanceof Wall);
       const rereadWallCount = rereadWalls.length;
       const rereadWall = rereadWalls[0];
@@ -449,7 +449,7 @@ describe('Roundtrip Tests', () => {
         // 1. Read original
         const data = readFileAsArrayBuffer(test.path);
         const reader = new DwgReader(data);
-        const doc = reader.Read();
+        const doc = reader.read();
 
         expect(doc).not.toBeNull();
 
@@ -459,7 +459,7 @@ describe('Roundtrip Tests', () => {
         // 2. Write
         const buffer = new ArrayBuffer(16 * 1024 * 1024);
         const writer = new DwgWriter(buffer, doc);
-        writer.Write();
+        writer.write();
 
         const outPath = path.join(roundtripOutDir, `rt_${test.fileName}`);
         fs.writeFileSync(outPath, new Uint8Array(buffer, 0, writer.bytesWritten));
@@ -467,7 +467,7 @@ describe('Roundtrip Tests', () => {
         // 3. Re-read
         const rereadData = readFileAsArrayBuffer(outPath);
         const reader2 = new DwgReader(rereadData);
-        const doc2 = reader2.Read();
+        const doc2 = reader2.read();
 
         assertDocumentDefaults(doc2);
 
@@ -489,14 +489,14 @@ describe('Roundtrip Tests', () => {
         // 1. Read original
         const data = readFileAsUint8Array(test.path);
         const reader = new DxfReader(data);
-        const doc = reader.Read();
+        const doc = reader.read();
 
         expect(doc).not.toBeNull();
 
         // 2. Write as ASCII DXF
         const stream = new InMemoryAsciiStream();
         const writer = new DxfWriter(stream as any, doc, false);
-        writer.Write();
+        writer.write();
         const written = stream.toUint8Array();
 
         const outPath = path.join(roundtripOutDir, `rt_${test.fileName}`);
@@ -504,7 +504,7 @@ describe('Roundtrip Tests', () => {
 
         // 3. Re-read
         const reader2 = new DxfReader(written);
-        const doc2 = reader2.Read();
+        const doc2 = reader2.read();
 
         expect(doc2).not.toBeNull();
 
@@ -530,14 +530,14 @@ describe('Roundtrip Tests', () => {
         // 1. Read original
         const data = readFileAsUint8Array(test.path);
         const reader = new DxfReader(data);
-        const doc = reader.Read();
+        const doc = reader.read();
 
         expect(doc).not.toBeNull();
 
         // 2. Write as ASCII DXF (roundtrip through ASCII for compatibility)
         const stream = new InMemoryAsciiStream();
         const writer = new DxfWriter(stream as any, doc, false);
-        writer.Write();
+        writer.write();
         const written = stream.toUint8Array();
 
         const outPath = path.join(roundtripOutDir, `rt_ascii_${test.fileName}`);
@@ -545,7 +545,7 @@ describe('Roundtrip Tests', () => {
 
         // 3. Re-read
         const reader2 = new DxfReader(written);
-        const doc2 = reader2.Read();
+        const doc2 = reader2.read();
 
         expect(doc2).not.toBeNull();
 

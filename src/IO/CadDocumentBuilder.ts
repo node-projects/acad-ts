@@ -32,24 +32,24 @@ import { ICadTableTemplate } from './Templates/ICadTableTemplate.js';
 import { CadTemplate } from './Templates/CadTemplate.js';
 
 export abstract class CadDocumentBuilder {
-	OnNotification: NotificationEventHandler | null = null;
+	onNotification: NotificationEventHandler | null = null;
 
-	AppIds: AppIdsTable = new AppIdsTable();
-	BlockRecords: BlockRecordsTable = new BlockRecordsTable();
-	DimensionStyles: DimensionStylesTable = new DimensionStylesTable();
-	DocumentToBuild: CadDocument;
-	InitialHandSeed: number = 0;
+	appIds: AppIdsTable = new AppIdsTable();
+	blockRecords: BlockRecordsTable = new BlockRecordsTable();
+	dimensionStyles: DimensionStylesTable = new DimensionStylesTable();
+	documentToBuild: CadDocument;
+	initialHandSeed: number = 0;
 
-	abstract get KeepUnknownEntities(): boolean;
-	abstract get KeepUnknownNonGraphicalObjects(): boolean;
+	abstract get keepUnknownEntities(): boolean;
+	abstract get keepUnknownNonGraphicalObjects(): boolean;
 
-	Layers: LayersTable = new LayersTable();
-	LineTypesTable: LineTypesTable = new LineTypesTable();
-	TextStyles: TextStylesTable = new TextStylesTable();
-	UCSs: UCSTable = new UCSTable();
-	Version: ACadVersion;
-	Views: ViewsTable = new ViewsTable();
-	VPorts: VPortsTable = new VPortsTable();
+	layers: LayersTable = new LayersTable();
+	lineTypesTable: LineTypesTable = new LineTypesTable();
+	textStyles: TextStylesTable = new TextStylesTable();
+	ucSs: UCSTable = new UCSTable();
+	version: ACadVersion;
+	views: ViewsTable = new ViewsTable();
+	vPorts: VPortsTable = new VPortsTable();
 
 	protected cadObjects: Map<number, CadObject> = new Map();
 	protected cadObjectsTemplates: Map<number, ICadObjectTemplate> = new Map();
@@ -60,60 +60,60 @@ export abstract class CadDocumentBuilder {
 	protected unassignedObjects: ICadObjectTemplate[] = [];
 
 	constructor(version: ACadVersion, document: CadDocument) {
-		this.Version = version;
-		this.DocumentToBuild = document;
+		this.version = version;
+		this.documentToBuild = document;
 	}
 
-	AddTemplate(template: ICadObjectTemplate): void {
-		if (!this.addToMap(template)) {
+	addTemplate(template: ICadObjectTemplate): void {
+		if (!this._addToMap(template)) {
 			return;
 		}
 
-		const handle = template.CadObject.handle;
+		const handle = template.cadObject.handle;
 
-		if (this.isDictionaryTemplate(template)) {
+		if (this._isDictionaryTemplate(template)) {
 			this.dictionaryTemplates.set(handle, template);
-		} else if (this.isTableTemplate(template)) {
+		} else if (this._isTableTemplate(template)) {
 			this.tableTemplates.set(handle, template);
-		} else if (this.isTableEntryTemplate(template)) {
+		} else if (this._isTableEntryTemplate(template)) {
 			this.tableEntryTemplates.set(handle, template);
 		} else {
 			this.cadObjectsTemplates.set(handle, template);
 		}
 	}
 
-	BuildDocument(): void {
+	buildDocument(): void {
 		for (const template of this.tableEntryTemplates.values()) {
-			template.Build(this);
+			template.build(this);
 		}
 
 		for (const template of this.cadObjectsTemplates.values()) {
-			(template as CadTemplate).Build(this);
+			(template as CadTemplate).build(this);
 		}
 	}
 
-	BuildTable<T extends TableEntry>(table: Table<T>): void {
+	buildTable<T extends TableEntry>(table: Table<T>): void {
 		const template = this.tableTemplates.get(table.handle);
 		if (template) {
-			template.Build(this);
+			template.build(this);
 		} else {
-			this.Notify(`Table ${table.objectName} not found in the document`, NotificationType.Warning);
+			this.notify(`Table ${table.objectName} not found in the document`, NotificationType.Warning);
 		}
 	}
 
-	BuildTables(): void {
-		this.BuildTable(this.AppIds);
-		this.BuildTable(this.TextStyles);
-		this.BuildTable(this.LineTypesTable);
-		this.BuildTable(this.Layers);
-		this.BuildTable(this.UCSs);
-		this.BuildTable(this.Views);
-		this.BuildTable(this.BlockRecords);
-		this.BuildTable(this.DimensionStyles);
-		this.BuildTable(this.VPorts);
+	buildTables(): void {
+		this.buildTable(this.appIds);
+		this.buildTable(this.textStyles);
+		this.buildTable(this.lineTypesTable);
+		this.buildTable(this.layers);
+		this.buildTable(this.ucSs);
+		this.buildTable(this.views);
+		this.buildTable(this.blockRecords);
+		this.buildTable(this.dimensionStyles);
+		this.buildTable(this.vPorts);
 	}
 
-	GetObjectTemplate<T extends CadTemplate>(handle: number): T | null {
+	getObjectTemplate<T extends CadTemplate>(handle: number): T | null {
 		const template = this.templatesMap.get(handle);
 		if (template) {
 			return template as unknown as T;
@@ -121,34 +121,34 @@ export abstract class CadDocumentBuilder {
 		return null;
 	}
 
-	Notify(message: string, notificationType: NotificationType = NotificationType.None, exception: Error | null = null): void {
-		this.OnNotification?.(this, new NotificationEventArgs(message, notificationType, exception));
+	notify(message: string, notificationType: NotificationType = NotificationType.None, exception: Error | null = null): void {
+		this.onNotification?.(this, new NotificationEventArgs(message, notificationType, exception));
 	}
 
-	RegisterTables(): void {
-		this.DocumentToBuild.registerCollection(this.AppIds);
-		this.DocumentToBuild.registerCollection(this.TextStyles);
-		this.DocumentToBuild.registerCollection(this.LineTypesTable);
-		this.DocumentToBuild.registerCollection(this.Layers);
-		this.DocumentToBuild.registerCollection(this.UCSs);
-		this.DocumentToBuild.registerCollection(this.Views);
-		this.DocumentToBuild.registerCollection(this.BlockRecords);
-		this.DocumentToBuild.registerCollection(this.DimensionStyles);
-		this.DocumentToBuild.registerCollection(this.VPorts);
+	registerTables(): void {
+		this.documentToBuild.registerCollection(this.appIds);
+		this.documentToBuild.registerCollection(this.textStyles);
+		this.documentToBuild.registerCollection(this.lineTypesTable);
+		this.documentToBuild.registerCollection(this.layers);
+		this.documentToBuild.registerCollection(this.ucSs);
+		this.documentToBuild.registerCollection(this.views);
+		this.documentToBuild.registerCollection(this.blockRecords);
+		this.documentToBuild.registerCollection(this.dimensionStyles);
+		this.documentToBuild.registerCollection(this.vPorts);
 	}
 
-	TryGetCadObject<T extends CadObject>(handle: number | null | undefined): T | null {
+	tryGetCadObject<T extends CadObject>(handle: number | null | undefined): T | null {
 		if (handle == null || handle === 0) {
 			return null;
 		}
 
 		const obj = this.cadObjects.get(handle);
 		if (obj) {
-			if (obj instanceof UnknownEntity && !this.KeepUnknownEntities) {
+			if (obj instanceof UnknownEntity && !this.keepUnknownEntities) {
 				return null;
 			}
 
-			if (obj instanceof UnknownNonGraphicalObject && !this.KeepUnknownNonGraphicalObjects) {
+			if (obj instanceof UnknownNonGraphicalObject && !this.keepUnknownNonGraphicalObjects) {
 				return null;
 			}
 
@@ -158,7 +158,7 @@ export abstract class CadDocumentBuilder {
 		return null;
 	}
 
-	TryGetObjectTemplate<T extends ICadObjectTemplate>(handle: number | null | undefined): T | null {
+	tryGetObjectTemplate<T extends ICadObjectTemplate>(handle: number | null | undefined): T | null {
 		if (handle == null || handle === 0) {
 			return null;
 		}
@@ -171,22 +171,22 @@ export abstract class CadDocumentBuilder {
 		return null;
 	}
 
-	TryGetTableEntry<T extends TableEntry>(name: string): T | null {
+	tryGetTableEntry<T extends TableEntry>(name: string): T | null {
 		if (!name || name.length === 0) {
 			return null;
 		}
 
 		type TableLookup = { tryGetValue(name: string): TableEntry | null };
 		const tables: TableLookup[] = [
-			this.AppIds,
-			this.Layers,
-			this.LineTypesTable,
-			this.UCSs,
-			this.Views,
-			this.DimensionStyles,
-			this.TextStyles,
-			this.VPorts,
-			this.BlockRecords,
+			this.appIds,
+			this.layers,
+			this.lineTypesTable,
+			this.ucSs,
+			this.views,
+			this.dimensionStyles,
+			this.textStyles,
+			this.vPorts,
+			this.blockRecords,
 		];
 
 		for (const t of tables) {
@@ -201,77 +201,77 @@ export abstract class CadDocumentBuilder {
 
 	protected buildDictionaries(): void {
 		for (const dictionaryTemplate of this.dictionaryTemplates.values()) {
-			dictionaryTemplate.Build(this);
+			dictionaryTemplate.build(this);
 		}
 
-		if (!this.DocumentToBuild.rootDictionary) {
+		if (!this.documentToBuild.rootDictionary) {
 			const roots: CadDictionary[] = [];
 			for (const t of this.dictionaryTemplates.values()) {
-				if (t.CadObject instanceof CadDictionary && t.CadObject.owner == null) {
-					roots.push(t.CadObject);
+				if (t.cadObject instanceof CadDictionary && t.cadObject.owner == null) {
+					roots.push(t.cadObject);
 				}
 			}
 
 			if (roots.length !== 1) {
-				this.Notify(`The root dictionary could not be found.`, NotificationType.Warning);
+				this.notify(`The root dictionary could not be found.`, NotificationType.Warning);
 			} else {
-				this.DocumentToBuild.rootDictionary = roots[0];
+				this.documentToBuild.rootDictionary = roots[0];
 			}
 		}
 
-		this.DocumentToBuild.updateCollections(true, false);
+		this.documentToBuild.updateCollections(true, false);
 	}
 
 	protected createMissingHandles(): void {
-		let nextHandle = Number.isFinite(this.InitialHandSeed) ? this.InitialHandSeed : 0;
+		let nextHandle = Number.isFinite(this.initialHandSeed) ? this.initialHandSeed : 0;
 		let pending = this.unassignedObjects;
 		this.unassignedObjects = [];
 
 		while (pending.length > 0) {
 			for (const template of pending) {
 				nextHandle += 1;
-				template.CadObject.handle = nextHandle;
-				this.AddTemplate(template);
+				template.cadObject.handle = nextHandle;
+				this.addTemplate(template);
 			}
 
 			pending = this.unassignedObjects;
 			this.unassignedObjects = [];
 		}
 
-		this.InitialHandSeed = nextHandle;
+		this.initialHandSeed = nextHandle;
 	}
 
 	protected registerTable<T extends TableEntry>(table: Table<T> | null, tableConstructor: new () => Table<T>): void {
 		if (!table) {
-			this.DocumentToBuild.registerCollection(new tableConstructor());
+			this.documentToBuild.registerCollection(new tableConstructor());
 		} else {
-			this.DocumentToBuild.registerCollection(table);
+			this.documentToBuild.registerCollection(table);
 		}
 	}
 
-	private addToMap(template: ICadObjectTemplate): boolean {
-		if (template.CadObject.handle === 0) {
-			this.pushUnassigned(template);
+	private _addToMap(template: ICadObjectTemplate): boolean {
+		if (template.cadObject.handle === 0) {
+			this._pushUnassigned(template);
 			return false;
 		}
 
-		if (this.templatesMap.has(template.CadObject.handle)) {
-			this.Notify(`Repeated handle found ${template.CadObject.handle}.`, NotificationType.Warning);
-			template.CadObject.handle = 0;
-			this.pushUnassigned(template);
+		if (this.templatesMap.has(template.cadObject.handle)) {
+			this.notify(`Repeated handle found ${template.cadObject.handle}.`, NotificationType.Warning);
+			template.cadObject.handle = 0;
+			this._pushUnassigned(template);
 			return false;
 		}
 
-		if (template.CadObject.handle > this.InitialHandSeed) {
-			this.InitialHandSeed = template.CadObject.handle;
+		if (template.cadObject.handle > this.initialHandSeed) {
+			this.initialHandSeed = template.cadObject.handle;
 		}
 
-		this.templatesMap.set(template.CadObject.handle, template);
-		this.cadObjects.set(template.CadObject.handle, template.CadObject);
+		this.templatesMap.set(template.cadObject.handle, template);
+		this.cadObjects.set(template.cadObject.handle, template.cadObject);
 		return true;
 	}
 
-	private pushUnassigned(template: ICadObjectTemplate): void {
+	private _pushUnassigned(template: ICadObjectTemplate): void {
 		if (!Array.isArray(this.unassignedObjects)) {
 			this.unassignedObjects = [];
 		}
@@ -280,7 +280,7 @@ export abstract class CadDocumentBuilder {
 			this.unassignedObjects.push(template);
 		} catch (e) {
 			if (e instanceof RangeError) {
-				this.Notify('Resetting unassigned object queue due to invalid array length.', NotificationType.Warning, e);
+				this.notify('Resetting unassigned object queue due to invalid array length.', NotificationType.Warning, e);
 				this.unassignedObjects = [template];
 				return;
 			}
@@ -288,15 +288,15 @@ export abstract class CadDocumentBuilder {
 		}
 	}
 
-	private isDictionaryTemplate(template: ICadObjectTemplate): template is ICadDictionaryTemplate {
-		return 'CadObject' in template && template.CadObject instanceof CadDictionary;
+	private _isDictionaryTemplate(template: ICadObjectTemplate): template is ICadDictionaryTemplate {
+		return template.cadObject instanceof CadDictionary;
 	}
 
-	private isTableTemplate(template: ICadObjectTemplate): template is ICadTableTemplate {
-		return 'EntryHandles' in template;
+	private _isTableTemplate(template: ICadObjectTemplate): template is ICadTableTemplate {
+		return 'entryHandles' in template;
 	}
 
-	private isTableEntryTemplate(template: ICadObjectTemplate): template is ICadTableEntryTemplate {
-		return 'Type' in template && 'Name' in template && !('EntryHandles' in template);
+	private _isTableEntryTemplate(template: ICadObjectTemplate): template is ICadTableEntryTemplate {
+		return 'type' in template && 'name' in template && !('entryHandles' in template);
 	}
 }

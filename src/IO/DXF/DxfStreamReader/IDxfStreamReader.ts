@@ -4,43 +4,43 @@ import { GroupCodeValueType } from '../../../GroupCodeValue.js';
 export interface IDxfStreamReader {
   encoding: string;
 
-  DxfCode: DxfCode;
+  dxfCode: DxfCode;
 
-  GroupCodeValue: GroupCodeValueType;
+  groupCodeValue: GroupCodeValueType;
 
-  Code: number;
+  code: number;
 
-  Value: unknown;
+  value: unknown;
 
-  Position: number;
+  position: number;
 
-  ValueAsString: string;
+  valueAsString: string;
 
-  ValueRaw: string;
+  valueRaw: string;
 
-  ValueAsBool: boolean;
+  valueAsBool: boolean;
 
-  ValueAsShort: number;
+  valueAsShort: number;
 
-  ValueAsUShort: number;
+  valueAsUShort: number;
 
-  ValueAsInt: number;
+  valueAsInt: number;
 
-  ValueAsLong: number;
+  valueAsLong: number;
 
-  ValueAsDouble: number;
+  valueAsDouble: number;
 
-  ValueAsAngle: number;
+  valueAsAngle: number;
 
-  ValueAsHandle: number;
+  valueAsHandle: number;
 
-  ValueAsBinaryChunk: Uint8Array;
+  valueAsBinaryChunk: Uint8Array;
 
-  Find(dxfEntry: string): boolean;
+  find(dxfEntry: string): boolean;
 
-  Start(): void;
+  start(): void;
 
-  ReadNext(): void;
+  readNext(): void;
 
-  ExpectedCode(code: number): void;
+  expectedCode(code: number): void;
 }

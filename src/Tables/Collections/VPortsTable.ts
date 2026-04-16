@@ -9,16 +9,16 @@ export class VPortsTable extends Table<VPort> {
 	}
 
 	public override get objectName(): string {
-		return DxfFileToken.TableVport;
+		return DxfFileToken.tableVport;
 	}
 
 	protected override get defaultEntries(): string[] {
-		return [VPort.DefaultName];
+		return [VPort.defaultName];
 	}
 
 	public override createDefaultEntries(): void {
-		if (!this.contains(VPort.DefaultName)) {
-			this.add(VPort.Default);
+		if (!this.contains(VPort.defaultName)) {
+			this.add(VPort.default);
 		}
 	}
 

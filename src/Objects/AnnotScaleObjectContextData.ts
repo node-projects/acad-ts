@@ -17,10 +17,10 @@ export abstract class AnnotScaleObjectContextData extends ObjectContextData {
 	}
 
 	override get subclassMarker(): string {
-		return DxfSubclassMarker.AnnotScaleObjectContextData;
+		return DxfSubclassMarker.annotScaleObjectContextData;
 	}
 
-	private _scale: Scale = Scale.Default;
+	private _scale: Scale = Scale.default;
 
 	override clone(): CadObject {
 		const clone = super.clone() as AnnotScaleObjectContextData;

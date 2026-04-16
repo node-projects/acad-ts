@@ -33,7 +33,7 @@ export class LeaderLine {
 	arrowheadSize: number = 0;
 	breakInfoCount: number = 0;
 	index: number = 0;
-	lineColor: Color = Color.ByLayer;
+	lineColor: Color = Color.byLayer;
 
 	private _lineType: LineType | null = null;
 	get lineType(): LineType | null { return this._lineType; }
@@ -104,7 +104,7 @@ export class LeaderRoot {
 
 export class MultiLeaderObjectContextData extends AnnotScaleObjectContextData {
 	arrowheadSize: number = 0;
-	backgroundFillColor: Color = Color.ByLayer;
+	backgroundFillColor: Color = Color.byLayer;
 	backgroundFillEnabled: boolean = false;
 	backgroundMaskFillOn: boolean = false;
 	backgroundScaleFactor: number = 0;
@@ -119,7 +119,7 @@ export class MultiLeaderObjectContextData extends AnnotScaleObjectContextData {
 		this._blockContent = CadObject.updateCollectionStatic(value, this.document?.blockRecords ?? null);
 	}
 
-	blockContentColor: Color = Color.ByLayer;
+	blockContentColor: Color = Color.byLayer;
 	blockContentConnection: number = 0;
 	blockContentLocation: XYZ = new XYZ(0, 0, 0);
 	blockContentNormal: XYZ = new XYZ(0, 0, 0);
@@ -143,17 +143,17 @@ export class MultiLeaderObjectContextData extends AnnotScaleObjectContextData {
 	lineSpacingFactor: number = 0;
 	normalReversed: boolean = false;
 
-	override get objectName(): string { return DxfFileToken.ObjectMLeaderContextData; }
+	override get objectName(): string { return DxfFileToken.objectMLeaderContextData; }
 	override get objectType(): ObjectType { return ObjectType.UNLISTED; }
 
 	scaleFactor: number = 0;
 
-	override get subclassMarker(): string { return DxfSubclassMarker.MultiLeaderObjectContextData; }
+	override get subclassMarker(): string { return DxfSubclassMarker.multiLeaderObjectContextData; }
 
 	textAlignment: number = 0;
 	textAttachmentPoint: number = 0;
 	textBottomAttachment: number = 0;
-	textColor: Color = Color.ByLayer;
+	textColor: Color = Color.byLayer;
 	textHeight: number = 0;
 	textHeightAutomatic: boolean = false;
 	textLabel: string = '';

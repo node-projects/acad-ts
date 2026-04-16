@@ -10,11 +10,11 @@ export class AttributeDefinition extends AttributeBase {
 	}
 
 	override get objectName(): string {
-		return DxfFileToken.EntityAttributeDefinition;
+		return DxfFileToken.entityAttributeDefinition;
 	}
 
 	override get subclassMarker(): string {
-		return DxfSubclassMarker.AttributeDefinition;
+		return DxfSubclassMarker.attributeDefinition;
 	}
 
 	prompt: string = '';

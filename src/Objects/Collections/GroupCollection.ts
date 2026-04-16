@@ -11,15 +11,15 @@ export class GroupCollection extends ObjectDictionaryCollection<Group> {
 
 	override add(entry: Group): void {
 		if (!entry.name || !entry.name.trim()) {
-			entry.name = this.createName('*A');
+			entry.name = this._createName('*A');
 		}
 
-		this.validateEntities(entry.entities);
+		this._validateEntities(entry.entities);
 		super.add(entry);
 	}
 
 	createGroup(entities: Entity[], name: string = ''): Group {
-		this.validateEntities(entities);
+		this._validateEntities(entities);
 
 		const group = new Group(name);
 		this.add(group);
@@ -27,7 +27,7 @@ export class GroupCollection extends ObjectDictionaryCollection<Group> {
 		return group;
 	}
 
-	private createName(prefix: string): string {
+	private _createName(prefix: string): string {
 		let index = 0;
 		while (this.containsKey(`${prefix}${index}`)) {
 			index++;
@@ -35,7 +35,7 @@ export class GroupCollection extends ObjectDictionaryCollection<Group> {
 		return `${prefix}${index}`;
 	}
 
-	private validateEntities(entities: readonly Entity[]): void {
+	private _validateEntities(entities: readonly Entity[]): void {
 		const document = this._dictionary.document;
 		if (document == null) {
 			return;

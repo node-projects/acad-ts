@@ -51,7 +51,7 @@ export abstract class Dimension extends Entity {
 
 	get hasStyleOverride(): boolean {
 		for (const [appName, data] of this.extendedData.getExtendedDataByName()) {
-			if (data.records.length > 0 && (appName === AppId.DefaultName.toUpperCase() || appName.startsWith(`${AppId.DefaultName.toUpperCase()}_DSTYLE`))) {
+			if (data.records.length > 0 && (appName === AppId.defaultName.toUpperCase() || appName.startsWith(`${AppId.defaultName.toUpperCase()}_DSTYLE`))) {
 				return true;
 			}
 		}
@@ -100,7 +100,7 @@ export abstract class Dimension extends Entity {
 	}
 
 	override get subclassMarker(): string {
-		return DxfSubclassMarker.Dimension;
+		return DxfSubclassMarker.dimension;
 	}
 
 	text: string = '';
@@ -113,7 +113,7 @@ export abstract class Dimension extends Entity {
 
 	protected _block: BlockRecord | null = null;
 	protected _flags: DimensionType;
-	private _style: DimensionStyle = DimensionStyle.Default;
+	private _style: DimensionStyle = DimensionStyle.default;
 
 	protected constructor(type: DimensionType) {
 		super();
@@ -150,7 +150,7 @@ export abstract class Dimension extends Entity {
 			return style;
 		}
 
-		const classMap = DxfClassMap.Create(DimensionStyle);
+		const classMap = DxfClassMap.create(DimensionStyle);
 		for (const [code, value] of map) {
 			const property = classMap.dxfProperties.get(code);
 			if (property != null) {
@@ -163,7 +163,7 @@ export abstract class Dimension extends Entity {
 
 	getMeasurementText(style?: DimensionStyle): string {
 		const activeStyle = style ?? this.getActiveDimensionStyle();
-		const measurement = this.formatMeasurement(this.measurement, activeStyle);
+		const measurement = this._formatMeasurement(this.measurement, activeStyle);
 
 		if (this.text.length > 0) {
 			return this.text.includes('<>') ? this.text.replace(/<>/g, measurement) : this.text;
@@ -174,9 +174,9 @@ export abstract class Dimension extends Entity {
 
 	getStyleOverrideMap(): Map<number, unknown> | null {
 		const map = new Map<number, unknown>();
-		const classMap = DxfClassMap.Create(DimensionStyle);
+		const classMap = DxfClassMap.create(DimensionStyle);
 		for (const [name, extendedData] of this.extendedData.getExtendedDataByName()) {
-			if (name !== AppId.DefaultName.toUpperCase() && !name.startsWith(`${AppId.DefaultName.toUpperCase()}_${DimensionStyle.StyleOverrideEntryName}`)) {
+			if (name !== AppId.defaultName.toUpperCase() && !name.startsWith(`${AppId.defaultName.toUpperCase()}_${DimensionStyle.styleOverrideEntryName}`)) {
 				continue;
 			}
 
@@ -199,7 +199,7 @@ export abstract class Dimension extends Entity {
 
 	setDimensionOverride(styleOverride: DimensionStyle): void {
 		const current = this.style;
-		const classMap = DxfClassMap.Create(DimensionStyle);
+		const classMap = DxfClassMap.create(DimensionStyle);
 		const overrides = new Map<number, unknown>();
 
 		for (const [code, property] of classMap.dxfProperties) {
@@ -214,10 +214,10 @@ export abstract class Dimension extends Entity {
 	}
 
 	setStyleOverrideMap(map: Map<number, unknown> | null): void {
-		const appName = `${AppId.DefaultName}_${DimensionStyle.StyleOverrideEntryName}`;
+		const appName = `${AppId.defaultName}_${DimensionStyle.styleOverrideEntryName}`;
 		const nextRecords: ExtendedDataRecord[] = [];
 		if (map != null) {
-			const classMap = DxfClassMap.Create(DimensionStyle);
+			const classMap = DxfClassMap.create(DimensionStyle);
 			for (const [code, value] of map) {
 				const property = classMap.dxfProperties.get(code);
 				if (property == null) {
@@ -265,7 +265,7 @@ export abstract class Dimension extends Entity {
 		this._block = CadObject.updateCollection(this._block!, doc.blockRecords);
 
 		if (this._block != null) {
-			this._block.name = this.generateBlockName();
+			this._block.name = this._generateBlockName();
 		}
 
 		this._block = CadObject.updateCollection(this._block!, doc.blockRecords);
@@ -280,7 +280,7 @@ export abstract class Dimension extends Entity {
 
 	protected createBlock(): void {
 		if (this._block == null) {
-			this._block = new BlockRecord(this.generateBlockName());
+			this._block = new BlockRecord(this._generateBlockName());
 			this._block.isAnonymous = true;
 		}
 
@@ -293,7 +293,7 @@ export abstract class Dimension extends Entity {
 
 	protected createDefinitionPoint(location: XYZ): Point {
 		const point = new Point(new XYZ(location.x, location.y, location.z));
-		point.layer = this.document?.layers.get(Layer.DefpointsName) ?? Layer.Defpoints;
+		point.layer = this.document?.layers.get(Layer.defpointsName) ?? Layer.defpoints;
 		point.normal = this.normal;
 		return point;
 	}
@@ -320,7 +320,7 @@ export abstract class Dimension extends Entity {
 		this.createBlock();
 
 		for (const [start, end] of lineSegments) {
-			this.addBlockLine(start, end);
+			this._addBlockLine(start, end);
 		}
 
 		const seenPoints = new Set<string>();
@@ -362,7 +362,7 @@ export abstract class Dimension extends Entity {
 		return Number.isFinite(point.x) && Number.isFinite(point.y) && Number.isFinite(point.z);
 	}
 
-	private addBlockLine(start: XYZ, end: XYZ): void {
+	private _addBlockLine(start: XYZ, end: XYZ): void {
 		if (!this.isFinitePoint(start) || !this.isFinitePoint(end) || start.equals(end)) {
 			return;
 		}
@@ -381,7 +381,7 @@ export abstract class Dimension extends Entity {
 			(firstStart.x - firstEnd.x) * (secondStart.y - secondEnd.y) -
 			(firstStart.y - firstEnd.y) * (secondStart.x - secondEnd.x);
 		if (Math.abs(denominator) <= 1e-12) {
-			return XYZ.NaN;
+			return XYZ.naN;
 		}
 
 		const firstDeterminant = firstStart.x * firstEnd.y - firstStart.y * firstEnd.x;
@@ -406,7 +406,7 @@ export abstract class Dimension extends Entity {
 		super._tableOnRemove(sender, e);
 
 		if (e.item === this._style) {
-			this._style = this.document!.dimensionStyles.get(DimensionStyle.DefaultName)!;
+			this._style = this.document!.dimensionStyles.get(DimensionStyle.defaultName)!;
 		}
 
 		if (e.item === this._block) {
@@ -414,11 +414,11 @@ export abstract class Dimension extends Entity {
 		}
 	}
 
-	private generateBlockName(): string {
+	private _generateBlockName(): string {
 		return `*D${this.handle}`;
 	}
 
-	private formatMeasurement(value: number, style: DimensionStyle): string {
+	private _formatMeasurement(value: number, style: DimensionStyle): string {
 		if (!Number.isFinite(value)) {
 			return '';
 		}

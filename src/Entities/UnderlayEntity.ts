@@ -44,7 +44,7 @@ export abstract class UnderlayEntity extends Entity {
 	rotation: number = 0.0;
 
 	override get subclassMarker(): string {
-		return DxfSubclassMarker.Underlay;
+		return DxfSubclassMarker.underlay;
 	}
 
 	get xScale(): number {
@@ -119,7 +119,7 @@ export abstract class UnderlayEntity extends Entity {
 
 		const points = this.clipBoundaryVertices.map((vertex) => {
 			const scaled = new XY(vertex.x * this.xScale, vertex.y * this.yScale);
-			const rotated = XY.Rotate(scaled, this.rotation);
+			const rotated = XY.rotate(scaled, this.rotation);
 			return new XYZ(
 				this.insertPoint.x + rotated.x,
 				this.insertPoint.y + rotated.y,
@@ -127,7 +127,7 @@ export abstract class UnderlayEntity extends Entity {
 			);
 		});
 
-		return BoundingBox.FromPoints(points);
+		return BoundingBox.fromPoints(points);
 	}
 
 	/** @internal */

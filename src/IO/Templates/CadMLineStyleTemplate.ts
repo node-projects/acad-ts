@@ -6,65 +6,65 @@ import { CadTemplateT } from './CadTemplate[T].js';
 import { ICadTemplate } from './ICadTemplate.js';
 
 export class CadMLineStyleTemplate extends CadTemplateT<MLineStyle> {
-	ElementTemplates: CadMLineStyleTemplate.ElementTemplate[] = [];
+	elementTemplates: CadMLineStyleTemplate.ElementTemplate[] = [];
 
 	constructor(mlStyle?: MLineStyle) {
 		super(mlStyle ?? new MLineStyle());
 	}
 
-	protected override build(builder: CadDocumentBuilder): void {
-		super.build(builder);
+	protected override _build(builder: CadDocumentBuilder): void {
+		super._build(builder);
 
-		for (const item of this.ElementTemplates) {
-			item.Build(builder);
+		for (const item of this.elementTemplates) {
+			item.build(builder);
 		}
 	}
 }
 
 export namespace CadMLineStyleTemplate {
 	export class ElementTemplate {
-		Element: MLineStyleElement;
+		element: MLineStyleElement;
 
-		LineTypeHandle: number | null = null;
+		lineTypeHandle: number | null = null;
 
-		LinetypeIndex: number | null = null;
+		linetypeIndex: number | null = null;
 
-		LineTypeName: string | null = null;
+		lineTypeName: string | null = null;
 
 		constructor(element: MLineStyleElement) {
-			this.Element = element;
+			this.element = element;
 		}
 
-		Build(builder: CadDocumentBuilder): void {
-			let lt = builder.TryGetCadObject<LineType>(this.LineTypeHandle);
+		build(builder: CadDocumentBuilder): void {
+			let lt = builder.tryGetCadObject<LineType>(this.lineTypeHandle);
 			if (lt) {
-				this.Element.lineType = lt;
+				this.element.lineType = lt;
 			} else {
-				lt = builder.TryGetTableEntry<LineType>(this.LineTypeName ?? '');
+				lt = builder.tryGetTableEntry<LineType>(this.lineTypeName ?? '');
 				if (lt) {
-					this.Element.lineType = lt;
-				} else if (this.LinetypeIndex != null) {
-					if (this.LinetypeIndex === 0x7FFF) {
-						const bylayer = builder.TryGetTableEntry<LineType>(LineType.ByLayerName);
+					this.element.lineType = lt;
+				} else if (this.linetypeIndex != null) {
+					if (this.linetypeIndex === 0x7FFF) {
+						const bylayer = builder.tryGetTableEntry<LineType>(LineType.byLayerName);
 						if (bylayer) {
-							this.Element.lineType = bylayer;
+							this.element.lineType = bylayer;
 						}
-					} else if (this.LinetypeIndex === 0x7FFE) {
-						const byblock = builder.TryGetTableEntry<LineType>(LineType.ByBlockName);
+					} else if (this.linetypeIndex === 0x7FFE) {
+						const byblock = builder.tryGetTableEntry<LineType>(LineType.byBlockName);
 						if (byblock) {
-							this.Element.lineType = byblock;
+							this.element.lineType = byblock;
 						}
 					} else {
 						try {
-							const lineTypes = builder.LineTypesTable;
+							const lineTypes = builder.lineTypesTable;
 							if (lineTypes) {
 								const arr = Array.from(lineTypes);
-								if (this.LinetypeIndex < arr.length) {
-									this.Element.lineType = arr[this.LinetypeIndex];
+								if (this.linetypeIndex < arr.length) {
+									this.element.lineType = arr[this.linetypeIndex];
 								}
 							}
 						} catch (ex: unknown) {
-							builder.Notify(`Linetype not assigned, index ${this.LinetypeIndex}`, NotificationType.Error, ex instanceof Error ? ex : null);
+							builder.notify(`Linetype not assigned, index ${this.linetypeIndex}`, NotificationType.Error, ex instanceof Error ? ex : null);
 						}
 					}
 				}

@@ -29,16 +29,16 @@ export class Sorter {
 export class SortEntitiesTable extends NonGraphicalObject implements Iterable<Sorter> {
 	blockOwner: BlockRecord | null = null;
 
-	override get objectName(): string { return DxfFileToken.ObjectSortEntsTable; }
+	override get objectName(): string { return DxfFileToken.objectSortEntsTable; }
 	override get objectType(): ObjectType { return ObjectType.UNLISTED; }
-	override get subclassMarker(): string { return DxfSubclassMarker.SortentsTable; }
+	override get subclassMarker(): string { return DxfSubclassMarker.sortentsTable; }
 
-	static readonly DictionaryEntryName = 'ACAD_SORTENTS';
+	static readonly dictionaryEntryName = 'ACAD_SORTENTS';
 
 	private _sorters: Sorter[] = [];
 
 	constructor(owner?: BlockRecord) {
-		super(SortEntitiesTable.DictionaryEntryName);
+		super(SortEntitiesTable.dictionaryEntryName);
 		if (owner) {
 			this.blockOwner = owner;
 		}

@@ -5,7 +5,7 @@ import { DwgStreamWriterBase } from './DwgStreamWriterBase.js';
 import { IDwgStreamWriter } from './IDwgStreamWriter.js';
 
 export class DwgAppInfoWriter extends DwgSectionIO {
-	override get SectionName(): string { return DwgSectionDefinition.AppInfo; }
+	override get sectionName(): string { return DwgSectionDefinition.appInfo; }
 
 	get bytesWritten(): number { return Math.ceil(this._writer.positionInBits / 8); }
 	get writerStream(): ArrayBuffer { return this._writer.main.stream; }

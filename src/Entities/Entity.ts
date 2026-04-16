@@ -23,7 +23,7 @@ function isBlockRecordOwner(value: unknown): value is BlockRecord {
 export abstract class Entity extends CadObject implements IEntity {
 	bookColor: BookColor | null = null;
 
-	color: Color = Color.ByLayer;
+	color: Color = Color.byLayer;
 
 	isInvisible: boolean = false;
 
@@ -54,31 +54,31 @@ export abstract class Entity extends CadObject implements IEntity {
 	material: Material | null = null;
 
 	override get subclassMarker(): string {
-		return DxfSubclassMarker.Entity;
+		return DxfSubclassMarker.entity;
 	}
 
-	transparency: Transparency = Transparency.ByLayer;
+	transparency: Transparency = Transparency.byLayer;
 
 	private _bookColor: BookColor | null = null;
-	private _layer: Layer = Layer.Default;
-	private _lineType: LineType = LineType.ByLayer;
+	private _layer: Layer = Layer.default;
+	private _lineType: LineType = LineType.byLayer;
 
 	constructor() {
 		super();
 	}
 
 	applyRotation(axis: XYZ, rotation: number): void {
-		this.applyTransform(Transform.CreateRotation(axis, rotation));
+		this.applyTransform(Transform.createRotation(axis, rotation));
 	}
 
 	applyScaling(scale: XYZ, origin?: XYZ): void {
-		this.applyTransform(Transform.CreateScaling(scale, origin));
+		this.applyTransform(Transform.createScaling(scale, origin));
 	}
 
 	abstract applyTransform(transform: unknown): void;
 
 	applyTranslation(translation: XYZ): void {
-		this.applyTransform(Transform.CreateTranslation(translation));
+		this.applyTransform(Transform.createTranslation(translation));
 	}
 
 	override clone(): CadObject {
@@ -104,10 +104,10 @@ export abstract class Entity extends CadObject implements IEntity {
 	}
 
 	getActiveLineType(): LineType {
-		if (this.lineType.name.toUpperCase() === LineType.ByLayerName.toUpperCase()) {
+		if (this.lineType.name.toUpperCase() === LineType.byLayerName.toUpperCase()) {
 			return this.layer.lineType;
 		} else if (
-			this.lineType.name.toUpperCase() === LineType.ByBlockName.toUpperCase() &&
+			this.lineType.name.toUpperCase() === LineType.byBlockName.toUpperCase() &&
 			isBlockRecordOwner(this.owner)
 		) {
 			return (this.owner as BlockRecord).blockEntity.lineType;
@@ -205,7 +205,7 @@ export abstract class Entity extends CadObject implements IEntity {
 			return vector;
 		}
 
-		const origin = transform.applyTransform(XYZ.Zero);
+		const origin = transform.applyTransform(XYZ.zero);
 		const transformed = transform.applyTransform(vector);
 		return new XYZ(
 			transformed.x - origin.x,
@@ -229,10 +229,10 @@ export abstract class Entity extends CadObject implements IEntity {
 
 	protected _tableOnRemove(sender: unknown, e: CollectionChangedEventArgs): void {
 		if (e.item === this.layer) {
-			this.layer = this.document!.layers.get(Layer.DefaultName)!;
+			this.layer = this.document!.layers.get(Layer.defaultName)!;
 		}
 		if (e.item === this.lineType) {
-			this.lineType = this.document!.lineTypes.get(LineType.ByLayerName)!;
+			this.lineType = this.document!.lineTypes.get(LineType.byLayerName)!;
 		}
 	}
 

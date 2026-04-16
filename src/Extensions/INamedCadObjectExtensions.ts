@@ -2,7 +2,7 @@ import { INamedCadObject } from '../INamedCadObject.js';
 import { ACadVersion } from '../ACadVersion.js';
 
 export class INamedCadObjectExtensions {
-	public static readonly InvalidCharacters: string[] = ['\\', '/', ':', '*', '?', '"', '<', '>', '|', ';', ',', '=', '`'];
+	public static readonly invalidCharacters: string[] = ['\\', '/', ':', '*', '?', '"', '<', '>', '|', ';', ',', '=', '`'];
 
 	public static isValidDxfName(namedCadObject: INamedCadObject, version: ACadVersion = ACadVersion.AC1032): boolean {
 		if (!namedCadObject.name) {
@@ -15,7 +15,7 @@ export class INamedCadObjectExtensions {
 			return false;
 		}
 
-		for (const ch of INamedCadObjectExtensions.InvalidCharacters) {
+		for (const ch of INamedCadObjectExtensions.invalidCharacters) {
 			if (namedCadObject.name.includes(ch)) {
 				return false;
 			}

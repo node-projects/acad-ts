@@ -6,205 +6,205 @@ import { DwgDocumentBuilder } from './DwgDocumentBuilder.js';
 export class DwgHeaderHandlesCollection {
 	private _handles: Map<string, number | null> = new Map();
 
-	get CMATERIAL(): number | null { return this.GetHandle('CMATERIAL'); }
-	set CMATERIAL(value: number | null) { this.SetHandle('CMATERIAL', value); }
+	get cmaterial(): number | null { return this.getHandle('CMATERIAL'); }
+	set cmaterial(value: number | null) { this.setHandle('CMATERIAL', value); }
 
-	get CLAYER(): number | null { return this.GetHandle('CLAYER'); }
-	set CLAYER(value: number | null) { this.SetHandle('CLAYER', value); }
+	get clayer(): number | null { return this.getHandle('CLAYER'); }
+	set clayer(value: number | null) { this.setHandle('CLAYER', value); }
 
-	get TEXTSTYLE(): number | null { return this.GetHandle('TEXTSTYLE'); }
-	set TEXTSTYLE(value: number | null) { this.SetHandle('TEXTSTYLE', value); }
+	get textstyle(): number | null { return this.getHandle('TEXTSTYLE'); }
+	set textstyle(value: number | null) { this.setHandle('TEXTSTYLE', value); }
 
-	get CELTYPE(): number | null { return this.GetHandle('CELTYPE'); }
-	set CELTYPE(value: number | null) { this.SetHandle('CELTYPE', value); }
+	get celtype(): number | null { return this.getHandle('CELTYPE'); }
+	set celtype(value: number | null) { this.setHandle('CELTYPE', value); }
 
-	get DIMSTYLE(): number | null { return this.GetHandle('DIMSTYLE'); }
-	set DIMSTYLE(value: number | null) { this.SetHandle('DIMSTYLE', value); }
+	get dimstyle(): number | null { return this.getHandle('DIMSTYLE'); }
+	set dimstyle(value: number | null) { this.setHandle('DIMSTYLE', value); }
 
-	get CMLSTYLE(): number | null { return this.GetHandle('CMLSTYLE'); }
-	set CMLSTYLE(value: number | null) { this.SetHandle('CMLSTYLE', value); }
+	get cmlstyle(): number | null { return this.getHandle('CMLSTYLE'); }
+	set cmlstyle(value: number | null) { this.setHandle('CMLSTYLE', value); }
 
-	get UCSNAME_PSPACE(): number | null { return this.GetHandle('UCSNAME_PSPACE'); }
-	set UCSNAME_PSPACE(value: number | null) { this.SetHandle('UCSNAME_PSPACE', value); }
+	get ucsname_pspace(): number | null { return this.getHandle('UCSNAME_PSPACE'); }
+	set ucsname_pspace(value: number | null) { this.setHandle('UCSNAME_PSPACE', value); }
 
-	get UCSNAME_MSPACE(): number | null { return this.GetHandle('UCSNAME_MSPACE'); }
-	set UCSNAME_MSPACE(value: number | null) { this.SetHandle('UCSNAME_MSPACE', value); }
+	get ucsname_mspace(): number | null { return this.getHandle('UCSNAME_MSPACE'); }
+	set ucsname_mspace(value: number | null) { this.setHandle('UCSNAME_MSPACE', value); }
 
-	get PUCSORTHOREF(): number | null { return this.GetHandle('PUCSORTHOREF'); }
-	set PUCSORTHOREF(value: number | null) { this.SetHandle('PUCSORTHOREF', value); }
+	get pucsorthoref(): number | null { return this.getHandle('PUCSORTHOREF'); }
+	set pucsorthoref(value: number | null) { this.setHandle('PUCSORTHOREF', value); }
 
-	get PUCSBASE(): number | null { return this.GetHandle('PUCSBASE'); }
-	set PUCSBASE(value: number | null) { this.SetHandle('PUCSBASE', value); }
+	get pucsbase(): number | null { return this.getHandle('PUCSBASE'); }
+	set pucsbase(value: number | null) { this.setHandle('PUCSBASE', value); }
 
-	get UCSORTHOREF(): number | null { return this.GetHandle('UCSORTHOREF'); }
-	set UCSORTHOREF(value: number | null) { this.SetHandle('UCSORTHOREF', value); }
+	get ucsorthoref(): number | null { return this.getHandle('UCSORTHOREF'); }
+	set ucsorthoref(value: number | null) { this.setHandle('UCSORTHOREF', value); }
 
-	get DIMTXSTY(): number | null { return this.GetHandle('DIMTXSTY'); }
-	set DIMTXSTY(value: number | null) { this.SetHandle('DIMTXSTY', value); }
+	get dimtxsty(): number | null { return this.getHandle('DIMTXSTY'); }
+	set dimtxsty(value: number | null) { this.setHandle('DIMTXSTY', value); }
 
-	get DIMLDRBLK(): number | null { return this.GetHandle('DIMLDRBLK'); }
-	set DIMLDRBLK(value: number | null) { this.SetHandle('DIMLDRBLK', value); }
+	get dimldrblk(): number | null { return this.getHandle('DIMLDRBLK'); }
+	set dimldrblk(value: number | null) { this.setHandle('DIMLDRBLK', value); }
 
-	get DIMBLK(): number | null { return this.GetHandle('DIMBLK'); }
-	set DIMBLK(value: number | null) { this.SetHandle('DIMBLK', value); }
+	get dimblk(): number | null { return this.getHandle('DIMBLK'); }
+	set dimblk(value: number | null) { this.setHandle('DIMBLK', value); }
 
-	get DIMBLK1(): number | null { return this.GetHandle('DIMBLK1'); }
-	set DIMBLK1(value: number | null) { this.SetHandle('DIMBLK1', value); }
+	get dimblk1(): number | null { return this.getHandle('DIMBLK1'); }
+	set dimblk1(value: number | null) { this.setHandle('DIMBLK1', value); }
 
-	get DIMBLK2(): number | null { return this.GetHandle('DIMBLK2'); }
-	set DIMBLK2(value: number | null) { this.SetHandle('DIMBLK2', value); }
+	get dimblk2(): number | null { return this.getHandle('DIMBLK2'); }
+	set dimblk2(value: number | null) { this.setHandle('DIMBLK2', value); }
 
-	get DICTIONARY_LAYOUTS(): number | null { return this.GetHandle('DICTIONARY_LAYOUTS'); }
-	set DICTIONARY_LAYOUTS(value: number | null) { this.SetHandle('DICTIONARY_LAYOUTS', value); }
+	get dictionary_layouts(): number | null { return this.getHandle('DICTIONARY_LAYOUTS'); }
+	set dictionary_layouts(value: number | null) { this.setHandle('DICTIONARY_LAYOUTS', value); }
 
-	get DICTIONARY_PLOTSETTINGS(): number | null { return this.GetHandle('DICTIONARY_PLOTSETTINGS'); }
-	set DICTIONARY_PLOTSETTINGS(value: number | null) { this.SetHandle('DICTIONARY_PLOTSETTINGS', value); }
+	get dictionary_plotsettings(): number | null { return this.getHandle('DICTIONARY_PLOTSETTINGS'); }
+	set dictionary_plotsettings(value: number | null) { this.setHandle('DICTIONARY_PLOTSETTINGS', value); }
 
-	get DICTIONARY_PLOTSTYLES(): number | null { return this.GetHandle('DICTIONARY_PLOTSTYLES'); }
-	set DICTIONARY_PLOTSTYLES(value: number | null) { this.SetHandle('DICTIONARY_PLOTSTYLES', value); }
+	get dictionary_plotstyles(): number | null { return this.getHandle('DICTIONARY_PLOTSTYLES'); }
+	set dictionary_plotstyles(value: number | null) { this.setHandle('DICTIONARY_PLOTSTYLES', value); }
 
-	get CPSNID(): number | null { return this.GetHandle('CPSNID'); }
-	set CPSNID(value: number | null) { this.SetHandle('CPSNID', value); }
+	get cpsnid(): number | null { return this.getHandle('CPSNID'); }
+	set cpsnid(value: number | null) { this.setHandle('CPSNID', value); }
 
-	get PAPER_SPACE(): number | null { return this.GetHandle('PAPER_SPACE'); }
-	set PAPER_SPACE(value: number | null) { this.SetHandle('PAPER_SPACE', value); }
+	get paper_space(): number | null { return this.getHandle('PAPER_SPACE'); }
+	set paper_space(value: number | null) { this.setHandle('PAPER_SPACE', value); }
 
-	get MODEL_SPACE(): number | null { return this.GetHandle('MODEL_SPACE'); }
-	set MODEL_SPACE(value: number | null) { this.SetHandle('MODEL_SPACE', value); }
+	get model_space(): number | null { return this.getHandle('MODEL_SPACE'); }
+	set model_space(value: number | null) { this.setHandle('MODEL_SPACE', value); }
 
-	get BYLAYER(): number | null { return this.GetHandle('BYLAYER'); }
-	set BYLAYER(value: number | null) { this.SetHandle('BYLAYER', value); }
+	get bylayer(): number | null { return this.getHandle('BYLAYER'); }
+	set bylayer(value: number | null) { this.setHandle('BYLAYER', value); }
 
-	get BYBLOCK(): number | null { return this.GetHandle('BYBLOCK'); }
-	set BYBLOCK(value: number | null) { this.SetHandle('BYBLOCK', value); }
+	get byblock(): number | null { return this.getHandle('BYBLOCK'); }
+	set byblock(value: number | null) { this.setHandle('BYBLOCK', value); }
 
-	get CONTINUOUS(): number | null { return this.GetHandle('CONTINUOUS'); }
-	set CONTINUOUS(value: number | null) { this.SetHandle('CONTINUOUS', value); }
+	get continuous(): number | null { return this.getHandle('CONTINUOUS'); }
+	set continuous(value: number | null) { this.setHandle('CONTINUOUS', value); }
 
-	get DIMLTYPE(): number | null { return this.GetHandle('DIMLTYPE'); }
-	set DIMLTYPE(value: number | null) { this.SetHandle('DIMLTYPE', value); }
+	get dimltype(): number | null { return this.getHandle('DIMLTYPE'); }
+	set dimltype(value: number | null) { this.setHandle('DIMLTYPE', value); }
 
-	get DIMLTEX1(): number | null { return this.GetHandle('DIMLTEX1'); }
-	set DIMLTEX1(value: number | null) { this.SetHandle('DIMLTEX1', value); }
+	get dimltex1(): number | null { return this.getHandle('DIMLTEX1'); }
+	set dimltex1(value: number | null) { this.setHandle('DIMLTEX1', value); }
 
-	get DIMLTEX2(): number | null { return this.GetHandle('DIMLTEX2'); }
-	set DIMLTEX2(value: number | null) { this.SetHandle('DIMLTEX2', value); }
+	get dimltex2(): number | null { return this.getHandle('DIMLTEX2'); }
+	set dimltex2(value: number | null) { this.setHandle('DIMLTEX2', value); }
 
-	get VIEWPORT_ENTITY_HEADER_CONTROL_OBJECT(): number | null { return this.GetHandle('VIEWPORT_ENTITY_HEADER_CONTROL_OBJECT'); }
-	set VIEWPORT_ENTITY_HEADER_CONTROL_OBJECT(value: number | null) { this.SetHandle('VIEWPORT_ENTITY_HEADER_CONTROL_OBJECT', value); }
+	get viewport_entity_header_control_object(): number | null { return this.getHandle('VIEWPORT_ENTITY_HEADER_CONTROL_OBJECT'); }
+	set viewport_entity_header_control_object(value: number | null) { this.setHandle('VIEWPORT_ENTITY_HEADER_CONTROL_OBJECT', value); }
 
-	get DICTIONARY_ACAD_GROUP(): number | null { return this.GetHandle('DICTIONARY_ACAD_GROUP'); }
-	set DICTIONARY_ACAD_GROUP(value: number | null) { this.SetHandle('DICTIONARY_ACAD_GROUP', value); }
+	get dictionary_acad_group(): number | null { return this.getHandle('DICTIONARY_ACAD_GROUP'); }
+	set dictionary_acad_group(value: number | null) { this.setHandle('DICTIONARY_ACAD_GROUP', value); }
 
-	get DICTIONARY_ACAD_MLINESTYLE(): number | null { return this.GetHandle('DICTIONARY_ACAD_MLINESTYLE'); }
-	set DICTIONARY_ACAD_MLINESTYLE(value: number | null) { this.SetHandle('DICTIONARY_ACAD_MLINESTYLE', value); }
+	get dictionary_acad_mlinestyle(): number | null { return this.getHandle('DICTIONARY_ACAD_MLINESTYLE'); }
+	set dictionary_acad_mlinestyle(value: number | null) { this.setHandle('DICTIONARY_ACAD_MLINESTYLE', value); }
 
-	get DICTIONARY_NAMED_OBJECTS(): number | null { return this.GetHandle('DICTIONARY_NAMED_OBJECTS'); }
-	set DICTIONARY_NAMED_OBJECTS(value: number | null) { this.SetHandle('DICTIONARY_NAMED_OBJECTS', value); }
+	get dictionary_named_objects(): number | null { return this.getHandle('DICTIONARY_NAMED_OBJECTS'); }
+	set dictionary_named_objects(value: number | null) { this.setHandle('DICTIONARY_NAMED_OBJECTS', value); }
 
-	get BLOCK_CONTROL_OBJECT(): number | null { return this.GetHandle('BLOCK_CONTROL_OBJECT'); }
-	set BLOCK_CONTROL_OBJECT(value: number | null) { this.SetHandle('BLOCK_CONTROL_OBJECT', value); }
+	get block_control_object(): number | null { return this.getHandle('BLOCK_CONTROL_OBJECT'); }
+	set block_control_object(value: number | null) { this.setHandle('BLOCK_CONTROL_OBJECT', value); }
 
-	get LAYER_CONTROL_OBJECT(): number | null { return this.GetHandle('LAYER_CONTROL_OBJECT'); }
-	set LAYER_CONTROL_OBJECT(value: number | null) { this.SetHandle('LAYER_CONTROL_OBJECT', value); }
+	get layer_control_object(): number | null { return this.getHandle('LAYER_CONTROL_OBJECT'); }
+	set layer_control_object(value: number | null) { this.setHandle('LAYER_CONTROL_OBJECT', value); }
 
-	get STYLE_CONTROL_OBJECT(): number | null { return this.GetHandle('STYLE_CONTROL_OBJECT'); }
-	set STYLE_CONTROL_OBJECT(value: number | null) { this.SetHandle('STYLE_CONTROL_OBJECT', value); }
+	get style_control_object(): number | null { return this.getHandle('STYLE_CONTROL_OBJECT'); }
+	set style_control_object(value: number | null) { this.setHandle('STYLE_CONTROL_OBJECT', value); }
 
-	get LINETYPE_CONTROL_OBJECT(): number | null { return this.GetHandle('LINETYPE_CONTROL_OBJECT'); }
-	set LINETYPE_CONTROL_OBJECT(value: number | null) { this.SetHandle('LINETYPE_CONTROL_OBJECT', value); }
+	get linetype_control_object(): number | null { return this.getHandle('LINETYPE_CONTROL_OBJECT'); }
+	set linetype_control_object(value: number | null) { this.setHandle('LINETYPE_CONTROL_OBJECT', value); }
 
-	get VIEW_CONTROL_OBJECT(): number | null { return this.GetHandle('VIEW_CONTROL_OBJECT'); }
-	set VIEW_CONTROL_OBJECT(value: number | null) { this.SetHandle('VIEW_CONTROL_OBJECT', value); }
+	get view_control_object(): number | null { return this.getHandle('VIEW_CONTROL_OBJECT'); }
+	set view_control_object(value: number | null) { this.setHandle('VIEW_CONTROL_OBJECT', value); }
 
-	get UCS_CONTROL_OBJECT(): number | null { return this.GetHandle('UCS_CONTROL_OBJECT'); }
-	set UCS_CONTROL_OBJECT(value: number | null) { this.SetHandle('UCS_CONTROL_OBJECT', value); }
+	get ucs_control_object(): number | null { return this.getHandle('UCS_CONTROL_OBJECT'); }
+	set ucs_control_object(value: number | null) { this.setHandle('UCS_CONTROL_OBJECT', value); }
 
-	get VPORT_CONTROL_OBJECT(): number | null { return this.GetHandle('VPORT_CONTROL_OBJECT'); }
-	set VPORT_CONTROL_OBJECT(value: number | null) { this.SetHandle('VPORT_CONTROL_OBJECT', value); }
+	get vport_control_object(): number | null { return this.getHandle('VPORT_CONTROL_OBJECT'); }
+	set vport_control_object(value: number | null) { this.setHandle('VPORT_CONTROL_OBJECT', value); }
 
-	get APPID_CONTROL_OBJECT(): number | null { return this.GetHandle('APPID_CONTROL_OBJECT'); }
-	set APPID_CONTROL_OBJECT(value: number | null) { this.SetHandle('APPID_CONTROL_OBJECT', value); }
+	get appid_control_object(): number | null { return this.getHandle('APPID_CONTROL_OBJECT'); }
+	set appid_control_object(value: number | null) { this.setHandle('APPID_CONTROL_OBJECT', value); }
 
-	get DIMSTYLE_CONTROL_OBJECT(): number | null { return this.GetHandle('DIMSTYLE_CONTROL_OBJECT'); }
-	set DIMSTYLE_CONTROL_OBJECT(value: number | null) { this.SetHandle('DIMSTYLE_CONTROL_OBJECT', value); }
+	get dimstyle_control_object(): number | null { return this.getHandle('DIMSTYLE_CONTROL_OBJECT'); }
+	set dimstyle_control_object(value: number | null) { this.setHandle('DIMSTYLE_CONTROL_OBJECT', value); }
 
-	get DICTIONARY_MATERIALS(): number | null { return this.GetHandle('DICTIONARY_MATERIALS'); }
-	set DICTIONARY_MATERIALS(value: number | null) { this.SetHandle('DICTIONARY_MATERIALS', value); }
+	get dictionary_materials(): number | null { return this.getHandle('DICTIONARY_MATERIALS'); }
+	set dictionary_materials(value: number | null) { this.setHandle('DICTIONARY_MATERIALS', value); }
 
-	get DICTIONARY_COLORS(): number | null { return this.GetHandle('DICTIONARY_COLORS'); }
-	set DICTIONARY_COLORS(value: number | null) { this.SetHandle('DICTIONARY_COLORS', value); }
+	get dictionary_colors(): number | null { return this.getHandle('DICTIONARY_COLORS'); }
+	set dictionary_colors(value: number | null) { this.setHandle('DICTIONARY_COLORS', value); }
 
-	get DICTIONARY_VISUALSTYLE(): number | null { return this.GetHandle('DICTIONARY_VISUALSTYLE'); }
-	set DICTIONARY_VISUALSTYLE(value: number | null) { this.SetHandle('DICTIONARY_VISUALSTYLE', value); }
+	get dictionary_visualstyle(): number | null { return this.getHandle('DICTIONARY_VISUALSTYLE'); }
+	set dictionary_visualstyle(value: number | null) { this.setHandle('DICTIONARY_VISUALSTYLE', value); }
 
-	get INTERFEREOBJVS(): number | null { return this.GetHandle('INTERFEREOBJVS'); }
-	set INTERFEREOBJVS(value: number | null) { this.SetHandle('INTERFEREOBJVS', value); }
+	get interfereobjvs(): number | null { return this.getHandle('INTERFEREOBJVS'); }
+	set interfereobjvs(value: number | null) { this.setHandle('INTERFEREOBJVS', value); }
 
-	get INTERFEREVPVS(): number | null { return this.GetHandle('INTERFEREVPVS'); }
-	set INTERFEREVPVS(value: number | null) { this.SetHandle('INTERFEREVPVS', value); }
+	get interferevpvs(): number | null { return this.getHandle('INTERFEREVPVS'); }
+	set interferevpvs(value: number | null) { this.setHandle('INTERFEREVPVS', value); }
 
-	get DRAGVS(): number | null { return this.GetHandle('DRAGVS'); }
-	set DRAGVS(value: number | null) { this.SetHandle('DRAGVS', value); }
+	get dragvs(): number | null { return this.getHandle('DRAGVS'); }
+	set dragvs(value: number | null) { this.setHandle('DRAGVS', value); }
 
-	get UCSBASE(): number | null { return this.GetHandle('UCSBASE'); }
-	set UCSBASE(value: number | null) { this.SetHandle('UCSBASE', value); }
+	get ucsbase(): number | null { return this.getHandle('UCSBASE'); }
+	set ucsbase(value: number | null) { this.setHandle('UCSBASE', value); }
 
-	GetHandle(name: string): number | null {
+	getHandle(name: string): number | null {
 		return this._handles.get(name) ?? null;
 	}
 
-	SetHandle(name: string, value: number | null): void {
+	setHandle(name: string, value: number | null): void {
 		this._handles.set(name, value);
 	}
 
-	GetHandles(): (number | null)[] {
+	getHandles(): (number | null)[] {
 		return Array.from(this._handles.values());
 	}
 
-	UpdateHeader(header: CadHeader, builder: DwgDocumentBuilder): void {
+	updateHeader(header: CadHeader, builder: DwgDocumentBuilder): void {
 		let entry: TableEntry | null;
 
-		entry = builder.TryGetCadObject<TableEntry>(this.CLAYER);
-		if (entry && builder.DocumentToBuild.layers?.tryGetValue(entry.name)) {
+		entry = builder.tryGetCadObject<TableEntry>(this.clayer);
+		if (entry && builder.documentToBuild.layers?.tryGetValue(entry.name)) {
 			header.currentLayerName = entry.name;
 		}
 
-		entry = builder.TryGetCadObject<TableEntry>(this.CELTYPE);
-		if (entry && builder.DocumentToBuild.lineTypes?.tryGetValue(entry.name)) {
+		entry = builder.tryGetCadObject<TableEntry>(this.celtype);
+		if (entry && builder.documentToBuild.lineTypes?.tryGetValue(entry.name)) {
 			header.currentLineTypeName = entry.name;
 		}
 
-		entry = builder.TryGetCadObject<TableEntry>(this.CMLSTYLE);
+		entry = builder.tryGetCadObject<TableEntry>(this.cmlstyle);
 		if (entry) { header.currentMLineStyleName = entry.name; }
 
-		entry = builder.TryGetCadObject<TableEntry>(this.TEXTSTYLE);
-		if (entry && builder.DocumentToBuild.textStyles?.tryGetValue(entry.name)) {
+		entry = builder.tryGetCadObject<TableEntry>(this.textstyle);
+		if (entry && builder.documentToBuild.textStyles?.tryGetValue(entry.name)) {
 			header.currentTextStyleName = entry.name;
 		}
 
-		entry = builder.TryGetCadObject<TableEntry>(this.DIMTXSTY);
-		if (entry && builder.DocumentToBuild.textStyles?.tryGetValue(entry.name)) {
+		entry = builder.tryGetCadObject<TableEntry>(this.dimtxsty);
+		if (entry && builder.documentToBuild.textStyles?.tryGetValue(entry.name)) {
 			header.dimensionTextStyleName = entry.name;
 		}
 
-		entry = builder.TryGetCadObject<TableEntry>(this.DIMSTYLE);
-		if (entry && builder.DocumentToBuild.dimensionStyles?.tryGetValue(entry.name)) {
+		entry = builder.tryGetCadObject<TableEntry>(this.dimstyle);
+		if (entry && builder.documentToBuild.dimensionStyles?.tryGetValue(entry.name)) {
 			header.currentDimensionStyleName = entry.name;
 		}
 
 		let record: BlockRecord | null;
 
-		record = builder.TryGetCadObject<BlockRecord>(this.DIMBLK);
+		record = builder.tryGetCadObject<BlockRecord>(this.dimblk);
 		if (record) { header.dimensionBlockName = record.name; }
 
-		record = builder.TryGetCadObject<BlockRecord>(this.DIMLDRBLK);
+		record = builder.tryGetCadObject<BlockRecord>(this.dimldrblk);
 		if (record) { header.dimensionBlockName = record.name; }
 
-		record = builder.TryGetCadObject<BlockRecord>(this.DIMBLK1);
+		record = builder.tryGetCadObject<BlockRecord>(this.dimblk1);
 		if (record) { header.dimensionBlockNameFirst = record.name; }
 
-		record = builder.TryGetCadObject<BlockRecord>(this.DIMBLK2);
+		record = builder.tryGetCadObject<BlockRecord>(this.dimblk2);
 		if (record) { header.dimensionBlockNameSecond = record.name; }
 	}
 }

@@ -8,22 +8,22 @@ import { FontFlags } from './FontFlags.js';
 import { StandardFlags } from './StandardFlags.js';
 
 export class TextStyle extends TableEntry {
-	public static readonly DefaultName: string = 'Standard';
+	public static readonly defaultName: string = 'Standard';
 
 	public override get objectType(): ObjectType {
 		return ObjectType.STYLE;
 	}
 
 	public override get objectName(): string {
-		return DxfFileToken.TableStyle;
+		return DxfFileToken.tableStyle;
 	}
 
 	public override get subclassMarker(): string {
-		return DxfSubclassMarker.TextStyle;
+		return DxfSubclassMarker.textStyle;
 	}
 
-	public static get Default(): TextStyle {
-		return new TextStyle(TextStyle.DefaultName);
+	public static get default(): TextStyle {
+		return new TextStyle(TextStyle.defaultName);
 	}
 
 	public get styleFlags(): StyleFlags {

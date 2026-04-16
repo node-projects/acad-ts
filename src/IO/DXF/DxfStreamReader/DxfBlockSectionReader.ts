@@ -20,42 +20,42 @@ export class DxfBlockSectionReader extends DxfSectionReaderBase {
     super(reader, builder);
   }
 
-  public override Read(): void {
-    this._reader.ReadNext();
+  public override read(): void {
+    this._reader.readNext();
 
-    while (this._reader.ValueAsString !== DxfFileToken.EndSection) {
+    while (this._reader.valueAsString !== DxfFileToken.endSection) {
       try {
-        if (this._reader.ValueAsString === DxfFileToken.Block) {
-          this.readBlock();
+        if (this._reader.valueAsString === DxfFileToken.block) {
+          this._readBlock();
         } else {
           throw new DxfException(
-            `Unexpected token at the BLOCKS table: ${this._reader.ValueAsString}`,
-            this._reader.Position
+            `Unexpected token at the BLOCKS table: ${this._reader.valueAsString}`,
+            this._reader.position
           );
         }
       } catch (ex) {
-        if (!this._builder.Configuration.Failsafe) {
+        if (!this._builder.configuration.failsafe) {
           throw ex;
         }
 
-        this._builder.Notify(
-          `Error while reading a block at line ${this._reader.Position}`,
+        this._builder.notify(
+          `Error while reading a block at line ${this._reader.position}`,
           NotificationType.Error,
           ex instanceof Error ? ex : undefined
         );
 
         while (
-          !(this._reader.DxfCode === DxfCode.Start && this._reader.ValueAsString === DxfFileToken.EndSection) &&
-          !(this._reader.DxfCode === DxfCode.Start && this._reader.ValueAsString === DxfFileToken.Block)
+          !(this._reader.dxfCode === DxfCode.Start && this._reader.valueAsString === DxfFileToken.endSection) &&
+          !(this._reader.dxfCode === DxfCode.Start && this._reader.valueAsString === DxfFileToken.block)
         ) {
-          this._reader.ReadNext();
+          this._reader.readNext();
         }
       }
     }
   }
 
-  private readBlock(): void {
-    this._reader.ReadNext();
+  private _readBlock(): void {
+    this._reader.readNext();
 
     const map = DxfMap.create(Block);
 
@@ -66,24 +66,24 @@ export class DxfBlockSectionReader extends DxfSectionReaderBase {
     let record: BlockRecord | null = null;
     let recordTemplate: CadBlockRecordTemplate | null = null;
 
-    while (this._reader.DxfCode !== DxfCode.Start) {
-      switch (this._reader.Code as number) {
+    while (this._reader.dxfCode !== DxfCode.Start) {
+      switch (this._reader.code as number) {
         case 2:
         case 3:
-          name = this._reader.ValueAsString;
+          name = this._reader.valueAsString;
           if (name.toUpperCase() === '$MODEL_SPACE') {
-            name = BlockRecord.ModelSpaceName;
+            name = BlockRecord.modelSpaceName;
           } else if (name.toUpperCase() === '$PAPER_SPACE') {
-            name = BlockRecord.PaperSpaceName;
+            name = BlockRecord.paperSpaceName;
           }
 
           if (record === null) {
-            record = this._builder.TryGetTableEntry<BlockRecord>(name);
+            record = this._builder.tryGetTableEntry<BlockRecord>(name);
             if (record) {
               record.blockEntity = blckEntity;
             } else {
-              this._builder.Notify(
-                `Block record [${name}] not found at line ${this._reader.Position}`,
+              this._builder.notify(
+                `Block record [${name}] not found at line ${this._reader.position}`,
                 NotificationType.Warning
               );
             }
@@ -91,19 +91,19 @@ export class DxfBlockSectionReader extends DxfSectionReaderBase {
           break;
         case 330:
           if (record === null) {
-            record = this._builder.TryGetCadObject<BlockRecord>(this._reader.ValueAsHandle);
+            record = this._builder.tryGetCadObject<BlockRecord>(this._reader.valueAsHandle);
             if (record) {
               record.blockEntity = blckEntity;
             } else {
-              this._builder.Notify(
-                `Block record with handle [${this._reader.ValueAsString}] not found at line ${this._reader.Position}`,
+              this._builder.notify(
+                `Block record with handle [${this._reader.valueAsString}] not found at line ${this._reader.position}`,
                 NotificationType.Warning
               );
             }
           }
           break;
         default:
-          if (!this.tryAssignCurrentValue(template.CadObject, map.subClasses.get(DxfSubclassMarker.BlockBegin))) {
+          if (!this.tryAssignCurrentValue(template.cadObject, map.subClasses.get(DxfSubclassMarker.blockBegin))) {
             const isExtendedData = { value: false };
             this.readCommonEntityCodes(template, isExtendedData, map);
             if (isExtendedData.value) {
@@ -113,7 +113,7 @@ export class DxfBlockSectionReader extends DxfSectionReaderBase {
           break;
       }
 
-      this._reader.ReadNext();
+      this._reader.readNext();
     }
 
     if (record === null) {
@@ -121,39 +121,39 @@ export class DxfBlockSectionReader extends DxfSectionReaderBase {
       record.blockEntity = blckEntity;
       recordTemplate = new CadBlockRecordTemplate(record);
 
-      this._builder.AddTemplate(recordTemplate);
-      this._builder.BlockRecords.add(record);
+      this._builder.addTemplate(recordTemplate);
+      this._builder.blockRecords.add(record);
 
-      if (recordTemplate.CadObject.name.toUpperCase() === BlockRecord.ModelSpaceName.toUpperCase()) {
-        this._builder.ModelSpaceTemplate = recordTemplate;
+      if (recordTemplate.cadObject.name.toUpperCase() === BlockRecord.modelSpaceName.toUpperCase()) {
+        this._builder.modelSpaceTemplate = recordTemplate;
       }
     } else {
-      recordTemplate = this._builder.TryGetObjectTemplate<CadBlockRecordTemplate>(record.handle);
+      recordTemplate = this._builder.tryGetObjectTemplate<CadBlockRecordTemplate>(record.handle);
       if (!recordTemplate) {
         recordTemplate = new CadBlockRecordTemplate(record);
       }
     }
 
-    recordTemplate.BlockEntityTemplate = template;
+    recordTemplate.blockEntityTemplate = template;
 
-    while (this._reader.ValueAsString !== DxfFileToken.EndBlock) {
+    while (this._reader.valueAsString !== DxfFileToken.endBlock) {
       let entityTemplate: CadEntityTemplate | null = null;
 
       try {
         entityTemplate = this.readEntity();
       } catch (ex) {
-        if (!this._builder.Configuration.Failsafe) {
+        if (!this._builder.configuration.failsafe) {
           throw ex;
         }
 
-        this._builder.Notify(
-          `Error while reading a block with name ${record.name} at line ${this._reader.Position}`,
+        this._builder.notify(
+          `Error while reading a block with name ${record.name} at line ${this._reader.position}`,
           NotificationType.Error,
           ex instanceof Error ? ex : undefined
         );
 
-        while (this._reader.DxfCode !== DxfCode.Start) {
-          this._reader.ReadNext();
+        while (this._reader.dxfCode !== DxfCode.Start) {
+          this._reader.readNext();
         }
       }
 
@@ -161,34 +161,34 @@ export class DxfBlockSectionReader extends DxfSectionReaderBase {
         continue;
       }
 
-      this._builder.AddTemplate(entityTemplate);
+      this._builder.addTemplate(entityTemplate);
 
-      if (entityTemplate.OwnerHandle === null) {
-        recordTemplate.ReferenceTemplates.add(entityTemplate);
+      if (entityTemplate.ownerHandle === null) {
+        recordTemplate.referenceTemplates.add(entityTemplate);
       } else {
-        const owner = this._builder.TryGetObjectTemplate<ICadOwnerTemplate>(entityTemplate.OwnerHandle);
+        const owner = this._builder.tryGetObjectTemplate<ICadOwnerTemplate>(entityTemplate.ownerHandle);
         if (owner) {
-        owner.OwnedObjectsHandlers.add(entityTemplate.CadObject.handle);
+        owner.ownedObjectsHandlers.add(entityTemplate.cadObject.handle);
         } else {
-          this._builder.OrphanTemplates.push(entityTemplate);
+          this._builder.orphanTemplates.push(entityTemplate);
         }
       }
     }
 
-    this.readBlockEnd(record.blockEnd);
-    this._builder.AddTemplate(template);
+    this._readBlockEnd(record.blockEnd);
+    this._builder.addTemplate(template);
   }
 
-  private readBlockEnd(block: BlockEnd): void {
+  private _readBlockEnd(block: BlockEnd): void {
     const map = DxfMap.create(BlockEnd);
     const template = new CadEntityTemplate(block);
 
-    if (this._reader.DxfCode === DxfCode.Start) {
-      this._reader.ReadNext();
+    if (this._reader.dxfCode === DxfCode.Start) {
+      this._reader.readNext();
     }
 
-    while (this._reader.DxfCode !== DxfCode.Start) {
-      if (!this.tryAssignCurrentValue(template.CadObject, map.subClasses.get(DxfSubclassMarker.BlockEnd))) {
+    while (this._reader.dxfCode !== DxfCode.Start) {
+      if (!this.tryAssignCurrentValue(template.cadObject, map.subClasses.get(DxfSubclassMarker.blockEnd))) {
         const isExtendedData = { value: false };
         this.readCommonEntityCodes(template, isExtendedData, map);
         if (isExtendedData.value) {
@@ -196,9 +196,9 @@ export class DxfBlockSectionReader extends DxfSectionReaderBase {
         }
       }
 
-      this._reader.ReadNext();
+      this._reader.readNext();
     }
 
-    this._builder.AddTemplate(template);
+    this._builder.addTemplate(template);
   }
 }

@@ -52,7 +52,7 @@ export class LwPolyline extends Entity {
 	normal: XYZ = new XYZ(0, 0, 1);
 
 	override get objectName(): string {
-		return DxfFileToken.EntityLwPolyline;
+		return DxfFileToken.entityLwPolyline;
 	}
 
 	override get objectType(): ObjectType {
@@ -60,7 +60,7 @@ export class LwPolyline extends Entity {
 	}
 
 	override get subclassMarker(): string {
-		return DxfSubclassMarker.LwPolyline;
+		return DxfSubclassMarker.lwPolyline;
 	}
 
 	thickness: number = 0;
@@ -114,7 +114,7 @@ export class LwPolyline extends Entity {
 
 	override getBoundingBox(): BoundingBox | null {
 		const points = this.getPoints();
-		return points.length > 0 ? BoundingBox.FromPoints(points) : null;
+		return points.length > 0 ? BoundingBox.fromPoints(points) : null;
 	}
 }
 

@@ -6,7 +6,7 @@ export abstract class Block2PtParameter extends BlockParameter {
 	firstPoint: XYZ = new XYZ(0, 0, 0);
 	secondPoint: XYZ = new XYZ(0, 0, 0);
 
-	override get subclassMarker(): string { return DxfSubclassMarker.Block2PtParameter; }
+	override get subclassMarker(): string { return DxfSubclassMarker.block2PtParameter; }
 
 	value170: number = 0;
 	value171: number = 0;

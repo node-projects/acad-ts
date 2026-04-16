@@ -148,7 +148,7 @@ function writeDwg(doc: CadDocument, outPath: string): void {
 
   const buffer = new ArrayBuffer(16 * 1024 * 1024);
   const writer = new DwgWriter(buffer, doc);
-  writer.Write();
+  writer.write();
 
   fs.writeFileSync(outPath, new Uint8Array(buffer, 0, writer.bytesWritten));
 }
@@ -156,7 +156,7 @@ function writeDwg(doc: CadDocument, outPath: string): void {
 function writeDxf(doc: CadDocument, outPath: string, binary: boolean): void {
   const stream = binary ? new InMemoryBinaryStream() : new InMemoryAsciiStream();
   const writer = new DxfWriter(stream as any, doc, binary);
-  writer.Write();
+  writer.write();
 
   fs.writeFileSync(outPath, stream.toUint8Array());
 }
@@ -181,15 +181,15 @@ describe('Samples folder rewrite', () => {
       deleteIfExists(outPath);
 
       if (sample.extension === '.dwg') {
-        const doc = new DwgReader(readFileAsArrayBuffer(sample.fullPath)).Read();
+        const doc = new DwgReader(readFileAsArrayBuffer(sample.fullPath)).read();
         writeDwg(doc, outPath);
         expectWrittenFile(outPath);
         return;
       }
 
       const data = readFileAsUint8Array(sample.fullPath);
-      const doc = new DxfReader(data).Read();
-      const binary = DxfReader.IsBinaryStream(data);
+      const doc = new DxfReader(data).read();
+      const binary = DxfReader.isBinaryStream(data);
       writeDxf(doc, outPath, binary);
       expectWrittenFile(outPath);
     });

@@ -6,7 +6,7 @@ import type { ImageDefinition } from '../Objects/ImageDefinition.js';
 
 export class RasterImage extends CadWipeoutBase {
 	override get objectName(): string {
-		return DxfFileToken.EntityImage;
+		return DxfFileToken.entityImage;
 	}
 
 	override get objectType(): ObjectType {
@@ -14,7 +14,7 @@ export class RasterImage extends CadWipeoutBase {
 	}
 
 	override get subclassMarker(): string {
-		return DxfSubclassMarker.RasterImage;
+		return DxfSubclassMarker.rasterImage;
 	}
 
 	override get definition(): ImageDefinition | null {

@@ -19,10 +19,10 @@ export class DxfClassCollection implements Iterable<DxfClass> {
 	public static updateDxfClasses(doc: CadDocument): void {
 		// AcDbDictionaryWithDefault
 		doc.classes.addOrUpdate(Object.assign(new DxfClass(), {
-			cppClassName: DxfSubclassMarker.DictionaryWithDefault,
+			cppClassName: DxfSubclassMarker.dictionaryWithDefault,
 			classNumber: 500 + doc.classes.count,
 			dwgVersion: 22 as ACadVersion,
-			dxfName: DxfFileToken.ObjectDictionaryWithDefault,
+			dxfName: DxfFileToken.objectDictionaryWithDefault,
 			itemClassId: 499,
 			maintenanceVersion: 42,
 			proxyFlags: ProxyFlags.R13FormatProxy,
@@ -31,10 +31,10 @@ export class DxfClassCollection implements Iterable<DxfClass> {
 
 		// AcDbPlaceHolder
 		doc.classes.addOrUpdate(Object.assign(new DxfClass(), {
-			cppClassName: DxfSubclassMarker.AcDbPlaceHolder,
+			cppClassName: DxfSubclassMarker.acDbPlaceHolder,
 			classNumber: 500 + doc.classes.count,
 			dwgVersion: 0 as ACadVersion,
-			dxfName: DxfFileToken.ObjectPlaceholder,
+			dxfName: DxfFileToken.objectPlaceholder,
 			itemClassId: 499,
 			maintenanceVersion: 0,
 			proxyFlags: ProxyFlags.None,
@@ -43,10 +43,10 @@ export class DxfClassCollection implements Iterable<DxfClass> {
 
 		// AcDbLayout
 		doc.classes.addOrUpdate(Object.assign(new DxfClass(), {
-			cppClassName: DxfSubclassMarker.Layout,
+			cppClassName: DxfSubclassMarker.layout,
 			classNumber: 500 + doc.classes.count,
 			dwgVersion: 0 as ACadVersion,
-			dxfName: DxfFileToken.ObjectLayout,
+			dxfName: DxfFileToken.objectLayout,
 			itemClassId: 499,
 			maintenanceVersion: 0,
 			proxyFlags: ProxyFlags.None,
@@ -55,10 +55,10 @@ export class DxfClassCollection implements Iterable<DxfClass> {
 
 		// AcDbDictionaryVar
 		doc.classes.addOrUpdate(Object.assign(new DxfClass(), {
-			cppClassName: DxfSubclassMarker.DictionaryVar,
+			cppClassName: DxfSubclassMarker.dictionaryVar,
 			classNumber: 500 + doc.classes.count,
 			dwgVersion: 20 as ACadVersion,
-			dxfName: DxfFileToken.ObjectDictionaryVar,
+			dxfName: DxfFileToken.objectDictionaryVar,
 			itemClassId: 499,
 			maintenanceVersion: 0,
 			proxyFlags: ProxyFlags.None,
@@ -67,10 +67,10 @@ export class DxfClassCollection implements Iterable<DxfClass> {
 
 		// AcDbTableStyle
 		doc.classes.addOrUpdate(Object.assign(new DxfClass(), {
-			cppClassName: DxfSubclassMarker.TableStyle,
+			cppClassName: DxfSubclassMarker.tableStyle,
 			classNumber: 500 + doc.classes.count,
 			dwgVersion: ACadVersion.AC1018,
-			dxfName: DxfFileToken.ObjectTableStyle,
+			dxfName: DxfFileToken.objectTableStyle,
 			itemClassId: 499,
 			maintenanceVersion: 0,
 			proxyFlags: 4095 as ProxyFlags,
@@ -79,10 +79,10 @@ export class DxfClassCollection implements Iterable<DxfClass> {
 
 		// AcDbMaterial
 		doc.classes.addOrUpdate(Object.assign(new DxfClass(), {
-			cppClassName: DxfSubclassMarker.Material,
+			cppClassName: DxfSubclassMarker.material,
 			classNumber: 500 + doc.classes.count,
 			dwgVersion: 0 as ACadVersion,
-			dxfName: DxfFileToken.ObjectMaterial,
+			dxfName: DxfFileToken.objectMaterial,
 			itemClassId: 499,
 			maintenanceVersion: 0,
 			proxyFlags: ProxyFlags.EraseAllowed | ProxyFlags.CloningAllowed | ProxyFlags.DisablesProxyWarningDialog,
@@ -91,10 +91,10 @@ export class DxfClassCollection implements Iterable<DxfClass> {
 
 		// AcDbVisualStyle
 		doc.classes.addOrUpdate(Object.assign(new DxfClass(), {
-			cppClassName: DxfSubclassMarker.VisualStyle,
+			cppClassName: DxfSubclassMarker.visualStyle,
 			classNumber: 500 + doc.classes.count,
 			dwgVersion: ACadVersion.AC1021,
-			dxfName: DxfFileToken.ObjectVisualStyle,
+			dxfName: DxfFileToken.objectVisualStyle,
 			itemClassId: 499,
 			maintenanceVersion: 0,
 			proxyFlags: 4095 as ProxyFlags,
@@ -103,10 +103,10 @@ export class DxfClassCollection implements Iterable<DxfClass> {
 
 		// AcDbScale
 		doc.classes.addOrUpdate(Object.assign(new DxfClass(), {
-			cppClassName: DxfSubclassMarker.Scale,
+			cppClassName: DxfSubclassMarker.scale,
 			classNumber: 500 + doc.classes.count,
 			dwgVersion: ACadVersion.AC1021,
-			dxfName: DxfFileToken.ObjectScale,
+			dxfName: DxfFileToken.objectScale,
 			itemClassId: 499,
 			maintenanceVersion: 1,
 			proxyFlags: ProxyFlags.EraseAllowed | ProxyFlags.CloningAllowed | ProxyFlags.DisablesProxyWarningDialog,
@@ -115,10 +115,10 @@ export class DxfClassCollection implements Iterable<DxfClass> {
 
 		// AcDbMLeaderStyle
 		doc.classes.addOrUpdate(Object.assign(new DxfClass(), {
-			cppClassName: DxfSubclassMarker.MLeaderStyle,
+			cppClassName: DxfSubclassMarker.mLeaderStyle,
 			classNumber: 500 + doc.classes.count,
 			dwgVersion: ACadVersion.AC1021,
-			dxfName: DxfFileToken.ObjectMLeaderStyle,
+			dxfName: DxfFileToken.objectMLeaderStyle,
 			itemClassId: 499,
 			maintenanceVersion: 25,
 			proxyFlags: 4095 as ProxyFlags,
@@ -127,10 +127,10 @@ export class DxfClassCollection implements Iterable<DxfClass> {
 
 		// AcDbCellStyleMap
 		doc.classes.addOrUpdate(Object.assign(new DxfClass(), {
-			cppClassName: DxfSubclassMarker.CellStyleMap,
+			cppClassName: DxfSubclassMarker.cellStyleMap,
 			classNumber: 500 + doc.classes.count,
 			dwgVersion: ACadVersion.AC1021,
-			dxfName: DxfFileToken.ObjectCellStyleMap,
+			dxfName: DxfFileToken.objectCellStyleMap,
 			itemClassId: 499,
 			maintenanceVersion: 25,
 			proxyFlags: ProxyFlags.CloningAllowed | ProxyFlags.DisablesProxyWarningDialog,
@@ -223,10 +223,10 @@ export class DxfClassCollection implements Iterable<DxfClass> {
 
 		// AcDbSubDMesh
 		doc.classes.addOrUpdate(Object.assign(new DxfClass(), {
-			cppClassName: DxfSubclassMarker.Mesh,
+			cppClassName: DxfSubclassMarker.mesh,
 			classNumber: 500 + doc.classes.count,
 			dwgVersion: 0 as ACadVersion,
-			dxfName: DxfFileToken.EntityMesh,
+			dxfName: DxfFileToken.entityMesh,
 			itemClassId: 498,
 			maintenanceVersion: 0,
 			proxyFlags: ProxyFlags.None,
@@ -235,10 +235,10 @@ export class DxfClassCollection implements Iterable<DxfClass> {
 
 		// AcDbSortentsTable
 		doc.classes.addOrUpdate(Object.assign(new DxfClass(), {
-			cppClassName: DxfSubclassMarker.SortentsTable,
+			cppClassName: DxfSubclassMarker.sortentsTable,
 			classNumber: 500 + doc.classes.count,
 			dwgVersion: ACadVersion.AC1014,
-			dxfName: DxfFileToken.ObjectSortEntsTable,
+			dxfName: DxfFileToken.objectSortEntsTable,
 			itemClassId: 499,
 			maintenanceVersion: 0,
 			proxyFlags: ProxyFlags.None,
@@ -260,10 +260,10 @@ export class DxfClassCollection implements Iterable<DxfClass> {
 		// AcDbWipeout
 		doc.classes.addOrUpdate(Object.assign(new DxfClass(), {
 			applicationName: 'WipeOut',
-			cppClassName: DxfSubclassMarker.Wipeout,
+			cppClassName: DxfSubclassMarker.wipeout,
 			classNumber: 500 + doc.classes.count,
 			dwgVersion: ACadVersion.AC1015,
-			dxfName: DxfFileToken.EntityWipeout,
+			dxfName: DxfFileToken.entityWipeout,
 			itemClassId: 498,
 			maintenanceVersion: 0,
 			proxyFlags: ProxyFlags.EraseAllowed | ProxyFlags.TransformAllowed | ProxyFlags.ColorChangeAllowed | ProxyFlags.LayerChangeAllowed | ProxyFlags.LinetypeChangeAllowed | ProxyFlags.LinetypeScaleChangeAllowed | ProxyFlags.VisibilityChangeAllowed | ProxyFlags.R13FormatProxy,
@@ -298,10 +298,10 @@ export class DxfClassCollection implements Iterable<DxfClass> {
 
 		// AcDbTable
 		doc.classes.addOrUpdate(Object.assign(new DxfClass(), {
-			cppClassName: DxfSubclassMarker.TableEntity,
+			cppClassName: DxfSubclassMarker.tableEntity,
 			classNumber: 500 + doc.classes.count,
 			dwgVersion: ACadVersion.AC1018,
-			dxfName: DxfFileToken.EntityTable,
+			dxfName: DxfFileToken.entityTable,
 			itemClassId: 498,
 			maintenanceVersion: 0,
 			proxyFlags: ProxyFlags.EraseAllowed | ProxyFlags.DisablesProxyWarningDialog,
@@ -310,10 +310,10 @@ export class DxfClassCollection implements Iterable<DxfClass> {
 
 		// AcDbTableContent
 		doc.classes.addOrUpdate(Object.assign(new DxfClass(), {
-			cppClassName: DxfSubclassMarker.TableContent,
+			cppClassName: DxfSubclassMarker.tableContent,
 			classNumber: 500 + doc.classes.count,
 			dwgVersion: ACadVersion.AC1018,
-			dxfName: DxfFileToken.ObjectTableContent,
+			dxfName: DxfFileToken.objectTableContent,
 			itemClassId: 499,
 			maintenanceVersion: 21,
 			proxyFlags: ProxyFlags.CloningAllowed | ProxyFlags.DisablesProxyWarningDialog,
@@ -335,10 +335,10 @@ export class DxfClassCollection implements Iterable<DxfClass> {
 		// AcDbRasterImage
 		doc.classes.addOrUpdate(Object.assign(new DxfClass(), {
 			applicationName: 'ISM',
-			cppClassName: DxfSubclassMarker.RasterImage,
+			cppClassName: DxfSubclassMarker.rasterImage,
 			classNumber: 500 + doc.classes.count,
 			dwgVersion: 20 as ACadVersion,
-			dxfName: DxfFileToken.EntityImage,
+			dxfName: DxfFileToken.entityImage,
 			itemClassId: 498,
 			maintenanceVersion: 0,
 			proxyFlags: ProxyFlags.EraseAllowed | ProxyFlags.TransformAllowed | ProxyFlags.ColorChangeAllowed | ProxyFlags.LayerChangeAllowed | ProxyFlags.LinetypeChangeAllowed | ProxyFlags.LinetypeScaleChangeAllowed | ProxyFlags.VisibilityChangeAllowed | ProxyFlags.R13FormatProxy,
@@ -348,10 +348,10 @@ export class DxfClassCollection implements Iterable<DxfClass> {
 		// AcDbRasterImageDef
 		doc.classes.addOrUpdate(Object.assign(new DxfClass(), {
 			applicationName: 'ISM',
-			cppClassName: DxfSubclassMarker.RasterImageDef,
+			cppClassName: DxfSubclassMarker.rasterImageDef,
 			classNumber: 500 + doc.classes.count,
 			dwgVersion: 20 as ACadVersion,
-			dxfName: DxfFileToken.ObjectImageDefinition,
+			dxfName: DxfFileToken.objectImageDefinition,
 			itemClassId: 499,
 			maintenanceVersion: 0,
 			proxyFlags: ProxyFlags.None,
@@ -361,10 +361,10 @@ export class DxfClassCollection implements Iterable<DxfClass> {
 		// AcDbRasterImageDefReactor
 		doc.classes.addOrUpdate(Object.assign(new DxfClass(), {
 			applicationName: 'ISM',
-			cppClassName: DxfSubclassMarker.RasterImageDefReactor,
+			cppClassName: DxfSubclassMarker.rasterImageDefReactor,
 			classNumber: 500 + doc.classes.count,
 			dwgVersion: 20 as ACadVersion,
-			dxfName: DxfFileToken.ObjectImageDefinitionReactor,
+			dxfName: DxfFileToken.objectImageDefinitionReactor,
 			itemClassId: 499,
 			maintenanceVersion: 0,
 			proxyFlags: ProxyFlags.EraseAllowed,
@@ -373,10 +373,10 @@ export class DxfClassCollection implements Iterable<DxfClass> {
 
 		// AcDbColor
 		doc.classes.addOrUpdate(Object.assign(new DxfClass(), {
-			cppClassName: DxfSubclassMarker.DbColor,
+			cppClassName: DxfSubclassMarker.dbColor,
 			classNumber: 500 + doc.classes.count,
 			dwgVersion: ACadVersion.AC1015,
-			dxfName: DxfFileToken.ObjectDBColor,
+			dxfName: DxfFileToken.objectDBColor,
 			itemClassId: 499,
 			maintenanceVersion: 14,
 			proxyFlags: ProxyFlags.None,
@@ -385,10 +385,10 @@ export class DxfClassCollection implements Iterable<DxfClass> {
 
 		// AcDbGeoData
 		doc.classes.addOrUpdate(Object.assign(new DxfClass(), {
-			cppClassName: DxfSubclassMarker.GeoData,
+			cppClassName: DxfSubclassMarker.geoData,
 			classNumber: 500 + doc.classes.count,
 			dwgVersion: ACadVersion.AC1021,
-			dxfName: DxfFileToken.ObjectGeoData,
+			dxfName: DxfFileToken.objectGeoData,
 			itemClassId: 499,
 			maintenanceVersion: 45,
 			proxyFlags: 4095 as ProxyFlags,
@@ -397,10 +397,10 @@ export class DxfClassCollection implements Iterable<DxfClass> {
 
 		// AcDbMLeader
 		doc.classes.addOrUpdate(Object.assign(new DxfClass(), {
-			cppClassName: DxfSubclassMarker.MultiLeader,
+			cppClassName: DxfSubclassMarker.multiLeader,
 			classNumber: 500 + doc.classes.count,
 			dwgVersion: ACadVersion.MC0_0,
-			dxfName: DxfFileToken.EntityMultiLeader,
+			dxfName: DxfFileToken.entityMultiLeader,
 			itemClassId: 499,
 			maintenanceVersion: 0,
 			proxyFlags: ProxyFlags.EraseAllowed | ProxyFlags.DisablesProxyWarningDialog,
@@ -409,10 +409,10 @@ export class DxfClassCollection implements Iterable<DxfClass> {
 
 		// AcDbPdfReference
 		doc.classes.addOrUpdate(Object.assign(new DxfClass(), {
-			cppClassName: DxfSubclassMarker.PdfReference,
+			cppClassName: DxfSubclassMarker.pdfReference,
 			classNumber: 500 + doc.classes.count,
 			dwgVersion: 26 as ACadVersion,
-			dxfName: DxfFileToken.EntityPdfUnderlay,
+			dxfName: DxfFileToken.entityPdfUnderlay,
 			itemClassId: 498,
 			maintenanceVersion: 0,
 			proxyFlags: 4095 as ProxyFlags,
@@ -421,10 +421,10 @@ export class DxfClassCollection implements Iterable<DxfClass> {
 
 		// AcDbPdfDefinition
 		doc.classes.addOrUpdate(Object.assign(new DxfClass(), {
-			cppClassName: DxfSubclassMarker.PdfDefinition,
+			cppClassName: DxfSubclassMarker.pdfDefinition,
 			classNumber: 500 + doc.classes.count,
 			dwgVersion: 26 as ACadVersion,
-			dxfName: DxfFileToken.ObjectPdfDefinition,
+			dxfName: DxfFileToken.objectPdfDefinition,
 			itemClassId: 499,
 			maintenanceVersion: 0,
 			proxyFlags: ProxyFlags.EraseAllowed | ProxyFlags.CloningAllowed | ProxyFlags.DisablesProxyWarningDialog,
@@ -434,10 +434,10 @@ export class DxfClassCollection implements Iterable<DxfClass> {
 		// AcDbRasterVariables
 		doc.classes.addOrUpdate(Object.assign(new DxfClass(), {
 			applicationName: 'ISM',
-			cppClassName: DxfSubclassMarker.RasterVariables,
+			cppClassName: DxfSubclassMarker.rasterVariables,
 			classNumber: 500 + doc.classes.count,
 			dwgVersion: 20 as ACadVersion,
-			dxfName: DxfFileToken.ObjectRasterVariables,
+			dxfName: DxfFileToken.objectRasterVariables,
 			itemClassId: 499,
 			maintenanceVersion: 0,
 			proxyFlags: ProxyFlags.None,
@@ -446,10 +446,10 @@ export class DxfClassCollection implements Iterable<DxfClass> {
 
 		// AcDbSpatialFilter
 		doc.classes.addOrUpdate(Object.assign(new DxfClass(), {
-			cppClassName: DxfSubclassMarker.SpatialFilter,
+			cppClassName: DxfSubclassMarker.spatialFilter,
 			classNumber: 500 + doc.classes.count,
 			dwgVersion: 20 as ACadVersion,
-			dxfName: DxfFileToken.ObjectSpatialFilter,
+			dxfName: DxfFileToken.objectSpatialFilter,
 			itemClassId: 499,
 			maintenanceVersion: 0,
 			proxyFlags: ProxyFlags.None,
@@ -458,10 +458,10 @@ export class DxfClassCollection implements Iterable<DxfClass> {
 
 		// AcDbMLeaderObjectContextData
 		doc.classes.addOrUpdate(Object.assign(new DxfClass(), {
-			cppClassName: DxfSubclassMarker.MultiLeaderObjectContextData,
+			cppClassName: DxfSubclassMarker.multiLeaderObjectContextData,
 			classNumber: 500 + doc.classes.count,
 			dwgVersion: ACadVersion.MC0_0,
-			dxfName: DxfFileToken.ObjectMLeaderContextData,
+			dxfName: DxfFileToken.objectMLeaderContextData,
 			itemClassId: 499,
 			maintenanceVersion: 0,
 			proxyFlags: ProxyFlags.EraseAllowed | ProxyFlags.DisablesProxyWarningDialog,
@@ -470,10 +470,10 @@ export class DxfClassCollection implements Iterable<DxfClass> {
 
 		// AcDbPlotSettings
 		doc.classes.addOrUpdate(Object.assign(new DxfClass(), {
-			cppClassName: DxfSubclassMarker.PlotSettings,
+			cppClassName: DxfSubclassMarker.plotSettings,
 			classNumber: 500 + doc.classes.count,
 			dwgVersion: ACadVersion.AC1015,
-			dxfName: DxfFileToken.ObjectPlotSettings,
+			dxfName: DxfFileToken.objectPlotSettings,
 			itemClassId: 499,
 			maintenanceVersion: 42,
 			proxyFlags: ProxyFlags.None,
@@ -482,10 +482,10 @@ export class DxfClassCollection implements Iterable<DxfClass> {
 
 		// AcDbField
 		doc.classes.addOrUpdate(Object.assign(new DxfClass(), {
-			cppClassName: DxfSubclassMarker.Field,
+			cppClassName: DxfSubclassMarker.field,
 			classNumber: 500 + doc.classes.count,
 			dwgVersion: ACadVersion.AC1018,
-			dxfName: DxfFileToken.ObjectField,
+			dxfName: DxfFileToken.objectField,
 			itemClassId: 499,
 			maintenanceVersion: 0,
 			proxyFlags: ProxyFlags.CloningAllowed | ProxyFlags.DisablesProxyWarningDialog,
@@ -494,10 +494,10 @@ export class DxfClassCollection implements Iterable<DxfClass> {
 
 		// AcDbFieldList
 		doc.classes.addOrUpdate(Object.assign(new DxfClass(), {
-			cppClassName: DxfSubclassMarker.FieldList,
+			cppClassName: DxfSubclassMarker.fieldList,
 			classNumber: 500 + doc.classes.count,
 			dwgVersion: ACadVersion.AC1018,
-			dxfName: DxfFileToken.ObjectFieldList,
+			dxfName: DxfFileToken.objectFieldList,
 			itemClassId: 499,
 			maintenanceVersion: 0,
 			proxyFlags: ProxyFlags.CloningAllowed | ProxyFlags.DisablesProxyWarningDialog,
@@ -506,10 +506,10 @@ export class DxfClassCollection implements Iterable<DxfClass> {
 
 		// AcDbMTextAttributeObjectContextData
 		doc.classes.addOrUpdate(Object.assign(new DxfClass(), {
-			cppClassName: DxfSubclassMarker.MTextAttributeObjectContextData,
+			cppClassName: DxfSubclassMarker.mTextAttributeObjectContextData,
 			classNumber: 500 + doc.classes.count,
 			dwgVersion: ACadVersion.AC1021,
-			dxfName: DxfFileToken.MTextAttributeObjectContextData,
+			dxfName: DxfFileToken.mTextAttributeObjectContextData,
 			itemClassId: 499,
 			maintenanceVersion: 0,
 			proxyFlags: ProxyFlags.EraseAllowed | ProxyFlags.CloningAllowed | ProxyFlags.DisablesProxyWarningDialog,
@@ -518,10 +518,10 @@ export class DxfClassCollection implements Iterable<DxfClass> {
 
 		// AcDbBlkRefObjectContextData
 		doc.classes.addOrUpdate(Object.assign(new DxfClass(), {
-			cppClassName: DxfSubclassMarker.BlkRefObjectContextData,
+			cppClassName: DxfSubclassMarker.blkRefObjectContextData,
 			classNumber: 500 + doc.classes.count,
 			dwgVersion: ACadVersion.AC1021,
-			dxfName: DxfFileToken.BlkRefObjectContextData,
+			dxfName: DxfFileToken.blkRefObjectContextData,
 			itemClassId: 499,
 			maintenanceVersion: 0,
 			proxyFlags: ProxyFlags.EraseAllowed | ProxyFlags.CloningAllowed | ProxyFlags.DisablesProxyWarningDialog,

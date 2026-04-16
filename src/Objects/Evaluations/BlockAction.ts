@@ -7,7 +7,7 @@ export abstract class BlockAction extends BlockElement {
 	actionPoint: XYZ = new XYZ(0, 0, 0);
 	entities: Entity[] = [];
 
-	override get subclassMarker(): string { return DxfSubclassMarker.BlockAction; }
+	override get subclassMarker(): string { return DxfSubclassMarker.blockAction; }
 
 	value70: number = 0;
 }

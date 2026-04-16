@@ -13,7 +13,7 @@ export class Solid extends Entity {
 	normal: XYZ = new XYZ(0, 0, 1);
 
 	override get objectName(): string {
-		return DxfFileToken.EntitySolid;
+		return DxfFileToken.entitySolid;
 	}
 
 	override get objectType(): ObjectType {
@@ -23,7 +23,7 @@ export class Solid extends Entity {
 	secondCorner: XYZ = new XYZ(0, 0, 0);
 
 	override get subclassMarker(): string {
-		return DxfSubclassMarker.Solid;
+		return DxfSubclassMarker.solid;
 	}
 
 	thickness: number = 0.0;
@@ -39,7 +39,7 @@ export class Solid extends Entity {
 	}
 
 	override getBoundingBox(): BoundingBox {
-		return BoundingBox.FromPoints([
+		return BoundingBox.fromPoints([
 			this.firstCorner,
 			this.secondCorner,
 			this.thirdCorner,

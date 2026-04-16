@@ -6,25 +6,25 @@ import { CadTemplate } from './CadTemplate.js';
 import { ICadTableTemplate } from './ICadTableTemplate.js';
 
 export class CadTableTemplate<T extends TableEntry> extends CadTemplate implements ICadTableTemplate {
-	declare CadObject: Table<T>;
+	declare cadObject: Table<T>;
 
-	EntryHandles: Set<number> = new Set();
+	entryHandles: Set<number> = new Set();
 
 	constructor(tableControl: Table<T>) {
 		super(tableControl);
 	}
 
-	protected override build(builder: CadDocumentBuilder): void {
-		super.build(builder);
+	protected override _build(builder: CadDocumentBuilder): void {
+		super._build(builder);
 
-		for (const handle of this.EntryHandles) {
-			const entry = builder.TryGetCadObject<T>(handle);
+		for (const handle of this.entryHandles) {
+			const entry = builder.tryGetCadObject<T>(handle);
 			if (!entry) continue;
 
 			try {
-				this.CadObject.add(entry);
+				this.cadObject.add(entry);
 			} catch (ex: unknown) {
-				builder.Notify(`[${this.CadObject.subclassMarker}] error adding entry`, NotificationType.Error, ex instanceof Error ? ex : null);
+				builder.notify(`[${this.cadObject.subclassMarker}] error adding entry`, NotificationType.Error, ex instanceof Error ? ex : null);
 			}
 		}
 	}

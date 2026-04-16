@@ -4,8 +4,8 @@ import { DxfSubclassMarker } from '../../DxfSubclassMarker.js';
 import { XYZ } from '../../Math/XYZ.js';
 
 export class BlockFlipParameter extends Block2PtParameter {
-	override get objectName(): string { return DxfFileToken.ObjectBlockFlipParameter; }
-	override get subclassMarker(): string { return DxfSubclassMarker.BlockFlipParameter; }
+	override get objectName(): string { return DxfFileToken.objectBlockFlipParameter; }
+	override get subclassMarker(): string { return DxfSubclassMarker.blockFlipParameter; }
 
 	caption: string = '';
 	description: string = '';

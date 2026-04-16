@@ -92,7 +92,7 @@ export abstract class Polyline extends Entity {
 
 	override getBoundingBox(): BoundingBox | null {
 		const points = this.getPoints();
-		return points.length > 0 ? BoundingBox.FromPoints(points) : null;
+		return points.length > 0 ? BoundingBox.fromPoints(points) : null;
 	}
 
 	override clone(): CadObject {
@@ -105,7 +105,7 @@ export abstract class Polyline extends Entity {
 		const polyline: IPolyline = {
 			elevation: 0,
 			isClosed,
-			normal: XYZ.AxisZ,
+			normal: XYZ.axisZ,
 			thickness: 0,
 			vertices,
 		} as unknown as IPolyline;

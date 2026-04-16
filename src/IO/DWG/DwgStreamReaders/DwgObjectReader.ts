@@ -263,7 +263,7 @@ import { HatchPatternLine } from '../../../Entities/HatchPattern.js';
 
 export class DwgObjectReader extends DwgSectionIO {
   get sectionName(): string {
-    return DwgSectionDefinition.AcDbObjects;
+    return DwgSectionDefinition.acDbObjects;
   }
 
   private readonly _classes: Map<number, DxfClass>;
@@ -310,37 +310,37 @@ export class DwgObjectReader extends DwgSectionIO {
 
       const offset = this._map.get(handle);
       if (offset === undefined ||
-        this._builder.TryGetObjectTemplate(handle) != null ||
+        this._builder.tryGetObjectTemplate(handle) != null ||
         this._readedObjects.has(handle)) {
         continue;
       }
 
-      const type = this.getEntityType(offset);
+      const type = this._getEntityType(offset);
       this._readedObjects.set(handle, type);
 
       let template: CadTemplate | null = null;
 
       try {
-        template = this.readObject(type);
+        template = this._readObject(type);
       } catch (ex: unknown) {
-        if (!this._builder.Configuration.Failsafe) throw ex;
+        if (!this._builder.configuration.failsafe) throw ex;
 
         const dxf = this._classes.get(type as number);
         if (dxf) {
-          this._builder.Notify(`Could not read ${dxf.dxfName} number ${dxf.classNumber} with handle: ${handle}`, NotificationType.Error, ex instanceof Error ? ex : null);
+          this._builder.notify(`Could not read ${dxf.dxfName} number ${dxf.classNumber} with handle: ${handle}`, NotificationType.Error, ex instanceof Error ? ex : null);
         } else {
-          this._builder.Notify(`Could not read ${type} with handle: ${handle}`, NotificationType.Error, ex instanceof Error ? ex : null);
+          this._builder.notify(`Could not read ${type} with handle: ${handle}`, NotificationType.Error, ex instanceof Error ? ex : null);
         }
         continue;
       }
 
       if (template == null) continue;
 
-      this._builder.AddTemplate(template);
+      this._builder.addTemplate(template);
     }
   }
 
-  private getEntityType(offset: number): ObjectType {
+  private _getEntityType(offset: number): ObjectType {
     let type: ObjectType = ObjectType.INVALID;
 
     this._crcReader.position = offset;
@@ -350,7 +350,7 @@ export class DwgObjectReader extends DwgSectionIO {
 
     const sizeInBits = this._size << 3;
 
-    if (this.R2010Plus) {
+    if (this.r2010Plus) {
       const handleSize = this._crcReader.readModularChar();
       const handleSectionOffset = this._crcReader.positionInBits() + sizeInBits - handleSize;
 
@@ -381,13 +381,13 @@ export class DwgObjectReader extends DwgSectionIO {
     return type;
   }
 
-  private handleReference(handle: number = 0): number {
+  private _handleReference(handle: number = 0): number {
     const value = handle === 0
       ? this._handlesReader.handleReference()
       : this._handlesReader.handleReferenceWithRef(handle);
 
     if (value !== 0 &&
-      this._builder.TryGetObjectTemplate(value) == null &&
+      this._builder.tryGetObjectTemplate(value) == null &&
       !this._readedObjects.has(value)) {
       this._handles.push(value);
     }
@@ -395,19 +395,19 @@ export class DwgObjectReader extends DwgSectionIO {
     return value;
   }
 
-  private readCommonData(template: CadTemplate): void {
+  private _readCommonData(template: CadTemplate): void {
     if (this._version >= ACadVersion.AC1015 && this._version < ACadVersion.AC1024) {
-      this.updateHandleReader();
+      this._updateHandleReader();
     }
 
-    template.CadObject.handle = this._objectReader.handleReference();
-    this.readExtendedData(template);
+    template.cadObject.handle = this._objectReader.handleReference();
+    this._readExtendedData(template);
   }
 
-  private readCommonEntityData(template: CadEntityTemplate): void {
-    const entity = template.CadObject as Entity;
+  private _readCommonEntityData(template: CadEntityTemplate): void {
+    const entity = template.cadObject as Entity;
 
-    this.readCommonData(template);
+    this._readCommonData(template);
 
     if (this._objectReader.readBit()) {
       const graphicImageSize = this._version >= ACadVersion.AC1024
@@ -417,49 +417,49 @@ export class DwgObjectReader extends DwgSectionIO {
     }
 
     if (this._version >= ACadVersion.AC1012 && this._version <= ACadVersion.AC1014) {
-      this.updateHandleReader();
+      this._updateHandleReader();
     }
 
-    this.readEntityMode(template);
+    this._readEntityMode(template);
   }
 
-  private readCommonNonEntityData(template: CadTemplate): void {
-    this.readCommonData(template);
+  private _readCommonNonEntityData(template: CadTemplate): void {
+    this._readCommonData(template);
 
-    if (this.R13_14Only) {
-      this.updateHandleReader();
+    if (this.r13_14Only) {
+      this._updateHandleReader();
     }
 
-    template.OwnerHandle = this.handleReference(template.CadObject.handle);
-    this.readReactorsAndDictionaryHandle(template);
+    template.ownerHandle = this._handleReference(template.cadObject.handle);
+    this._readReactorsAndDictionaryHandle(template);
   }
 
-  private readEntityMode(template: CadEntityTemplate): void {
-    const entity = template.CadObject as Entity;
+  private _readEntityMode(template: CadEntityTemplate): void {
+    const entity = template.cadObject as Entity;
 
-    template.EntityMode = this._objectReader.read2Bits();
+    template.entityMode = this._objectReader.read2Bits();
 
-    if (template.EntityMode === 0) {
-      template.OwnerHandle = this._handlesReader.handleReferenceWithRef(entity.handle);
-    } else if (template.EntityMode === 1) {
-      this._builder.PaperSpaceEntities.push(entity);
-    } else if (template.EntityMode === 2) {
-      this._builder.ModelSpaceEntities.push(entity);
+    if (template.entityMode === 0) {
+      template.ownerHandle = this._handlesReader.handleReferenceWithRef(entity.handle);
+    } else if (template.entityMode === 1) {
+      this._builder.paperSpaceEntities.push(entity);
+    } else if (template.entityMode === 2) {
+      this._builder.modelSpaceEntities.push(entity);
     }
 
-    this.readReactorsAndDictionaryHandle(template);
+    this._readReactorsAndDictionaryHandle(template);
 
-    if (this.R13_14Only) {
-      template.LayerHandle = this.handleReference();
+    if (this.r13_14Only) {
+      template.layerHandle = this._handleReference();
       if (!this._objectReader.readBit()) {
-        template.LineTypeHandle = this.handleReference();
+        template.lineTypeHandle = this._handleReference();
       }
     }
 
-    if (!this.R2004Plus && !this._objectReader.readBit()) {
-      template.PrevEntity = this.handleReference(entity.handle);
-      template.NextEntity = this.handleReference(entity.handle);
-    } else if (!this.R2004Plus) {
+    if (!this.r2004Plus && !this._objectReader.readBit()) {
+      template.prevEntity = this._handleReference(entity.handle);
+      template.nextEntity = this._handleReference(entity.handle);
+    } else if (!this.r2004Plus) {
       if (!this._readedObjects.has(entity.handle - 1)) {
         this._handles.push(entity.handle - 1);
       }
@@ -473,7 +473,7 @@ export class DwgObjectReader extends DwgSectionIO {
     entity.transparency = transparency;
 
     if (this._version >= ACadVersion.AC1018 && colorFlag) {
-      template.ColorHandle = this.handleReference();
+      template.colorHandle = this._handleReference();
     }
 
     entity.lineTypeScale = this._objectReader.readBitDouble();
@@ -483,33 +483,33 @@ export class DwgObjectReader extends DwgSectionIO {
       return;
     }
 
-    template.LayerHandle = this.handleReference();
-    template.LtypeFlags = this._objectReader.read2Bits();
+    template.layerHandle = this._handleReference();
+    template.ltypeFlags = this._objectReader.read2Bits();
 
-    if (template.LtypeFlags === 3) {
-      template.LineTypeHandle = this.handleReference();
+    if (template.ltypeFlags === 3) {
+      template.lineTypeHandle = this._handleReference();
     }
 
-    if (this.R2007Plus) {
+    if (this.r2007Plus) {
       if (this._objectReader.read2Bits() === 3) {
-        template.MaterialHandle = this.handleReference();
+        template.materialHandle = this._handleReference();
       }
       this._objectReader.readByte();
     }
 
     if (this._objectReader.read2Bits() === 3) {
-      this.handleReference();
+      this._handleReference();
     }
 
-    if (this.R2010Plus) {
+    if (this.r2010Plus) {
       if (this._objectReader.readBit()) {
-        this.handleReference();
+        this._handleReference();
       }
       if (this._objectReader.readBit()) {
-        this.handleReference();
+        this._handleReference();
       }
       if (this._objectReader.readBit()) {
-        this.handleReference();
+        this._handleReference();
       }
     }
 
@@ -517,21 +517,21 @@ export class DwgObjectReader extends DwgSectionIO {
     entity.lineWeight = CadUtils.toValue(this._objectReader.readByte());
   }
 
-  private readExtendedData(template: CadTemplate): void {
+  private _readExtendedData(template: CadTemplate): void {
     let size = this._objectReader.readBitShort();
 
     while (size !== 0) {
       const appHandle = this._objectReader.handleReference();
       const endPos = this._objectReader.position + size;
 
-      const edata = this.readExtendedDataRecords(endPos);
-      template.EDataTemplate.set(appHandle, edata);
+      const edata = this._readExtendedDataRecords(endPos);
+      template.eDataTemplate.set(appHandle, edata);
 
       size = this._objectReader.readBitShort();
     }
   }
 
-  private readExtendedDataRecords(endPos: number): ExtendedDataRecord[] {
+  private _readExtendedDataRecords(endPos: number): ExtendedDataRecord[] {
     const records: ExtendedDataRecord[] = [];
 
     while (this._objectReader.position < endPos) {
@@ -590,7 +590,7 @@ export class DwgObjectReader extends DwgSectionIO {
           break;
         default:
           this._objectReader.readBytes(endPos - this._objectReader.position);
-          this._builder.Notify(`Unknown code for extended data: ${dxfCode}`, NotificationType.Warning);
+          this._builder.notify(`Unknown code for extended data: ${dxfCode}`, NotificationType.Warning);
           return records;
       }
 
@@ -600,29 +600,29 @@ export class DwgObjectReader extends DwgSectionIO {
     return records;
   }
 
-  private readReactorsAndDictionaryHandle(template: CadTemplate): void {
+  private _readReactorsAndDictionaryHandle(template: CadTemplate): void {
     const numberOfReactors = this._objectReader.readBitLong();
 
     for (let i = 0; i < numberOfReactors; ++i) {
-      template.ReactorsHandles.add(this.handleReference());
+      template.reactorsHandles.add(this._handleReference());
     }
 
     let flag = false;
-    if (this.R2004Plus) {
+    if (this.r2004Plus) {
       flag = this._objectReader.readBit();
     }
 
     if (!flag) {
-      template.XDictHandle = this.handleReference();
+      template.xDictHandle = this._handleReference();
     }
 
-    if (this.R2013Plus) {
+    if (this.r2013Plus) {
       this._objectReader.readBit();
     }
   }
 
-  private readXrefDependantBit(entry: TableEntry): void {
-    if (this.R2007Plus) {
+  private _readXrefDependantBit(entry: TableEntry): void {
+    if (this.r2007Plus) {
       const xrefindex = this._objectReader.readBitShort();
       if ((xrefindex & 0b100000000) > 0) {
         entry.flags |= StandardFlags.XrefDependent;
@@ -638,7 +638,7 @@ export class DwgObjectReader extends DwgSectionIO {
     }
   }
 
-  private updateHandleReader(): void {
+  private _updateHandleReader(): void {
     const size = this._objectReader.readRawLong();
 
     this._handlesReader.setPositionInBits(size + this._objectInitialPos);
@@ -651,7 +651,7 @@ export class DwgObjectReader extends DwgSectionIO {
     this._mergedReaders = new DwgMergedReader(this._objectReader, this._textReader, this._handlesReader);
   }
 
-  private static looksLikeUtf16Le(buffer: Uint8Array, offset: number): boolean {
+  private static _looksLikeUtf16Le(buffer: Uint8Array, offset: number): boolean {
     if (buffer == null || offset < 0 || offset + 1 >= buffer.length) return false;
 
     let sawNonZero = false;
@@ -667,124 +667,124 @@ export class DwgObjectReader extends DwgSectionIO {
 
   // ==================== DISPATCH ====================
 
-  private readObject(type: ObjectType): CadTemplate | null {
+  private _readObject(type: ObjectType): CadTemplate | null {
     let template: CadTemplate | null = null;
 
     switch (type) {
-      case ObjectType.TEXT: template = this.readText(); break;
-      case ObjectType.ATTRIB: template = this.readAttribute(); break;
-      case ObjectType.ATTDEF: template = this.readAttributeDefinition(); break;
-      case ObjectType.BLOCK: template = this.readBlock(); break;
-      case ObjectType.ENDBLK: template = this.readEndBlock(); break;
-      case ObjectType.SEQEND: template = this.readSeqend(); break;
-      case ObjectType.INSERT: template = this.readInsert(); break;
-      case ObjectType.MINSERT: template = this.readMInsert(); break;
-      case ObjectType.VERTEX_2D: template = this.readVertex2D(); break;
-      case ObjectType.VERTEX_3D: template = this.readVertex3D(new Vertex3D()); break;
-      case ObjectType.VERTEX_PFACE: template = this.readVertex3D(new VertexFaceMesh()); break;
-      case ObjectType.VERTEX_MESH: template = this.readVertex3D(new PolygonMeshVertex()); break;
-      case ObjectType.VERTEX_PFACE_FACE: template = this.readPfaceVertex(); break;
-      case ObjectType.POLYLINE_2D: template = this.readPolyline2D(); break;
-      case ObjectType.POLYLINE_3D: template = this.readPolyline3D(); break;
-      case ObjectType.ARC: template = this.readArc(); break;
-      case ObjectType.CIRCLE: template = this.readCircle(); break;
-      case ObjectType.LINE: template = this.readLine(); break;
-      case ObjectType.DIMENSION_ORDINATE: template = this.readDimOrdinate(); break;
-      case ObjectType.DIMENSION_LINEAR: template = this.readDimLinear(); break;
-      case ObjectType.DIMENSION_ALIGNED: template = this.readDimAligned(); break;
-      case ObjectType.DIMENSION_ANG_3_Pt: template = this.readDimAngular3pt(); break;
-      case ObjectType.DIMENSION_ANG_2_Ln: template = this.readDimLine2pt(); break;
-      case ObjectType.DIMENSION_RADIUS: template = this.readDimRadius(); break;
-      case ObjectType.DIMENSION_DIAMETER: template = this.readDimDiameter(); break;
-      case ObjectType.POINT: template = this.readPoint(); break;
-      case ObjectType.FACE3D: template = this.read3dFace(); break;
-      case ObjectType.POLYLINE_PFACE: template = this.readPolyfaceMesh(); break;
-      case ObjectType.POLYLINE_MESH: template = this.readPolylineMesh(); break;
+      case ObjectType.TEXT: template = this._readText(); break;
+      case ObjectType.ATTRIB: template = this._readAttribute(); break;
+      case ObjectType.ATTDEF: template = this._readAttributeDefinition(); break;
+      case ObjectType.BLOCK: template = this._readBlock(); break;
+      case ObjectType.ENDBLK: template = this._readEndBlock(); break;
+      case ObjectType.SEQEND: template = this._readSeqend(); break;
+      case ObjectType.INSERT: template = this._readInsert(); break;
+      case ObjectType.MINSERT: template = this._readMInsert(); break;
+      case ObjectType.VERTEX_2D: template = this._readVertex2D(); break;
+      case ObjectType.VERTEX_3D: template = this._readVertex3D(new Vertex3D()); break;
+      case ObjectType.VERTEX_PFACE: template = this._readVertex3D(new VertexFaceMesh()); break;
+      case ObjectType.VERTEX_MESH: template = this._readVertex3D(new PolygonMeshVertex()); break;
+      case ObjectType.VERTEX_PFACE_FACE: template = this._readPfaceVertex(); break;
+      case ObjectType.POLYLINE_2D: template = this._readPolyline2D(); break;
+      case ObjectType.POLYLINE_3D: template = this._readPolyline3D(); break;
+      case ObjectType.ARC: template = this._readArc(); break;
+      case ObjectType.CIRCLE: template = this._readCircle(); break;
+      case ObjectType.LINE: template = this._readLine(); break;
+      case ObjectType.DIMENSION_ORDINATE: template = this._readDimOrdinate(); break;
+      case ObjectType.DIMENSION_LINEAR: template = this._readDimLinear(); break;
+      case ObjectType.DIMENSION_ALIGNED: template = this._readDimAligned(); break;
+      case ObjectType.DIMENSION_ANG_3_Pt: template = this._readDimAngular3pt(); break;
+      case ObjectType.DIMENSION_ANG_2_Ln: template = this._readDimLine2pt(); break;
+      case ObjectType.DIMENSION_RADIUS: template = this._readDimRadius(); break;
+      case ObjectType.DIMENSION_DIAMETER: template = this._readDimDiameter(); break;
+      case ObjectType.POINT: template = this._readPoint(); break;
+      case ObjectType.FACE3D: template = this._read3dFace(); break;
+      case ObjectType.POLYLINE_PFACE: template = this._readPolyfaceMesh(); break;
+      case ObjectType.POLYLINE_MESH: template = this._readPolylineMesh(); break;
       case ObjectType.SOLID:
-      case ObjectType.TRACE: template = this.readSolid(); break;
-      case ObjectType.SHAPE: template = this.readShape(); break;
-      case ObjectType.VIEWPORT: template = this.readViewport(); break;
-      case ObjectType.ELLIPSE: template = this.readEllipse(); break;
-      case ObjectType.SPLINE: template = this.readSpline(); break;
-      case ObjectType.REGION: template = this.readModelerGeometry(new CadEntityTemplate(new Region())); break;
-      case ObjectType.SOLID3D: template = this.readSolid3D(); break;
-      case ObjectType.BODY: template = this.readModelerGeometry(new CadEntityTemplate(new CadBody())); break;
-      case ObjectType.RAY: template = this.readRay(); break;
-      case ObjectType.XLINE: template = this.readXLine(); break;
-      case ObjectType.DICTIONARY: template = this.readDictionary(); break;
-      case ObjectType.MTEXT: template = this.readMText(); break;
-      case ObjectType.LEADER: template = this.readLeader(); break;
-      case ObjectType.TOLERANCE: template = this.readTolerance(); break;
-      case ObjectType.MLINE: template = this.readMLine(); break;
+      case ObjectType.TRACE: template = this._readSolid(); break;
+      case ObjectType.SHAPE: template = this._readShape(); break;
+      case ObjectType.VIEWPORT: template = this._readViewport(); break;
+      case ObjectType.ELLIPSE: template = this._readEllipse(); break;
+      case ObjectType.SPLINE: template = this._readSpline(); break;
+      case ObjectType.REGION: template = this._readModelerGeometry(new CadEntityTemplate(new Region())); break;
+      case ObjectType.SOLID3D: template = this._readSolid3D(); break;
+      case ObjectType.BODY: template = this._readModelerGeometry(new CadEntityTemplate(new CadBody())); break;
+      case ObjectType.RAY: template = this._readRay(); break;
+      case ObjectType.XLINE: template = this._readXLine(); break;
+      case ObjectType.DICTIONARY: template = this._readDictionary(); break;
+      case ObjectType.MTEXT: template = this._readMText(); break;
+      case ObjectType.LEADER: template = this._readLeader(); break;
+      case ObjectType.TOLERANCE: template = this._readTolerance(); break;
+      case ObjectType.MLINE: template = this._readMLine(); break;
       case ObjectType.BLOCK_CONTROL_OBJ:
-        template = this.readBlockControlObject();
-        this._builder.BlockRecords = template!.CadObject as BlockRecordsTable;
+        template = this._readBlockControlObject();
+        this._builder.blockRecords = template!.cadObject as BlockRecordsTable;
         break;
-      case ObjectType.BLOCK_HEADER: template = this.readBlockHeader(); break;
+      case ObjectType.BLOCK_HEADER: template = this._readBlockHeader(); break;
       case ObjectType.LAYER_CONTROL_OBJ:
-        template = this.readDocumentTableGeneric(new LayersTable());
-        this._builder.Layers = template!.CadObject as LayersTable;
+        template = this._readDocumentTableGeneric(new LayersTable());
+        this._builder.layers = template!.cadObject as LayersTable;
         break;
-      case ObjectType.LAYER: template = this.readLayer(); break;
+      case ObjectType.LAYER: template = this._readLayer(); break;
       case ObjectType.STYLE_CONTROL_OBJ:
-        template = this.readDocumentTableGeneric(new TextStylesTable());
-        this._builder.TextStyles = template!.CadObject as TextStylesTable;
+        template = this._readDocumentTableGeneric(new TextStylesTable());
+        this._builder.textStyles = template!.cadObject as TextStylesTable;
         break;
-      case ObjectType.STYLE: template = this.readTextStyle(); break;
+      case ObjectType.STYLE: template = this._readTextStyle(); break;
       case ObjectType.LTYPE_CONTROL_OBJ:
-        template = this.readLTypeControlObject();
-        this._builder.LineTypesTable = template!.CadObject as LineTypesTable;
+        template = this._readLTypeControlObject();
+        this._builder.lineTypesTable = template!.cadObject as LineTypesTable;
         break;
-      case ObjectType.LTYPE: template = this.readLType(); break;
+      case ObjectType.LTYPE: template = this._readLType(); break;
       case ObjectType.VIEW_CONTROL_OBJ:
-        template = this.readDocumentTableGeneric(new ViewsTable());
-        this._builder.Views = template!.CadObject as ViewsTable;
+        template = this._readDocumentTableGeneric(new ViewsTable());
+        this._builder.views = template!.cadObject as ViewsTable;
         break;
-      case ObjectType.VIEW: template = this.readView(); break;
+      case ObjectType.VIEW: template = this._readView(); break;
       case ObjectType.UCS_CONTROL_OBJ:
-        template = this.readDocumentTableGeneric(new UCSTable());
-        this._builder.UCSs = template!.CadObject as UCSTable;
+        template = this._readDocumentTableGeneric(new UCSTable());
+        this._builder.ucSs = template!.cadObject as UCSTable;
         break;
-      case ObjectType.UCS: template = this.readUcs(); break;
+      case ObjectType.UCS: template = this._readUcs(); break;
       case ObjectType.VPORT_CONTROL_OBJ:
-        template = this.readDocumentTableGeneric(new VPortsTable());
-        this._builder.VPorts = template!.CadObject as VPortsTable;
+        template = this._readDocumentTableGeneric(new VPortsTable());
+        this._builder.vPorts = template!.cadObject as VPortsTable;
         break;
-      case ObjectType.VPORT: template = this.readVPort(); break;
+      case ObjectType.VPORT: template = this._readVPort(); break;
       case ObjectType.APPID_CONTROL_OBJ:
-        template = this.readDocumentTableGeneric(new AppIdsTable());
-        this._builder.AppIds = template!.CadObject as AppIdsTable;
+        template = this._readDocumentTableGeneric(new AppIdsTable());
+        this._builder.appIds = template!.cadObject as AppIdsTable;
         break;
-      case ObjectType.APPID: template = this.readAppId(); break;
+      case ObjectType.APPID: template = this._readAppId(); break;
       case ObjectType.DIMSTYLE_CONTROL_OBJ:
-        template = this.readDocumentTableGeneric(new DimensionStylesTable());
-        this._builder.DimensionStyles = template!.CadObject as DimensionStylesTable;
+        template = this._readDocumentTableGeneric(new DimensionStylesTable());
+        this._builder.dimensionStyles = template!.cadObject as DimensionStylesTable;
         break;
-      case ObjectType.DIMSTYLE: template = this.readDimStyle(); break;
+      case ObjectType.DIMSTYLE: template = this._readDimStyle(); break;
       case ObjectType.VP_ENT_HDR_CTRL_OBJ:
-        template = this.readViewportEntityControl();
-        this._builder.DocumentToBuild.vEntityControl = template!.CadObject as ViewportEntityControl;
+        template = this._readViewportEntityControl();
+        this._builder.documentToBuild.vEntityControl = template!.cadObject as ViewportEntityControl;
         break;
-      case ObjectType.VP_ENT_HDR: template = this.readViewportEntityHeader(); break;
-      case ObjectType.GROUP: template = this.readGroup(); break;
-      case ObjectType.MLINESTYLE: template = this.readMLineStyle(); break;
-      case ObjectType.LWPOLYLINE: template = this.readLWPolyline(); break;
-      case ObjectType.HATCH: template = this.readHatch(); break;
-      case ObjectType.XRECORD: template = this.readXRecord(); break;
-      case ObjectType.ACDBPLACEHOLDER: template = this.readPlaceHolder(); break;
-      case ObjectType.LAYOUT: template = this.readLayout(); break;
-      case ObjectType.ACAD_PROXY_ENTITY: template = this.readProxyEntity(); break;
-      case ObjectType.ACAD_PROXY_OBJECT: template = this.readProxyObject(); break;
-      case ObjectType.OLE2FRAME: template = this.readOle2Frame(); break;
+      case ObjectType.VP_ENT_HDR: template = this._readViewportEntityHeader(); break;
+      case ObjectType.GROUP: template = this._readGroup(); break;
+      case ObjectType.MLINESTYLE: template = this._readMLineStyle(); break;
+      case ObjectType.LWPOLYLINE: template = this._readLWPolyline(); break;
+      case ObjectType.HATCH: template = this._readHatch(); break;
+      case ObjectType.XRECORD: template = this._readXRecord(); break;
+      case ObjectType.ACDBPLACEHOLDER: template = this._readPlaceHolder(); break;
+      case ObjectType.LAYOUT: template = this._readLayout(); break;
+      case ObjectType.ACAD_PROXY_ENTITY: template = this._readProxyEntity(); break;
+      case ObjectType.ACAD_PROXY_OBJECT: template = this._readProxyObject(); break;
+      case ObjectType.OLE2FRAME: template = this._readOle2Frame(); break;
       case ObjectType.OLEFRAME:
       case ObjectType.DUMMY:
-        template = this.readUnknownEntity(null);
-        this._builder.Notify(`Unlisted object with DXF name ${type} has been read as an UnknownEntity`, NotificationType.Warning);
+        template = this._readUnknownEntity(null);
+        this._builder.notify(`Unlisted object with DXF name ${type} has been read as an UnknownEntity`, NotificationType.Warning);
         return template;
       case ObjectType.VBA_PROJECT:
       case ObjectType.LONG_TRANSACTION:
-        template = this.readUnknownNonGraphicalObject(null);
-        this._builder.Notify(`Unlisted object with DXF name ${type} has been read as an UnknownNonGraphicalObject`, NotificationType.Warning);
+        template = this._readUnknownNonGraphicalObject(null);
+        this._builder.notify(`Unlisted object with DXF name ${type} has been read as an UnknownNonGraphicalObject`, NotificationType.Warning);
         return template;
       case ObjectType.UNDEFINED:
       case ObjectType.UNKNOW_3A:
@@ -794,94 +794,94 @@ export class DwgObjectReader extends DwgSectionIO {
       case ObjectType.UNKNOW_9:
         break;
       default:
-        return this.readUnlistedType(type as number);
+        return this._readUnlistedType(type as number);
     }
 
     if (template == null) {
-      this._builder.Notify(`Object type not implemented: ${type}`, NotificationType.NotImplemented);
+      this._builder.notify(`Object type not implemented: ${type}`, NotificationType.NotImplemented);
     }
 
     return template;
   }
 
-  private readUnlistedType(classNumber: number): CadTemplate | null {
+  private _readUnlistedType(classNumber: number): CadTemplate | null {
     const c = this._classes.get(classNumber);
     if (!c) return null;
 
     let template: CadTemplate | null = null;
 
     switch (c.dxfName) {
-      case DxfFileToken.EntityAecWall: template = this.readAecWall(); break;
-      case DxfFileToken.ObjectBinRecord: template = this.readBinRecord(); break;
-      case DxfFileToken.ObjectAecWallStyle: template = this.readAecWallStyle(); break;
-      case DxfFileToken.ObjectAecCleanupGroupDef: template = this.readAecCleanupGroup(); break;
-      case 'ACDBDICTIONARYWDFLT': template = this.readDictionaryWithDefault(); break;
-      case 'ACDBPLACEHOLDER': template = this.readPlaceHolder(); break;
-      case 'ACAD_TABLE': template = this.readTableEntity(); break;
-      case DxfFileToken.ObjectDimensionAssociation: template = this.readDimensionAssociation(); break;
-      case 'DBCOLOR': template = this.readDbColor(); break;
-      case 'DICTIONARYVAR': template = this.readDictionaryVar(); break;
-      case 'DICTIONARYWDFLT': template = this.readDictionaryWithDefault(); break;
-      case DxfFileToken.ObjectGeoData: template = this.readGeoData(); break;
-      case 'GROUP': template = this.readGroup(); break;
-      case 'HATCH': template = this.readHatch(); break;
-      case 'IMAGE': template = this.readCadImage(new RasterImage()); break;
-      case 'IMAGEDEF': template = this.readImageDefinition(); break;
-      case 'IMAGEDEF_REACTOR': template = this.readImageDefinitionReactor(); break;
-      case 'LAYOUT': template = this.readLayout(); break;
+      case DxfFileToken.entityAecWall: template = this._readAecWall(); break;
+      case DxfFileToken.objectBinRecord: template = this._readBinRecord(); break;
+      case DxfFileToken.objectAecWallStyle: template = this._readAecWallStyle(); break;
+      case DxfFileToken.objectAecCleanupGroupDef: template = this._readAecCleanupGroup(); break;
+      case 'ACDBDICTIONARYWDFLT': template = this._readDictionaryWithDefault(); break;
+      case 'ACDBPLACEHOLDER': template = this._readPlaceHolder(); break;
+      case 'ACAD_TABLE': template = this._readTableEntity(); break;
+      case DxfFileToken.objectDimensionAssociation: template = this._readDimensionAssociation(); break;
+      case 'DBCOLOR': template = this._readDbColor(); break;
+      case 'DICTIONARYVAR': template = this._readDictionaryVar(); break;
+      case 'DICTIONARYWDFLT': template = this._readDictionaryWithDefault(); break;
+      case DxfFileToken.objectGeoData: template = this._readGeoData(); break;
+      case 'GROUP': template = this._readGroup(); break;
+      case 'HATCH': template = this._readHatch(); break;
+      case 'IMAGE': template = this._readCadImage(new RasterImage()); break;
+      case 'IMAGEDEF': template = this._readImageDefinition(); break;
+      case 'IMAGEDEF_REACTOR': template = this._readImageDefinitionReactor(); break;
+      case 'LAYOUT': template = this._readLayout(); break;
       case 'LWPLINE':
-      case 'LWPOLYLINE': template = this.readLWPolyline(); break;
-      case 'MATERIAL': template = this.readMaterial(); break;
-      case 'MESH': template = this.readMesh(); break;
-      case 'MULTILEADER': template = this.readMultiLeader(); break;
-      case 'ACDB_MLEADEROBJECTCONTEXTDATA_CLASS': template = this.readMultiLeaderAnnotContext(); break;
-      case 'MLEADERSTYLE': template = this.readMultiLeaderStyle(); break;
-      case 'PDFDEFINITION': template = this.readPdfDefinition(); break;
+      case 'LWPOLYLINE': template = this._readLWPolyline(); break;
+      case 'MATERIAL': template = this._readMaterial(); break;
+      case 'MESH': template = this._readMesh(); break;
+      case 'MULTILEADER': template = this._readMultiLeader(); break;
+      case 'ACDB_MLEADEROBJECTCONTEXTDATA_CLASS': template = this._readMultiLeaderAnnotContext(); break;
+      case 'MLEADERSTYLE': template = this._readMultiLeaderStyle(); break;
+      case 'PDFDEFINITION': template = this._readPdfDefinition(); break;
       case 'PDFUNDERLAY':
-      case 'PDFREFERENCE': template = this.readPdfUnderlay(); break;
-      case 'SCALE': template = this.readScale(); break;
-      case 'SORTENTSTABLE': template = this.readSortentsTable(); break;
-      case 'RASTERVARIABLES': template = this.readRasterVariables(); break;
-      case 'WIPEOUT': template = this.readCadImage(new Wipeout()); break;
-      case 'XRECORD': template = this.readXRecord(); break;
-      case DxfFileToken.ObjectEvalGraph: template = this.readEvaluationGraph(); break;
-      case DxfFileToken.ObjectBlockRotationParameter: template = this.readBlockRotationParameter(); break;
-      case DxfFileToken.ObjectBlockVisibilityParameter: template = this.readBlockVisibilityParameter(); break;
-      case 'BLOCKFLIPPARAMETER': template = this.readBlockFlipParameter(); break;
-      case DxfFileToken.ObjectBlockRepresentationData: template = this.readBlockRepresentationData(); break;
-      case DxfFileToken.ObjectBlockGripLocationComponent: template = this.readBlockGripLocationComponent(); break;
-      case DxfFileToken.ObjectBlockRotationGrip: {
+      case 'PDFREFERENCE': template = this._readPdfUnderlay(); break;
+      case 'SCALE': template = this._readScale(); break;
+      case 'SORTENTSTABLE': template = this._readSortentsTable(); break;
+      case 'RASTERVARIABLES': template = this._readRasterVariables(); break;
+      case 'WIPEOUT': template = this._readCadImage(new Wipeout()); break;
+      case 'XRECORD': template = this._readXRecord(); break;
+      case DxfFileToken.objectEvalGraph: template = this._readEvaluationGraph(); break;
+      case DxfFileToken.objectBlockRotationParameter: template = this._readBlockRotationParameter(); break;
+      case DxfFileToken.objectBlockVisibilityParameter: template = this._readBlockVisibilityParameter(); break;
+      case 'BLOCKFLIPPARAMETER': template = this._readBlockFlipParameter(); break;
+      case DxfFileToken.objectBlockRepresentationData: template = this._readBlockRepresentationData(); break;
+      case DxfFileToken.objectBlockGripLocationComponent: template = this._readBlockGripLocationComponent(); break;
+      case DxfFileToken.objectBlockRotationGrip: {
         const t = new CadBlockRotationGripTemplate();
-        this.readBlockGrip(t);
+        this._readBlockGrip(t);
         template = t;
         break;
       }
-      case DxfFileToken.ObjectBlockVisibilityGrip: {
+      case DxfFileToken.objectBlockVisibilityGrip: {
         const t = new CadBlockVisibilityGripTemplate();
-        this.readBlockGrip(t);
+        this._readBlockGrip(t);
         template = t;
         break;
       }
-      case DxfFileToken.ObjectBlockFlipAction: template = this.readBlockFlipAction(); break;
-      case DxfFileToken.ObjectBlockRotateAction: template = this.readBlockRotateAction(); break;
-      case 'SPATIAL_FILTER': template = this.readSpatialFilter(); break;
-      case 'ACAD_PROXY_ENTITY': template = this.readProxyEntity(); break;
-      case 'ACAD_PROXY_OBJECT': template = this.readProxyObject(); break;
-      case DxfFileToken.ObjectVisualStyle: template = this.readVisualStyle(); break;
-      case DxfFileToken.ObjectPlotSettings: template = this.readPlotSettings(); break;
-      case DxfFileToken.ObjectTableStyle: template = this.readTableStyle(); break;
-      case DxfFileToken.BlkRefObjectContextData: template = this.readBlkRefObjectContextData(); break;
-      case DxfFileToken.MTextAttributeObjectContextData: template = this.readMTextAttributeObjectContextData(); break;
-      case DxfFileToken.ObjectFieldList: template = this.readFieldList(); break;
-      case DxfFileToken.ObjectField: template = this.readField(); break;
+      case DxfFileToken.objectBlockFlipAction: template = this._readBlockFlipAction(); break;
+      case DxfFileToken.objectBlockRotateAction: template = this._readBlockRotateAction(); break;
+      case 'SPATIAL_FILTER': template = this._readSpatialFilter(); break;
+      case 'ACAD_PROXY_ENTITY': template = this._readProxyEntity(); break;
+      case 'ACAD_PROXY_OBJECT': template = this._readProxyObject(); break;
+      case DxfFileToken.objectVisualStyle: template = this._readVisualStyle(); break;
+      case DxfFileToken.objectPlotSettings: template = this._readPlotSettings(); break;
+      case DxfFileToken.objectTableStyle: template = this._readTableStyle(); break;
+      case DxfFileToken.blkRefObjectContextData: template = this._readBlkRefObjectContextData(); break;
+      case DxfFileToken.mTextAttributeObjectContextData: template = this._readMTextAttributeObjectContextData(); break;
+      case DxfFileToken.objectFieldList: template = this._readFieldList(); break;
+      case DxfFileToken.objectField: template = this._readField(); break;
     }
 
     if (template == null && c.isAnEntity) {
-      template = this.readUnknownEntity(c);
-      this._builder.Notify(`Unlisted object with DXF name ${c.dxfName} has been read as an UnknownEntity`, NotificationType.Warning);
+      template = this._readUnknownEntity(c);
+      this._builder.notify(`Unlisted object with DXF name ${c.dxfName} has been read as an UnknownEntity`, NotificationType.Warning);
     } else if (template == null && !c.isAnEntity) {
-      template = this.readUnknownNonGraphicalObject(c);
-      this._builder.Notify(`Unlisted object with DXF name ${c.dxfName} has been read as an UnknownNonGraphicalObject`, NotificationType.Warning);
+      template = this._readUnknownNonGraphicalObject(c);
+      this._builder.notify(`Unlisted object with DXF name ${c.dxfName} has been read as an UnknownNonGraphicalObject`, NotificationType.Warning);
     }
 
     return template;
@@ -889,18 +889,18 @@ export class DwgObjectReader extends DwgSectionIO {
 
   // ==================== ENTITY READERS ====================
 
-  private read3dFace(): CadTemplate {
+  private _read3dFace(): CadTemplate {
     const face = new Face3D();
     const template = new CadEntityTemplate(face);
-    this.readCommonEntityData(template);
-    if (this.R13_14Only) {
+    this._readCommonEntityData(template);
+    if (this.r13_14Only) {
       face.firstCorner = this._objectReader.read3BitDouble();
       face.secondCorner = this._objectReader.read3BitDouble();
       face.thirdCorner = this._objectReader.read3BitDouble();
       face.fourthCorner = this._objectReader.read3BitDouble();
       face.flags = this._objectReader.readBitShort() as InvisibleEdgeFlags;
     }
-    if (this.R2000Plus) {
+    if (this.r2000Plus) {
       const noFlags = this._objectReader.readBit();
       const zIsZero = this._objectReader.readBit();
       const x = this._objectReader.readDouble();
@@ -916,13 +916,13 @@ export class DwgObjectReader extends DwgSectionIO {
     return template;
   }
 
-  private readArc(): CadTemplate {
+  private _readArc(): CadTemplate {
     const arc = new Arc();
     const template = new CadEntityTemplate(arc);
-    this.readCommonEntityData(template);
+    this._readCommonEntityData(template);
     arc.center = this._objectReader.read3BitDouble();
     const radius = this._objectReader.readBitDouble();
-    arc.radius = radius <= 0 ? MathHelper.Epsilon : radius;
+    arc.radius = radius <= 0 ? MathHelper.epsilon : radius;
     arc.thickness = this._objectReader.readBitThickness();
     arc.normal = this._objectReader.readBitExtrusion();
     arc.startAngle = this._objectReader.readBitDouble();
@@ -930,27 +930,27 @@ export class DwgObjectReader extends DwgSectionIO {
     return template;
   }
 
-  private readCircle(): CadTemplate {
+  private _readCircle(): CadTemplate {
     const circle = new Circle();
     const template = new CadEntityTemplate(circle);
-    this.readCommonEntityData(template);
+    this._readCommonEntityData(template);
     circle.center = this._objectReader.read3BitDouble();
     const radius = this._objectReader.readBitDouble();
-    circle.radius = radius <= 0 ? MathHelper.Epsilon : radius;
+    circle.radius = radius <= 0 ? MathHelper.epsilon : radius;
     circle.thickness = this._objectReader.readBitThickness();
     circle.normal = this._objectReader.readBitExtrusion();
     return template;
   }
 
-  private readLine(): CadTemplate {
+  private _readLine(): CadTemplate {
     const line = new Line();
     const template = new CadEntityTemplate(line);
-    this.readCommonEntityData(template);
-    if (this.R13_14Only) {
+    this._readCommonEntityData(template);
+    if (this.r13_14Only) {
       line.startPoint = this._objectReader.read3BitDouble();
       line.endPoint = this._objectReader.read3BitDouble();
     }
-    if (this.R2000Plus) {
+    if (this.r2000Plus) {
       const flag = this._objectReader.readBit();
       const startX = this._objectReader.readDouble();
       const endX = this._objectReader.readBitDoubleWithDefault(startX);
@@ -970,10 +970,10 @@ export class DwgObjectReader extends DwgSectionIO {
     return template;
   }
 
-  private readPoint(): CadTemplate {
+  private _readPoint(): CadTemplate {
     const pt = new Point();
     const template = new CadEntityTemplate(pt);
-    this.readCommonEntityData(template);
+    this._readCommonEntityData(template);
     pt.location = this._objectReader.read3BitDouble();
     pt.thickness = this._objectReader.readBitThickness();
     pt.normal = this._objectReader.readBitExtrusion();
@@ -981,10 +981,10 @@ export class DwgObjectReader extends DwgSectionIO {
     return template;
   }
 
-  private readEllipse(): CadTemplate {
+  private _readEllipse(): CadTemplate {
     const ellipse = new Ellipse();
     const template = new CadEntityTemplate(ellipse);
-    this.readCommonEntityData(template);
+    this._readCommonEntityData(template);
     ellipse.center = this._objectReader.read3BitDouble();
     ellipse.majorAxisEndPoint = this._objectReader.read3BitDouble();
     ellipse.normal = this._objectReader.read3BitDouble();
@@ -994,28 +994,28 @@ export class DwgObjectReader extends DwgSectionIO {
     return template;
   }
 
-  private readRay(): CadTemplate {
+  private _readRay(): CadTemplate {
     const ray = new Ray();
     const template = new CadEntityTemplate(ray);
-    this.readCommonEntityData(template);
+    this._readCommonEntityData(template);
     ray.startPoint = this._objectReader.read3BitDouble();
     ray.direction = this._objectReader.read3BitDouble();
     return template;
   }
 
-  private readXLine(): CadTemplate {
+  private _readXLine(): CadTemplate {
     const xline = new XLine();
     const template = new CadEntityTemplate(xline);
-    this.readCommonEntityData(template);
+    this._readCommonEntityData(template);
     xline.firstPoint = this._objectReader.read3BitDouble();
     xline.direction = this._objectReader.read3BitDouble();
     return template;
   }
 
-  private readSolid(): CadTemplate {
+  private _readSolid(): CadTemplate {
     const solid = new Solid();
     const template = new CadEntityTemplate(solid);
-    this.readCommonEntityData(template);
+    this._readCommonEntityData(template);
     solid.thickness = this._objectReader.readBitThickness();
     const elevation = this._objectReader.readBitDouble();
     let pt = this._objectReader.read2RawDouble();
@@ -1030,32 +1030,32 @@ export class DwgObjectReader extends DwgSectionIO {
     return template;
   }
 
-  private readBlock(): CadTemplate {
+  private _readBlock(): CadTemplate {
     const block = new Block(new BlockRecord());
     const template = new CadEntityTemplate(block);
-    this.readCommonEntityData(template);
+    this._readCommonEntityData(template);
     const name = this._textReader.readVariableText();
     if (name && name.trim().length > 0) block.name = name;
     return template;
   }
 
-  private readEndBlock(): CadTemplate {
+  private _readEndBlock(): CadTemplate {
     const block = new BlockEnd(new BlockRecord());
     const template = new CadEntityTemplate(block);
-    this.readCommonEntityData(template);
+    this._readCommonEntityData(template);
     return template;
   }
 
-  private readSeqend(): CadTemplate {
+  private _readSeqend(): CadTemplate {
     const template = new CadEntityTemplate(new Seqend());
-    this.readCommonEntityData(template);
+    this._readCommonEntityData(template);
     return template;
   }
 
-  private readShape(): CadTemplate {
+  private _readShape(): CadTemplate {
     const shape = new Shape();
     const template = new CadShapeTemplate(shape);
-    this.readCommonEntityData(template);
+    this._readCommonEntityData(template);
     shape.insertionPoint = this._objectReader.read3BitDouble();
     shape.size = this._objectReader.readBitDouble();
     shape.rotation = this._objectReader.readBitDouble();
@@ -1064,15 +1064,15 @@ export class DwgObjectReader extends DwgSectionIO {
     shape.thickness = this._objectReader.readBitDouble();
     shape.shapeIndex = this._objectReader.readBitShort() & 0xFFFF;
     shape.normal = this._objectReader.read3BitDouble();
-    template.ShapeFileHandle = this.handleReference();
+    template.shapeFileHandle = this._handleReference();
     return template;
   }
 
-  private readTolerance(): CadTemplate {
+  private _readTolerance(): CadTemplate {
     const tolerance = new Tolerance();
     const template = new CadToleranceTemplate(tolerance);
-    this.readCommonEntityData(template as unknown as CadEntityTemplate);
-    if (this.R13_14Only) {
+    this._readCommonEntityData(template as unknown as CadEntityTemplate);
+    if (this.r13_14Only) {
       this._objectReader.readBitShort();
       this._objectReader.readBitDouble();
       this._objectReader.readBitDouble();
@@ -1081,67 +1081,67 @@ export class DwgObjectReader extends DwgSectionIO {
     tolerance.direction = this._objectReader.read3BitDouble();
     tolerance.normal = this._objectReader.read3BitDouble();
     tolerance.text = this._textReader.readVariableText();
-    template.DimensionStyleHandle = this.handleReference();
+    template.dimensionStyleHandle = this._handleReference();
     return template as unknown as CadTemplate;
   }
 
-  private readPlaceHolder(): CadTemplate {
+  private _readPlaceHolder(): CadTemplate {
     const template = new CadNonGraphicalObjectTemplate(new AcdbPlaceHolder());
-    this.readCommonNonEntityData(template);
+    this._readCommonNonEntityData(template);
     return template;
   }
 
-  private readUnknownEntity(dxfClass: DxfClass | null): CadTemplate {
+  private _readUnknownEntity(dxfClass: DxfClass | null): CadTemplate {
     const entity = new UnknownEntity(dxfClass);
     const template = new CadUnknownEntityTemplate(entity);
-    this.readCommonEntityData(template);
+    this._readCommonEntityData(template);
     return template;
   }
 
-  private readUnknownNonGraphicalObject(dxfClass: DxfClass | null): CadTemplate {
+  private _readUnknownNonGraphicalObject(dxfClass: DxfClass | null): CadTemplate {
     const obj = new UnknownNonGraphicalObject(dxfClass);
     const template = new CadUnknownNonGraphicalObjectTemplate(obj);
-    this.readCommonNonEntityData(template);
+    this._readCommonNonEntityData(template);
     return template;
   }
 
   // ==================== BLOCK HEADER ====================
 
-  private readBlockControlObject(): CadTemplate {
+  private _readBlockControlObject(): CadTemplate {
     const template = new CadBlockCtrlObjectTemplate(new BlockRecordsTable());
-    this.readDocumentTable(template);
-    template.ModelSpaceHandle = this.handleReference();
-    template.PaperSpaceHandle = this.handleReference();
+    this._readDocumentTable(template);
+    template.modelSpaceHandle = this._handleReference();
+    template.paperSpaceHandle = this._handleReference();
     return template;
   }
 
-  private readBlockHeader(): CadTemplate {
+  private _readBlockHeader(): CadTemplate {
     const record = new BlockRecord();
     const block = record.blockEntity;
     const template = new CadBlockRecordTemplate(record);
-    this._builder.BlockRecordTemplates.push(template);
-    this.readCommonNonEntityData(template);
+    this._builder.blockRecordTemplates.push(template);
+    this._readCommonNonEntityData(template);
     const name = this._textReader.readVariableText();
-    if (name.toLowerCase() === BlockRecord.ModelSpaceName.toLowerCase() ||
-      name.toLowerCase() === BlockRecord.PaperSpaceName.toLowerCase()) {
+    if (name.toLowerCase() === BlockRecord.modelSpaceName.toLowerCase() ||
+      name.toLowerCase() === BlockRecord.paperSpaceName.toLowerCase()) {
       record.name = name;
     }
-    this.readXrefDependantBit(template.CadObject);
+    this._readXrefDependantBit(template.cadObject);
     if (this._objectReader.readBit()) block.flags |= BlockTypeFlags.Anonymous;
     const hasatts = this._objectReader.readBit();
     if (this._objectReader.readBit()) block.flags |= BlockTypeFlags.XRef;
     if (this._objectReader.readBit()) block.flags |= BlockTypeFlags.XRefOverlay;
-    if (this.R2000Plus) {
+    if (this.r2000Plus) {
       block.isUnloaded = this._objectReader.readBit();
     }
     let nownedObjects = 0;
-    if (this.R2004Plus && !(block.flags & BlockTypeFlags.XRef) && !(block.flags & BlockTypeFlags.XRefOverlay)) {
+    if (this.r2004Plus && !(block.flags & BlockTypeFlags.XRef) && !(block.flags & BlockTypeFlags.XRefOverlay)) {
       nownedObjects = this._objectReader.readBitLong();
     }
     block.basePoint = this._objectReader.read3BitDouble();
     block.xRefPath = this._textReader.readVariableText();
     let insertCount = 0;
-    if (this.R2000Plus) {
+    if (this.r2000Plus) {
       for (let i = this._objectReader.readByte(); i !== 0; i = this._objectReader.readByte()) ++insertCount;
       block.comments = this._textReader.readVariableText();
       const n = this._objectReader.readBitLong();
@@ -1149,70 +1149,70 @@ export class DwgObjectReader extends DwgSectionIO {
       for (let i = 0; i < n; ++i) data.push(this._objectReader.readByte());
       record.preview = new Uint8Array(data);
     }
-    if (this.R2007Plus) {
+    if (this.r2007Plus) {
       record.units = this._objectReader.readBitShort() as UnitsType;
       record.isExplodable = this._objectReader.readBit();
       record.canScale = this._objectReader.readByte() > 0;
     }
-    this.handleReference();
-    template.BeginBlockHandle = this.handleReference();
+    this._handleReference();
+    template.beginBlockHandle = this._handleReference();
     if (this._version >= ACadVersion.AC1012 && this._version <= ACadVersion.AC1015
       && !(block.flags & BlockTypeFlags.XRef) && !(block.flags & BlockTypeFlags.XRefOverlay)) {
-      template.FirstEntityHandle = this.handleReference();
-      template.LastEntityHandle = this.handleReference();
+      template.firstEntityHandle = this._handleReference();
+      template.lastEntityHandle = this._handleReference();
     }
-    if (this.R2004Plus) {
-      for (let i = 0; i < nownedObjects; ++i) template.OwnedObjectsHandlers.add(this.handleReference());
+    if (this.r2004Plus) {
+      for (let i = 0; i < nownedObjects; ++i) template.ownedObjectsHandlers.add(this._handleReference());
     }
-    template.EndBlockHandle = this.handleReference();
-    if (this.R2000Plus) {
-      for (let i = 0; i < insertCount; ++i) template.InsertHandles.push(this.handleReference());
-      template.LayoutHandle = this.handleReference();
+    template.endBlockHandle = this._handleReference();
+    if (this.r2000Plus) {
+      for (let i = 0; i < insertCount; ++i) template.insertHandles.push(this._handleReference());
+      template.layoutHandle = this._handleReference();
     }
     return template;
   }
 
   // ==================== TABLE READERS ====================
 
-  private readDocumentTable<T extends TableEntry>(template: CadTableTemplate<T>): CadTemplate {
-    this.readCommonNonEntityData(template);
+  private _readDocumentTable<T extends TableEntry>(template: CadTableTemplate<T>): CadTemplate {
+    this._readCommonNonEntityData(template);
     const numentries = this._objectReader.readBitLong();
-    for (let i = 0; i < numentries; ++i) template.EntryHandles.add(this.handleReference());
+    for (let i = 0; i < numentries; ++i) template.entryHandles.add(this._handleReference());
     return template;
   }
 
-  private readDocumentTableGeneric<T extends TableEntry>(table: Table<T>): CadTemplate {
+  private _readDocumentTableGeneric<T extends TableEntry>(table: Table<T>): CadTemplate {
     const template = new CadTableTemplate(table);
-    return this.readDocumentTable(template);
+    return this._readDocumentTable(template);
   }
 
-  private readLTypeControlObject(): CadTemplate {
+  private _readLTypeControlObject(): CadTemplate {
     const template = new CadTableTemplate(new LineTypesTable());
-    this.readDocumentTable(template);
-    template.EntryHandles.add(this.handleReference());
-    template.EntryHandles.add(this.handleReference());
+    this._readDocumentTable(template);
+    template.entryHandles.add(this._handleReference());
+    template.entryHandles.add(this._handleReference());
     return template;
   }
 
-  private readAppId(): CadTemplate {
+  private _readAppId(): CadTemplate {
     const appId = new AppId();
     const template = new CadTableEntryTemplate(appId);
-    this.readCommonNonEntityData(template);
+    this._readCommonNonEntityData(template);
     const name = this._textReader.readVariableText();
     if (name && name.trim().length > 0) appId.name = name;
-    this.readXrefDependantBit(appId);
+    this._readXrefDependantBit(appId);
     this._objectReader.readByte();
-    this.handleReference();
+    this._handleReference();
     return template;
   }
 
-  private readTextStyle(): CadTemplate {
+  private _readTextStyle(): CadTemplate {
     const style = new TextStyle();
     const template = new CadTableEntryTemplate(style);
-    this.readCommonNonEntityData(template);
+    this._readCommonNonEntityData(template);
     const name = this._textReader.readVariableText();
     if (name && name.trim().length > 0) style.name = name;
-    this.readXrefDependantBit(template.CadObject);
+    this._readXrefDependantBit(template.cadObject);
     if (this._objectReader.readBit()) style.flags |= StyleFlags.IsShape;
     if (this._objectReader.readBit()) style.flags |= StyleFlags.VerticalText;
     style.height = this._objectReader.readBitDouble();
@@ -1222,24 +1222,24 @@ export class DwgObjectReader extends DwgSectionIO {
     style.lastHeight = this._objectReader.readBitDouble();
     style.filename = this._textReader.readVariableText();
     style.bigFontFilename = this._textReader.readVariableText();
-    this.handleReference();
+    this._handleReference();
     return template;
   }
 
-  private readLayer(): CadTemplate {
+  private _readLayer(): CadTemplate {
     const layer = new Layer();
     const template = new CadLayerTemplate(layer);
-    this.readCommonNonEntityData(template);
+    this._readCommonNonEntityData(template);
     const name = this._textReader.readVariableText();
     if (name && name.trim().length > 0) layer.name = name;
-    this.readXrefDependantBit(template.CadObject);
-    if (this.R13_14Only) {
+    this._readXrefDependantBit(template.cadObject);
+    if (this.r13_14Only) {
       if (this._objectReader.readBit()) layer.flags |= LayerFlags.Frozen;
       layer.isOn = this._objectReader.readBit();
       if (this._objectReader.readBit()) layer.flags |= LayerFlags.FrozenNewViewports;
       if (this._objectReader.readBit()) layer.flags |= LayerFlags.Locked;
     }
-    if (this.R2000Plus) {
+    if (this.r2000Plus) {
       const values = this._objectReader.readBitShort();
       if ((values & 0b1) > 0) layer.flags |= LayerFlags.Frozen;
       layer.isOn = (values & 0b10) === 0;
@@ -1251,73 +1251,73 @@ export class DwgObjectReader extends DwgSectionIO {
     }
     const color = this._mergedReaders.readCmColor();
     layer.color = color.isByBlock || color.isByLayer ? new Color(30) : color;
-    template.LayerControlHandle = this.handleReference();
-    if (this.R2000Plus) template.PlotStyleHandle = this.handleReference();
-    if (this.R2007Plus) template.MaterialHandle = this.handleReference();
-    template.LineTypeHandle = this.handleReference();
-    if (this.R2013Plus) this.handleReference();
+    template.layerControlHandle = this._handleReference();
+    if (this.r2000Plus) template.plotStyleHandle = this._handleReference();
+    if (this.r2007Plus) template.materialHandle = this._handleReference();
+    template.lineTypeHandle = this._handleReference();
+    if (this.r2013Plus) this._handleReference();
     return template;
   }
 
-  private readLType(): CadTemplate {
+  private _readLType(): CadTemplate {
     const ltype = new LineType();
     const template = new CadLineTypeTemplate(ltype);
-    this.readCommonNonEntityData(template);
+    this._readCommonNonEntityData(template);
     const name = this._textReader.readVariableText();
     if (name && name.trim().length > 0) ltype.name = name;
-    this.readXrefDependantBit(template.CadObject);
+    this._readXrefDependantBit(template.cadObject);
     ltype.description = this._textReader.readVariableText();
-    template.TotalLen = this._objectReader.readBitDouble();
+    template.totalLen = this._objectReader.readBitDouble();
     ltype.alignment = String.fromCharCode(this._objectReader.readRawChar());
     const ndashes = this._objectReader.readByte();
     let isText = false;
     for (let i = 0; i < ndashes; i++) {
       const segment = new CadLineTypeTemplate.SegmentTemplate();
-      segment.Segment.length = this._objectReader.readBitDouble();
-      segment.Segment.shapeNumber = this._objectReader.readBitShort();
-      segment.Segment.offset = new XY(this._objectReader.readDouble(), this._objectReader.readDouble());
-      segment.Segment.scale = this._objectReader.readBitDouble();
-      segment.Segment.rotation = this._objectReader.readBitDouble();
-      segment.Segment.shapeFlags = this._objectReader.readBitShort() as LineTypeShapeFlags;
-      if (segment.Segment.shapeFlags & LineTypeShapeFlags.Text) isText = true;
-      template.SegmentTemplates.push(segment);
+      segment.segment.length = this._objectReader.readBitDouble();
+      segment.segment.shapeNumber = this._objectReader.readBitShort();
+      segment.segment.offset = new XY(this._objectReader.readDouble(), this._objectReader.readDouble());
+      segment.segment.scale = this._objectReader.readBitDouble();
+      segment.segment.rotation = this._objectReader.readBitDouble();
+      segment.segment.shapeFlags = this._objectReader.readBitShort() as LineTypeShapeFlags;
+      if (segment.segment.shapeFlags & LineTypeShapeFlags.Text) isText = true;
+      template.segmentTemplates.push(segment);
     }
     let textarea: Uint8Array | null = null;
     if (this._version <= ACadVersion.AC1018) {
       textarea = this._objectReader.readBytes(256);
     }
-    if (this.R2007Plus && isText) {
+    if (this.r2007Plus && isText) {
       textarea = this._objectReader.readBytes(512);
     }
     if (isText && textarea) {
-      this.readLineTypeSegmentTexts(template.SegmentTemplates, textarea);
+      this._readLineTypeSegmentTexts(template.segmentTemplates, textarea);
     }
-    template.LtypeControlHandle = this.handleReference();
+    template.ltypeControlHandle = this._handleReference();
     for (let i = 0; i < ndashes; i++) {
-      template.SegmentTemplates[i].StyleHandle = this.handleReference();
+      template.segmentTemplates[i].styleHandle = this._handleReference();
     }
     return template;
   }
 
-  private readLineTypeSegmentTexts(segments: CadLineTypeTemplate.SegmentTemplate[], textArea: Uint8Array): void {
+  private _readLineTypeSegmentTexts(segments: CadLineTypeTemplate.SegmentTemplate[], textArea: Uint8Array): void {
     if (!segments || !textArea || textArea.length === 0) return;
     for (const segment of segments) {
-      if (!(segment.Segment.shapeFlags & LineTypeShapeFlags.Text)) continue;
-      const offset = segment.Segment.shapeNumber & 0xFFFF;
+      if (!(segment.segment.shapeFlags & LineTypeShapeFlags.Text)) continue;
+      const offset = segment.segment.shapeNumber & 0xFFFF;
       if (offset >= textArea.length) {
-        this._builder.Notify(`Unable to read linetype text segment; offset ${offset} is outside the available buffer (${textArea.length} bytes).`, NotificationType.Warning);
-        segment.Segment.text = '';
-        segment.Segment.shapeNumber = 0;
+        this._builder.notify(`Unable to read linetype text segment; offset ${offset} is outside the available buffer (${textArea.length} bytes).`, NotificationType.Warning);
+        segment.segment.text = '';
+        segment.segment.shapeNumber = 0;
         continue;
       }
-      segment.Segment.text = this.readLineTypeTextString(textArea, offset);
-      segment.Segment.shapeNumber = 0;
+      segment.segment.text = this._readLineTypeTextString(textArea, offset);
+      segment.segment.shapeNumber = 0;
     }
   }
 
-  private readLineTypeTextString(buffer: Uint8Array, offset: number): string {
+  private _readLineTypeTextString(buffer: Uint8Array, offset: number): string {
     if (!buffer || offset < 0 || offset >= buffer.length) return '';
-    if (DwgObjectReader.looksLikeUtf16Le(buffer, offset)) {
+    if (DwgObjectReader._looksLikeUtf16Le(buffer, offset)) {
       let end = offset;
       while (end + 1 < buffer.length) {
         if (buffer[end] === 0 && buffer[end + 1] === 0) break;
@@ -1333,10 +1333,10 @@ export class DwgObjectReader extends DwgSectionIO {
 
   // ==================== DIMENSION READERS ====================
 
-  private readCommonDimensionData(template: CadDimensionTemplate): void {
-    this.readCommonEntityData(template);
-    const dimension = template.CadObject as Dimension;
-    if (this.R2010Plus) dimension.version = this._objectReader.readByte();
+  private _readCommonDimensionData(template: CadDimensionTemplate): void {
+    this._readCommonEntityData(template);
+    const dimension = template.cadObject as Dimension;
+    if (this.r2010Plus) dimension.version = this._objectReader.readByte();
     dimension.normal = this._objectReader.read3BitDouble();
     const midpt = this._objectReader.read2RawDouble();
     const elevation = this._objectReader.readBitDouble();
@@ -1348,13 +1348,13 @@ export class DwgObjectReader extends DwgSectionIO {
     dimension.horizontalDirection = this._objectReader.readBitDouble();
     const insertionScaleFactor = new XYZ(this._objectReader.readBitDouble(), this._objectReader.readBitDouble(), this._objectReader.readBitDouble());
     const insertionRotation = this._objectReader.readBitDouble();
-    if (this.R2000Plus) {
+    if (this.r2000Plus) {
       dimension.attachmentPoint = this._objectReader.readBitShort() as AttachmentPointType;
       dimension.lineSpacingStyle = this._objectReader.readBitShort() as LineSpacingStyleType;
       dimension.lineSpacingFactor = this._objectReader.readBitDouble();
       this._objectReader.readBitDouble();
     }
-    if (this.R2007Plus) {
+    if (this.r2007Plus) {
       this._objectReader.readBit();
       dimension.flipArrow1 = this._objectReader.readBit();
       dimension.flipArrow2 = this._objectReader.readBit();
@@ -1363,142 +1363,142 @@ export class DwgObjectReader extends DwgSectionIO {
     dimension.insertionPoint = new XYZ(pt.x, pt.y, elevation);
   }
 
-  private readCommonDimensionAlignedData(template: CadDimensionTemplate): void {
-    const dimension = template.CadObject as DimensionAligned;
+  private _readCommonDimensionAlignedData(template: CadDimensionTemplate): void {
+    const dimension = template.cadObject as DimensionAligned;
     dimension.firstPoint = this._objectReader.read3BitDouble();
     dimension.secondPoint = this._objectReader.read3BitDouble();
     dimension.definitionPoint = this._objectReader.read3BitDouble();
     dimension.extLineRotation = this._objectReader.readBitDouble();
   }
 
-  private readCommonDimensionHandles(template: CadDimensionTemplate): void {
-    template.StyleHandle = this.handleReference();
-    template.BlockHandle = this.handleReference();
+  private _readCommonDimensionHandles(template: CadDimensionTemplate): void {
+    template.styleHandle = this._handleReference();
+    template.blockHandle = this._handleReference();
   }
 
-  private readDimAligned(): CadTemplate {
+  private _readDimAligned(): CadTemplate {
     const dimension = new DimensionAligned();
     const template = new CadDimensionTemplate(dimension);
-    this.readCommonDimensionData(template);
-    this.readCommonDimensionAlignedData(template);
-    this.readCommonDimensionHandles(template);
+    this._readCommonDimensionData(template);
+    this._readCommonDimensionAlignedData(template);
+    this._readCommonDimensionHandles(template);
     return template;
   }
 
-  private readDimAngular3pt(): CadTemplate {
+  private _readDimAngular3pt(): CadTemplate {
     const dimension = new DimensionAngular3Pt();
     const template = new CadDimensionTemplate(dimension);
-    this.readCommonDimensionData(template);
+    this._readCommonDimensionData(template);
     dimension.definitionPoint = this._objectReader.read3BitDouble();
     dimension.firstPoint = this._objectReader.read3BitDouble();
     dimension.secondPoint = this._objectReader.read3BitDouble();
     dimension.angleVertex = this._objectReader.read3BitDouble();
-    this.readCommonDimensionHandles(template);
+    this._readCommonDimensionHandles(template);
     return template;
   }
 
-  private readDimDiameter(): CadTemplate {
+  private _readDimDiameter(): CadTemplate {
     const dimension = new DimensionDiameter();
     const template = new CadDimensionTemplate(dimension);
-    this.readCommonDimensionData(template);
+    this._readCommonDimensionData(template);
     dimension.definitionPoint = this._objectReader.read3BitDouble();
     dimension.angleVertex = this._objectReader.read3BitDouble();
     dimension.leaderLength = this._objectReader.readBitDouble();
-    this.readCommonDimensionHandles(template);
+    this._readCommonDimensionHandles(template);
     return template;
   }
 
-  private readDimLine2pt(): CadTemplate {
+  private _readDimLine2pt(): CadTemplate {
     const dimension = new DimensionAngular2Line();
     const template = new CadDimensionTemplate(dimension);
-    this.readCommonDimensionData(template);
+    this._readCommonDimensionData(template);
     const xy = this._objectReader.read2RawDouble();
     dimension.dimensionArc = new XYZ(xy.x, xy.y, dimension.textMiddlePoint.z);
     dimension.firstPoint = this._objectReader.read3BitDouble();
     dimension.secondPoint = this._objectReader.read3BitDouble();
     dimension.angleVertex = this._objectReader.read3BitDouble();
     dimension.definitionPoint = this._objectReader.read3BitDouble();
-    this.readCommonDimensionHandles(template);
+    this._readCommonDimensionHandles(template);
     return template;
   }
 
-  private readDimLinear(): CadTemplate {
+  private _readDimLinear(): CadTemplate {
     const dimension = new DimensionLinear();
     const template = new CadDimensionTemplate(dimension);
-    this.readCommonDimensionData(template);
-    this.readCommonDimensionAlignedData(template);
+    this._readCommonDimensionData(template);
+    this._readCommonDimensionAlignedData(template);
     dimension.rotation = this._objectReader.readBitDouble();
-    this.readCommonDimensionHandles(template);
+    this._readCommonDimensionHandles(template);
     return template;
   }
 
-  private readDimOrdinate(): CadTemplate {
+  private _readDimOrdinate(): CadTemplate {
     const dimension = new DimensionOrdinate();
     const template = new CadDimensionTemplate(dimension);
-    this.readCommonDimensionData(template);
+    this._readCommonDimensionData(template);
     dimension.definitionPoint = this._objectReader.read3BitDouble();
     dimension.featureLocation = this._objectReader.read3BitDouble();
     dimension.leaderEndpoint = this._objectReader.read3BitDouble();
     const flags = this._objectReader.readByte();
     dimension.isOrdinateTypeX = (flags & 0b01) !== 0;
-    this.readCommonDimensionHandles(template);
+    this._readCommonDimensionHandles(template);
     return template;
   }
 
-  private readDimRadius(): CadTemplate {
+  private _readDimRadius(): CadTemplate {
     const dimension = new DimensionRadius();
     const template = new CadDimensionTemplate(dimension);
-    this.readCommonDimensionData(template);
+    this._readCommonDimensionData(template);
     dimension.definitionPoint = this._objectReader.read3BitDouble();
     dimension.angleVertex = this._objectReader.read3BitDouble();
     dimension.leaderLength = this._objectReader.readBitDouble();
-    this.readCommonDimensionHandles(template);
+    this._readCommonDimensionHandles(template);
     return template;
   }
 
   // ==================== TEXT ENTITIES ====================
 
-  private readText(): CadTemplate {
+  private _readText(): CadTemplate {
     const text = new TextEntity();
     const template = new CadTextEntityTemplate(text);
-    this.readCommonTextData(template);
+    this._readCommonTextData(template);
     return template;
   }
 
-  private readAttribute(): CadTemplate {
+  private _readAttribute(): CadTemplate {
     const att = new AttributeEntity();
     const template = new CadAttributeTemplate(att);
-    this.readCommonTextData(template);
-    this.readCommonAttData(template);
+    this._readCommonTextData(template);
+    this._readCommonAttData(template);
     return template;
   }
 
-  private readAttributeDefinition(): CadTemplate {
+  private _readAttributeDefinition(): CadTemplate {
     const attdef = new AttributeDefinition();
     const template = new CadAttributeTemplate(attdef);
-    this.readCommonTextData(template);
-    this.readCommonAttData(template);
-    if (this.R2010Plus) attdef.version = this._objectReader.readByte();
+    this._readCommonTextData(template);
+    this._readCommonAttData(template);
+    if (this.r2010Plus) attdef.version = this._objectReader.readByte();
     attdef.prompt = this._textReader.readVariableText();
     return template;
   }
 
-  private readCommonAttData(template: CadAttributeTemplate): void {
-    const att = template.CadObject as AttributeBase;
-    if (this.R2010Plus) att.version = this._objectReader.readByte();
-    if (this.R2018Plus) att.attributeType = this._objectReader.readByte() as AttributeType;
+  private _readCommonAttData(template: CadAttributeTemplate): void {
+    const att = template.cadObject as AttributeBase;
+    if (this.r2010Plus) att.version = this._objectReader.readByte();
+    if (this.r2018Plus) att.attributeType = this._objectReader.readByte() as AttributeType;
     switch (att.attributeType) {
       case AttributeType.MultiLine:
       case AttributeType.ConstantMultiLine: {
         att.mText = new MText();
         const mtextTemplate = new CadTextEntityTemplate(att.mText);
-        template.MTextTemplate = mtextTemplate;
-        this.readEntityMode(mtextTemplate);
-        this.readMTextBody(mtextTemplate, false);
+        template.mTextTemplate = mtextTemplate;
+        this._readEntityMode(mtextTemplate);
+        this._readMTextBody(mtextTemplate, false);
         const dataSize = this._objectReader.readBitShort();
         if (dataSize > 0) {
           this._objectReader.readBytes(dataSize);
-          this.handleReference();
+          this._handleReference();
           this._objectReader.readBitShort();
         }
         break;
@@ -1507,15 +1507,15 @@ export class DwgObjectReader extends DwgSectionIO {
     att.tag = this._textReader.readVariableText();
     this._objectReader.readBitShort();
     att.flags = this._objectReader.readByte() as AttributeFlags;
-    if (this.R2007Plus) att.isReallyLocked = this._objectReader.readBit();
+    if (this.r2007Plus) att.isReallyLocked = this._objectReader.readBit();
   }
 
-  private readCommonTextData(template: CadTextEntityTemplate): void {
-    this.readCommonEntityData(template);
-    const text = template.CadObject as TextEntity;
+  private _readCommonTextData(template: CadTextEntityTemplate): void {
+    this._readCommonEntityData(template);
+    const text = template.cadObject as TextEntity;
     let elevation = 0.0;
     let pt: XY;
-    if (this.R13_14Only) {
+    if (this.r13_14Only) {
       elevation = this._objectReader.readBitDouble();
       pt = this._objectReader.read2RawDouble();
       text.insertPoint = new XYZ(pt.x, pt.y, elevation);
@@ -1531,7 +1531,7 @@ export class DwgObjectReader extends DwgSectionIO {
       text.mirror = this._objectReader.readBitShort() as TextMirrorFlag;
       text.horizontalAlignment = this._objectReader.readBitShort() as TextHorizontalAlignment;
       text.verticalAlignment = this._objectReader.readBitShort() as TextVerticalAlignmentType;
-      template.StyleHandle = this.handleReference();
+      template.styleHandle = this._handleReference();
       return;
     }
     const dataFlags = this._objectReader.readByte();
@@ -1553,41 +1553,41 @@ export class DwgObjectReader extends DwgSectionIO {
     if ((dataFlags & 0x20) === 0) text.mirror = this._objectReader.readBitShort() as TextMirrorFlag;
     if ((dataFlags & 0x40) === 0) text.horizontalAlignment = this._objectReader.readBitShort() as TextHorizontalAlignment;
     if ((dataFlags & 0x80) === 0) text.verticalAlignment = this._objectReader.readBitShort() as TextVerticalAlignmentType;
-    template.StyleHandle = this.handleReference();
+    template.styleHandle = this._handleReference();
   }
 
   // ==================== INSERT ====================
 
-  private readInsert(): CadTemplate {
+  private _readInsert(): CadTemplate {
     const template = new CadInsertTemplate(new Insert());
-    this.readInsertCommonData(template);
-    this.readInsertCommonHandles(template);
+    this._readInsertCommonData(template);
+    this._readInsertCommonHandles(template);
     return template;
   }
 
-  private readMInsert(): CadTemplate {
+  private _readMInsert(): CadTemplate {
     const insert = new Insert();
     const template = new CadInsertTemplate(insert);
-    this.readInsertCommonData(template);
+    this._readInsertCommonData(template);
     insert.columnCount = this._objectReader.readBitShort() & 0xFFFF;
     insert.rowCount = this._objectReader.readBitShort() & 0xFFFF;
     insert.columnSpacing = this._objectReader.readBitDouble();
     insert.rowSpacing = this._objectReader.readBitDouble();
-    this.readInsertCommonHandles(template);
+    this._readInsertCommonHandles(template);
     return template;
   }
 
-  private readInsertCommonData(template: CadInsertTemplate): void {
-    const insert = template.CadObject as Insert;
-    this.readCommonEntityData(template);
+  private _readInsertCommonData(template: CadInsertTemplate): void {
+    const insert = template.cadObject as Insert;
+    this._readCommonEntityData(template);
     insert.insertPoint = this._objectReader.read3BitDouble();
-    if (this.R13_14Only) {
+    if (this.r13_14Only) {
       const scale = this._objectReader.read3BitDouble();
       insert.xScale = scale.x;
       insert.yScale = scale.y;
       insert.zScale = scale.z;
     }
-    if (this.R2000Plus) {
+    if (this.r2000Plus) {
       switch (this._objectReader.read2Bits()) {
         case 0:
           insert.xScale = this._objectReader.readDouble();
@@ -1614,29 +1614,29 @@ export class DwgObjectReader extends DwgSectionIO {
     }
     insert.rotation = this._objectReader.readBitDouble();
     insert.normal = this._objectReader.read3BitDouble();
-    template.HasAtts = this._objectReader.readBit();
-    template.OwnedObjectsCount = 0;
-    if (this.R2004Plus && template.HasAtts) template.OwnedObjectsCount = this._objectReader.readBitLong();
+    template.hasAtts = this._objectReader.readBit();
+    template.ownedObjectsCount = 0;
+    if (this.r2004Plus && template.hasAtts) template.ownedObjectsCount = this._objectReader.readBitLong();
   }
 
-  private readInsertCommonHandles(template: CadInsertTemplate): void {
-    template.BlockHeaderHandle = this.handleReference();
-    if (!template.HasAtts) return;
+  private _readInsertCommonHandles(template: CadInsertTemplate): void {
+    template.blockHeaderHandle = this._handleReference();
+    if (!template.hasAtts) return;
     if (this._version >= ACadVersion.AC1012 && this._version <= ACadVersion.AC1015) {
-      template.FirstAttributeHandle = this.handleReference();
-      template.EndAttributeHandle = this.handleReference();
-    } else if (this.R2004Plus) {
-      for (let i = 0; i < template.OwnedObjectsCount; ++i) template.OwnedObjectsHandlers.add(this.handleReference());
+      template.firstAttributeHandle = this._handleReference();
+      template.endAttributeHandle = this._handleReference();
+    } else if (this.r2004Plus) {
+      for (let i = 0; i < template.ownedObjectsCount; ++i) template.ownedObjectsHandlers.add(this._handleReference());
     }
-    template.SeqendHandle = this.handleReference();
+    template.seqendHandle = this._handleReference();
   }
 
   // ==================== VERTEX ====================
 
-  private readVertex2D(): CadTemplate {
+  private _readVertex2D(): CadTemplate {
     const vertex = new Vertex2D();
     const template = new CadEntityTemplate(vertex);
-    this.readCommonEntityData(template);
+    this._readCommonEntityData(template);
     vertex.flags = this._objectReader.readByte() as VertexFlags;
     vertex.location = this._objectReader.read3BitDouble();
     const width = this._objectReader.readBitDouble();
@@ -1648,23 +1648,23 @@ export class DwgObjectReader extends DwgSectionIO {
       vertex.endWidth = this._objectReader.readBitDouble();
     }
     vertex.bulge = this._objectReader.readBitDouble();
-    if (this.R2010Plus) vertex.id = this._objectReader.readBitLong();
+    if (this.r2010Plus) vertex.id = this._objectReader.readBitLong();
     vertex.curveTangent = this._objectReader.readBitDouble();
     return template;
   }
 
-  private readVertex3D(vertex: Vertex): CadTemplate {
+  private _readVertex3D(vertex: Vertex): CadTemplate {
     const template = new CadEntityTemplate(vertex);
-    this.readCommonEntityData(template);
+    this._readCommonEntityData(template);
     vertex.flags = this._objectReader.readByte() as VertexFlags;
     vertex.location = this._objectReader.read3BitDouble();
     return template;
   }
 
-  private readPfaceVertex(): CadTemplate {
+  private _readPfaceVertex(): CadTemplate {
     const face = new VertexFaceRecord();
     const template = new CadEntityTemplate(face);
-    this.readCommonEntityData(template);
+    this._readCommonEntityData(template);
     face.index1 = this._objectReader.readBitShort();
     face.index2 = this._objectReader.readBitShort();
     face.index3 = this._objectReader.readBitShort();
@@ -1674,10 +1674,10 @@ export class DwgObjectReader extends DwgSectionIO {
 
   // ==================== POLYLINE ====================
 
-  private readPolyline2D(): CadTemplate {
+  private _readPolyline2D(): CadTemplate {
     const pline = new Polyline2D();
     const template = new CadPolyLineTemplate(pline as IPolyline);
-    this.readCommonEntityData(template);
+    this._readCommonEntityData(template);
     pline.flags = this._objectReader.readBitShort() as PolylineFlags;
     pline.smoothSurface = this._objectReader.readBitShort() as SmoothSurfaceType;
     pline.startWidth = this._objectReader.readBitDouble();
@@ -1685,84 +1685,84 @@ export class DwgObjectReader extends DwgSectionIO {
     pline.thickness = this._objectReader.readBitThickness();
     pline.elevation = this._objectReader.readBitDouble();
     pline.normal = this._objectReader.readBitExtrusion();
-    if (this.R2004Plus) {
+    if (this.r2004Plus) {
       const n = this._objectReader.readBitLong();
-      for (let i = 0; i < n; ++i) template.OwnedObjectsHandlers.add(this.handleReference());
+      for (let i = 0; i < n; ++i) template.ownedObjectsHandlers.add(this._handleReference());
     }
     if (this._version >= ACadVersion.AC1012 && this._version <= ACadVersion.AC1015) {
-      template.FirstVertexHandle = this.handleReference();
-      template.LastVertexHandle = this.handleReference();
+      template.firstVertexHandle = this._handleReference();
+      template.lastVertexHandle = this._handleReference();
     }
-    template.SeqendHandle = this.handleReference();
+    template.seqendHandle = this._handleReference();
     return template;
   }
 
-  private readPolyline3D(): CadTemplate {
+  private _readPolyline3D(): CadTemplate {
     const pline = new Polyline3D();
     const template = new CadPolyLineTemplate(pline as IPolyline);
-    this.readCommonEntityData(template);
+    this._readCommonEntityData(template);
     const flags = this._objectReader.readByte();
     const splined = (flags & 0b1) > 0;
     const splined1 = (flags & 0b10) > 0;
     if (splined || splined1) pline.flags |= PolylineFlags.SplineFit;
     pline.flags |= PolylineFlags.Polyline3D;
     if ((this._objectReader.readByte() & 1) > 0) pline.flags |= PolylineFlags.ClosedPolylineOrClosedPolygonMeshInM;
-    if (this.R2004Plus) {
+    if (this.r2004Plus) {
       const n = this._objectReader.readBitLong();
-      for (let i = 0; i < n; ++i) template.OwnedObjectsHandlers.add(this.handleReference());
+      for (let i = 0; i < n; ++i) template.ownedObjectsHandlers.add(this._handleReference());
     }
     if (this._version >= ACadVersion.AC1012 && this._version <= ACadVersion.AC1015) {
-      template.FirstVertexHandle = this.handleReference();
-      template.LastVertexHandle = this.handleReference();
+      template.firstVertexHandle = this._handleReference();
+      template.lastVertexHandle = this._handleReference();
     }
-    template.SeqendHandle = this.handleReference();
+    template.seqendHandle = this._handleReference();
     return template;
   }
 
-  private readPolyfaceMesh(): CadTemplate {
+  private _readPolyfaceMesh(): CadTemplate {
     const template = new CadPolyLineTemplate(new PolyfaceMesh() as IPolyline);
-    this.readCommonEntityData(template);
+    this._readCommonEntityData(template);
     this._objectReader.readBitShort();
     this._objectReader.readBitShort();
-    if (this.R2004Plus) {
+    if (this.r2004Plus) {
       const n = this._objectReader.readBitLong();
-      for (let i = 0; i < n; i++) template.OwnedObjectsHandlers.add(this.handleReference());
+      for (let i = 0; i < n; i++) template.ownedObjectsHandlers.add(this._handleReference());
     }
-    if (this.R13_15Only) {
-      template.FirstVertexHandle = this.handleReference();
-      template.LastVertexHandle = this.handleReference();
+    if (this.r13_15Only) {
+      template.firstVertexHandle = this._handleReference();
+      template.lastVertexHandle = this._handleReference();
     }
-    template.SeqendHandle = this.handleReference();
+    template.seqendHandle = this._handleReference();
     return template;
   }
 
-  private readPolylineMesh(): CadTemplate {
+  private _readPolylineMesh(): CadTemplate {
     const pline = new PolygonMesh();
     const template = new CadPolyLineTemplate(pline as IPolyline);
-    this.readCommonEntityData(template);
+    this._readCommonEntityData(template);
     pline.flags = this._objectReader.readBitShort() as PolylineFlags;
     pline.smoothSurface = this._objectReader.readBitShort() as SmoothSurfaceType;
     pline.mVertexCount = this._objectReader.readBitShort();
     pline.nVertexCount = this._objectReader.readBitShort();
     pline.mSmoothSurfaceDensity = this._objectReader.readBitShort();
     pline.nSmoothSurfaceDensity = this._objectReader.readBitShort();
-    if (this.R13_15Only) {
-      template.FirstVertexHandle = this.handleReference();
-      template.LastVertexHandle = this.handleReference();
+    if (this.r13_15Only) {
+      template.firstVertexHandle = this._handleReference();
+      template.lastVertexHandle = this._handleReference();
     }
-    if (this.R2004Plus) {
+    if (this.r2004Plus) {
       const n = this._objectReader.readBitLong();
-      for (let i = 0; i < n; i++) template.OwnedObjectsHandlers.add(this.handleReference());
+      for (let i = 0; i < n; i++) template.ownedObjectsHandlers.add(this._handleReference());
     }
-    template.SeqendHandle = this.handleReference();
+    template.seqendHandle = this._handleReference();
     return template;
   }
 
-  private readLWPolyline(): CadTemplate {
+  private _readLWPolyline(): CadTemplate {
     const lwPolyline = new LwPolyline();
     const template = new CadEntityTemplate(lwPolyline);
     try {
-      this.readCommonEntityData(template);
+      this._readCommonEntityData(template);
       const flags = this._objectReader.readBitShort();
       if ((flags & 0x100) !== 0) lwPolyline.flags |= LwPolylineFlags.Plinegen;
       if ((flags & 0x200) !== 0) lwPolyline.flags |= LwPolylineFlags.Closed;
@@ -1777,13 +1777,13 @@ export class DwgObjectReader extends DwgSectionIO {
       if ((flags & 0x400) !== 0) nids = this._objectReader.readBitLong();
       let ndiffwidth = 0;
       if ((flags & 0x20) !== 0) ndiffwidth = this._objectReader.readBitLong();
-      if (this.R13_14Only) {
+      if (this.r13_14Only) {
         for (let i = 0; i < nvertices; i++) {
           const loc = this._objectReader.read2RawDouble();
           lwPolyline.vertices.push(new LwPolylineVertex(loc));
         }
       }
-      if (this.R2000Plus && nvertices > 0) {
+      if (this.r2000Plus && nvertices > 0) {
         let loc = this._objectReader.read2RawDouble();
         lwPolyline.vertices.push(new LwPolylineVertex(loc));
         for (let j = 1; j < nvertices; j++) {
@@ -1800,7 +1800,7 @@ export class DwgObjectReader extends DwgSectionIO {
       }
     } catch (ex: unknown) {
 	  const errorName = ex instanceof Error ? ex.constructor.name : 'Error';
-	  this._builder.Notify(`Exception while reading LwPolyline: ${errorName}`, NotificationType.Error, ex instanceof Error ? ex : null);
+	  this._builder.notify(`Exception while reading LwPolyline: ${errorName}`, NotificationType.Error, ex instanceof Error ? ex : null);
       return template;
     }
     return template;
@@ -1808,12 +1808,12 @@ export class DwgObjectReader extends DwgSectionIO {
 
   // ==================== SPLINE ====================
 
-  private readSpline(): CadTemplate {
+  private _readSpline(): CadTemplate {
     const spline = new Spline();
     const template = new CadSplineTemplate(spline);
-    this.readCommonEntityData(template);
+    this._readCommonEntityData(template);
     let scenario = this._objectReader.readBitLong();
-    if (this.R2013Plus) {
+    if (this.r2013Plus) {
       spline.flags1 = this._mergedReaders.readBitLong() as SplineFlags1;
       spline.isClosed = !!(spline.flags1 & SplineFlags1.Closed);
       spline.knotParametrization = this._mergedReaders.readBitLong() as KnotParametrization;
@@ -1854,10 +1854,10 @@ export class DwgObjectReader extends DwgSectionIO {
 
   // ==================== MESH ====================
 
-  private readMesh(): CadTemplate {
+  private _readMesh(): CadTemplate {
     const mesh = new Mesh();
     const template = new CadMeshTemplate(mesh);
-    this.readCommonEntityData(template);
+    this._readCommonEntityData(template);
     mesh.version = this._objectReader.readBitShort();
     mesh.blendCrease = this._objectReader.readBit() ? 1 : 0;
     mesh.subdivisionLevel = this._objectReader.readBitLong();
@@ -1887,14 +1887,14 @@ export class DwgObjectReader extends DwgSectionIO {
 
   // ==================== VIEWPORT ====================
 
-  private readViewport(): CadTemplate {
+  private _readViewport(): CadTemplate {
     const viewport = new Viewport();
     const template = new CadViewportTemplate(viewport);
-    this.readCommonEntityData(template);
+    this._readCommonEntityData(template);
     viewport.center = this._objectReader.read3BitDouble();
     viewport.width = this._objectReader.readBitDouble();
     viewport.height = this._objectReader.readBitDouble();
-    if (this.R2000Plus) {
+    if (this.r2000Plus) {
       viewport.viewTarget = this._objectReader.read3BitDouble();
       viewport.viewDirection = this._objectReader.read3BitDouble();
       viewport.twistAngle = this._objectReader.readBitDouble();
@@ -1909,9 +1909,9 @@ export class DwgObjectReader extends DwgSectionIO {
       viewport.gridSpacing = this._objectReader.read2RawDouble();
       viewport.circleZoomPercent = this._objectReader.readBitShort();
     }
-    if (this.R2007Plus) viewport.majorGridLineFrequency = this._objectReader.readBitShort();
+    if (this.r2007Plus) viewport.majorGridLineFrequency = this._objectReader.readBitShort();
     let frozenLayerCount = 0;
-    if (this.R2000Plus) {
+    if (this.r2000Plus) {
       frozenLayerCount = this._objectReader.readBitLong();
       viewport.status = this._objectReader.readBitLong() as ViewportStatusFlags;
       viewport.styleSheetName = this._textReader.readVariableText();
@@ -1924,83 +1924,83 @@ export class DwgObjectReader extends DwgSectionIO {
       viewport.elevation = this._objectReader.readBitDouble();
       viewport.ucsOrthographicType = this._objectReader.readBitShort() as OrthographicType;
     }
-    if (this.R2004Plus) viewport.shadePlotMode = this._objectReader.readBitShort() as ShadePlotMode;
-    if (this.R2007Plus) {
+    if (this.r2004Plus) viewport.shadePlotMode = this._objectReader.readBitShort() as ShadePlotMode;
+    if (this.r2007Plus) {
       viewport.useDefaultLighting = this._objectReader.readBit();
       viewport.defaultLightingType = this._objectReader.readByte();
       viewport.brightness = this._objectReader.readBitDouble();
       viewport.contrast = this._objectReader.readBitDouble();
       viewport.ambientLightColor = this._objectReader.readCmColor();
     }
-    if (this.R13_14Only) template.ViewportHeaderHandle = this.handleReference();
-    if (this.R2000Plus) {
-      for (let i = 0; i < frozenLayerCount; ++i) template.FrozenLayerHandles.add(this.handleReference());
-      template.BoundaryHandle = this.handleReference();
+    if (this.r13_14Only) template.viewportHeaderHandle = this._handleReference();
+    if (this.r2000Plus) {
+      for (let i = 0; i < frozenLayerCount; ++i) template.frozenLayerHandles.add(this._handleReference());
+      template.boundaryHandle = this._handleReference();
     }
-    if (this._version === ACadVersion.AC1015) template.ViewportHeaderHandle = this.handleReference();
-    if (this.R2000Plus) {
-      template.NamedUcsHandle = this.handleReference();
-      template.BaseUcsHandle = this.handleReference();
+    if (this._version === ACadVersion.AC1015) template.viewportHeaderHandle = this._handleReference();
+    if (this.r2000Plus) {
+      template.namedUcsHandle = this._handleReference();
+      template.baseUcsHandle = this._handleReference();
     }
-    if (this.R2007Plus) {
-      this.handleReference();
-      this.handleReference();
-      this.handleReference();
-      this.handleReference();
+    if (this.r2007Plus) {
+      this._handleReference();
+      this._handleReference();
+      this._handleReference();
+      this._handleReference();
     }
     return template;
   }
 
-  private readViewportEntityControl(): CadTemplate {
+  private _readViewportEntityControl(): CadTemplate {
     const template = new CadViewportEntityControlTemplate();
-    this.readCommonNonEntityData(template);
+    this._readCommonNonEntityData(template);
     const numentries = this._objectReader.readBitLong();
-    for (let i = 0; i < numentries; ++i) template.EntryHandles.add(this.handleReference());
+    for (let i = 0; i < numentries; ++i) template.entryHandles.add(this._handleReference());
     return template;
   }
 
-  private readViewportEntityHeader(): CadTemplate {
+  private _readViewportEntityHeader(): CadTemplate {
     const viewport = new ViewportEntityHeader();
     const template = new CadViewportEntityHeaderTemplate(viewport);
-    this.readCommonNonEntityData(template);
+    this._readCommonNonEntityData(template);
     viewport.name = this._textReader.readVariableText();
-    this.readXrefDependantBit(template.CadObject);
+    this._readXrefDependantBit(template.cadObject);
     this._objectReader.readBit();
-    this.handleReference();
-    this.handleReference();
-    template.BlockHandle = this.handleReference();
+    this._handleReference();
+    this._handleReference();
+    template.blockHandle = this._handleReference();
     return template;
   }
 
   // ==================== MTEXT ====================
 
-  private readMText(): CadTemplate {
+  private _readMText(): CadTemplate {
     const mtext = new MText();
     const template = new CadTextEntityTemplate(mtext);
-    return this.readMTextBody(template, true);
+    return this._readMTextBody(template, true);
   }
 
-  private readMTextBody(template: CadTextEntityTemplate, readCommonData: boolean): CadTemplate {
-    const mtext = template.CadObject as MText;
-    if (readCommonData) this.readCommonEntityData(template);
+  private _readMTextBody(template: CadTextEntityTemplate, readCommonData: boolean): CadTemplate {
+    const mtext = template.cadObject as MText;
+    if (readCommonData) this._readCommonEntityData(template);
     mtext.insertPoint = this._objectReader.read3BitDouble();
     mtext.normal = this._objectReader.read3BitDouble();
     mtext.alignmentPoint = this._objectReader.read3BitDouble();
     mtext.rectangleWidth = this._objectReader.readBitDouble();
-    if (this.R2007Plus) mtext.rectangleHeight = this._objectReader.readBitDouble();
+    if (this.r2007Plus) mtext.rectangleHeight = this._objectReader.readBitDouble();
     mtext.height = this._objectReader.readBitDouble();
     mtext.attachmentPoint = this._objectReader.readBitShort() as AttachmentPointType;
     mtext.drawingDirection = this._objectReader.readBitShort() as DrawingDirectionType;
     this._objectReader.readBitDouble();
     this._objectReader.readBitDouble();
     mtext.value = this._textReader.readVariableText();
-    template.StyleHandle = this.handleReference();
-    if (this.R2000Plus) {
+    template.styleHandle = this._handleReference();
+    if (this.r2000Plus) {
       mtext.lineSpacingStyle = this._objectReader.readBitShort() as LineSpacingStyleType;
       mtext.lineSpacing = this._objectReader.readBitDouble();
       this._objectReader.readBit();
     }
-    if (this.R2004Plus) {
+    if (this.r2004Plus) {
       mtext.backgroundFillFlags = this._objectReader.readBitLong() as BackgroundFillFlags;
       if ((mtext.backgroundFillFlags & BackgroundFillFlags.UseBackgroundFillColor) !== 0
         || (this._version > ACadVersion.AC1027 && (mtext.backgroundFillFlags & BackgroundFillFlags.TextFrame) > 0)) {
@@ -2009,12 +2009,12 @@ export class DwgObjectReader extends DwgSectionIO {
         mtext.backgroundTransparency = this._objectReader.readBitLong();
       }
     }
-    if (!this.R2018Plus) return template;
+    if (!this.r2018Plus) return template;
     mtext.isAnnotative = !this._objectReader.readBit();
     if (!mtext.isAnnotative) {
       this._objectReader.readBitShort();
       this._objectReader.readBit();
-      this.handleReference();
+      this._handleReference();
       this._objectReader.readBitLong();
       this._objectReader.read3BitDouble();
       this._objectReader.read3BitDouble();
@@ -2039,11 +2039,11 @@ export class DwgObjectReader extends DwgSectionIO {
 
   // ==================== HATCH ====================
 
-  private readHatch(): CadTemplate {
+  private _readHatch(): CadTemplate {
     const hatch = new Hatch();
     const template = new CadHatchTemplate(hatch);
-    this.readCommonEntityData(template);
-    if (this.R2004Plus) {
+    this._readCommonEntityData(template);
+    if (this.r2004Plus) {
       hatch.gradientColor.enabled = this._objectReader.readBitLong() !== 0;
       hatch.gradientColor.reserved = this._objectReader.readBitLong();
       hatch.gradientColor.angle = this._objectReader.readBitDouble();
@@ -2069,7 +2069,7 @@ export class DwgObjectReader extends DwgSectionIO {
     for (let i = 0; i < npaths; i++) {
       const pathTemplate = new CadHatchTemplate.CadBoundaryPathTemplate();
       const flags = this._objectReader.readBitLong() as BoundaryPathFlags;
-      pathTemplate.Path.flags = flags;
+      pathTemplate.path.flags = flags;
       if (flags & BoundaryPathFlags.Derived) hasDerivedBoundary = true;
       if (!(flags & BoundaryPathFlags.Polyline)) {
         const nsegments = this._objectReader.readBitLong();
@@ -2081,7 +2081,7 @@ export class DwgObjectReader extends DwgSectionIO {
                 const line = new HatchBoundaryPathLine();
                 line.start = this._objectReader.read2RawDouble();
                 line.end = this._objectReader.read2RawDouble();
-                pathTemplate.Path.edges.push(line);
+                pathTemplate.path.edges.push(line);
               }
               break;
             case 2: // CircularArc
@@ -2092,7 +2092,7 @@ export class DwgObjectReader extends DwgSectionIO {
                 arc.startAngle = this._objectReader.readBitDouble();
                 arc.endAngle = this._objectReader.readBitDouble();
                 arc.counterClockWise = this._objectReader.readBit();
-                pathTemplate.Path.edges.push(arc);
+                pathTemplate.path.edges.push(arc);
               }
               break;
             case 3: // EllipticArc
@@ -2104,7 +2104,7 @@ export class DwgObjectReader extends DwgSectionIO {
                 ellipse.startAngle = this._objectReader.readBitDouble();
                 ellipse.endAngle = this._objectReader.readBitDouble();
                 ellipse.counterClockWise = this._objectReader.readBit();
-                pathTemplate.Path.edges.push(ellipse);
+                pathTemplate.path.edges.push(ellipse);
               }
               break;
             case 4: { // Spline
@@ -2121,7 +2121,7 @@ export class DwgObjectReader extends DwgSectionIO {
                 if (splineEdge.isRational) wheight = this._objectReader.readBitDouble();
                 splineEdge.controlPoints.push(new XYZ(cp.x, cp.y, wheight));
               }
-              if (this.R2010Plus) {
+              if (this.r2010Plus) {
                 const nfitPoints = this._objectReader.readBitLong();
                 if (nfitPoints > 0) {
                   for (let fp = 0; fp < nfitPoints; ++fp) splineEdge.fitPoints.push(this._objectReader.read2RawDouble());
@@ -2129,7 +2129,7 @@ export class DwgObjectReader extends DwgSectionIO {
                   splineEdge.endTangent = this._objectReader.read2RawDouble();
                 }
               }
-              pathTemplate.Path.edges.push(splineEdge);
+              pathTemplate.path.edges.push(splineEdge);
               break;
             }
           }
@@ -2145,11 +2145,11 @@ export class DwgObjectReader extends DwgSectionIO {
           if (bulgespresent) bulge = this._objectReader.readBitDouble();
           pline.vertices.push(new XYZ(vertex.x, vertex.y, bulge));
         }
-        pathTemplate.Path.edges.push(pline);
+        pathTemplate.path.edges.push(pline);
       }
       const numboundaryobjhandles = this._objectReader.readBitLong();
-      for (let h = 0; h < numboundaryobjhandles; h++) pathTemplate.Handles.add(this.handleReference());
-      template.PathTemplates.push(pathTemplate);
+      for (let h = 0; h < numboundaryobjhandles; h++) pathTemplate.handles.add(this._handleReference());
+      template.pathTemplates.push(pathTemplate);
     }
     hatch.style = this._objectReader.readBitShort() as HatchStyleType;
     hatch.patternType = this._objectReader.readBitShort() as HatchPatternType;
@@ -2176,13 +2176,13 @@ export class DwgObjectReader extends DwgSectionIO {
 
   // ==================== MODELER GEOMETRY ====================
 
-  private readModelerGeometry(template: CadEntityTemplate): CadEntityTemplate {
-    const geometry = template.CadObject as ModelerGeometry;
-    this.readCommonEntityData(template);
-    if (!this.R2013Plus) {
+  private _readModelerGeometry(template: CadEntityTemplate): CadEntityTemplate {
+    const geometry = template.cadObject as ModelerGeometry;
+    this._readCommonEntityData(template);
+    if (!this.r2013Plus) {
       const hasData = this._mergedReaders.readBit();
       if (!hasData) {
-        this.readModelerGeometryData(template);
+        this._readModelerGeometryData(template);
         return template;
       }
     }
@@ -2195,7 +2195,7 @@ export class DwgObjectReader extends DwgSectionIO {
         const nWires = this._mergedReaders.readBitLong();
         for (let i = 0; i < nWires; i++) {
           const wire = new ModelerGeometryWire();
-          this.readWire(wire);
+          this._readWire(wire);
           geometry.wires.push(wire);
         }
       }
@@ -2211,36 +2211,36 @@ export class DwgObjectReader extends DwgSectionIO {
           const nWires = this._mergedReaders.readBitLong();
           for (let j = 0; j < nWires; j++) {
             const wire = new ModelerGeometryWire();
-            this.readWire(wire);
+            this._readWire(wire);
             silhouette.wires.push(wire);
           }
         }
         geometry.silhouettes.push(silhouette);
       }
       if (!this._mergedReaders.readBit()) {
-        this.readModelerGeometryData(template);
+        this._readModelerGeometryData(template);
         return template;
       }
     }
-    if (this.R2007Plus) this._mergedReaders.readBitLong();
+    if (this.r2007Plus) this._mergedReaders.readBitLong();
     return template;
   }
 
-  private readModelerGeometryData(template: CadEntityTemplate): void {
+  private _readModelerGeometryData(template: CadEntityTemplate): void {
     this._mergedReaders.readBit();
     const version = this._mergedReaders.readBitShort();
-    this.notify(`Stream data reader hasn't been implemented for ${template.CadObject.objectName}`, NotificationType.NotImplemented);
+    this.notify(`Stream data reader hasn't been implemented for ${template.cadObject.objectName}`, NotificationType.NotImplemented);
   }
 
-  private readSolid3D(): CadTemplate {
+  private _readSolid3D(): CadTemplate {
     const solid = new Solid3D();
     const template = new CadSolid3DTemplate(solid);
-    this.readModelerGeometry(template);
-    if (this.R2007Plus) template.HistoryHandle = this._mergedReaders.handleReference();
+    this._readModelerGeometry(template);
+    if (this.r2007Plus) template.historyHandle = this._mergedReaders.handleReference();
     return template;
   }
 
-  private readWire(wire: ModelerGeometryWire): void {
+  private _readWire(wire: ModelerGeometryWire): void {
     wire.type = this._mergedReaders.readByte();
     wire.selectionMarker = this._mergedReaders.readBitLong();
     let color = this._mergedReaders.readBitShort();
@@ -2264,9 +2264,9 @@ export class DwgObjectReader extends DwgSectionIO {
 
   // ==================== IMAGE ====================
 
-  private readCadImage(image: CadWipeoutBase): CadTemplate {
+  private _readCadImage(image: CadWipeoutBase): CadTemplate {
     const template = new CadWipeoutBaseTemplate(image);
-    this.readCommonEntityData(template);
+    this._readCommonEntityData(template);
     image.classVersion = this._objectReader.readBitLong();
     image.insertPoint = this._objectReader.read3BitDouble();
     image.uVector = this._objectReader.read3BitDouble();
@@ -2277,7 +2277,7 @@ export class DwgObjectReader extends DwgSectionIO {
     image.brightness = this._objectReader.readByte();
     image.contrast = this._objectReader.readByte();
     image.fade = this._objectReader.readByte();
-    if (this.R2010Plus) image.clipMode = this._objectReader.readBit() ? ClipMode.Inside : ClipMode.Outside;
+    if (this.r2010Plus) image.clipMode = this._objectReader.readBit() ? ClipMode.Inside : ClipMode.Outside;
     image.clipType = this._objectReader.readBitShort() as ClipType;
     switch (image.clipType) {
       case ClipType.Rectangular:
@@ -2290,15 +2290,15 @@ export class DwgObjectReader extends DwgSectionIO {
         break;
       }
     }
-    template.ImgDefHandle = this.handleReference();
-    template.ImgReactorHandle = this.handleReference();
+    template.imgDefHandle = this._handleReference();
+    template.imgReactorHandle = this._handleReference();
     return template;
   }
 
-  private readImageDefinition(): CadTemplate {
+  private _readImageDefinition(): CadTemplate {
     const definition = new ImageDefinition();
     const template = new CadNonGraphicalObjectTemplate(definition);
-    this.readCommonNonEntityData(template);
+    this._readCommonNonEntityData(template);
     definition.classVersion = this._mergedReaders.readBitLong();
     definition.size = this._mergedReaders.read2RawDouble();
     definition.fileName = this._mergedReaders.readVariableText();
@@ -2308,43 +2308,43 @@ export class DwgObjectReader extends DwgSectionIO {
     return template;
   }
 
-  private readImageDefinitionReactor(): CadTemplate {
+  private _readImageDefinitionReactor(): CadTemplate {
     const definition = new ImageDefinitionReactor();
     const template = new CadNonGraphicalObjectTemplate(definition);
-    this.readCommonNonEntityData(template);
+    this._readCommonNonEntityData(template);
     definition.classVersion = this._objectReader.readBitLong();
     return template;
   }
 
   // ==================== OLE2 FRAME ====================
 
-  private readOle2Frame(): CadTemplate {
+  private _readOle2Frame(): CadTemplate {
     const ole2Frame = new Ole2Frame();
     const template = new CadOle2FrameTemplate(ole2Frame);
-    this.readCommonEntityData(template);
+    this._readCommonEntityData(template);
     ole2Frame.version = this._mergedReaders.readBitShort();
-    if (this.R2000Plus) this._mergedReaders.readBitShort();
+    if (this.r2000Plus) this._mergedReaders.readBitShort();
     const dataLength = this._mergedReaders.readBitLong();
-    template.CadObject.binaryData = this._mergedReaders.readBytes(dataLength);
-    if (this.R2000Plus) this._mergedReaders.readByte();
+    template.cadObject.binaryData = this._mergedReaders.readBytes(dataLength);
+    if (this.r2000Plus) this._mergedReaders.readByte();
     return template;
   }
 
   // ==================== PDF UNDERLAY ====================
 
-  private readPdfDefinition(): CadTemplate {
+  private _readPdfDefinition(): CadTemplate {
     const definition = new PdfUnderlayDefinition();
     const template = new CadNonGraphicalObjectTemplate(definition);
-    this.readCommonNonEntityData(template);
+    this._readCommonNonEntityData(template);
     definition.file = this._objectReader.readVariableText();
     definition.page = this._objectReader.readVariableText();
     return template;
   }
 
-  private readPdfUnderlay(): CadTemplate {
+  private _readPdfUnderlay(): CadTemplate {
     const underlay = new PdfUnderlay();
     const template = new CadUnderlayTemplate(underlay);
-    this.readCommonEntityData(template);
+    this._readCommonEntityData(template);
     underlay.normal = this._objectReader.read3BitDouble();
     underlay.insertPoint = this._objectReader.read3BitDouble();
     underlay.rotation = this._objectReader.readBitDouble();
@@ -2354,7 +2354,7 @@ export class DwgObjectReader extends DwgSectionIO {
     underlay.flags = this._objectReader.readByte() as UnderlayDisplayFlags;
     underlay.contrast = this._objectReader.readByte();
     underlay.fade = this._objectReader.readByte();
-    template.DefinitionHandle = this.handleReference();
+    template.definitionHandle = this._handleReference();
     const nvertices = this._mergedReaders.readBitLong();
     for (let i = 0; i < nvertices; i++) underlay.clipBoundaryVertices.push(this._mergedReaders.read2RawDouble());
     return template;
@@ -2362,29 +2362,29 @@ export class DwgObjectReader extends DwgSectionIO {
 
   // ==================== PROXY ====================
 
-  private readProxyEntity(): CadTemplate {
+  private _readProxyEntity(): CadTemplate {
     const proxy = new ProxyEntity();
     const template = new CadEntityTemplate(proxy);
-    this.readCommonEntityData(template);
-    this.readCommonProxyData(proxy);
+    this._readCommonEntityData(template);
+    this._readCommonProxyData(proxy);
     return template;
   }
 
-  private readProxyObject(): CadTemplate {
+  private _readProxyObject(): CadTemplate {
     const proxy = new ProxyObject();
     const template = new CadNonGraphicalObjectTemplate(proxy);
-    this.readCommonNonEntityData(template);
-    this.readCommonProxyData(proxy);
+    this._readCommonNonEntityData(template);
+    this._readCommonProxyData(proxy);
     return template;
   }
 
-  private readCommonProxyData(proxy: IProxy): void {
+  private _readCommonProxyData(proxy: IProxy): void {
     const classId = this._mergedReaders.readBitLong();
     const dxfClass = this._classes.get(classId);
     if (dxfClass) proxy.dxfClass = dxfClass;
-    if (this.R2000Plus) {
+    if (this.r2000Plus) {
       if (this._version > ACadVersion.AC1015) this._mergedReaders.readVariableText();
-      if (!this.R2018Plus) {
+      if (!this.r2018Plus) {
         const format = this._mergedReaders.readBitLong();
         proxy.version = (format & 0xFFFF) as ACadVersion;
         proxy.maintenanceVersion = format >> 16;
@@ -2398,62 +2398,62 @@ export class DwgObjectReader extends DwgSectionIO {
 
   // ==================== DICT / GROUP / XRECORD ====================
 
-  private readDictionary(): CadTemplate {
+  private _readDictionary(): CadTemplate {
     const cadDictionary = new CadDictionary();
     const template = new CadDictionaryTemplate(cadDictionary);
-    this.readCommonDictionary(template);
+    this._readCommonDictionary(template);
     return template;
   }
 
-  private readDictionaryVar(): CadTemplate {
+  private _readDictionaryVar(): CadTemplate {
     const dictvar = new DictionaryVariable();
     const template = new CadNonGraphicalObjectTemplate(dictvar);
-    this.readCommonNonEntityData(template);
+    this._readCommonNonEntityData(template);
     this._objectReader.readByte();
     dictvar.value = this._textReader.readVariableText();
     return template;
   }
 
-  private readDictionaryWithDefault(): CadTemplate {
+  private _readDictionaryWithDefault(): CadTemplate {
     const dictionary = new CadDictionaryWithDefault();
     const template = new CadDictionaryWithDefaultTemplate(dictionary);
-    this.readCommonDictionary(template);
-    template.DefaultEntryHandle = this.handleReference();
+    this._readCommonDictionary(template);
+    template.defaultEntryHandle = this._handleReference();
     return template;
   }
 
-  private readCommonDictionary(template: CadDictionaryTemplate): void {
-    this.readCommonNonEntityData(template);
+  private _readCommonDictionary(template: CadDictionaryTemplate): void {
+    this._readCommonNonEntityData(template);
     const nentries = this._objectReader.readBitLong();
     if (this._version === ACadVersion.AC1014) this._objectReader.readByte();
-    if (this.R2000Plus) {
-      template.CadObject.clonningFlags = this._objectReader.readBitShort() as DictionaryCloningFlags;
-      template.CadObject.hardOwnerFlag = this._objectReader.readByte() > 0;
+    if (this.r2000Plus) {
+      template.cadObject.clonningFlags = this._objectReader.readBitShort() as DictionaryCloningFlags;
+      template.cadObject.hardOwnerFlag = this._objectReader.readByte() > 0;
     }
     for (let i = 0; i < nentries; ++i) {
       const name = this._textReader.readVariableText();
-      const handle = this.handleReference();
+      const handle = this._handleReference();
       if (handle === 0 || !name || name.length === 0) continue;
-      template.Entries.set(name, handle);
+      template.entries.set(name, handle);
     }
   }
 
-  private readGroup(): CadTemplate {
+  private _readGroup(): CadTemplate {
     const group = new Group();
     const template = new CadGroupTemplate(group);
-    this.readCommonNonEntityData(template);
+    this._readCommonNonEntityData(template);
     group.description = this._textReader.readVariableText();
     this._objectReader.readBitShort();
     group.selectable = this._objectReader.readBitShort() > 0;
     const numhandles = this._objectReader.readBitLong();
-    for (let i = 0; i < numhandles; ++i) template.Handles.add(this.handleReference());
+    for (let i = 0; i < numhandles; ++i) template.handles.add(this._handleReference());
     return template;
   }
 
-  private readXRecord(): CadTemplate {
+  private _readXRecord(): CadTemplate {
     const xRecord = new XRecord();
     const template = new CadXRecordTemplate(xRecord);
-    this.readCommonNonEntityData(template);
+    this._readCommonNonEntityData(template);
     const offset = this._objectReader.readBitLong() + this._objectReader.position;
     while (this._objectReader.position < offset) {
       const code = this._objectReader.readShort();
@@ -2488,7 +2488,7 @@ export class DwgObjectReader extends DwgSectionIO {
           const hex = this._objectReader.readTextUnicode();
           const result = parseInt(hex, 16);
           if (!isNaN(result)) {
-            template.AddHandleReference(code, result);
+            template.addHandleReference(code, result);
           } else {
             this.notify(`Failed to parse ${hex} to handle`, NotificationType.Warning);
           }
@@ -2503,37 +2503,37 @@ export class DwgObjectReader extends DwgSectionIO {
           break;
         case GroupCodeValueType.ObjectId:
         case GroupCodeValueType.ExtendedDataHandle:
-          template.AddHandleReference(code, this._objectReader.readRawULong());
+          template.addHandleReference(code, this._objectReader.readRawULong());
           break;
         default:
           this.notify(`Unidentified GroupCodeValueType ${code} for XRecord [${xRecord.handle}]`, NotificationType.Warning);
           break;
       }
     }
-    if (this.R2000Plus) xRecord.cloningFlags = this._objectReader.readBitShort() as DictionaryCloningFlags;
+    if (this.r2000Plus) xRecord.cloningFlags = this._objectReader.readBitShort() as DictionaryCloningFlags;
     const size = this._objectInitialPos + (this._size * 8) - 7;
-    while (this._handlesReader.positionInBits() < size) this.handleReference();
+    while (this._handlesReader.positionInBits() < size) this._handleReference();
     return template;
   }
 
-  private readSortentsTable(): CadTemplate {
+  private _readSortentsTable(): CadTemplate {
     const sortTable = new SortEntitiesTable();
     const template = new CadSortensTableTemplate(sortTable);
-    this.readCommonNonEntityData(template);
-    template.BlockOwnerHandle = this.handleReference();
+    this._readCommonNonEntityData(template);
+    template.blockOwnerHandle = this._handleReference();
     const numentries = this._mergedReaders.readBitLong();
     for (let i = 0; i < numentries; i++) {
       const sortHandle = this._objectReader.handleReference();
-      const entityHandle = this.handleReference();
-      template.Values.push([sortHandle, entityHandle]);
+      const entityHandle = this._handleReference();
+      template.values.push([sortHandle, entityHandle]);
     }
     return template;
   }
 
-  private readScale(): CadTemplate {
+  private _readScale(): CadTemplate {
     const scale = new Scale();
     const template = new CadNonGraphicalObjectTemplate(scale);
-    this.readCommonNonEntityData(template);
+    this._readCommonNonEntityData(template);
     this._mergedReaders.readBitShort();
     scale.name = this._mergedReaders.readVariableText();
     scale.paperUnits = this._mergedReaders.readBitDouble();
@@ -2542,10 +2542,10 @@ export class DwgObjectReader extends DwgSectionIO {
     return template;
   }
 
-  private readRasterVariables(): CadTemplate {
+  private _readRasterVariables(): CadTemplate {
     const vars = new RasterVariables();
     const template = new CadNonGraphicalObjectTemplate(vars);
-    this.readCommonNonEntityData(template);
+    this._readCommonNonEntityData(template);
     vars.classVersion = this._mergedReaders.readBitLong();
     vars.isDisplayFrameShown = this._mergedReaders.readBitShort() !== 0;
     vars.displayQuality = this._mergedReaders.readBitShort() as ImageDisplayQuality;
@@ -2553,12 +2553,12 @@ export class DwgObjectReader extends DwgSectionIO {
     return template;
   }
 
-  private readDbColor(): CadTemplate {
+  private _readDbColor(): CadTemplate {
     const bookColor = new BookColor();
     const template = new CadNonGraphicalObjectTemplate(bookColor);
-    this.readCommonNonEntityData(template);
+    this._readCommonNonEntityData(template);
     const colorIndex = this._objectReader.readBitShort();
-    if (this.R2004Plus) {
+    if (this.r2004Plus) {
       const trueColor = this._objectReader.readBitLong() >>> 0;
       const flags = this._objectReader.readByte();
       if ((flags & 1) > 0) bookColor.colorName = this._textReader.readVariableText();
@@ -2578,16 +2578,16 @@ export class DwgObjectReader extends DwgSectionIO {
   // These are all implemented following the exact same pattern as above - reading binary fields
   // in the same order as the C# source.
 
-  private readDimStyle(): CadTemplate {
+  private _readDimStyle(): CadTemplate {
     const dimStyle = new DimensionStyle();
     const template = new CadDimensionStyleTemplate(dimStyle);
-    this.readCommonNonEntityData(template);
+    this._readCommonNonEntityData(template);
     const name = this._textReader.readVariableText();
     if (name && name.trim().length > 0) {
       dimStyle.name = name;
     }
-    this.readXrefDependantBit(dimStyle);
-    if (this.R13_14Only) {
+    this._readXrefDependantBit(dimStyle);
+    if (this.r13_14Only) {
       dimStyle.generateTolerances = this._objectReader.readBit();
       dimStyle.limitsGeneration = this._objectReader.readBit();
       dimStyle.textOutsideHorizontal = this._objectReader.readBit();
@@ -2636,14 +2636,14 @@ export class DwgObjectReader extends DwgSectionIO {
       dimStyle.dimensionLineGap = this._objectReader.readBitDouble();
       dimStyle.postFix = this._textReader.readVariableText();
       dimStyle.alternateDimensioningSuffix = this._textReader.readVariableText();
-      template.DIMBL_Name = this._textReader.readVariableText();
-      template.DIMBLK1_Name = this._textReader.readVariableText();
-      template.DIMBLK2_Name = this._textReader.readVariableText();
+      template.dimbL_Name = this._textReader.readVariableText();
+      template.dimblK1_Name = this._textReader.readVariableText();
+      template.dimblK2_Name = this._textReader.readVariableText();
       dimStyle.dimensionLineColor = this._objectReader.readColorByIndex();
       dimStyle.extensionLineColor = this._objectReader.readColorByIndex();
       dimStyle.textColor = this._objectReader.readColorByIndex();
     }
-    if (this.R2000Plus) {
+    if (this.r2000Plus) {
       dimStyle.postFix = this._textReader.readVariableText();
       dimStyle.alternateDimensioningSuffix = this._textReader.readVariableText();
       dimStyle.scaleFactor = this._objectReader.readBitDouble();
@@ -2656,13 +2656,13 @@ export class DwgObjectReader extends DwgSectionIO {
       dimStyle.plusTolerance = this._objectReader.readBitDouble();
       dimStyle.minusTolerance = this._objectReader.readBitDouble();
     }
-    if (this.R2007Plus) {
+    if (this.r2007Plus) {
       dimStyle.fixedExtensionLineLength = this._objectReader.readBitDouble();
       dimStyle.joggedRadiusDimensionTransverseSegmentAngle = this._objectReader.readBitDouble();
       dimStyle.textBackgroundFillMode = this._objectReader.readBitShort() as DimensionTextBackgroundFillMode;
       dimStyle.textBackgroundColor = this._mergedReaders.readCmColor();
     }
-    if (this.R2000Plus) {
+    if (this.r2000Plus) {
       dimStyle.generateTolerances = this._objectReader.readBit();
       dimStyle.limitsGeneration = this._objectReader.readBit();
       dimStyle.textInsideHorizontal = this._objectReader.readBit();
@@ -2673,10 +2673,10 @@ export class DwgObjectReader extends DwgSectionIO {
       dimStyle.zeroHandling = this._objectReader.readBitShort() as ZeroHandling;
       dimStyle.angularZeroHandling = this._objectReader.readBitShort() as AngularZeroHandling;
     }
-    if (this.R2007Plus) {
+    if (this.r2007Plus) {
       dimStyle.arcLengthSymbolPosition = this._objectReader.readBitShort() as ArcLengthSymbolPosition;
     }
-    if (this.R2000Plus) {
+    if (this.r2000Plus) {
       dimStyle.textHeight = this._objectReader.readBitDouble();
       dimStyle.centerMarkSize = this._objectReader.readBitDouble();
       dimStyle.tickSize = this._objectReader.readBitDouble();
@@ -2715,43 +2715,43 @@ export class DwgObjectReader extends DwgSectionIO {
       dimStyle.cursorUpdate = this._objectReader.readBit();
       dimStyle.dimensionFit = this._objectReader.readBitShort();
     }
-    if (this.R2007Plus) {
+    if (this.r2007Plus) {
       dimStyle.isExtensionLineLengthFixed = this._objectReader.readBit();
     }
-    if (this.R2010Plus) {
+    if (this.r2010Plus) {
       dimStyle.textDirection = this._objectReader.readBit() ? TextDirection.RightToLeft : TextDirection.LeftToRight;
       dimStyle.altMzf = this._objectReader.readBitDouble();
       dimStyle.altMzs = this._textReader.readVariableText();
       dimStyle.mzf = this._objectReader.readBitDouble();
       dimStyle.mzs = this._textReader.readVariableText();
     }
-    if (this.R2000Plus) {
+    if (this.r2000Plus) {
       dimStyle.dimensionLineWeight = this._objectReader.readBitShort() as LineWeightType;
       dimStyle.extensionLineWeight = this._objectReader.readBitShort() as LineWeightType;
     }
     this._objectReader.readBit();
-    template.BlockHandle = this.handleReference();
-    template.TextStyleHandle = this.handleReference();
-    if (this.R2000Plus) {
-      template.DIMLDRBLK = this.handleReference();
-      template.DIMBLK = this.handleReference();
-      template.DIMBLK1 = this.handleReference();
-      template.DIMBLK2 = this.handleReference();
+    template.blockHandle = this._handleReference();
+    template.textStyleHandle = this._handleReference();
+    if (this.r2000Plus) {
+      template.dimldrblk = this._handleReference();
+      template.dimblk = this._handleReference();
+      template.dimblk1 = this._handleReference();
+      template.dimblk2 = this._handleReference();
     }
-    if (this.R2007Plus) {
-      template.Dimltype = this.handleReference();
-      template.Dimltex1 = this.handleReference();
-      template.Dimltex2 = this.handleReference();
+    if (this.r2007Plus) {
+      template.dimltype = this._handleReference();
+      template.dimltex1 = this._handleReference();
+      template.dimltex2 = this._handleReference();
     }
     return template;
   }
 
-  private readView(): CadTemplate {
+  private _readView(): CadTemplate {
     const view = new View();
     const template = new CadViewTemplate(view);
-    this.readCommonNonEntityData(template);
+    this._readCommonNonEntityData(template);
     view.name = this._textReader.readVariableText();
-    this.readXrefDependantBit(view);
+    this._readXrefDependantBit(view);
     view.height = this._objectReader.readBitDouble();
     view.width = this._objectReader.readBitDouble();
     view.center = this._objectReader.read2RawDouble();
@@ -2765,10 +2765,10 @@ export class DwgObjectReader extends DwgSectionIO {
     if (this._objectReader.readBit()) view.viewMode |= ViewModeType.FrontClipping;
     if (this._objectReader.readBit()) view.viewMode |= ViewModeType.BackClipping;
     if (this._objectReader.readBit()) view.viewMode |= ViewModeType.FrontClippingZ;
-    if (this.R2000Plus) {
+    if (this.r2000Plus) {
       view.renderMode = this._objectReader.readByte() as RenderMode;
     }
-    if (this.R2007Plus) {
+    if (this.r2007Plus) {
       this._mergedReaders.readBit();
       this._mergedReaders.readByte();
       this._mergedReaders.readBitDouble();
@@ -2776,7 +2776,7 @@ export class DwgObjectReader extends DwgSectionIO {
       this._mergedReaders.readCmColor();
     }
     if (this._objectReader.readBit()) view.flags |= 0b1 as StandardFlags;
-    if (this.R2000Plus) {
+    if (this.r2000Plus) {
       view.isUcsAssociated = this._objectReader.readBit();
       if (view.isUcsAssociated) {
         view.ucsOrigin = this._objectReader.read3BitDouble();
@@ -2786,29 +2786,29 @@ export class DwgObjectReader extends DwgSectionIO {
         view.ucsOrthographicType = this._objectReader.readBitShort() as OrthographicType;
       }
     }
-    this.handleReference();
-    if (this.R2007Plus) {
+    this._handleReference();
+    if (this.r2007Plus) {
       view.isPlottable = this._objectReader.readBit();
-      this.handleReference();
-      this.handleReference();
-      this.handleReference();
+      this._handleReference();
+      this._handleReference();
+      this._handleReference();
     }
-    if (this.R2000Plus && view.isUcsAssociated) {
-      template.UcsHandle = this.handleReference();
-      template.NamedUcsHandle = this.handleReference();
+    if (this.r2000Plus && view.isUcsAssociated) {
+      template.ucsHandle = this._handleReference();
+      template.namedUcsHandle = this._handleReference();
     }
-    if (this.R2007Plus) {
-      this.handleReference();
+    if (this.r2007Plus) {
+      this._handleReference();
     }
     return template;
   }
 
-  private readVPort(): CadTemplate {
+  private _readVPort(): CadTemplate {
     const vport = new VPort();
     const template = new CadVPortTemplate(vport);
-    this.readCommonNonEntityData(template);
+    this._readCommonNonEntityData(template);
     vport.name = this._textReader.readVariableText();
-    this.readXrefDependantBit(vport);
+    this._readXrefDependantBit(vport);
     vport.viewHeight = this._objectReader.readBitDouble();
     vport.aspectRatio = this._objectReader.readBitDouble() / vport.viewHeight;
     vport.center = this._objectReader.read2RawDouble();
@@ -2822,10 +2822,10 @@ export class DwgObjectReader extends DwgSectionIO {
     if (this._objectReader.readBit()) vport.viewMode |= ViewModeType.FrontClipping;
     if (this._objectReader.readBit()) vport.viewMode |= ViewModeType.BackClipping;
     if (this._objectReader.readBit()) vport.viewMode |= ViewModeType.FrontClippingZ;
-    if (this.R2000Plus) {
+    if (this.r2000Plus) {
       vport.renderMode = this._objectReader.readByte() as RenderMode;
     }
-    if (this.R2007Plus) {
+    if (this.r2007Plus) {
       vport.useDefaultLighting = this._objectReader.readBit();
       vport.defaultLighting = this._objectReader.readByte() as DefaultLightingType;
       vport.brightness = this._objectReader.readBitDouble();
@@ -2847,7 +2847,7 @@ export class DwgObjectReader extends DwgSectionIO {
     vport.snapRotation = this._objectReader.readBitDouble();
     vport.snapBasePoint = this._objectReader.read2RawDouble();
     vport.snapSpacing = this._objectReader.read2RawDouble();
-    if (this.R2000Plus) {
+    if (this.r2000Plus) {
       this._objectReader.readBit();
       const ucsPerViewport = this._objectReader.readBit();
       vport.origin = this._objectReader.read3BitDouble();
@@ -2856,50 +2856,50 @@ export class DwgObjectReader extends DwgSectionIO {
       vport.elevation = this._objectReader.readBitDouble();
       vport.orthographicType = this._objectReader.readBitShort() as OrthographicType;
     }
-    if (this.R2007Plus) {
+    if (this.r2007Plus) {
       vport.gridFlags = this._objectReader.readBitShort() as GridFlags;
       vport.minorGridLinesPerMajorGridLine = this._objectReader.readBitShort();
     }
-    template.VportControlHandle = this.handleReference();
-    if (this.R2007Plus) {
-      template.BackgroundHandle = this.handleReference();
-      template.StyleHandle = this.handleReference();
-      template.SunHandle = this.handleReference();
+    template.vportControlHandle = this._handleReference();
+    if (this.r2007Plus) {
+      template.backgroundHandle = this._handleReference();
+      template.styleHandle = this._handleReference();
+      template.sunHandle = this._handleReference();
     }
-    if (this.R2000Plus) {
-      template.NamedUcsHandle = this.handleReference();
-      template.BaseUcsHandle = this.handleReference();
+    if (this.r2000Plus) {
+      template.namedUcsHandle = this._handleReference();
+      template.baseUcsHandle = this._handleReference();
     }
     return template;
   }
 
-  private readUcs(): CadTemplate {
+  private _readUcs(): CadTemplate {
     const ucs = new UCS();
     const template = new CadUcsTemplate(ucs);
-    this.readCommonNonEntityData(template);
+    this._readCommonNonEntityData(template);
     ucs.name = this._textReader.readVariableText();
-    this.readXrefDependantBit(ucs);
+    this._readXrefDependantBit(ucs);
     ucs.origin = this._objectReader.read3BitDouble();
     ucs.xAxis = this._objectReader.read3BitDouble();
     ucs.yAxis = this._objectReader.read3BitDouble();
-    if (this.R2000Plus) {
+    if (this.r2000Plus) {
       ucs.elevation = this._objectReader.readBitDouble();
       ucs.orthographicViewType = this._objectReader.readBitShort() as OrthographicType;
       ucs.orthographicType = this._objectReader.readBitShort() as OrthographicType;
     }
-    const control = this.handleReference();
-    if (this.R2000Plus) {
-      const baseUcs = this.handleReference();
-      const namedHandle = this.handleReference();
+    const control = this._handleReference();
+    if (this.r2000Plus) {
+      const baseUcs = this._handleReference();
+      const namedHandle = this._handleReference();
     }
     return template;
   }
 
-  private readLayout(): CadTemplate {
+  private _readLayout(): CadTemplate {
     const layout = new Layout();
     const template = new CadLayoutTemplate(layout);
-    this.readCommonNonEntityData(template);
-    this.readPlotSettingsData(layout);
+    this._readCommonNonEntityData(template);
+    this._readPlotSettingsData(layout);
     layout.name = this._textReader.readVariableText();
     layout.tabOrder = this._objectReader.readBitLong();
     layout.layoutFlags = this._objectReader.readBitShort() as LayoutFlags;
@@ -2914,25 +2914,25 @@ export class DwgObjectReader extends DwgSectionIO {
     layout.minExtents = this._objectReader.read3BitDouble();
     layout.maxExtents = this._objectReader.read3BitDouble();
     let nLayouts = 0;
-    if (this.R2004Plus) {
+    if (this.r2004Plus) {
       nLayouts = this._objectReader.readBitLong();
     }
-    template.PaperSpaceBlockHandle = this.handleReference();
-    template.ActiveViewportHandle = this.handleReference();
-    template.BaseUcsHandle = this.handleReference();
-    template.NamesUcsHandle = this.handleReference();
-    if (this.R2004Plus) {
+    template.paperSpaceBlockHandle = this._handleReference();
+    template.activeViewportHandle = this._handleReference();
+    template.baseUcsHandle = this._handleReference();
+    template.namesUcsHandle = this._handleReference();
+    if (this.r2004Plus) {
       for (let i = 0; i < nLayouts; i++) {
-        template.ViewportHandles.add(this.handleReference());
+        template.viewportHandles.add(this._handleReference());
       }
     }
     return template;
   }
 
-  private readLeader(): CadTemplate {
+  private _readLeader(): CadTemplate {
     const leader = new Leader();
     const template = new CadLeaderTemplate(leader);
-    this.readCommonEntityData(template);
+    this._readCommonEntityData(template);
     this._objectReader.readBit();
     leader.creationType = this._objectReader.readBitShort() as LeaderCreationType;
     leader.pathType = this._objectReader.readBitShort() as LeaderPathType;
@@ -2947,7 +2947,7 @@ export class DwgObjectReader extends DwgSectionIO {
     if (this._version >= ACadVersion.AC1014) {
       leader.annotationOffset = this._objectReader.read3BitDouble();
     }
-    if (this.R13_14Only) {
+    if (this.r13_14Only) {
       leader.style.dimensionLineGap = this._objectReader.readBitDouble();
     }
     if (this._version <= ACadVersion.AC1021) {
@@ -2956,100 +2956,100 @@ export class DwgObjectReader extends DwgSectionIO {
     }
     leader.hookLineDirection = this._objectReader.readBit() ? HookLineDirection.Same : HookLineDirection.Opposite;
     leader.arrowHeadEnabled = this._objectReader.readBit();
-    if (this.R13_14Only) {
+    if (this.r13_14Only) {
       this._objectReader.readBitShort();
-      template.Dimasz = this._objectReader.readBitDouble();
+      template.dimasz = this._objectReader.readBitDouble();
       this._objectReader.readBit();
       this._objectReader.readBit();
       this._objectReader.readBitShort();
-      this._objectReader.readBitShort();
-      this._objectReader.readBit();
-      this._objectReader.readBit();
-    }
-    if (this.R2000Plus) {
       this._objectReader.readBitShort();
       this._objectReader.readBit();
       this._objectReader.readBit();
     }
-    template.AnnotationHandle = this.handleReference();
-    template.DIMSTYLEHandle = this.handleReference();
+    if (this.r2000Plus) {
+      this._objectReader.readBitShort();
+      this._objectReader.readBit();
+      this._objectReader.readBit();
+    }
+    template.annotationHandle = this._handleReference();
+    template.dimstyleHandle = this._handleReference();
     return template;
   }
 
-  private readMultiLeader(): CadTemplate {
+  private _readMultiLeader(): CadTemplate {
     const mLeader = new MultiLeader();
     const template = new CadMLeaderTemplate(mLeader);
-    this.readCommonEntityData(template);
-    if (this.R2010Plus) {
+    this._readCommonEntityData(template);
+    if (this.r2010Plus) {
       const f270 = this._objectReader.readBitShort();
     }
-    this.readMultiLeaderAnnotContextData(mLeader.contextData, template.CadMLeaderAnnotContextTemplate);
-    template.LeaderStyleHandle = this.handleReference();
+    this._readMultiLeaderAnnotContextData(mLeader.contextData, template.cadMLeaderAnnotContextTemplate);
+    template.leaderStyleHandle = this._handleReference();
     mLeader.propertyOverrideFlags = this._objectReader.readBitLong() as MultiLeaderPropertyOverrideFlags;
     mLeader.pathType = this._objectReader.readBitShort() as MultiLeaderPathType;
     mLeader.lineColor = this._mergedReaders.readCmColor();
-    template.LeaderLineTypeHandle = this.handleReference();
+    template.leaderLineTypeHandle = this._handleReference();
     mLeader.leaderLineWeight = this._objectReader.readBitLong() as LineWeightType;
     mLeader.enableLanding = this._objectReader.readBit();
     mLeader.enableDogleg = this._objectReader.readBit();
     mLeader.landingDistance = this._objectReader.readBitDouble();
-    template.ArrowheadHandle = this.handleReference();
+    template.arrowheadHandle = this._handleReference();
     mLeader.arrowheadSize = this._objectReader.readBitDouble();
     mLeader.contentType = this._objectReader.readBitShort() as LeaderContentType;
-    template.MTextStyleHandle = this.handleReference();
+    template.mTextStyleHandle = this._handleReference();
     mLeader.textLeftAttachment = this._objectReader.readBitShort() as TextAttachmentType;
     mLeader.textRightAttachment = this._objectReader.readBitShort() as TextAttachmentType;
     mLeader.textAngle = this._objectReader.readBitShort() as TextAngleType;
     mLeader.textAlignment = this._objectReader.readBitShort() as TextAlignmentType;
     mLeader.textColor = this._mergedReaders.readCmColor();
     mLeader.textFrame = this._objectReader.readBit();
-    template.BlockContentHandle = this.handleReference();
+    template.blockContentHandle = this._handleReference();
     mLeader.blockContentColor = this._mergedReaders.readCmColor();
     mLeader.blockContentScale = this._objectReader.read3BitDouble();
     mLeader.blockContentRotation = this._objectReader.readBitDouble();
     mLeader.blockContentConnection = this._objectReader.readBitShort() as BlockContentConnectionType;
     mLeader.enableAnnotationScale = this._objectReader.readBit();
-    if (this.R2007Pre) {
+    if (this.r2007Pre) {
       const arrowHeadCount = this._objectReader.readBitLong();
       for (let ah = 0; ah < arrowHeadCount; ah++) {
         const isDefault = this._objectReader.readBit();
-        template.ArrowheadHandles.set(this.handleReference(), isDefault);
+        template.arrowheadHandles.set(this._handleReference(), isDefault);
       }
     }
     const blockLabelCount = this._objectReader.readBitLong();
     for (let bl = 0; bl < blockLabelCount; bl++) {
-      const attributeHandle = this.handleReference();
+      const attributeHandle = this._handleReference();
       const blockAttribute = new MultiLeaderBlockAttribute();
       blockAttribute.text = this._textReader.readVariableText();
       blockAttribute.index = this._objectReader.readBitShort();
       blockAttribute.width = this._objectReader.readBitDouble();
       mLeader.blockAttributes.push(blockAttribute);
-      template.BlockAttributeHandles.set(blockAttribute, attributeHandle);
+      template.blockAttributeHandles.set(blockAttribute, attributeHandle);
     }
     mLeader.textDirectionNegative = this._objectReader.readBit();
     mLeader.textAligninIPE = this._objectReader.readBitShort() !== 0;
     mLeader.textAttachmentPoint = this._objectReader.readBitShort() as TextAttachmentPointType;
     mLeader.scaleFactor = this._objectReader.readBitDouble();
-    if (this.R2010Plus) {
+    if (this.r2010Plus) {
       mLeader.textAttachmentDirection = this._objectReader.readBitShort() as TextAttachmentDirectionType;
       mLeader.textBottomAttachment = this._objectReader.readBitShort() as TextAttachmentType;
       mLeader.textTopAttachment = this._objectReader.readBitShort() as TextAttachmentType;
     }
-    if (this.R2013Plus) {
+    if (this.r2013Plus) {
       mLeader.extendedToText = this._objectReader.readBit();
     }
     return template;
   }
 
-  private readMultiLeaderAnnotContext(): CadTemplate {
+  private _readMultiLeaderAnnotContext(): CadTemplate {
     const annotContext = new MultiLeaderObjectContextData();
     const template = new CadMLeaderAnnotContextTemplate(annotContext);
-    this.readAnnotScaleObjectContextData(template);
-    this.readMultiLeaderAnnotContextData(annotContext, template);
+    this._readAnnotScaleObjectContextData(template);
+    this._readMultiLeaderAnnotContextData(annotContext, template);
     return template;
   }
 
-  private readMultiLeaderAnnotContextData(annotContext: MultiLeaderObjectContextData, template: CadMLeaderAnnotContextTemplate): MultiLeaderObjectContextData {
+  private _readMultiLeaderAnnotContextData(annotContext: MultiLeaderObjectContextData, template: CadMLeaderAnnotContextTemplate): MultiLeaderObjectContextData {
     let leaderRootCount = this._objectReader.readBitLong();
     if (leaderRootCount === 0) {
       const b0 = this._objectReader.readBit();
@@ -3062,7 +3062,7 @@ export class DwgObjectReader extends DwgSectionIO {
       leaderRootCount = b5 ? 2 : 1;
     }
     for (let i = 0; i < leaderRootCount; i++) {
-      annotContext.leaderRoots.push(this.readLeaderRoot(template));
+      annotContext.leaderRoots.push(this._readLeaderRoot(template));
     }
     annotContext.scaleFactor = this._objectReader.readBitDouble();
     annotContext.contentBasePoint = this._objectReader.read3BitDouble();
@@ -3077,7 +3077,7 @@ export class DwgObjectReader extends DwgSectionIO {
     if (annotContext.hasTextContents) {
       annotContext.textLabel = this._textReader.readVariableText();
       annotContext.textNormal = this._objectReader.read3BitDouble();
-      template.TextStyleHandle = this.handleReference();
+      template.textStyleHandle = this._handleReference();
       annotContext.textLocation = this._objectReader.read3BitDouble();
       annotContext.direction = this._objectReader.read3BitDouble();
       annotContext.textRotation = this._objectReader.readBitDouble();
@@ -3105,7 +3105,7 @@ export class DwgObjectReader extends DwgSectionIO {
       annotContext.wordBreak = this._objectReader.readBit();
       this._objectReader.readBit();
     } else if (annotContext.hasContentsBlock = this._objectReader.readBit()) {
-      template.BlockRecordHandle = this.handleReference();
+      template.blockRecordHandle = this._handleReference();
       annotContext.blockContentNormal = this._objectReader.read3BitDouble();
       annotContext.blockContentLocation = this._objectReader.read3BitDouble();
       annotContext.blockContentScale = this._objectReader.read3BitDouble();
@@ -3138,18 +3138,18 @@ export class DwgObjectReader extends DwgSectionIO {
     annotContext.baseDirection = this._objectReader.read3BitDouble();
     annotContext.baseVertical = this._objectReader.read3BitDouble();
     annotContext.normalReversed = this._objectReader.readBit();
-    if (this.R2010Plus) {
+    if (this.r2010Plus) {
       annotContext.textTopAttachment = this._objectReader.readBitShort() as TextAttachmentType;
       annotContext.textBottomAttachment = this._objectReader.readBitShort() as TextAttachmentType;
     }
     return annotContext;
   }
 
-  private readMultiLeaderStyle(): CadTemplate {
+  private _readMultiLeaderStyle(): CadTemplate {
     const mLeaderStyle = new MultiLeaderStyle();
     const template = new CadMLeaderStyleTemplate(mLeaderStyle);
-    this.readCommonNonEntityData(template);
-    if (this.R2010Plus) {
+    this._readCommonNonEntityData(template);
+    if (this.r2010Plus) {
       const version = this._objectReader.readBitShort();
     }
     mLeaderStyle.contentType = this._objectReader.readBitShort() as LeaderContentType;
@@ -3160,17 +3160,17 @@ export class DwgObjectReader extends DwgSectionIO {
     mLeaderStyle.secondSegmentAngleConstraint = this._objectReader.readBitDouble();
     mLeaderStyle.pathType = this._objectReader.readBitShort() as MultiLeaderPathType;
     mLeaderStyle.lineColor = this._mergedReaders.readCmColor();
-    template.LeaderLineTypeHandle = this.handleReference();
+    template.leaderLineTypeHandle = this._handleReference();
     mLeaderStyle.leaderLineWeight = this._objectReader.readBitLong() as LineWeightType;
     mLeaderStyle.enableLanding = this._objectReader.readBit();
     mLeaderStyle.landingGap = this._objectReader.readBitDouble();
     mLeaderStyle.enableDogleg = this._objectReader.readBit();
     mLeaderStyle.landingDistance = this._objectReader.readBitDouble();
     mLeaderStyle.description = this._mergedReaders.readVariableText();
-    template.ArrowheadHandle = this.handleReference();
+    template.arrowheadHandle = this._handleReference();
     mLeaderStyle.arrowheadSize = this._objectReader.readBitDouble();
     mLeaderStyle.defaultTextContents = this._mergedReaders.readVariableText();
-    template.MTextStyleHandle = this.handleReference();
+    template.mTextStyleHandle = this._handleReference();
     mLeaderStyle.textLeftAttachment = this._objectReader.readBitShort() as TextAttachmentType;
     mLeaderStyle.textRightAttachment = this._objectReader.readBitShort() as TextAttachmentType;
     mLeaderStyle.textAngle = this._objectReader.readBitShort() as TextAngleType;
@@ -3180,7 +3180,7 @@ export class DwgObjectReader extends DwgSectionIO {
     mLeaderStyle.textFrame = this._objectReader.readBit();
     mLeaderStyle.textAlignAlwaysLeft = this._objectReader.readBit();
     mLeaderStyle.alignSpace = this._objectReader.readBitDouble();
-    template.BlockContentHandle = this.handleReference();
+    template.blockContentHandle = this._handleReference();
     mLeaderStyle.blockContentColor = this._mergedReaders.readCmColor();
     mLeaderStyle.blockContentScale = this._objectReader.read3BitDouble();
     mLeaderStyle.enableBlockContentScale = this._objectReader.readBit();
@@ -3191,21 +3191,21 @@ export class DwgObjectReader extends DwgSectionIO {
     mLeaderStyle.overwritePropertyValue = this._objectReader.readBit();
     mLeaderStyle.isAnnotative = this._objectReader.readBit();
     mLeaderStyle.breakGapSize = this._objectReader.readBitDouble();
-    if (this.R2010Plus) {
+    if (this.r2010Plus) {
       mLeaderStyle.textAttachmentDirection = this._objectReader.readBitShort() as TextAttachmentDirectionType;
       mLeaderStyle.textBottomAttachment = this._objectReader.readBitShort() as TextAttachmentType;
       mLeaderStyle.textTopAttachment = this._objectReader.readBitShort() as TextAttachmentType;
     }
-    if (this.R2013Plus) {
+    if (this.r2013Plus) {
       mLeaderStyle.unknownFlag298 = this._objectReader.readBit();
     }
     return template;
   }
 
-  private readMaterial(): CadTemplate {
+  private _readMaterial(): CadTemplate {
     const material = new Material();
     const template = new CadMaterialTemplate(material);
-    this.readCommonNonEntityData(template);
+    this._readCommonNonEntityData(template);
     material.name = this._mergedReaders.readVariableText();
     material.description = this._mergedReaders.readVariableText();
 
@@ -3230,9 +3230,9 @@ export class DwgObjectReader extends DwgSectionIO {
     material.diffuseProjectionMethod = this._mergedReaders.readByte() as ProjectionMethod;
     material.diffuseTilingMethod = this._mergedReaders.readByte() as TilingMethod;
     material.diffuseAutoTransform = this._mergedReaders.readByte() as AutoTransformMethodFlags;
-    material.diffuseMatrix = this.readMatrix4();
+    material.diffuseMatrix = this._readMatrix4();
     material.diffuseMapSource = this._mergedReaders.readByte() as MapSource;
-    material.diffuseMapFileName = this.readMaterialMapFileName(material.diffuseMapSource, 'diffuse');
+    material.diffuseMapFileName = this._readMaterialMapFileName(material.diffuseMapSource, 'diffuse');
 
     // Specular
     material.specularColorMethod = this._mergedReaders.readByte() as ColorMethod;
@@ -3246,9 +3246,9 @@ export class DwgObjectReader extends DwgSectionIO {
     material.specularProjectionMethod = this._mergedReaders.readByte() as ProjectionMethod;
     material.specularTilingMethod = this._mergedReaders.readByte() as TilingMethod;
     material.specularAutoTransform = this._mergedReaders.readByte() as AutoTransformMethodFlags;
-    material.specularMatrix = this.readMatrix4();
+    material.specularMatrix = this._readMatrix4();
     material.specularMapSource = this._mergedReaders.readByte() as MapSource;
-    material.specularMapFileName = this.readMaterialMapFileName(material.specularMapSource, 'specular');
+    material.specularMapFileName = this._readMaterialMapFileName(material.specularMapSource, 'specular');
     material.specularGlossFactor = this._objectReader.readBitDouble();
 
     // Reflection
@@ -3256,9 +3256,9 @@ export class DwgObjectReader extends DwgSectionIO {
     material.reflectionProjectionMethod = this._mergedReaders.readByte() as ProjectionMethod;
     material.reflectionTilingMethod = this._mergedReaders.readByte() as TilingMethod;
     material.reflectionAutoTransform = this._mergedReaders.readByte() as AutoTransformMethodFlags;
-    material.reflectionMatrix = this.readMatrix4();
+    material.reflectionMatrix = this._readMatrix4();
     material.reflectionMapSource = this._mergedReaders.readByte() as MapSource;
-    material.reflectionMapFileName = this.readMaterialMapFileName(material.reflectionMapSource, 'reflection');
+    material.reflectionMapFileName = this._readMaterialMapFileName(material.reflectionMapSource, 'reflection');
     material.opacity = this._mergedReaders.readBitDouble();
 
     // Opacity
@@ -3266,18 +3266,18 @@ export class DwgObjectReader extends DwgSectionIO {
     material.opacityProjectionMethod = this._mergedReaders.readByte() as ProjectionMethod;
     material.opacityTilingMethod = this._mergedReaders.readByte() as TilingMethod;
     material.opacityAutoTransform = this._mergedReaders.readByte() as AutoTransformMethodFlags;
-    material.opacityMatrix = this.readMatrix4();
+    material.opacityMatrix = this._readMatrix4();
     material.opacityMapSource = this._mergedReaders.readByte() as MapSource;
-    material.opacityMapFileName = this.readMaterialMapFileName(material.opacityMapSource, 'opacity');
+    material.opacityMapFileName = this._readMaterialMapFileName(material.opacityMapSource, 'opacity');
 
     // Bump
     material.bumpMapBlendFactor = this._mergedReaders.readBitDouble();
     material.bumpProjectionMethod = this._mergedReaders.readByte() as ProjectionMethod;
     material.bumpTilingMethod = this._mergedReaders.readByte() as TilingMethod;
     material.bumpAutoTransform = this._mergedReaders.readByte() as AutoTransformMethodFlags;
-    material.bumpMatrix = this.readMatrix4();
+    material.bumpMatrix = this._readMatrix4();
     material.bumpMapSource = this._mergedReaders.readByte() as MapSource;
-    material.bumpMapFileName = this.readMaterialMapFileName(material.bumpMapSource, 'bump');
+    material.bumpMapFileName = this._readMaterialMapFileName(material.bumpMapSource, 'bump');
     material.refractionIndex = this._mergedReaders.readBitDouble();
 
     // Refraction
@@ -3285,26 +3285,26 @@ export class DwgObjectReader extends DwgSectionIO {
     material.refractionProjectionMethod = this._mergedReaders.readByte() as ProjectionMethod;
     material.refractionTilingMethod = this._mergedReaders.readByte() as TilingMethod;
     material.refractionAutoTransform = this._mergedReaders.readByte() as AutoTransformMethodFlags;
-    material.refractionMatrix = this.readMatrix4();
+    material.refractionMatrix = this._readMatrix4();
     material.refractionMapSource = this._mergedReaders.readByte() as MapSource;
-    material.refractionMapFileName = this.readMaterialMapFileName(material.refractionMapSource, 'refraction');
+    material.refractionMapFileName = this._readMaterialMapFileName(material.refractionMapSource, 'refraction');
     return template;
   }
 
-  private readMaterialMapFileName(source: MapSource, channel: string): string {
+  private _readMaterialMapFileName(source: MapSource, channel: string): string {
     switch (source) {
       case MapSource.UseCurrentScene:
         return '';
       case MapSource.UseImageFile:
         return this._mergedReaders.readVariableText();
       case MapSource.Procedural:
-        this._builder.Notify(
+        this._builder.notify(
           `DWG material ${channel} map uses an unsupported procedural source; preserving the source flag without procedural payload details.`,
           NotificationType.Warning,
         );
         return '';
       default:
-        this._builder.Notify(
+        this._builder.notify(
           `DWG material ${channel} map uses an unknown source value ${source}; leaving the map filename empty.`,
           NotificationType.Warning,
         );
@@ -3312,10 +3312,10 @@ export class DwgObjectReader extends DwgSectionIO {
     }
   }
 
-  private readMLine(): CadTemplate {
+  private _readMLine(): CadTemplate {
     const mline = new MLine();
     const template = new CadMLineTemplate(mline);
-    this.readCommonEntityData(template);
+    this._readCommonEntityData(template);
     mline.scaleFactor = this._objectReader.readBitDouble();
     mline.justification = this._objectReader.readByte() as MLineJustification;
     mline.startPoint = this._objectReader.read3BitDouble();
@@ -3342,14 +3342,14 @@ export class DwgObjectReader extends DwgSectionIO {
       }
       mline.vertices.push(vertex);
     }
-    template.MLineStyleHandle = this.handleReference();
+    template.mLineStyleHandle = this._handleReference();
     return template;
   }
 
-  private readMLineStyle(): CadTemplate {
+  private _readMLineStyle(): CadTemplate {
     const mlineStyle = new MLineStyle();
     const template = new CadMLineStyleTemplate(mlineStyle);
-    this.readCommonNonEntityData(template);
+    this._readCommonNonEntityData(template);
     mlineStyle.name = this._textReader.readVariableText();
     mlineStyle.description = this._textReader.readVariableText();
     const flags = this._objectReader.readBitShort();
@@ -3370,23 +3370,23 @@ export class DwgObjectReader extends DwgSectionIO {
       const elementTemplate = new CadMLineStyleTemplate.ElementTemplate(element);
       element.offset = this._objectReader.readBitDouble();
       element.color = this._mergedReaders.readCmColor();
-      if (this.R2018Plus) {
-        elementTemplate.LineTypeHandle = this.handleReference();
+      if (this.r2018Plus) {
+        elementTemplate.lineTypeHandle = this._handleReference();
       } else {
-        elementTemplate.LinetypeIndex = this._objectReader.readBitShort();
+        elementTemplate.linetypeIndex = this._objectReader.readBitShort();
       }
-      template.ElementTemplates.push(elementTemplate);
+      template.elementTemplates.push(elementTemplate);
       mlineStyle.addElement(element);
     }
     return template;
   }
 
-  private readGeoData(): CadTemplate {
+  private _readGeoData(): CadTemplate {
     const geoData = new GeoData();
     const template = new CadGeoDataTemplate(geoData);
-    this.readCommonNonEntityData(template);
+    this._readCommonNonEntityData(template);
     geoData.version = this._mergedReaders.readBitLong() as GeoDataVersion;
-    template.HostBlockHandle = this.handleReference();
+    template.hostBlockHandle = this._handleReference();
     geoData.coordinatesType = this._mergedReaders.readBitShort() as DesignCoordinatesType;
     switch (geoData.version) {
       case GeoDataVersion.R2009:
@@ -3446,11 +3446,11 @@ export class DwgObjectReader extends DwgSectionIO {
     return template;
   }
 
-  private readTableStyle(): CadTemplate {
+  private _readTableStyle(): CadTemplate {
     const style = new TableStyle();
     const template = new CadTableStyleTemplate(style);
-    this.readCommonNonEntityData(template);
-    if (this.R2007Pre) {
+    this._readCommonNonEntityData(template);
+    if (this.r2007Pre) {
       style.description = this._mergedReaders.readVariableText();
       style.flowDirection = this._mergedReaders.readBitShort() as TableFlowDirectionType;
       style.flags = this._mergedReaders.readBitShort();
@@ -3458,18 +3458,18 @@ export class DwgObjectReader extends DwgSectionIO {
       style.verticalCellMargin = this._mergedReaders.readBitDouble();
       style.suppressTitle = this._mergedReaders.readBit();
       style.suppressHeaderRow = this._mergedReaders.readBit();
-      this.readRowCellStyle(template, style.dataCellStyle);
-      this.readRowCellStyle(template, style.titleCellStyle);
-      this.readRowCellStyle(template, style.headerCellStyle);
+      this._readRowCellStyle(template, style.dataCellStyle);
+      this._readRowCellStyle(template, style.titleCellStyle);
+      this._readRowCellStyle(template, style.headerCellStyle);
       return template;
     }
     const rc = this._mergedReaders.readByte();
     style.description = this._mergedReaders.readVariableText();
     const bl1 = this._mergedReaders.readBitLong();
     const bl2 = this._mergedReaders.readBitLong();
-    const h = this.handleReference();
+    const h = this._handleReference();
     const tableCellStyleTemplate = new CadCellStyleTemplate(style.tableCellStyle);
-    this.readCellStyle(tableCellStyleTemplate);
+    this._readCellStyle(tableCellStyleTemplate);
     style.tableCellStyle.id = this._mergedReaders.readBitLong();
     style.tableCellStyle.styleClass = this._mergedReaders.readBitLong() as CellStyleClass;
     style.tableCellStyle.name = this._mergedReaders.readVariableText();
@@ -3477,9 +3477,9 @@ export class DwgObjectReader extends DwgSectionIO {
     for (let i = 0; i < nCellStyles; i++) {
       const cellStyle = new CellStyle();
       const cellStyleTemplate = new CadCellStyleTemplate(cellStyle);
-      template.CellStyleTemplates.push(cellStyleTemplate);
+      template.cellStyleTemplates.push(cellStyleTemplate);
       const unknown = this._mergedReaders.readBitLong();
-      this.readCellStyle(cellStyleTemplate);
+      this._readCellStyle(cellStyleTemplate);
       cellStyle.id = this._mergedReaders.readBitLong();
       cellStyle.styleClass = this._mergedReaders.readBitLong() as CellStyleClass;
       cellStyle.name = this._mergedReaders.readVariableText();
@@ -3487,35 +3487,35 @@ export class DwgObjectReader extends DwgSectionIO {
     return template;
   }
 
-  private readVisualStyle(): CadTemplate {
+  private _readVisualStyle(): CadTemplate {
     const visualStyle = new VisualStyle();
     const template = new CadNonGraphicalObjectTemplate(visualStyle);
-    this.readCommonNonEntityData(template);
+    this._readCommonNonEntityData(template);
     visualStyle.name = this._textReader.readVariableText();
     visualStyle.type = this._objectReader.readBitLong();
     const styleFlags = this._objectReader.readBitShort();
     visualStyle.internalFlag = this._objectReader.readBit();
     const payloadCount = this._objectReader.readBitLong();
-    this._builder.Notify(
+    this._builder.notify(
       `DWG VisualStyle payload is only partially mapped; preserving base object data for ${visualStyle.name} with flags ${styleFlags} and ${payloadCount} payload entries.`,
       NotificationType.Warning,
     );
     return template;
   }
 
-  private readPlotSettingsEntity(): CadTemplate {
+  private _readPlotSettingsEntity(): CadTemplate {
     const plotsettings = new PlotSettings();
     const template = new CadPlotSettingsTemplate(plotsettings);
-    this.readCommonNonEntityData(template);
-    this.readPlotSettingsData(plotsettings);
+    this._readCommonNonEntityData(template);
+    this._readPlotSettingsData(plotsettings);
     return template;
   }
 
-  private readPlotSettings(): CadTemplate {
-    return this.readPlotSettingsEntity();
+  private _readPlotSettings(): CadTemplate {
+    return this._readPlotSettingsEntity();
   }
 
-  private readPlotSettingsData(plot: PlotSettings): void {
+  private _readPlotSettingsData(plot: PlotSettings): void {
     plot.pageName = this._textReader.readVariableText();
     plot.systemPrinterName = this._textReader.readVariableText();
     plot.flags = this._objectReader.readBitShort() as PlotFlags;
@@ -3546,32 +3546,32 @@ export class DwgObjectReader extends DwgSectionIO {
     plot.scaledFit = this._objectReader.readBitShort() as ScaledType;
     plot.standardScale = this._objectReader.readBitDouble();
     plot.paperImageOrigin = this._objectReader.read2BitDouble();
-    if (this.R2004Plus) {
+    if (this.r2004Plus) {
       plot.shadePlotMode = this._objectReader.readBitShort() as ShadePlotMode;
       plot.shadePlotResolutionMode = this._objectReader.readBitShort() as ShadePlotResolutionMode;
       plot.shadePlotDPI = this._objectReader.readBitShort();
-      const plotViewHandle = this.handleReference();
+      const plotViewHandle = this._handleReference();
     }
-    if (this.R2007Plus) {
-      this.handleReference();
+    if (this.r2007Plus) {
+      this._handleReference();
     }
   }
 
-  private readEvaluationGraph(): CadTemplate {
+  private _readEvaluationGraph(): CadTemplate {
     const evaluationGraph = new EvaluationGraph();
     const template = new CadEvaluationGraphTemplate(evaluationGraph);
-    this.readCommonNonEntityData(template);
+    this._readCommonNonEntityData(template);
     evaluationGraph.value96 = this._objectReader.readBitLong();
     evaluationGraph.value97 = this._objectReader.readBitLong();
     const nodeCount = this._objectReader.readBitLong();
     for (let i = 0; i < nodeCount; i++) {
       const nodeTemplate = new CadEvaluationGraphTemplate.GraphNodeTemplate();
       const node = new EvaluationGraphNode();
-      template.NodeTemplates.push(nodeTemplate);
+      template.nodeTemplates.push(nodeTemplate);
       node.index = this._objectReader.readBitLong();
       node.flags = this._objectReader.readBitLong();
       node.nextNodeIndex = this._objectReader.readBitLong();
-      nodeTemplate.ExpressionHandle = this.handleReference();
+      nodeTemplate.expressionHandle = this._handleReference();
       node.data1 = this._objectReader.readBitLong();
       node.data2 = this._objectReader.readBitLong();
       node.data3 = this._objectReader.readBitLong();
@@ -3593,10 +3593,10 @@ export class DwgObjectReader extends DwgSectionIO {
     return template;
   }
 
-  private readSpatialFilter(): CadTemplate {
+  private _readSpatialFilter(): CadTemplate {
     const filter = new SpatialFilter();
     const template = new CadNonGraphicalObjectTemplate(filter);
-    this.readCommonNonEntityData(template);
+    this._readCommonNonEntityData(template);
     const numPts = this._mergedReaders.readBitShort();
     for (let i = 0; i < numPts; i++) {
       filter.boundaryPoints.push(this._mergedReaders.read2RawDouble());
@@ -3612,47 +3612,47 @@ export class DwgObjectReader extends DwgSectionIO {
     if (filter.clipBackPlane) {
       filter.backDistance = this._mergedReaders.readBitDouble();
     }
-    filter.inverseInsertTransform = this.read4x3Matrix();
-    filter.insertTransform = this.read4x3Matrix();
+    filter.inverseInsertTransform = this._read4x3Matrix();
+    filter.insertTransform = this._read4x3Matrix();
     return template;
   }
 
-  private readDimensionAssociation(): CadTemplate {
+  private _readDimensionAssociation(): CadTemplate {
     const association = new DimensionAssociation();
     const template = new CadDimensionAssociationTemplate(association);
-    this.readCommonNonEntityData(template);
-    template.DimensionHandle = this.handleReference();
+    this._readCommonNonEntityData(template);
+    template.dimensionHandle = this._handleReference();
     association.associativityFlags = this._mergedReaders.readBitLong() as AssociativityFlags;
     association.isTransSpace = this._mergedReaders.readBit();
     association.rotatedDimensionType = this._mergedReaders.readByte() as RotatedDimensionType;
     if ((association.associativityFlags & AssociativityFlags.FirstPointReference) !== 0) {
-      template.FirstPointRef = this.readOsnapPointRef();
+      template.firstPointRef = this._readOsnapPointRef();
     }
     if ((association.associativityFlags & AssociativityFlags.SecondPointReference) !== 0) {
-      template.SecondPointRef = this.readOsnapPointRef();
+      template.secondPointRef = this._readOsnapPointRef();
     }
     if ((association.associativityFlags & AssociativityFlags.ThirdPointReference) !== 0) {
-      template.ThirdPointRef = this.readOsnapPointRef();
+      template.thirdPointRef = this._readOsnapPointRef();
     }
     if ((association.associativityFlags & AssociativityFlags.FourthPointReference) !== 0) {
-      template.FourthPointRef = this.readOsnapPointRef();
+      template.fourthPointRef = this._readOsnapPointRef();
     }
     return template;
   }
 
-  private readOsnapPointRef(): CadDimensionAssociationTemplate.OsnapPointRefTemplate {
+  private _readOsnapPointRef(): CadDimensionAssociationTemplate.OsnapPointRefTemplate {
     const osnap = new OsnapPointRef();
     const template = new CadDimensionAssociationTemplate.OsnapPointRefTemplate(osnap);
     const className = this._mergedReaders.readVariableText();
     osnap.objectOsnapType = this._mergedReaders.readByte() as ObjectOsnapType;
-    template.ObjectHandle = this.handleReference();
+    template.objectHandle = this._handleReference();
     return template;
   }
 
-  private readBlockFlipAction(): CadTemplate {
+  private _readBlockFlipAction(): CadTemplate {
     const blockFlipAction = new BlockFlipAction();
     const template = new CadBlockFlipActionTemplate(blockFlipAction);
-    this.readBlockAction(template);
+    this._readBlockAction(template);
     blockFlipAction.value92 = this._mergedReaders.readBitLong();
     blockFlipAction.value93 = this._mergedReaders.readBitLong();
     blockFlipAction.value94 = this._mergedReaders.readBitLong();
@@ -3664,10 +3664,10 @@ export class DwgObjectReader extends DwgSectionIO {
     return template;
   }
 
-  private readBlockFlipParameter(): CadTemplate {
+  private _readBlockFlipParameter(): CadTemplate {
     const blockFlipParameter = new BlockFlipParameter();
     const template = new CadBlockFlipParameterTemplate(blockFlipParameter);
-    this.readBlock2PtParameter(template);
+    this._readBlock2PtParameter(template);
     blockFlipParameter.caption = this._mergedReaders.readVariableText();
     blockFlipParameter.description = this._mergedReaders.readVariableText();
     blockFlipParameter.baseStateName = this._mergedReaders.readVariableText();
@@ -3678,10 +3678,10 @@ export class DwgObjectReader extends DwgSectionIO {
     return template;
   }
 
-  private readBlockRotationParameter(): CadTemplate {
+  private _readBlockRotationParameter(): CadTemplate {
     const blockRotationParameter = new BlockRotationParameter();
     const template = new CadBlockRotationParameterTemplate(blockRotationParameter);
-    this.readBlock2PtParameter(template);
+    this._readBlock2PtParameter(template);
     blockRotationParameter.point = this._mergedReaders.read3BitDouble();
     blockRotationParameter.name = this._mergedReaders.readVariableText();
     blockRotationParameter.description = this._mergedReaders.readVariableText();
@@ -3694,53 +3694,53 @@ export class DwgObjectReader extends DwgSectionIO {
     return template;
   }
 
-  private readBlockVisibilityParameter(): CadTemplate {
+  private _readBlockVisibilityParameter(): CadTemplate {
     const blockVisibilityParameter = new BlockVisibilityParameter();
     const template = new CadBlockVisibilityParameterTemplate(blockVisibilityParameter);
-    this.readBlock1PtParameter(template);
+    this._readBlock1PtParameter(template);
     blockVisibilityParameter.value281 = this._mergedReaders.readBit();
     blockVisibilityParameter.name = this._mergedReaders.readVariableText();
     blockVisibilityParameter.description = this._mergedReaders.readVariableText();
     blockVisibilityParameter.value91 = this._mergedReaders.readBit();
     const totalEntitiesCount = this._objectReader.readBitLong();
     for (let i = 0; i < totalEntitiesCount; i++) {
-      template.entityHandles.push(this.handleReference());
+      template.entityHandles.push(this._handleReference());
     }
     const nstates = this._objectReader.readBitLong();
     for (let j = 0; j < nstates; j++) {
-      template.StateTemplates.push(this.readState());
+      template.stateTemplates.push(this._readState());
     }
     return template;
   }
 
-  private readBlockRotateAction(): CadTemplate {
+  private _readBlockRotateAction(): CadTemplate {
     const rotationAction = new BlockRotationAction();
     const template = new CadBlockRotationActionTemplate(rotationAction);
-    this.readBlockActionBasePt(template);
+    this._readBlockActionBasePt(template);
     rotationAction.value94 = this._mergedReaders.readBitLong();
     rotationAction.value303 = this._mergedReaders.readVariableText();
     return template;
   }
 
-  private readBlockRepresentationData(): CadTemplate {
+  private _readBlockRepresentationData(): CadTemplate {
     const representation = new BlockRepresentationData();
     const template = new CadBlockRepresentationDataTemplate(representation);
-    this.readCommonNonEntityData(template);
+    this._readCommonNonEntityData(template);
     representation.value70 = this._mergedReaders.readBitShort();
-    template.BlockHandle = this.handleReference();
+    template.blockHandle = this._handleReference();
     return template;
   }
 
-  private readBlockGripLocationComponent(): CadTemplate {
+  private _readBlockGripLocationComponent(): CadTemplate {
     const gripExpression = new BlockGripExpression();
     const template = new CadBlockGripExpressionTemplate(gripExpression);
-    this.readEvaluationExpression(template);
+    this._readEvaluationExpression(template);
     return template;
   }
 
-  private readBlockGrip(template: CadBlockGripTemplate): void {
-    this.readBlockElement(template);
-    const blockGrip = template.CadObject as BlockGrip;
+  private _readBlockGrip(template: CadBlockGripTemplate): void {
+    this._readBlockElement(template);
+    const blockGrip = template.cadObject as BlockGrip;
     blockGrip.value91 = this._mergedReaders.readBitLong();
     blockGrip.value92 = this._mergedReaders.readBitLong();
     blockGrip.location = this._mergedReaders.read3BitDouble();
@@ -3748,12 +3748,12 @@ export class DwgObjectReader extends DwgSectionIO {
     blockGrip.value93 = this._mergedReaders.readBitLong();
   }
 
-  private readAecCleanupGroup(): CadTemplate {
+  private _readAecCleanupGroup(): CadTemplate {
     const cleanupGroup = new AecCleanupGroup();
     const template = new CadNonGraphicalObjectTemplate(cleanupGroup);
-    this.readCommonNonEntityData(template);
+    this._readCommonNonEntityData(template);
     try {
-      if (this.R2000Plus) {
+      if (this.r2000Plus) {
         cleanupGroup.version = this._mergedReaders.readBitLong();
       }
       cleanupGroup.description = this._mergedReaders.readVariableText();
@@ -3768,7 +3768,7 @@ export class DwgObjectReader extends DwgSectionIO {
       }
     } catch (ex: unknown) {
       const message = ex instanceof Error ? ex.message : String(ex);
-      this._builder.Notify(
+      this._builder.notify(
         `Error reading AEC_CLEANUP_GROUP [Handle: ${cleanupGroup.handle.toString(16)}]: ${message}`,
         NotificationType.Error,
         ex instanceof Error ? ex : null);
@@ -3776,16 +3776,16 @@ export class DwgObjectReader extends DwgSectionIO {
     return template;
   }
 
-  private readAecWall(): CadTemplate {
+  private _readAecWall(): CadTemplate {
     const wall = new Wall();
     const template = new CadWallTemplate(wall);
-    this.readCommonEntityData(template as unknown as CadEntityTemplate);
-    if (this.R2000Plus) {
+    this._readCommonEntityData(template as unknown as CadEntityTemplate);
+    if (this.r2000Plus) {
       wall.version = this._mergedReaders.readBitLong();
     }
-    template.BinRecordHandle = this.handleReference();
-    template.StyleHandle = this.handleReference();
-    template.CleanupGroupHandle = this.handleReference();
+    template.binRecordHandle = this._handleReference();
+    template.styleHandle = this._handleReference();
+    template.cleanupGroupHandle = this._handleReference();
     const objectPos = this._objectReader.positionInBits();
     const handlesPos = this._handlesReader.positionInBits();
     const objectDataSize = handlesPos - objectPos;
@@ -3793,16 +3793,16 @@ export class DwgObjectReader extends DwgSectionIO {
       let dataBytes = Math.floor(objectDataSize / 8);
       if (objectDataSize % 8 !== 0) dataBytes++;
       const rawData = this._objectReader.readBytes(dataBytes);
-      template.RawData = rawData;
+      template.rawData = rawData;
     }
     return template as unknown as CadTemplate;
   }
 
-  private readAecWallStyle(): CadTemplate {
+  private _readAecWallStyle(): CadTemplate {
     const wallStyle = new AecWallStyle();
     const template = new CadNonGraphicalObjectTemplate(wallStyle);
-    this.readCommonNonEntityData(template);
-    if (this.R2000Plus) {
+    this._readCommonNonEntityData(template);
+    if (this.r2000Plus) {
       wallStyle.version = this._mergedReaders.readBitLong();
     }
     wallStyle.description = this._mergedReaders.readVariableText();
@@ -3818,15 +3818,15 @@ export class DwgObjectReader extends DwgSectionIO {
     return template;
   }
 
-  private readBinRecord(): CadTemplate {
+  private _readBinRecord(): CadTemplate {
     const binRecord = new AecBinRecord();
     const template = new CadNonGraphicalObjectTemplate(binRecord);
-    this.readCommonNonEntityData(template);
-    if (this.R2000Plus) {
+    this._readCommonNonEntityData(template);
+    if (this.r2000Plus) {
       binRecord.version = this._mergedReaders.readBitLong();
     }
     const currentPos = this._mergedReaders.positionInBits();
-    this._builder.Notify(
+    this._builder.notify(
       `BinRecord: Handle reader at position ${currentPos}, BinRecord Handle: ${binRecord.handle.toString(16)}`,
       NotificationType.None);
     const endPos = this._objectInitialPos + (this._size * 8);
@@ -3835,7 +3835,7 @@ export class DwgObjectReader extends DwgSectionIO {
       const remainingBytes = Math.floor(remainingBits / 8);
       if (remainingBytes > 0) {
         binRecord.binaryData = this._mergedReaders.readBytes(remainingBytes);
-        this._builder.Notify(
+        this._builder.notify(
           `BinRecord: Read ${remainingBytes} bytes of binary data. Version: ${binRecord.version}, Handle: ${binRecord.handle.toString(16)}`,
           NotificationType.None);
       }
@@ -3843,21 +3843,21 @@ export class DwgObjectReader extends DwgSectionIO {
     return template;
   }
 
-  private readTableEntity(): CadTemplate {
+  private _readTableEntity(): CadTemplate {
     const table = new TableEntity();
     const template = new CadTableEntityTemplate(table);
-    this.readInsertCommonData(template);
-    this.readInsertCommonHandles(template);
-    if (this.R2010Plus) {
+    this._readInsertCommonData(template);
+    this._readInsertCommonHandles(template);
+    if (this.r2010Plus) {
       this._mergedReaders.readByte();
-      template.NullHandle = this.handleReference();
+      template.nullHandle = this._handleReference();
       const longZero = this._mergedReaders.readBitLong();
-      if (this.R2013Plus) {
+      if (this.r2013Plus) {
         this._mergedReaders.readBitLong();
       } else {
         this._mergedReaders.readBit();
       }
-      this.readTableContent(table.content as unknown as TableContent, template as CadTableEntityTemplate);
+      this._readTableContent(table.content as unknown as TableContent, template as CadTableEntityTemplate);
       void longZero;
       return template;
     }
@@ -3876,14 +3876,14 @@ export class DwgObjectReader extends DwgSectionIO {
       r.height = this._mergedReaders.readBitDouble();
       table.rows.push(r);
     }
-    template.styleHandle = this.handleReference();
+    template.styleHandle = this._handleReference();
     for (let n = 0; n < table.rows.length; n++) {
       for (let m = 0; m < table.columns.length; m++) {
         const cell = new TableEntityCell();
         table.rows[n].cells.push(cell);
         const cellTemplate = new CadTableCellTemplate(cell);
         template.cadTableCellTemplates.push(cellTemplate);
-        this.readTableCellData(cellTemplate);
+        this._readTableCellData(cellTemplate);
       }
     }
     if (this._mergedReaders.readBit()) {
@@ -3903,13 +3903,13 @@ export class DwgObjectReader extends DwgSectionIO {
         this._mergedReaders.readBitDouble();
       }
       if ((flags & TableOverrideFlags.TitleRowColor) !== 0) {
-        this._mergedReaders.readCmColor(this.R2004Pre);
+        this._mergedReaders.readCmColor(this.r2004Pre);
       }
       if ((flags & TableOverrideFlags.HeaderRowColor) !== 0) {
-        this._mergedReaders.readCmColor(this.R2004Pre);
+        this._mergedReaders.readCmColor(this.r2004Pre);
       }
       if ((flags & TableOverrideFlags.DataRowColor) !== 0) {
-        this._mergedReaders.readCmColor(this.R2004Pre);
+        this._mergedReaders.readCmColor(this.r2004Pre);
       }
       if ((flags & TableOverrideFlags.TitleRowFillNone) !== 0) {
         this._mergedReaders.readBit();
@@ -3921,13 +3921,13 @@ export class DwgObjectReader extends DwgSectionIO {
         this._mergedReaders.readBit();
       }
       if ((flags & TableOverrideFlags.TitleRowFillColor) !== 0) {
-        this._mergedReaders.readCmColor(this.R2004Pre);
+        this._mergedReaders.readCmColor(this.r2004Pre);
       }
       if ((flags & TableOverrideFlags.HeaderRowFillColor) !== 0) {
-        this._mergedReaders.readCmColor(this.R2004Pre);
+        this._mergedReaders.readCmColor(this.r2004Pre);
       }
       if ((flags & TableOverrideFlags.DataRowFillColor) !== 0) {
-        this._mergedReaders.readCmColor(this.R2004Pre);
+        this._mergedReaders.readCmColor(this.r2004Pre);
       }
       if ((flags & TableOverrideFlags.TitleRowAlign) !== 0) {
         this._mergedReaders.readBitShort();
@@ -3939,13 +3939,13 @@ export class DwgObjectReader extends DwgSectionIO {
         this._mergedReaders.readBitShort();
       }
       if ((flags & TableOverrideFlags.TitleTextStyle) !== 0) {
-        this.handleReference();
+        this._handleReference();
       }
       if ((flags & TableOverrideFlags.HeaderTextStyle) !== 0) {
-        this.handleReference();
+        this._handleReference();
       }
       if ((flags & TableOverrideFlags.DataTextStyle) !== 0) {
-        this.handleReference();
+        this._handleReference();
       }
       if ((flags & TableOverrideFlags.TitleRowHeight) !== 0) {
         this._mergedReaders.readBitDouble();
@@ -3981,7 +3981,7 @@ export class DwgObjectReader extends DwgSectionIO {
       ];
       for (const [_, flag] of borderColorsToRead) {
         if ((flags & flag) !== 0) {
-          this._mergedReaders.readCmColor(this.R2004Pre);
+          this._mergedReaders.readCmColor(this.r2004Pre);
         }
       }
     }
@@ -4044,10 +4044,10 @@ export class DwgObjectReader extends DwgSectionIO {
     return template;
   }
 
-  private readBlkRefObjectContextData(): CadTemplate {
+  private _readBlkRefObjectContextData(): CadTemplate {
     const contextData = new BlockReferenceObjectContextData();
     const template = new CadAnnotScaleObjectContextDataTemplate(contextData);
-    this.readAnnotScaleObjectContextData(template);
+    this._readAnnotScaleObjectContextData(template);
     contextData.rotation = this._mergedReaders.readBitDouble();
     contextData.insertionPoint = this._mergedReaders.read3BitDouble();
     contextData.xScale = this._mergedReaders.readBitDouble();
@@ -4056,42 +4056,42 @@ export class DwgObjectReader extends DwgSectionIO {
     return template;
   }
 
-  private readMTextAttributeObjectContextData(): CadTemplate | null {
+  private _readMTextAttributeObjectContextData(): CadTemplate | null {
     const contextData = new MTextAttributeObjectContextData();
     const template = new CadAnnotScaleObjectContextDataTemplate(contextData);
-    this.readAnnotScaleObjectContextData(template);
-    this._builder.Notify(
+    this._readAnnotScaleObjectContextData(template);
+    this._builder.notify(
       `DWG MTextAttributeObjectContextData is only partially mapped; preserving annot-scale context metadata for handle ${contextData.handle}.`,
       NotificationType.Warning,
     );
     return template;
   }
 
-  private readFieldList(): CadTemplate {
+  private _readFieldList(): CadTemplate {
     const fieldList = new FieldList();
     const template = new CadFieldListTemplate(fieldList);
-    this.readCommonNonEntityData(template);
+    this._readCommonNonEntityData(template);
     const nhandles = this._mergedReaders.readBitLong();
     this._mergedReaders.readBit();
     for (let i = 0; i < nhandles; i++) {
-      template.OwnedObjectsHandlers.add(this.handleReference());
+      template.ownedObjectsHandlers.add(this._handleReference());
     }
     return template;
   }
 
-  private readField(): CadTemplate {
+  private _readField(): CadTemplate {
     const field = new Field();
     const template = new CadFieldTemplate(field);
-    this.readCommonNonEntityData(template);
+    this._readCommonNonEntityData(template);
     field.evaluatorId = this._mergedReaders.readVariableText();
     field.fieldCode = this._mergedReaders.readVariableText();
     const nchild = this._mergedReaders.readBitLong();
     for (let i = 0; i < nchild; i++) {
-      template.ChildrenHandles.push(this.handleReference());
+      template.childrenHandles.push(this._handleReference());
     }
     const nfields = this._mergedReaders.readBitLong();
     for (let j = 0; j < nfields; j++) {
-      template.CadObjectsHandles.push(this.handleReference());
+      template.cadObjectsHandles.push(this._handleReference());
     }
     if (this._version < ACadVersion.AC1021) {
       field.formatString = this._mergedReaders.readVariableText();
@@ -4102,20 +4102,20 @@ export class DwgObjectReader extends DwgSectionIO {
     field.evaluationStatusFlags = this._mergedReaders.readBitLong() as EvaluationStatusFlags;
     field.evaluationErrorCode = this._mergedReaders.readBitLong();
     field.evaluationErrorMessage = this._mergedReaders.readVariableText();
-    template.CadValueTemplates.push(this.readCadValue(field.value));
+    template.cadValueTemplates.push(this._readCadValue(field.value));
     field.formatString = this._mergedReaders.readVariableText();
     this._mergedReaders.readBitLong();
     const num3 = this._mergedReaders.readBitLong();
     for (let k = 0; k < num3; k++) {
       const key = this._mergedReaders.readVariableText();
       const value = new CadValue();
-      template.CadValueTemplates.push(this.readCadValue(value));
+      template.cadValueTemplates.push(this._readCadValue(value));
       field.values.set(key, value);
     }
     return template;
   }
 
-  private readMatrix4(): number[] {
+  private _readMatrix4(): number[] {
     const matrix: number[] = [];
     for (let i = 0; i < 16; i++) {
       matrix.push(this._mergedReaders.readBitDouble());
@@ -4123,7 +4123,7 @@ export class DwgObjectReader extends DwgSectionIO {
     return matrix;
   }
 
-  private read4x3Matrix(): Matrix4 {
+  private _read4x3Matrix(): Matrix4 {
     const identity = Matrix4.identity();
     for (let i = 0; i < 3; i++) {
       for (let j = 0; j < 4; j++) {
@@ -4133,26 +4133,26 @@ export class DwgObjectReader extends DwgSectionIO {
     return identity;
   }
 
-  private readBorderStyle(border: CellBorder): void {
+  private _readBorderStyle(border: CellBorder): void {
     border.lineWeight = this._mergedReaders.readBitShort() as LineWeightType;
     border.isInvisible = !this._mergedReaders.readBit();
-    border.color = this._mergedReaders.readCmColor(this.R2004Pre);
+    border.color = this._mergedReaders.readCmColor(this.r2004Pre);
   }
 
-  private readAnnotScaleObjectContextData(template: CadAnnotScaleObjectContextDataTemplate): void {
-    this.readObjectContextData(template);
-    template.scaleHandle = this.handleReference();
+  private _readAnnotScaleObjectContextData(template: CadAnnotScaleObjectContextDataTemplate): void {
+    this._readObjectContextData(template);
+    template.scaleHandle = this._handleReference();
   }
 
-  private readObjectContextData(template: CadTemplate): void {
-    this.readCommonNonEntityData(template);
-    const contextData = template.CadObject as ObjectContextData;
+  private _readObjectContextData(template: CadTemplate): void {
+    this._readCommonNonEntityData(template);
+    const contextData = template.cadObject as ObjectContextData;
     contextData.version = this._objectReader.readBitShort();
     contextData.hasFileToExtensionDictionary = this._objectReader.readBit();
     contextData.default = this._objectReader.readBit();
   }
 
-  private readLeaderLine(template: CadMLeaderAnnotContextTemplate): LeaderLine {
+  private _readLeaderLine(template: CadMLeaderAnnotContextTemplate): LeaderLine {
     const leaderLine = new LeaderLine();
     const leaderLineSubTemplate = new CadMLeaderAnnotContextTemplate.LeaderLineTemplate(leaderLine);
     template.leaderLineTemplates.push(leaderLineSubTemplate);
@@ -4171,19 +4171,19 @@ export class DwgObjectReader extends DwgSectionIO {
       }
     }
     leaderLine.index = this._objectReader.readBitLong();
-    if (this.R2010Plus) {
+    if (this.r2010Plus) {
       leaderLine.pathType = this._objectReader.readBitShort() as MultiLeaderPathType;
       leaderLine.lineColor = this._objectReader.readCmColor();
-      leaderLineSubTemplate.LineTypeHandle = this.handleReference();
+      leaderLineSubTemplate.lineTypeHandle = this._handleReference();
       leaderLine.lineWeight = this._objectReader.readBitLong() as LineWeightType;
       leaderLine.arrowheadSize = this._objectReader.readBitDouble();
-      leaderLineSubTemplate.ArrowSymbolHandle = this.handleReference();
+      leaderLineSubTemplate.arrowSymbolHandle = this._handleReference();
       leaderLine.overrideFlags = this._objectReader.readBitLong() as LeaderLinePropertOverrideFlags;
     }
     return leaderLine;
   }
 
-  private readLeaderRoot(template: CadMLeaderAnnotContextTemplate): LeaderRoot {
+  private _readLeaderRoot(template: CadMLeaderAnnotContextTemplate): LeaderRoot {
     const leaderRoot = new LeaderRoot();
     leaderRoot.contentValid = this._objectReader.readBit();
     leaderRoot.unknown = this._objectReader.readBit();
@@ -4199,38 +4199,38 @@ export class DwgObjectReader extends DwgSectionIO {
     leaderRoot.landingDistance = this._objectReader.readBitDouble();
     const leaderLineCount = this._objectReader.readBitLong();
     for (let ll = 0; ll < leaderLineCount; ll++) {
-      leaderRoot.lines.push(this.readLeaderLine(template));
+      leaderRoot.lines.push(this._readLeaderLine(template));
     }
-    if (this.R2010Plus) {
+    if (this.r2010Plus) {
       leaderRoot.textAttachmentDirection = this._objectReader.readBitShort() as TextAttachmentDirectionType;
     }
     return leaderRoot;
   }
 
-  private readBlockElement(template: CadBlockElementTemplate): void {
-    this.readEvaluationExpression(template);
+  private _readBlockElement(template: CadBlockElementTemplate): void {
+    this._readEvaluationExpression(template);
     template.blockElement.elementName = this._mergedReaders.readVariableText();
     template.blockElement.value98 = this._mergedReaders.readBitLong();
     template.blockElement.value99 = this._mergedReaders.readBitLong();
     template.blockElement.value1071 = this._mergedReaders.readBitLong();
   }
 
-  private readBlockParameter(template: CadBlockParameterTemplate): void {
-    this.readBlockElement(template);
+  private _readBlockParameter(template: CadBlockParameterTemplate): void {
+    this._readBlockElement(template);
     template.blockParameter.value280 = this._mergedReaders.readBit();
     template.blockParameter.value281 = this._mergedReaders.readBit();
   }
 
-  private readBlock1PtParameter(template: CadBlock1PtParameterTemplate): void {
-    this.readBlockParameter(template);
+  private _readBlock1PtParameter(template: CadBlock1PtParameterTemplate): void {
+    this._readBlockParameter(template);
     template.block1PtParameter.location = this._mergedReaders.read3BitDouble();
     template.block1PtParameter.value170 = this._mergedReaders.readBitShort();
     template.block1PtParameter.value171 = this._mergedReaders.readBitShort();
     template.block1PtParameter.value93 = this._mergedReaders.readBitLong();
   }
 
-  private readBlock2PtParameter(template: CadBlock2PtParameterTemplate): void {
-    this.readBlockParameter(template);
+  private _readBlock2PtParameter(template: CadBlock2PtParameterTemplate): void {
+    this._readBlockParameter(template);
     template.block2PtParameter.firstPoint = this._mergedReaders.read3BitDouble();
     template.block2PtParameter.secondPoint = this._mergedReaders.read3BitDouble();
     for (let i = 0; i < 4; i++) {
@@ -4246,21 +4246,21 @@ export class DwgObjectReader extends DwgSectionIO {
     const value177 = this._mergedReaders.readBitShort();
   }
 
-  private readBlockAction(template: CadBlockActionTemplate): void {
-    this.readBlockElement(template);
+  private _readBlockAction(template: CadBlockActionTemplate): void {
+    this._readBlockElement(template);
     const blockAction = template.blockAction;
     blockAction.actionPoint = this._mergedReaders.read3BitDouble();
     const entityCount = this._objectReader.readBitShort();
     for (let i = 0; i < entityCount; i++) {
-      const entityHandle = this.handleReference();
+      const entityHandle = this._handleReference();
       template.entityHandles.add(entityHandle);
     }
     blockAction.value70 = this._mergedReaders.readBitShort();
   }
 
-  private readBlockActionBasePt(template: CadBlockActionBasePtTemplate): void {
-    this.readBlockAction(template);
-    const blockActionBasePt = template.CadObject as BlockActionBasePt;
+  private _readBlockActionBasePt(template: CadBlockActionBasePtTemplate): void {
+    this._readBlockAction(template);
+    const blockActionBasePt = template.cadObject as BlockActionBasePt;
     blockActionBasePt.value1011 = this._mergedReaders.read3BitDouble();
     blockActionBasePt.value92 = this._mergedReaders.readBitLong();
     blockActionBasePt.value301 = this._mergedReaders.readVariableText();
@@ -4270,20 +4270,20 @@ export class DwgObjectReader extends DwgSectionIO {
     blockActionBasePt.value1012 = this._mergedReaders.read3BitDouble();
   }
 
-  private readEvaluationExpression(template: CadEvaluationExpressionTemplate): void {
-    this.readCommonNonEntityData(template);
+  private _readEvaluationExpression(template: CadEvaluationExpressionTemplate): void {
+    this._readCommonNonEntityData(template);
     const unknown = this._objectReader.readBitLong();
-    template.CadObject.value98 = this._objectReader.readBitLong();
-    template.CadObject.value99 = this._objectReader.readBitLong();
+    template.cadObject.value98 = this._objectReader.readBitLong();
+    template.cadObject.value99 = this._objectReader.readBitLong();
     const code = this._mergedReaders.readBitShort();
     if (code > 0) {
       const groupValue = GroupCodeValue.transformValue(code);
-      this.readEvaluationExpressionValue(groupValue, code);
+      this._readEvaluationExpressionValue(groupValue, code);
     }
-    template.CadObject.id = this._objectReader.readBitLong();
+    template.cadObject.id = this._objectReader.readBitLong();
   }
 
-  private readEvaluationExpressionValue(groupValue: GroupCodeValueType, code: number): void {
+  private _readEvaluationExpressionValue(groupValue: GroupCodeValueType, code: number): void {
     switch (groupValue) {
       case GroupCodeValueType.String:
       case GroupCodeValueType.ExtendedDataString:
@@ -4314,7 +4314,7 @@ export class DwgObjectReader extends DwgSectionIO {
       case GroupCodeValueType.Handle:
       case GroupCodeValueType.ObjectId:
       case GroupCodeValueType.ExtendedDataHandle:
-        this.handleReference();
+        this._handleReference();
         break;
       case GroupCodeValueType.Bool:
         this._mergedReaders.readBit();
@@ -4325,7 +4325,7 @@ export class DwgObjectReader extends DwgSectionIO {
         break;
       case GroupCodeValueType.None:
       default:
-        this._builder.Notify(
+        this._builder.notify(
           `[EvaluationExpression] Unsupported group code ${code} (${groupValue}); leaving the value payload unread.`,
           NotificationType.Warning,
         );
@@ -4333,30 +4333,30 @@ export class DwgObjectReader extends DwgSectionIO {
     }
   }
 
-  private readRowCellStyle(tableStyleTemplate: CadTableStyleTemplate, style: CellStyle): void {
+  private _readRowCellStyle(tableStyleTemplate: CadTableStyleTemplate, style: CellStyle): void {
     const cellStyleTemplate = new CadCellStyleTemplate(style);
-    tableStyleTemplate.CellStyleTemplates.push(cellStyleTemplate);
-    cellStyleTemplate.textStyleHandle = this.handleReference();
+    tableStyleTemplate.cellStyleTemplates.push(cellStyleTemplate);
+    cellStyleTemplate.textStyleHandle = this._handleReference();
     style.textHeight = this._mergedReaders.readBitDouble();
     style.cellAlignment = this._mergedReaders.readBitShort() as CellAlignmentType;
-    style.textColor = this._mergedReaders.readCmColor(this.R2004Pre);
-    style.backgroundColor = this._mergedReaders.readCmColor(this.R2004Pre);
+    style.textColor = this._mergedReaders.readCmColor(this.r2004Pre);
+    style.backgroundColor = this._mergedReaders.readCmColor(this.r2004Pre);
     style.isFillColorOn = this._mergedReaders.readBit();
-    this.readBorderStyle(style.topBorder);
-    this.readBorderStyle(style.horizontalInsideBorder);
-    this.readBorderStyle(style.bottomBorder);
-    this.readBorderStyle(style.leftBorder);
-    this.readBorderStyle(style.verticalInsideBorder);
-    this.readBorderStyle(style.rightBorder);
-    if (this.R2007Plus) {
+    this._readBorderStyle(style.topBorder);
+    this._readBorderStyle(style.horizontalInsideBorder);
+    this._readBorderStyle(style.bottomBorder);
+    this._readBorderStyle(style.leftBorder);
+    this._readBorderStyle(style.verticalInsideBorder);
+    this._readBorderStyle(style.rightBorder);
+    if (this.r2007Plus) {
       style.valueDataType = this._mergedReaders.readBitLong();
       style.valueUnitType = this._mergedReaders.readBitLong();
       style.valueFormatString = this._mergedReaders.readVariableText();
     }
   }
 
-  private readCellStyle(template: CadCellStyleTemplate): void {
-    const cellStyle = template.Format as CellStyle;
+  private _readCellStyle(template: CadCellStyleTemplate): void {
+    const cellStyle = template.format as CellStyle;
 
     cellStyle.cellStyleType = this._mergedReaders.readBitLong() as CellStyleType;
     cellStyle.hasData = this._mergedReaders.readBitShortAsBool();
@@ -4366,10 +4366,10 @@ export class DwgObjectReader extends DwgSectionIO {
 
     cellStyle.propertyOverrideFlags = this._mergedReaders.readBitLong() as TableCellStylePropertyFlags;
     cellStyle.tableCellStylePropertyFlags = this._mergedReaders.readBitLong() as TableCellStylePropertyFlags;
-    cellStyle.backgroundColor = this._mergedReaders.readCmColor(this.R2004Pre);
+    cellStyle.backgroundColor = this._mergedReaders.readCmColor(this.r2004Pre);
     cellStyle.contentLayoutFlags = this._mergedReaders.readBitLong() as TableCellContentLayoutFlags;
 
-    this.readCellContentFormat(template, cellStyle);
+    this._readCellContentFormat(template, cellStyle);
 
     cellStyle.marginOverrideFlags = this._mergedReaders.readBitShort() as MarginFlags;
     if ((cellStyle.marginOverrideFlags & MarginFlags.Override) !== 0) {
@@ -4386,22 +4386,22 @@ export class DwgObjectReader extends DwgSectionIO {
       const edgeFlags = this._mergedReaders.readBitLong() as CellEdgeFlags;
       switch (edgeFlags) {
         case CellEdgeFlags.Top:
-          this.readBorder(template, cellStyle.topBorder);
+          this._readBorder(template, cellStyle.topBorder);
           break;
         case CellEdgeFlags.Right:
-          this.readBorder(template, cellStyle.rightBorder);
+          this._readBorder(template, cellStyle.rightBorder);
           break;
         case CellEdgeFlags.Bottom:
-          this.readBorder(template, cellStyle.bottomBorder);
+          this._readBorder(template, cellStyle.bottomBorder);
           break;
         case CellEdgeFlags.Left:
-          this.readBorder(template, cellStyle.leftBorder);
+          this._readBorder(template, cellStyle.leftBorder);
           break;
         case CellEdgeFlags.InsideVertical:
-          this.readBorder(template, cellStyle.verticalInsideBorder);
+          this._readBorder(template, cellStyle.verticalInsideBorder);
           break;
         case CellEdgeFlags.InsideHorizontal:
-          this.readBorder(template, cellStyle.horizontalInsideBorder);
+          this._readBorder(template, cellStyle.horizontalInsideBorder);
           break;
         case CellEdgeFlags.Unknown:
         default:
@@ -4410,17 +4410,17 @@ export class DwgObjectReader extends DwgSectionIO {
     }
   }
 
-  private readBorder(template: CadCellStyleTemplate, border: CellBorder): void {
+  private _readBorder(template: CadCellStyleTemplate, border: CellBorder): void {
     border.propertyOverrideFlags = this._mergedReaders.readBitLong() as TableBorderPropertyFlags;
     border.type = this._mergedReaders.readBitLong() as TableEntityBorderType;
-    border.color = this._mergedReaders.readCmColor(this.R2004Pre);
+    border.color = this._mergedReaders.readCmColor(this.r2004Pre);
     border.lineWeight = this._mergedReaders.readBitLong() as LineWeightType;
-    template.BorderLinetypePairs.push([border, this.handleReference()]);
+    template.borderLinetypePairs.push([border, this._handleReference()]);
     border.isInvisible = this._mergedReaders.readBitLong() === 1;
     border.doubleLineSpacing = this._mergedReaders.readBitDouble();
   }
 
-  private readCellContentFormat(template: CadTableCellContentFormatTemplate, format: ContentFormat): void {
+  private _readCellContentFormat(template: CadTableCellContentFormatTemplate, format: ContentFormat): void {
     format.propertyOverrideFlags = this._mergedReaders.readBitLong() as TableCellStylePropertyFlags;
     format.propertyFlags = this._mergedReaders.readBitLong();
     format.valueDataType = this._mergedReaders.readBitLong();
@@ -4429,24 +4429,24 @@ export class DwgObjectReader extends DwgSectionIO {
     format.rotation = this._mergedReaders.readBitDouble();
     format.scale = this._mergedReaders.readBitDouble();
     format.alignment = this._mergedReaders.readBitLong();
-    format.color = this._mergedReaders.readCmColor(this.R2004Pre);
-    template.TextStyleHandle = this.handleReference();
+    format.color = this._mergedReaders.readCmColor(this.r2004Pre);
+    template.textStyleHandle = this._handleReference();
     if (template instanceof CadCellStyleTemplate) {
-      template.textStyleHandle = template.TextStyleHandle;
+      template.textStyleHandle = template.textStyleHandle;
     }
     format.textHeight = this._mergedReaders.readBitDouble();
   }
 
-  private readTableContent(content: TableContent, template: CadTableEntityTemplate): void {
-    this._builder.Notify(
-      `DWG R2010+ table content is not mapped yet for table ${template.CadObject.handle}; leaving table cells empty.`,
+  private _readTableContent(content: TableContent, template: CadTableEntityTemplate): void {
+    this._builder.notify(
+      `DWG R2010+ table content is not mapped yet for table ${template.cadObject.handle}; leaving table cells empty.`,
       NotificationType.Warning,
     );
     void content;
   }
 
-  private readTableCellData(template: CadTableCellTemplate): void {
-    const cell = template.Cell;
+  private _readTableCellData(template: CadTableCellTemplate): void {
+    const cell = template.cell;
 
     cell.type = this._mergedReaders.readBitShort() as CellType;
     cell.edgeFlags = this._mergedReaders.readByte();
@@ -4456,11 +4456,11 @@ export class DwgObjectReader extends DwgSectionIO {
     cell.borderHeight = this._mergedReaders.readBitLong();
     cell.rotation = this._mergedReaders.readBitDouble();
 
-    template.ValueHandle = this.handleReference();
+    template.valueHandle = this._handleReference();
 
     switch (cell.type) {
       case CellType.Text:
-        if (template.ValueHandle === 0 && this._version < ACadVersion.AC1021) {
+        if (template.valueHandle === 0 && this._version < ACadVersion.AC1021) {
           const content = new CellContent();
           content.cadValue.setValue(this._mergedReaders.readVariableText(), CadValueType.String);
           cell.contents.push(content);
@@ -4471,10 +4471,10 @@ export class DwgObjectReader extends DwgSectionIO {
         if (this._mergedReaders.readBit()) {
           const natts = this._mergedReaders.readBitShort();
           for (let i = 0; i < natts; i++) {
-            const attHandle = this.handleReference();
+            const attHandle = this._handleReference();
             this._mergedReaders.readBitShort();
             const text = this._mergedReaders.readVariableText();
-            template.AttributeHandles.add([attHandle, text]);
+            template.attributeHandles.add([attHandle, text]);
           }
         }
         break;
@@ -4491,20 +4491,20 @@ export class DwgObjectReader extends DwgSectionIO {
         cell.styleOverride.isFillColorOn = this._mergedReaders.readBit();
       }
       if ((flags & CellOverrideFlags.BackgroundColor) !== 0) {
-        cell.styleOverride.backgroundColor = this._mergedReaders.readCmColor(this.R2004Pre);
+        cell.styleOverride.backgroundColor = this._mergedReaders.readCmColor(this.r2004Pre);
       }
       if ((flags & CellOverrideFlags.ContentColor) !== 0) {
-        cell.styleOverride.contentColor = this._mergedReaders.readCmColor(this.R2004Pre);
+        cell.styleOverride.contentColor = this._mergedReaders.readCmColor(this.r2004Pre);
       }
       if ((flags & CellOverrideFlags.TextStyle) !== 0) {
-        template.TextStyleOverrideHandle = this.handleReference();
+        template.textStyleOverrideHandle = this._handleReference();
       }
       if ((flags & CellOverrideFlags.TextHeight) !== 0) {
         cell.styleOverride.textHeight = this._mergedReaders.readBitDouble();
       }
 
       if ((flags & CellOverrideFlags.TopGridColor) !== 0) {
-        cell.styleOverride.topBorder.color = this._mergedReaders.readCmColor(this.R2004Pre);
+        cell.styleOverride.topBorder.color = this._mergedReaders.readCmColor(this.r2004Pre);
       }
       if ((flags & CellOverrideFlags.TopGridLineWeight) !== 0) {
         cell.styleOverride.topBorder.lineWeight = this._mergedReaders.readBitShort() as LineWeightType;
@@ -4514,7 +4514,7 @@ export class DwgObjectReader extends DwgSectionIO {
       }
 
       if ((flags & CellOverrideFlags.RightGridColor) !== 0) {
-        cell.styleOverride.rightBorder.color = this._mergedReaders.readCmColor(this.R2004Pre);
+        cell.styleOverride.rightBorder.color = this._mergedReaders.readCmColor(this.r2004Pre);
       }
       if ((flags & CellOverrideFlags.RightGridLineWeight) !== 0) {
         cell.styleOverride.rightBorder.lineWeight = this._mergedReaders.readBitShort() as LineWeightType;
@@ -4524,7 +4524,7 @@ export class DwgObjectReader extends DwgSectionIO {
       }
 
       if ((flags & CellOverrideFlags.BottomGridColor) !== 0) {
-        cell.styleOverride.bottomBorder.color = this._mergedReaders.readCmColor(this.R2004Pre);
+        cell.styleOverride.bottomBorder.color = this._mergedReaders.readCmColor(this.r2004Pre);
       }
       if ((flags & CellOverrideFlags.BottomGridLineWeight) !== 0) {
         cell.styleOverride.bottomBorder.lineWeight = this._mergedReaders.readBitShort() as LineWeightType;
@@ -4534,7 +4534,7 @@ export class DwgObjectReader extends DwgSectionIO {
       }
 
       if ((flags & CellOverrideFlags.LeftGridColor) !== 0) {
-        cell.styleOverride.leftBorder.color = this._mergedReaders.readCmColor(this.R2004Pre);
+        cell.styleOverride.leftBorder.color = this._mergedReaders.readCmColor(this.r2004Pre);
       }
       if ((flags & CellOverrideFlags.LeftGridLineWeight) !== 0) {
         cell.styleOverride.leftBorder.lineWeight = this._mergedReaders.readBitShort() as LineWeightType;
@@ -4544,20 +4544,20 @@ export class DwgObjectReader extends DwgSectionIO {
       }
     }
 
-    if (this.R2007Plus) {
+    if (this.r2007Plus) {
       this._mergedReaders.readBitLong();
       cell.contents.push(new CellContent());
-      this.readCadValue(cell.content!.cadValue);
+      this._readCadValue(cell.content!.cadValue);
     }
   }
 
-  private readCadValue(value: CadValue): CadValueTemplate {
+  private _readCadValue(value: CadValue): CadValueTemplate {
     const template = new CadValueTemplate(value);
-    if (this.R2007Plus) {
+    if (this.r2007Plus) {
       value.flags = this._mergedReaders.readBitLong();
     }
     value.valueType = this._mergedReaders.readBitLong() as CadValueType;
-    if (!this.R2007Plus || !value.isEmpty) {
+    if (!this.r2007Plus || !value.isEmpty) {
       switch (value.valueType) {
         case CadValueType.Unknown:
         case CadValueType.Long:
@@ -4568,37 +4568,37 @@ export class DwgObjectReader extends DwgSectionIO {
           break;
         case CadValueType.General:
         case CadValueType.String:
-          value.setValue(this.readStringCadValue());
+          value.setValue(this._readStringCadValue());
           break;
         case CadValueType.Date: {
-          const dateTime = this.readDateCadValue();
+          const dateTime = this._readDateCadValue();
           if (dateTime !== null) {
             value.setValue(dateTime);
           }
           break;
         }
         case CadValueType.Point2D:
-          value.setValue(this.readValueXY());
+          value.setValue(this._readValueXY());
           break;
         case CadValueType.Point3D:
-          value.setValue(this.readValueXYZ());
+          value.setValue(this._readValueXYZ());
           break;
         case CadValueType.Handle:
-          template.ValueHandle = this.handleReference();
+          template.valueHandle = this._handleReference();
           break;
         case CadValueType.Buffer:
         case CadValueType.ResultBuffer:
           value.value = this._mergedReaders.readBitLong();
           break;
         default:
-          this._builder.Notify(
+          this._builder.notify(
             `DWG CadValue uses an unsupported value type ${value.valueType}; leaving the raw value empty.`,
             NotificationType.Warning,
           );
           break;
       }
     }
-    if (this.R2007Plus) {
+    if (this.r2007Plus) {
       value.units = this._mergedReaders.readBitLong() as CadValueUnitType;
       value.format = this._mergedReaders.readVariableText();
       value.formattedValue = this._mergedReaders.readVariableText();
@@ -4606,11 +4606,11 @@ export class DwgObjectReader extends DwgSectionIO {
     return template;
   }
 
-  private readStringCadValue(): string {
+  private _readStringCadValue(): string {
     return this._mergedReaders.readVariableText();
   }
 
-  private readDateCadValue(): Date | null {
+  private _readDateCadValue(): Date | null {
     const julianDay = this._mergedReaders.readBitLong();
     const msecs = this._mergedReaders.readBitLong();
     // Julian day 2440588 = Jan 1, 1970
@@ -4618,14 +4618,14 @@ export class DwgObjectReader extends DwgSectionIO {
     return new Date(unixDays * 86400000 + msecs);
   }
 
-  private readValueXY(): XY {
+  private _readValueXY(): XY {
     return new XY(
       this._mergedReaders.readBitDouble(),
       this._mergedReaders.readBitDouble()
     );
   }
 
-  private readValueXYZ(): XYZ {
+  private _readValueXYZ(): XYZ {
     return new XYZ(
       this._mergedReaders.readBitDouble(),
       this._mergedReaders.readBitDouble(),
@@ -4633,19 +4633,18 @@ export class DwgObjectReader extends DwgSectionIO {
     );
   }
 
-  private readState(): CadBlockVisibilityParameterTemplate.StateTemplate {
+  private _readState(): CadBlockVisibilityParameterTemplate.StateTemplate {
     const template = new CadBlockVisibilityParameterTemplate.StateTemplate();
     template.state.name = this._textReader.readVariableText();
     const n1 = this._objectReader.readBitLong();
     for (let i = 0; i < n1; i++) {
-      template.entityHandles.add(this.handleReference());
+      template.entityHandles.add(this._handleReference());
     }
     const n2 = this._objectReader.readBitLong();
     for (let i = 0; i < n2; i++) {
-      template.expressionHandles.add(this.handleReference());
+      template.expressionHandles.add(this._handleReference());
     }
     return template;
   }
 
-  get SectionName(): string { return "AcDb:AcDbObjects"; }
 }

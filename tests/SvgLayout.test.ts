@@ -8,27 +8,27 @@ import { BlockRecord } from '../src/Tables/BlockRecord.js';
 
 describe('SvgLayoutTests', () => {
 	it('WritesLayoutsWithSvgXmlWriter', () => {
-		const record = BlockRecord.PaperSpace;
+		const record = BlockRecord.paperSpace;
 		const layout = record.layout!;
 		const line = new Line(new XYZ(0, 0, 0), new XYZ(10, 5, 0));
 		const writer = new SvgXmlWriter(new Uint8Array(4096), new SvgConfiguration());
 
 		record.entities.add(line);
 
-		expect(() => writer.WriteLayout(layout)).not.toThrow();
+		expect(() => writer.writeLayout(layout)).not.toThrow();
 		expect(writer.getOutput()).toContain('<svg');
 		expect(writer.getOutput()).toContain('<line');
 	});
 
 	it('WritesLayoutsWithSvgDocumentBuilder', () => {
-		const record = BlockRecord.PaperSpace;
+		const record = BlockRecord.paperSpace;
 		const layout = record.layout!;
 		const line = new Line(new XYZ(1, 2, 0), new XYZ(6, 4, 0));
 		const writer = new SvgDocumentBuilder(new Uint8Array(4096), null, new SvgConfiguration());
 
 		record.entities.add(line);
 
-		expect(() => writer.WriteLayout(layout)).not.toThrow();
+		expect(() => writer.writeLayout(layout)).not.toThrow();
 		expect(writer.getOutput()).toContain('<svg');
 		expect(writer.getOutput()).toContain('<line');
 	});

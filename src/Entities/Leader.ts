@@ -37,7 +37,7 @@ export class Leader extends Entity {
 	normal: XYZ = new XYZ(0, 0, 1);
 
 	override get objectName(): string {
-		return DxfFileToken.EntityLeader;
+		return DxfFileToken.entityLeader;
 	}
 
 	override get objectType(): ObjectType {
@@ -61,7 +61,7 @@ export class Leader extends Entity {
 	}
 
 	override get subclassMarker(): string {
-		return DxfSubclassMarker.Leader;
+		return DxfSubclassMarker.leader;
 	}
 
 	textHeight: number = 0;
@@ -70,7 +70,7 @@ export class Leader extends Entity {
 
 	vertices: XYZ[] = [];
 
-	private _style: DimensionStyle = DimensionStyle.Default;
+	private _style: DimensionStyle = DimensionStyle.default;
 
 	override applyTransform(transform: unknown): void {
 		this.annotationOffset = this.applyTransformToVector(transform, this.annotationOffset);
@@ -87,7 +87,7 @@ export class Leader extends Entity {
 	}
 
 	override getBoundingBox(): BoundingBox {
-		return BoundingBox.FromPoints(this.vertices);
+		return BoundingBox.fromPoints(this.vertices);
 	}
 
 	/** @internal */
@@ -105,7 +105,7 @@ export class Leader extends Entity {
 	protected override _tableOnRemove(sender: unknown, e: CollectionChangedEventArgs): void {
 		super._tableOnRemove(sender, e);
 		if (e.item === this._style) {
-			this._style = this.document!.dimensionStyles.get(DimensionStyle.DefaultName)!;
+			this._style = this.document!.dimensionStyles.get(DimensionStyle.defaultName)!;
 		}
 	}
 }

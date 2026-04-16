@@ -1,34 +1,34 @@
 export class MathHelper {
-  static readonly Epsilon: number = 1e-12;
-  static readonly PI: number = Math.PI;
-  static readonly HalfPI: number = Math.PI / 2;
-  static readonly TwoPI: number = Math.PI * 2;
+  static readonly epsilon: number = 1e-12;
+  static readonly pi: number = Math.PI;
+  static readonly halfPI: number = Math.PI / 2;
+  static readonly twoPI: number = Math.PI * 2;
 
-  static DegToRad(degrees: number): number {
+  static degToRad(degrees: number): number {
     return degrees * (Math.PI / 180);
   }
 
-  static RadToDeg(radians: number): number {
+  static radToDeg(radians: number): number {
     return radians * (180 / Math.PI);
   }
 
-  static RadToGrad(radians: number): number {
+  static radToGrad(radians: number): number {
     return radians * (200 / Math.PI);
   }
 
-  static IsZero(value: number): boolean {
-    return Math.abs(value) < MathHelper.Epsilon;
+  static isZero(value: number): boolean {
+    return Math.abs(value) < MathHelper.epsilon;
   }
 
-  static FixZero(value: number): number {
-    return MathHelper.IsZero(value) ? 0 : value;
+  static fixZero(value: number): number {
+    return MathHelper.isZero(value) ? 0 : value;
   }
 
-  static Sin(angle: number): number {
-    return MathHelper.FixZero(Math.sin(angle));
+  static sin(angle: number): number {
+    return MathHelper.fixZero(Math.sin(angle));
   }
 
-  static Cos(angle: number): number {
-    return MathHelper.FixZero(Math.cos(angle));
+  static cos(angle: number): number {
+    return MathHelper.fixZero(Math.cos(angle));
   }
 }

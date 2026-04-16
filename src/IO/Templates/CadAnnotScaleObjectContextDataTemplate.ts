@@ -10,11 +10,11 @@ export class CadAnnotScaleObjectContextDataTemplate extends CadNonGraphicalObjec
 		super(cadObject);
 	}
 
-	protected override build(builder: CadDocumentBuilder): void {
-		super.build(builder);
+	protected override _build(builder: CadDocumentBuilder): void {
+		super._build(builder);
 
-		const contextData = this.CadObject as AnnotScaleObjectContextData;
-		const scale = builder.TryGetCadObject<Scale>(this.scaleHandle);
+		const contextData = this.cadObject as AnnotScaleObjectContextData;
+		const scale = builder.tryGetCadObject<Scale>(this.scaleHandle);
 		if (scale) {
 			contextData.scale = scale;
 		}

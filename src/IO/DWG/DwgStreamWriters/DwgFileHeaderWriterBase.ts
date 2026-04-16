@@ -6,11 +6,11 @@ import { DwgCheckSumCalculator } from '../DwgCheckSumCalculator.js';
 import { IDwgFileHeaderWriter } from './IDwgFileHeaderWriter.js';
 
 export abstract class DwgFileHeaderWriterBase<T extends DwgFileHeader> implements IDwgFileHeaderWriter {
-	FileHeader: T;
+	fileHeader: T;
 
-	abstract get FileHeaderSize(): number;
+	abstract get fileHeaderSize(): number;
 
-	abstract get HandleSectionOffset(): number;
+	abstract get handleSectionOffset(): number;
 
 	get bytesWritten(): number { return this._streamPosition; }
 
@@ -28,7 +28,7 @@ export abstract class DwgFileHeaderWriterBase<T extends DwgFileHeader> implement
 		this._stream = stream;
 		this._version = model.header.version;
 		this._encoding = encoding;
-		this.FileHeader = fileHeader;
+		this.fileHeader = fileHeader;
 	}
 
 	abstract addSection(name: string, stream: Uint8Array, isCompressed: boolean, decompsize?: number): void;
@@ -37,7 +37,7 @@ export abstract class DwgFileHeaderWriterBase<T extends DwgFileHeader> implement
 
 	protected applyMagicSequence(buffer: Uint8Array, length: number): void {
 		for (let i = 0; i < length; i++) {
-			buffer[i] ^= DwgCheckSumCalculator.MagicSequence[i];
+			buffer[i] ^= DwgCheckSumCalculator.magicSequence[i];
 		}
 	}
 
@@ -82,7 +82,7 @@ export abstract class DwgFileHeaderWriterBase<T extends DwgFileHeader> implement
 	protected writeMagicNumber(): void {
 		const mod = this._streamPosition % 0x20;
 		for (let i = 0; i < mod; i++) {
-			this._stream[this._streamPosition++] = DwgCheckSumCalculator.MagicSequence[i];
+			this._stream[this._streamPosition++] = DwgCheckSumCalculator.magicSequence[i];
 		}
 	}
 

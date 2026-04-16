@@ -164,14 +164,14 @@ import { AnnotScaleObjectContextData } from '../../../Objects/AnnotScaleObjectCo
 import { encodeCadString, encodeUtf16Le } from '../../TextEncoding.js';
 
 export class DwgObjectWriter extends DwgSectionIO {
-	override get SectionName(): string { return DwgSectionDefinition.AcDbObjects; }
+	override get sectionName(): string { return DwgSectionDefinition.acDbObjects; }
 
 	/** Key: handle, Value: Offset */
-	Map: Map<number, number> = new Map();
+	map: Map<number, number> = new Map();
 
-	WriteXRecords: boolean;
-	WriteXData: boolean;
-	WriteShapes: boolean = true;
+	writeXRecords: boolean;
+	writeXData: boolean;
+	writeShapes: boolean = true;
 
 	private _dictionaries: Map<number, CadDictionary> = new Map();
 	private _objects: NonGraphicalObject[] = [];
@@ -205,16 +205,16 @@ export class DwgObjectWriter extends DwgSectionIO {
 
 		this._msmain = new Uint8Array(65536);
 		this._writer = DwgStreamWriterBase.getMergedWriter(document.header.version, this._msmain, encoding);
-		this.WriteXRecords = writeXRecords;
-		this.WriteXData = writeXData;
-		this.WriteShapes = writeShapes;
+		this.writeXRecords = writeXRecords;
+		this.writeXData = writeXData;
+		this.writeShapes = writeShapes;
 	}
 
 	get bytesWritten(): number { return this._streamPos; }
 
 	getWrittenData(): Uint8Array { return this._stream.slice(0, this._streamPos); }
 
-	private ensureStreamCapacity(needed: number): void {
+	private _ensureStreamCapacity(needed: number): void {
 		if (needed > this._stream.length) {
 			const newSize = Math.max(needed, this._stream.length * 2);
 			const newStream = new Uint8Array(newSize);
@@ -226,8 +226,8 @@ export class DwgObjectWriter extends DwgSectionIO {
 	write(): void {
 		//For R18 and later the section data (right after the page header) starts with a
 		//RL value of 0x0dca (meaning unknown).
-		if (this.R2004Plus) {
-			this.ensureStreamCapacity(this._streamPos + 4);
+		if (this.r2004Plus) {
+			this._ensureStreamCapacity(this._streamPos + 4);
 			const view = new DataView(this._stream.buffer, this._stream.byteOffset + this._streamPos);
 			view.setInt32(0, 0x0DCA, true);
 			this._streamPos += 4;
@@ -235,37 +235,37 @@ export class DwgObjectWriter extends DwgSectionIO {
 
 		this._objects.push(this._document.rootDictionary);
 
-		this.writeBlockControl();
-		this.writeTable(this._document.layers);
-		this.writeTable(this._document.textStyles);
-		this.writeLTypeControlObject();
-		this.writeTable(this._document.views);
-		this.writeTable(this._document.uCSs);
-		this.writeTable(this._document.vPorts);
-		this.writeTable(this._document.appIds);
+		this._writeBlockControl();
+		this._writeTable(this._document.layers);
+		this._writeTable(this._document.textStyles);
+		this._writeLTypeControlObject();
+		this._writeTable(this._document.views);
+		this._writeTable(this._document.uCSs);
+		this._writeTable(this._document.vPorts);
+		this._writeTable(this._document.appIds);
 		//For some reason the dimension must be written the last
-		this.writeTable(this._document.dimensionStyles);
+		this._writeTable(this._document.dimensionStyles);
 
-		if (this.R2004Pre && this._document.vEntityControl) {
-			this.writeTable(this._document.vEntityControl);
+		if (this.r2004Pre && this._document.vEntityControl) {
+			this._writeTable(this._document.vEntityControl);
 		}
 
-		this.writeBlockEntities();
-		this.writeObjects();
+		this._writeBlockEntities();
+		this._writeObjects();
 	}
 
 	// ==================== Main Writer Methods ====================
 
-	private writeLTypeControlObject(): void {
-		this.writeCommonNonEntityData(this._document.lineTypes);
+	private _writeLTypeControlObject(): void {
+		this._writeCommonNonEntityData(this._document.lineTypes);
 
 		//Common:
 		//Numentries BL 70
 		this._writer.writeBitLong(this._document.lineTypes.count - 2);
 
 		for (const item of this._document.lineTypes) {
-			if (item.name.toLowerCase() === LineType.ByBlockName.toLowerCase()
-				|| item.name.toLowerCase() === LineType.ByLayerName.toLowerCase()) {
+			if (item.name.toLowerCase() === LineType.byBlockName.toLowerCase()
+				|| item.name.toLowerCase() === LineType.byLayerName.toLowerCase()) {
 				continue;
 			}
 			this._writer.handleReferenceTyped(DwgReferenceType.SoftOwnership, item);
@@ -274,20 +274,20 @@ export class DwgObjectWriter extends DwgSectionIO {
 		this._writer.handleReferenceTyped(DwgReferenceType.HardOwnership, this._document.lineTypes.byBlock);
 		this._writer.handleReferenceTyped(DwgReferenceType.HardOwnership, this._document.lineTypes.byLayer);
 
-		this.registerObject(this._document.lineTypes);
-		this.writeEntries(this._document.lineTypes);
+		this._registerObject(this._document.lineTypes);
+		this._writeEntries(this._document.lineTypes);
 	}
 
-	private writeBlockControl(): void {
-		this.writeCommonNonEntityData(this._document.blockRecords);
+	private _writeBlockControl(): void {
+		this._writeCommonNonEntityData(this._document.blockRecords);
 
 		//Common:
 		//Numentries BL 70
 		this._writer.writeBitLong(this._document.blockRecords.count - 2);
 
 		for (const item of this._document.blockRecords) {
-			if (item.name.toLowerCase() === BlockRecord.ModelSpaceName.toLowerCase()
-				|| item.name.toLowerCase() === BlockRecord.PaperSpaceName.toLowerCase()) {
+			if (item.name.toLowerCase() === BlockRecord.modelSpaceName.toLowerCase()
+				|| item.name.toLowerCase() === BlockRecord.paperSpaceName.toLowerCase()) {
 				continue;
 			}
 			this._writer.handleReferenceTyped(DwgReferenceType.SoftOwnership, item);
@@ -296,18 +296,18 @@ export class DwgObjectWriter extends DwgSectionIO {
 		this._writer.handleReferenceTyped(DwgReferenceType.HardOwnership, this._document.modelSpace);
 		this._writer.handleReferenceTyped(DwgReferenceType.HardOwnership, this._document.paperSpace);
 
-		this.registerObject(this._document.blockRecords);
-		this.writeEntries(this._document.blockRecords);
+		this._registerObject(this._document.blockRecords);
+		this._writeEntries(this._document.blockRecords);
 	}
 
-	private writeTable<T extends TableEntry>(table: Table<T>): void {
-		this.writeCommonNonEntityData(table);
+	private _writeTable<T extends TableEntry>(table: Table<T>): void {
+		this._writeCommonNonEntityData(table);
 
 		//Common:
 		//Numentries BL 70
 		this._writer.writeBitLong(table.count);
 
-		if (this.R2000Plus && table instanceof DimensionStylesTable) {
+		if (this.r2000Plus && table instanceof DimensionStylesTable) {
 			this._writer.writeByte(0);
 		}
 
@@ -315,87 +315,87 @@ export class DwgObjectWriter extends DwgSectionIO {
 			this._writer.handleReferenceTyped(DwgReferenceType.SoftOwnership, item);
 		}
 
-		this.registerObject(table);
-		this.writeEntries(table);
+		this._registerObject(table);
+		this._writeEntries(table);
 	}
 
-	private writeEntries<T extends TableEntry>(table: Table<T>): void {
+	private _writeEntries<T extends TableEntry>(table: Table<T>): void {
 		for (const entry of table) {
 			if (entry instanceof AppId) {
-				this.writeAppId(entry);
+				this._writeAppId(entry);
 			} else if (entry instanceof BlockRecord) {
-				this.writeBlockRecord(entry);
+				this._writeBlockRecord(entry);
 			} else if (entry instanceof Layer) {
-				this.writeLayer(entry);
+				this._writeLayer(entry);
 			} else if (entry instanceof LineType) {
-				this.writeLineType(entry);
+				this._writeLineType(entry);
 			} else if (entry instanceof TextStyle) {
-				this.writeTextStyle(entry);
+				this._writeTextStyle(entry);
 			} else if (entry instanceof UCS) {
-				this.writeUCS(entry);
+				this._writeUCS(entry);
 			} else if (entry instanceof View) {
-				this.writeView(entry);
+				this._writeView(entry);
 			} else if (entry instanceof ViewportEntityHeader) {
-				this.writeViewportEntityHeader(entry);
+				this._writeViewportEntityHeader(entry);
 			} else if (entry instanceof DimensionStyle) {
-				this.writeDimensionStyle(entry);
+				this._writeDimensionStyle(entry);
 			} else if (entry instanceof VPort) {
-				this.writeVPort(entry);
+				this._writeVPort(entry);
 			} else {
 				this.notify(`Table entry not implemented : ${entry.constructor.name}`, NotificationType.NotImplemented);
 			}
 		}
 	}
 
-	private writeBlockEntities(): void {
+	private _writeBlockEntities(): void {
 		for (const blkRecord of this._document.blockRecords) {
-			this.writeBlockBegin(blkRecord.blockEntity);
+			this._writeBlockBegin(blkRecord.blockEntity);
 
 			this._prev = null;
 			this._next = null;
-			const arr = this.getCompatibleEntities(blkRecord.entities);
+			const arr = this._getCompatibleEntities(blkRecord.entities);
 			for (let i = 0; i < arr.length; i++) {
 				this._prev = i > 0 ? arr[i - 1] : null;
 				const e = arr[i];
 				this._next = i < arr.length - 1 ? arr[i + 1] : null;
-				this.writeEntity(e);
+				this._writeEntity(e);
 			}
 
 			this._prev = null;
 			this._next = null;
 
-			this.writeBlockEnd(blkRecord.blockEnd);
+			this._writeBlockEnd(blkRecord.blockEnd);
 		}
 	}
 
-	private getCompatibleEntities(entities: Iterable<Entity>): Entity[] {
-		return Array.from(entities).filter(e => this.isEntitySupported(e));
+	private _getCompatibleEntities(entities: Iterable<Entity>): Entity[] {
+		return Array.from(entities).filter(e => this._isEntitySupported(e));
 	}
 
-	private isEntitySupported(entity: Entity): boolean {
+	private _isEntitySupported(entity: Entity): boolean {
 		if (entity instanceof Seqend) return false;
 		if (entity instanceof UnknownEntity) return false;
-		if (entity instanceof Shape) return this.WriteShapes;
+		if (entity instanceof Shape) return this.writeShapes;
 		return true;
 	}
 
 	// ==================== Table Entry Writers ====================
 
-	private writeAppId(app: AppId): void {
-		this.writeCommonNonEntityData(app);
+	private _writeAppId(app: AppId): void {
+		this._writeCommonNonEntityData(app);
 		this._writer.writeVariableText(app.name);
-		this.writeXrefDependantBit(app);
+		this._writeXrefDependantBit(app);
 		this._writer.writeByte(0);
 		this._writer.handleReferenceTyped(DwgReferenceType.HardPointer, 0);
-		this.registerObject(app);
+		this._registerObject(app);
 	}
 
-	private writeBlockRecord(blkRecord: BlockRecord): void {
-		this.writeBlockHeader(blkRecord);
+	private _writeBlockRecord(blkRecord: BlockRecord): void {
+		this._writeBlockHeader(blkRecord);
 	}
 
-	private writeBlockHeader(record: BlockRecord): void {
-		const entities = this.getCompatibleEntities(record.entities);
+	private _writeBlockHeader(record: BlockRecord): void {
+		const entities = this._getCompatibleEntities(record.entities);
 		const ownedEntityHandles = entities.map((entity) => entity.handle);
 		const ownedObjectHandles = record.layout == null && record.ownedObjectHandles.length > 0
 			? [...record.ownedObjectHandles]
@@ -423,7 +423,7 @@ export class DwgObjectWriter extends DwgSectionIO {
 		}
 		const insertsByHandle = new Map(inserts.map((insert) => [insert.handle, insert]));
 
-		this.writeCommonNonEntityData(record);
+		this._writeCommonNonEntityData(record);
 
 		//Common:
 		//Entry name TV 2
@@ -436,7 +436,7 @@ export class DwgObjectWriter extends DwgSectionIO {
 			this._writer.writeVariableText(record.name);
 		}
 
-		this.writeXrefDependantBit({ flags });
+		this._writeXrefDependantBit({ flags });
 
 		this._writer.writeBit((flags & BlockTypeFlags.Anonymous) !== 0);
 		this._writer.writeBit(record.hasAttributes);
@@ -444,12 +444,12 @@ export class DwgObjectWriter extends DwgSectionIO {
 		this._writer.writeBit((flags & BlockTypeFlags.XRefOverlay) !== 0);
 
 		//R2000+:
-		if (this.R2000Plus) {
+		if (this.r2000Plus) {
 			this._writer.writeBit(record.isUnloaded);
 		}
 
 		//R2004+:
-		if (this.R2004Plus
+		if (this.r2004Plus
 			&& (flags & BlockTypeFlags.XRef) === 0
 			&& (flags & BlockTypeFlags.XRefOverlay) === 0) {
 			this._writer.writeBitLong(ownedObjectHandles.length);
@@ -460,7 +460,7 @@ export class DwgObjectWriter extends DwgSectionIO {
 		this._writer.writeVariableText(record.blockEntity.xRefPath);
 
 		//R2000+:
-		if (this.R2000Plus) {
+		if (this.r2000Plus) {
 			for (const _handle of insertHandles) {
 				this._writer.writeByte(1);
 			}
@@ -471,7 +471,7 @@ export class DwgObjectWriter extends DwgSectionIO {
 		}
 
 		//R2007+:
-		if (this.R2007Plus) {
+		if (this.r2007Plus) {
 			this._writer.writeBitShort(record.units);
 			this._writer.writeBit(record.isExplodable);
 			this._writer.writeByte(record.canScale ? 1 : 0);
@@ -494,7 +494,7 @@ export class DwgObjectWriter extends DwgSectionIO {
 		}
 
 		//R2004+:
-		if (this.R2004Plus) {
+		if (this.r2004Plus) {
 			for (const handle of ownedObjectHandles) {
 				const entity = entities.find((item) => item.handle === handle);
 				if (entity) {
@@ -509,7 +509,7 @@ export class DwgObjectWriter extends DwgSectionIO {
 		this._writer.handleReferenceTyped(DwgReferenceType.HardOwnership, record.blockEnd);
 
 		//R2000+:
-		if (this.R2000Plus) {
+		if (this.r2000Plus) {
 			for (const handle of insertHandles) {
 				const insert = insertsByHandle.get(handle);
 				if (insert) {
@@ -521,33 +521,33 @@ export class DwgObjectWriter extends DwgSectionIO {
 			this._writer.handleReferenceTyped(DwgReferenceType.HardPointer, record.layout);
 		}
 
-		this.registerObject(record);
+		this._registerObject(record);
 	}
 
-	private writeBlockBegin(block: Block): void {
-		this.writeCommonEntityData(block);
+	private _writeBlockBegin(block: Block): void {
+		this._writeCommonEntityData(block);
 		this._writer.writeVariableText(block.name);
-		this.registerObject(block);
+		this._registerObject(block);
 	}
 
-	private writeBlockEnd(blkEnd: BlockEnd): void {
-		this.writeCommonEntityData(blkEnd);
-		this.registerObject(blkEnd);
+	private _writeBlockEnd(blkEnd: BlockEnd): void {
+		this._writeCommonEntityData(blkEnd);
+		this._registerObject(blkEnd);
 	}
 
-	private writeLayer(layer: Layer): void {
-		this.writeCommonNonEntityData(layer);
+	private _writeLayer(layer: Layer): void {
+		this._writeCommonNonEntityData(layer);
 		this._writer.writeVariableText(layer.name);
-		this.writeXrefDependantBit(layer);
+		this._writeXrefDependantBit(layer);
 
-		if (this.R13_14Only) {
+		if (this.r13_14Only) {
 			this._writer.writeBit((layer.flags & LayerFlags.Frozen) !== 0);
 			this._writer.writeBit(layer.isOn);
 			this._writer.writeBit((layer.flags & LayerFlags.FrozenNewViewports) !== 0);
 			this._writer.writeBit((layer.flags & LayerFlags.Locked) !== 0);
 		}
 
-		if (this.R2000Plus) {
+		if (this.r2000Plus) {
 			let values = CadUtils.toIndex(layer.lineWeight) << 5;
 			if ((layer.flags & LayerFlags.Frozen) !== 0) values |= 0b1;
 			if (!layer.isOn) values |= 0b10;
@@ -560,26 +560,26 @@ export class DwgObjectWriter extends DwgSectionIO {
 		this._writer.writeCmColor(layer.color);
 		this._writer.handleReferenceTyped(DwgReferenceType.HardPointer, null);
 
-		if (this.R2000Plus) {
+		if (this.r2000Plus) {
 			this._writer.handleReferenceTyped(DwgReferenceType.HardPointer, 0);
 		}
-		if (this.R2007Plus) {
+		if (this.r2007Plus) {
 			this._writer.handleReferenceTyped(DwgReferenceType.HardPointer, 0);
 		}
 
 		this._writer.handleReferenceTyped(DwgReferenceType.HardPointer, layer.lineType.handle);
 
-		if (this.R2013Plus) {
+		if (this.r2013Plus) {
 			this._writer.handleReferenceTyped(DwgReferenceType.HardPointer, 0);
 		}
 
-		this.registerObject(layer);
+		this._registerObject(layer);
 	}
 
-	private writeLineType(ltype: LineType): void {
-		this.writeCommonNonEntityData(ltype);
+	private _writeLineType(ltype: LineType): void {
+		this._writeCommonNonEntityData(ltype);
 		this._writer.writeVariableText(ltype.name);
-		this.writeXrefDependantBit(ltype);
+		this._writeXrefDependantBit(ltype);
 
 		this._writer.writeVariableText(ltype.description);
 		this._writer.writeBitDouble(ltype.patternLength);
@@ -600,7 +600,7 @@ export class DwgObjectWriter extends DwgSectionIO {
 		if (this._version <= ACadVersion.AC1018) {
 			textArea = new Uint8Array(256);
 			if (this._version <= ACadVersion.AC1014) textCursor = 1;
-		} else if (this.R2007Plus && hasTextSegments) {
+		} else if (this.r2007Plus && hasTextSegments) {
 			textArea = new Uint8Array(512);
 		}
 
@@ -610,10 +610,10 @@ export class DwgObjectWriter extends DwgSectionIO {
 					segment.shapeNumber = 0;
 				} else {
 					// Write text as UTF-16LE for R2007+, otherwise single-byte
-					const textBytes = this.R2007Plus
-						? this.encodeUtf16LE(segment.text)
-						: this.encodeText(segment.text);
-					const termLen = this.R2007Plus ? 2 : 1;
+					const textBytes = this.r2007Plus
+						? this._encodeUtf16LE(segment.text)
+						: this._encodeText(segment.text);
+					const termLen = this.r2007Plus ? 2 : 1;
 					const required = textBytes.length + termLen;
 
 					if (textCursor + required <= textArea.length) {
@@ -648,7 +648,7 @@ export class DwgObjectWriter extends DwgSectionIO {
 		}
 
 		//R2007+:
-		if (this.R2007Plus && hasTextSegments) {
+		if (this.r2007Plus && hasTextSegments) {
 			const buffer = textArea ?? new Uint8Array(512);
 			for (let i = 0; i < buffer.length; i++) {
 				this._writer.writeByte(buffer[i]);
@@ -660,11 +660,11 @@ export class DwgObjectWriter extends DwgSectionIO {
 			this._writer.handleReferenceTyped(DwgReferenceType.HardPointer, segment.style);
 		}
 
-		this.registerObject(ltype);
+		this._registerObject(ltype);
 	}
 
-	private writeTextStyle(style: TextStyle): void {
-		this.writeCommonNonEntityData(style);
+	private _writeTextStyle(style: TextStyle): void {
+		this._writeCommonNonEntityData(style);
 
 		if (style.isShapeFile) {
 			this._writer.writeVariableText('');
@@ -672,7 +672,7 @@ export class DwgObjectWriter extends DwgSectionIO {
 			this._writer.writeVariableText(style.name);
 		}
 
-		this.writeXrefDependantBit(style);
+		this._writeXrefDependantBit(style);
 
 		this._writer.writeBit((style.flags & StyleFlags.IsShape) !== 0);
 		this._writer.writeBit((style.flags & StyleFlags.VerticalText) !== 0);
@@ -686,19 +686,19 @@ export class DwgObjectWriter extends DwgSectionIO {
 
 		this._writer.handleReferenceTyped(DwgReferenceType.HardPointer, this._document.textStyles);
 
-		this.registerObject(style);
+		this._registerObject(style);
 	}
 
-	private writeUCS(ucs: UCS): void {
-		this.writeCommonNonEntityData(ucs);
+	private _writeUCS(ucs: UCS): void {
+		this._writeCommonNonEntityData(ucs);
 		this._writer.writeVariableText(ucs.name);
-		this.writeXrefDependantBit(ucs);
+		this._writeXrefDependantBit(ucs);
 
 		this._writer.write3BitDouble(ucs.origin);
 		this._writer.write3BitDouble(ucs.xAxis);
 		this._writer.write3BitDouble(ucs.yAxis);
 
-		if (this.R2000Plus) {
+		if (this.r2000Plus) {
 			this._writer.writeBitDouble(ucs.elevation);
 			this._writer.writeBitShort(ucs.orthographicViewType);
 			this._writer.writeBitShort(ucs.orthographicType);
@@ -706,18 +706,18 @@ export class DwgObjectWriter extends DwgSectionIO {
 
 		this._writer.handleReferenceTyped(DwgReferenceType.SoftPointer, this._document.uCSs);
 
-		if (this.R2000Plus) {
+		if (this.r2000Plus) {
 			this._writer.handleReferenceTyped(DwgReferenceType.HardPointer, 0);
 			this._writer.handleReferenceTyped(DwgReferenceType.HardPointer, 0);
 		}
 
-		this.registerObject(ucs);
+		this._registerObject(ucs);
 	}
 
-	private writeView(view: View): void {
-		this.writeCommonNonEntityData(view);
+	private _writeView(view: View): void {
+		this._writeCommonNonEntityData(view);
 		this._writer.writeVariableText(view.name);
-		this.writeXrefDependantBit(view);
+		this._writeXrefDependantBit(view);
 
 		this._writer.writeBitDouble(view.height);
 		this._writer.writeBitDouble(view.width);
@@ -734,11 +734,11 @@ export class DwgObjectWriter extends DwgSectionIO {
 		this._writer.writeBit((view.viewMode & ViewModeType.BackClipping) !== 0);
 		this._writer.writeBit((view.viewMode & ViewModeType.FrontClippingZ) !== 0);
 
-		if (this.R2000Plus) {
+		if (this.r2000Plus) {
 			this._writer.writeByte(view.renderMode);
 		}
 
-		if (this.R2007Plus) {
+		if (this.r2007Plus) {
 			this._writer.writeBit(true);
 			this._writer.writeByte(1);
 			this._writer.writeBitDouble(0.0);
@@ -748,7 +748,7 @@ export class DwgObjectWriter extends DwgSectionIO {
 
 		this._writer.writeBit((view.flags & 0b1) !== 0);
 
-		if (this.R2000Plus) {
+		if (this.r2000Plus) {
 			this._writer.writeBit(view.isUcsAssociated);
 			if (view.isUcsAssociated) {
 				this._writer.write3BitDouble(view.ucsOrigin);
@@ -761,43 +761,43 @@ export class DwgObjectWriter extends DwgSectionIO {
 
 		this._writer.handleReferenceTyped(DwgReferenceType.SoftPointer, this._document.views);
 
-		if (this.R2007Plus) {
+		if (this.r2007Plus) {
 			this._writer.writeBit(view.isPlottable);
 			this._writer.handleReferenceTyped(DwgReferenceType.SoftPointer, 0);
 			this._writer.handleReferenceTyped(DwgReferenceType.HardPointer, 0);
 			this._writer.handleReferenceTyped(DwgReferenceType.HardOwnership, 0);
 		}
 
-		if (this.R2000Plus && view.isUcsAssociated) {
+		if (this.r2000Plus && view.isUcsAssociated) {
 			this._writer.handleReferenceTyped(DwgReferenceType.HardPointer, 0);
 			this._writer.handleReferenceTyped(DwgReferenceType.HardPointer, 0);
 		}
 
-		if (this.R2007Plus) {
+		if (this.r2007Plus) {
 			this._writer.handleReferenceTyped(DwgReferenceType.SoftPointer, 0);
 		}
 
-		this.registerObject(view);
+		this._registerObject(view);
 	}
 
-	private writeViewportEntityHeader(viewport: ViewportEntityHeader): void {
-		this.writeCommonNonEntityData(viewport);
+	private _writeViewportEntityHeader(viewport: ViewportEntityHeader): void {
+		this._writeCommonNonEntityData(viewport);
 		this._writer.writeVariableText(viewport.name);
-		this.writeXrefDependantBit(viewport);
+		this._writeXrefDependantBit(viewport);
 		this._writer.writeBit(false);
 		this._writer.handleReferenceTyped(DwgReferenceType.HardPointer, 0);
 		this._writer.handleReferenceTyped(DwgReferenceType.HardPointer, 0);
 		this._writer.handleReferenceTyped(DwgReferenceType.HardPointer, viewport.blockRecord ?? 0);
 
-		this.registerObject(viewport);
+		this._registerObject(viewport);
 	}
 
-	private writeDimensionStyle(dimStyle: DimensionStyle): void {
-		this.writeCommonNonEntityData(dimStyle);
+	private _writeDimensionStyle(dimStyle: DimensionStyle): void {
+		this._writeCommonNonEntityData(dimStyle);
 		this._writer.writeVariableText(dimStyle.name);
-		this.writeXrefDependantBit(dimStyle);
+		this._writeXrefDependantBit(dimStyle);
 
-		if (this.R13_14Only) {
+		if (this.r13_14Only) {
 			this._writer.writeBit(dimStyle.generateTolerances);
 			this._writer.writeBit(dimStyle.limitsGeneration);
 			this._writer.writeBit(dimStyle.textOutsideHorizontal);
@@ -854,7 +854,7 @@ export class DwgObjectWriter extends DwgSectionIO {
 			this._writer.writeCmColor(dimStyle.textColor);
 		}
 
-		if (this.R2000Plus) {
+		if (this.r2000Plus) {
 			this._writer.writeVariableText(dimStyle.postFix);
 			this._writer.writeVariableText(dimStyle.alternateDimensioningSuffix);
 			this._writer.writeBitDouble(dimStyle.scaleFactor);
@@ -868,14 +868,14 @@ export class DwgObjectWriter extends DwgSectionIO {
 			this._writer.writeBitDouble(dimStyle.minusTolerance);
 		}
 
-		if (this.R2007Plus) {
+		if (this.r2007Plus) {
 			this._writer.writeBitDouble(dimStyle.fixedExtensionLineLength);
 			this._writer.writeBitDouble(dimStyle.joggedRadiusDimensionTransverseSegmentAngle);
 			this._writer.writeBitShort(dimStyle.textBackgroundFillMode);
 			this._writer.writeCmColor(dimStyle.textBackgroundColor);
 		}
 
-		if (this.R2000Plus) {
+		if (this.r2000Plus) {
 			this._writer.writeBit(dimStyle.generateTolerances);
 			this._writer.writeBit(dimStyle.limitsGeneration);
 			this._writer.writeBit(dimStyle.textInsideHorizontal);
@@ -887,11 +887,11 @@ export class DwgObjectWriter extends DwgSectionIO {
 			this._writer.writeBitShort(dimStyle.angularZeroHandling);
 		}
 
-		if (this.R2007Plus) {
+		if (this.r2007Plus) {
 			this._writer.writeBitShort(dimStyle.arcLengthSymbolPosition);
 		}
 
-		if (this.R2000Plus) {
+		if (this.r2000Plus) {
 			this._writer.writeBitDouble(dimStyle.textHeight);
 			this._writer.writeBitDouble(dimStyle.centerMarkSize);
 			this._writer.writeBitDouble(dimStyle.tickSize);
@@ -931,11 +931,11 @@ export class DwgObjectWriter extends DwgSectionIO {
 			this._writer.writeBitShort(3);
 		}
 
-		if (this.R2007Plus) {
+		if (this.r2007Plus) {
 			this._writer.writeBit(dimStyle.isExtensionLineLengthFixed);
 		}
 
-		if (this.R2010Plus) {
+		if (this.r2010Plus) {
 			this._writer.writeBit(dimStyle.textDirection === TextDirection.RightToLeft);
 			this._writer.writeBitDouble(dimStyle.altMzf);
 			this._writer.writeVariableText(dimStyle.altMzs);
@@ -943,7 +943,7 @@ export class DwgObjectWriter extends DwgSectionIO {
 			this._writer.writeVariableText(dimStyle.mzs);
 		}
 
-		if (this.R2000Plus) {
+		if (this.r2000Plus) {
 			this._writer.writeBitShort(dimStyle.dimensionLineWeight);
 			this._writer.writeBitShort(dimStyle.extensionLineWeight);
 		}
@@ -952,26 +952,26 @@ export class DwgObjectWriter extends DwgSectionIO {
 		this._writer.handleReferenceTyped(DwgReferenceType.HardPointer, 0);
 		this._writer.handleReferenceTyped(DwgReferenceType.HardPointer, dimStyle.style);
 
-		if (this.R2000Plus) {
+		if (this.r2000Plus) {
 			this._writer.handleReferenceTyped(DwgReferenceType.HardPointer, dimStyle.leaderArrow);
 			this._writer.handleReferenceTyped(DwgReferenceType.HardPointer, dimStyle.arrowBlock);
 			this._writer.handleReferenceTyped(DwgReferenceType.HardPointer, dimStyle.dimArrow1);
 			this._writer.handleReferenceTyped(DwgReferenceType.HardPointer, dimStyle.dimArrow2);
 		}
 
-		if (this.R2007Plus) {
+		if (this.r2007Plus) {
 			this._writer.handleReferenceTyped(DwgReferenceType.HardPointer, dimStyle.lineType);
 			this._writer.handleReferenceTyped(DwgReferenceType.HardPointer, dimStyle.lineTypeExt1);
 			this._writer.handleReferenceTyped(DwgReferenceType.HardPointer, dimStyle.lineTypeExt2);
 		}
 
-		this.registerObject(dimStyle);
+		this._registerObject(dimStyle);
 	}
 
-	private writeVPort(vport: VPort): void {
-		this.writeCommonNonEntityData(vport);
+	private _writeVPort(vport: VPort): void {
+		this._writeCommonNonEntityData(vport);
 		this._writer.writeVariableText(vport.name);
-		this.writeXrefDependantBit(vport);
+		this._writeXrefDependantBit(vport);
 
 		this._writer.writeBitDouble(vport.viewHeight);
 		this._writer.writeBitDouble(vport.aspectRatio * vport.viewHeight);
@@ -988,11 +988,11 @@ export class DwgObjectWriter extends DwgSectionIO {
 		this._writer.writeBit((vport.viewMode & ViewModeType.BackClipping) !== 0);
 		this._writer.writeBit((vport.viewMode & ViewModeType.FrontClippingZ) !== 0);
 
-		if (this.R2000Plus) {
+		if (this.r2000Plus) {
 			this._writer.writeByte(vport.renderMode);
 		}
 
-		if (this.R2007Plus) {
+		if (this.r2007Plus) {
 			this._writer.writeBit(vport.useDefaultLighting);
 			this._writer.writeByte(vport.defaultLighting);
 			this._writer.writeBitDouble(vport.brightness);
@@ -1019,7 +1019,7 @@ export class DwgObjectWriter extends DwgSectionIO {
 		this._writer.write2RawDouble(vport.snapBasePoint);
 		this._writer.write2RawDouble(vport.snapSpacing);
 
-		if (this.R2000Plus) {
+		if (this.r2000Plus) {
 			this._writer.writeBit(false);
 			this._writer.writeBit(true);
 			this._writer.write3BitDouble(vport.origin);
@@ -1029,20 +1029,20 @@ export class DwgObjectWriter extends DwgSectionIO {
 			this._writer.writeBitShort(vport.orthographicType);
 		}
 
-		if (this.R2007Plus) {
+		if (this.r2007Plus) {
 			this._writer.writeBitShort(vport.gridFlags);
 			this._writer.writeBitShort(vport.minorGridLinesPerMajorGridLine);
 		}
 
 		this._writer.handleReferenceTyped(DwgReferenceType.HardPointer, 0);
 
-		if (this.R2007Plus) {
+		if (this.r2007Plus) {
 			this._writer.handleReferenceTyped(DwgReferenceType.SoftPointer, 0);
 			this._writer.handleReferenceTyped(DwgReferenceType.SoftPointer, 0);
 			this._writer.handleReferenceTyped(DwgReferenceType.SoftPointer, 0);
 		}
 
-		if (this.R2000Plus) {
+		if (this.r2000Plus) {
 			if (vport.orthographicType === OrthographicType.None) {
 				this._writer.handleReferenceTyped(DwgReferenceType.HardPointer, vport.namedUcs);
 				this._writer.handleReferenceTyped(DwgReferenceType.HardPointer, 0);
@@ -1052,61 +1052,61 @@ export class DwgObjectWriter extends DwgSectionIO {
 			}
 		}
 
-		this.registerObject(vport);
+		this._registerObject(vport);
 	}
 
 	// ==================== Common Methods ====================
 
-	private registerObject(cadObject: CadObject): void {
+	private _registerObject(cadObject: CadObject): void {
 		this._writer.writeSpearShift();
 
 		// Update _msmainPos from writer position (C# used MemoryStream.Position)
 		this._msmainPos = Math.ceil(this._writer.main.positionInBits / 8);
 
 		// Ensure _stream has enough capacity for this object's data
-		this.ensureStreamCapacity(this._streamPos + this._msmainPos + 64);
+		this._ensureStreamCapacity(this._streamPos + this._msmainPos + 64);
 
 		const position = this._streamPos;
 		const crc = new CRC8StreamHandler(this._stream.subarray(this._streamPos), 0xC0C1);
 
 		const size = this._msmainPos;
 		const sizeb = (this._msmainPos << 3) - this._writer.savedPositionInBits;
-		this.writeSize(crc, size);
+		this._writeSize(crc, size);
 
-		if (this.R2010Plus) {
-			this.writeSizeInBits(crc, sizeb);
+		if (this.r2010Plus) {
+			this._writeSizeInBits(crc, sizeb);
 		}
 
-		crc.Write(new Uint8Array(this._writer.main.stream).subarray(0, this._msmainPos), 0, this._msmainPos);
+		crc.write(new Uint8Array(this._writer.main.stream).subarray(0, this._msmainPos), 0, this._msmainPos);
 
 		const seedBytes = new Uint8Array(2);
 		const seedView = new DataView(seedBytes.buffer);
-		seedView.setUint16(0, crc.Seed, true);
-		this._stream.set(seedBytes, this._streamPos + crc.Position);
-		this._streamPos += crc.Position + 2;
+		seedView.setUint16(0, crc.seed, true);
+		this._stream.set(seedBytes, this._streamPos + crc.position);
+		this._streamPos += crc.position + 2;
 
-		this.Map.set(cadObject.handle, position);
+		this.map.set(cadObject.handle, position);
 	}
 
-	private writeSize(stream: { Write: (data: Uint8Array, offset: number, count: number) => void; Position: number }, size: number): void {
+	private _writeSize(stream: { write: (data: Uint8Array, offset: number, count: number) => void; position: number }, size: number): void {
 		if (size >= 0b1000000000000000) {
 			const buf = new Uint8Array(4);
 			buf[0] = size & 0xFF;
 			buf[1] = ((size >> 8) & 0x7F) | 0x80;
 			buf[2] = (size >> 15) & 0xFF;
 			buf[3] = (size >> 23) & 0xFF;
-			stream.Write(buf, 0, 4);
+			stream.write(buf, 0, 4);
 		} else {
 			const buf = new Uint8Array(2);
 			buf[0] = size & 0xFF;
 			buf[1] = (size >> 8) & 0xFF;
-			stream.Write(buf, 0, 2);
+			stream.write(buf, 0, 2);
 		}
 	}
 
-	private writeSizeInBits(stream: { Write: (data: Uint8Array, offset: number, count: number) => void; Position: number }, size: number): void {
+	private _writeSizeInBits(stream: { write: (data: Uint8Array, offset: number, count: number) => void; position: number }, size: number): void {
 		if (size === 0) {
-			stream.Write(new Uint8Array([0]), 0, 1);
+			stream.write(new Uint8Array([0]), 0, 1);
 			return;
 		}
 
@@ -1117,14 +1117,14 @@ export class DwgObjectWriter extends DwgSectionIO {
 			if (shift !== 0) {
 				b = b | 0x80;
 			}
-			stream.Write(new Uint8Array([b]), 0, 1);
+			stream.write(new Uint8Array([b]), 0, 1);
 			s = shift;
 			shift = s >>> 7;
 		}
 	}
 
-	private writeXrefDependantBit(entry: { flags: number }): void {
-		if (this.R2007Plus) {
+	private _writeXrefDependantBit(entry: { flags: number }): void {
+		if (this.r2007Plus) {
 			this._writer.writeBitShort((entry.flags & StandardFlags.XrefDependent) !== 0 ? 0b100000000 : 0);
 		} else {
 			this._writer.writeBit((entry.flags & StandardFlags.Referenced) !== 0);
@@ -1133,13 +1133,13 @@ export class DwgObjectWriter extends DwgSectionIO {
 		}
 	}
 
-	private writeCommonData(cadObject: CadObject): void {
+	private _writeCommonData(cadObject: CadObject): void {
 		this._writer.resetStream();
 		this._msmainPos = 0;
 
 		switch (cadObject.objectType) {
 			case ObjectType.LAYOUT:
-				if (this.R2004Pre) {
+				if (this.r2004Pre) {
 					const dxfClassLookup = this._document.classes.tryGetByName(cadObject.objectName);
 					if (dxfClassLookup.found && dxfClassLookup.result) {
 						this._writer.writeObjectType(dxfClassLookup.result.classNumber);
@@ -1176,50 +1176,50 @@ export class DwgObjectWriter extends DwgSectionIO {
 		}
 
 		this._writer.main.handleReference(cadObject);
-		this.writeExtendedData(cadObject.extendedData);
+		this._writeExtendedData(cadObject.extendedData);
 	}
 
-	private writeCommonNonEntityData(cadObject: CadObject): void {
-		this.writeCommonData(cadObject);
+	private _writeCommonNonEntityData(cadObject: CadObject): void {
+		this._writeCommonData(cadObject);
 
-		if (this.R13_14Only) {
+		if (this.r13_14Only) {
 			this._writer.savePositonForSize();
 		}
 
 		this._writer.handleReferenceTyped(DwgReferenceType.SoftPointer, cadObject.owner.handle);
-		this.writeReactorsAndDictionaryHandle(cadObject);
+		this._writeReactorsAndDictionaryHandle(cadObject);
 	}
 
-	private writeCommonEntityData(entity: Entity): void {
-		this.writeCommonData(entity);
+	private _writeCommonEntityData(entity: Entity): void {
+		this._writeCommonData(entity);
 		this._writer.writeBit(false);
 
 		if (this._version >= ACadVersion.AC1012 && this._version <= ACadVersion.AC1014) {
 			this._writer.savePositonForSize();
 		}
 
-		this.writeEntityMode(entity);
+		this._writeEntityMode(entity);
 	}
 
-	private writeEntityMode(entity: Entity): void {
-		const entmode = this.getEntMode(entity);
+	private _writeEntityMode(entity: Entity): void {
+		const entmode = this._getEntMode(entity);
 		this._writer.write2Bits(entmode);
 		if (entmode === 0) {
 			this._writer.handleReferenceTyped(DwgReferenceType.SoftPointer, entity.owner);
 		}
 
-		this.writeReactorsAndDictionaryHandle(entity);
+		this._writeReactorsAndDictionaryHandle(entity);
 
-		if (this.R13_14Only) {
+		if (this.r13_14Only) {
 			this._writer.handleReferenceTyped(DwgReferenceType.HardPointer, entity.layer);
-			const isbylayerlt = entity.lineType.name === LineType.ByLayerName;
+			const isbylayerlt = entity.lineType.name === LineType.byLayerName;
 			this._writer.writeBit(isbylayerlt);
 			if (!isbylayerlt && entity.lineType.handle !== 0) {
 				this._writer.handleReferenceTyped(DwgReferenceType.HardPointer, entity.lineType);
 			}
 		}
 
-		if (!this.R2004Plus) {
+		if (!this.r2004Plus) {
 			const hasLinks = this._prev != null
 				&& this._prev.handle === entity.handle - 1
 				&& this._next != null
@@ -1248,18 +1248,18 @@ export class DwgObjectWriter extends DwgSectionIO {
 
 		this._writer.handleReferenceTyped(DwgReferenceType.HardPointer, entity.layer);
 
-		if (entity.lineType.name === LineType.ByLayerName) {
+		if (entity.lineType.name === LineType.byLayerName) {
 			this._writer.write2Bits(0b00);
-		} else if (entity.lineType.name === LineType.ByBlockName) {
+		} else if (entity.lineType.name === LineType.byBlockName) {
 			this._writer.write2Bits(0b01);
-		} else if (entity.lineType.name === LineType.ContinuousName) {
+		} else if (entity.lineType.name === LineType.continuousName) {
 			this._writer.write2Bits(0b10);
 		} else {
 			this._writer.write2Bits(0b11);
 			this._writer.handleReferenceTyped(DwgReferenceType.HardPointer, entity.lineType);
 		}
 
-		if (this.R2007Plus) {
+		if (this.r2007Plus) {
 			this._writer.write2Bits(0b00);
 			this._writer.writeByte(0);
 		}
@@ -1277,16 +1277,16 @@ export class DwgObjectWriter extends DwgSectionIO {
 		this._writer.writeByte(CadUtils.toIndex(entity.lineWeight));
 	}
 
-	private writeExtendedData(data: ExtendedDataDictionary): void {
-		if (this.WriteXData) {
+	private _writeExtendedData(data: ExtendedDataDictionary): void {
+		if (this.writeXData) {
 			for (const [app, entry] of data) {
-				this.writeExtendedDataEntry(app as AppId, entry);
+				this._writeExtendedDataEntry(app as AppId, entry);
 			}
 		}
 		this._writer.writeBitShort(0);
 	}
 
-	private writeExtendedDataEntry(app: AppId, entry: ExtendedData): void {
+	private _writeExtendedDataEntry(app: AppId, entry: ExtendedData): void {
 		const chunks: number[] = [];
 
 		for (const record of entry.records) {
@@ -1345,18 +1345,18 @@ export class DwgObjectWriter extends DwgSectionIO {
 				const bytes = new Uint8Array(buf);
 				for (let i = 0; i < 8; i++) chunks.push(bytes[i]);
 			} else if (record instanceof ExtendedDataString) {
-				if (this.R2007Plus) {
+				if (this.r2007Plus) {
 					const len = record.value.length + 1;
 					const buf = new ArrayBuffer(2);
 					new DataView(buf).setUint16(0, len, true);
 					const lenBytes = new Uint8Array(buf);
 					chunks.push(lenBytes[0], lenBytes[1]);
-					const textBytes = this.encodeUtf16LE(record.value);
+					const textBytes = this._encodeUtf16LE(record.value);
 					for (let i = 0; i < textBytes.length; i++) chunks.push(textBytes[i]);
 					chunks.push(0, 0);
 				} else {
 					const encodingIndex = CadUtils.getCodeIndex(CadUtils.getCodePage(this._writer.encoding));
-					const textBytes = this.encodeText(record.value || '');
+					const textBytes = this._encodeText(record.value || '');
 					const buf = new ArrayBuffer(2);
 					new DataView(buf).setUint16(0, textBytes.length, true);
 					const lenBytes = new Uint8Array(buf);
@@ -1374,7 +1374,7 @@ export class DwgObjectWriter extends DwgSectionIO {
 		this._writer.writeBytesOffset(new Uint8Array(chunks), 0, chunks.length);
 	}
 
-	private writeReactorsAndDictionaryHandle(cadObject: CadObject): void {
+	private _writeReactorsAndDictionaryHandle(cadObject: CadObject): void {
 		cadObject.cleanReactors();
 
 		this._writer.writeBitLong(cadObject.reactors.length);
@@ -1384,7 +1384,7 @@ export class DwgObjectWriter extends DwgSectionIO {
 
 		const noDictionary = cadObject.xDictionary == null;
 
-		if (this.R2004Plus) {
+		if (this.r2004Plus) {
 			this._writer.writeBit(noDictionary);
 			if (!noDictionary) {
 				this._writer.handleReferenceTyped(DwgReferenceType.HardOwnership, cadObject.xDictionary);
@@ -1393,7 +1393,7 @@ export class DwgObjectWriter extends DwgSectionIO {
 			this._writer.handleReferenceTyped(DwgReferenceType.HardOwnership, cadObject.xDictionary);
 		}
 
-		if (this.R2013Plus) {
+		if (this.r2013Plus) {
 			this._writer.writeBit(false);
 		}
 
@@ -1403,7 +1403,7 @@ export class DwgObjectWriter extends DwgSectionIO {
 		}
 	}
 
-	private getEntMode(entity: Entity): number {
+	private _getEntMode(entity: Entity): number {
 		if (entity.owner == null) return 0;
 		if (entity.owner.handle === this._document.paperSpace.handle) return 0b01;
 		if (entity.owner.handle === this._document.modelSpace.handle) return 0b10;
@@ -1412,135 +1412,135 @@ export class DwgObjectWriter extends DwgSectionIO {
 
 	// ==================== Entity Writers ====================
 
-	private writeEntity(entity: Entity): void {
+	private _writeEntity(entity: Entity): void {
 		if (entity instanceof Seqend) {
-			this.writeSeqend(entity);
+			this._writeSeqend(entity);
 			return;
 		}
 
 		const children: Entity[] = [];
 		let seqend: Seqend | null = null;
 
-		this.writeCommonEntityData(entity);
+		this._writeCommonEntityData(entity);
 
 		if (entity instanceof Arc) {
-			this.writeArc(entity);
+			this._writeArc(entity);
 		} else if (entity instanceof Circle) {
-			this.writeCircle(entity);
+			this._writeCircle(entity);
 		} else if (entity instanceof Dimension) {
-			this.writeCommonDimensionData(entity);
+			this._writeCommonDimensionData(entity);
 			if (entity instanceof DimensionLinear) {
-				this.writeDimensionLinear(entity);
+				this._writeDimensionLinear(entity);
 			} else if (entity instanceof DimensionAligned) {
-				this.writeDimensionAligned(entity);
+				this._writeDimensionAligned(entity);
 			} else if (entity instanceof DimensionRadius) {
-				this.writeDimensionRadius(entity);
+				this._writeDimensionRadius(entity);
 			} else if (entity instanceof DimensionAngular2Line) {
-				this.writeDimensionAngular2Line(entity);
+				this._writeDimensionAngular2Line(entity);
 			} else if (entity instanceof DimensionAngular3Pt) {
-				this.writeDimensionAngular3Pt(entity);
+				this._writeDimensionAngular3Pt(entity);
 			} else if (entity instanceof DimensionDiameter) {
-				this.writeDimensionDiameter(entity);
+				this._writeDimensionDiameter(entity);
 			} else if (entity instanceof DimensionOrdinate) {
-				this.writeDimensionOrdinate(entity);
+				this._writeDimensionOrdinate(entity);
 			} else {
 				throw new Error(`Dimension not implemented : ${entity.constructor.name}`);
 			}
 		} else if (entity instanceof Ellipse) {
-			this.writeEllipse(entity);
+			this._writeEllipse(entity);
 		} else if (entity instanceof TableEntity) {
-			this.writeTableEntity(entity);
+			this._writeTableEntity(entity);
 		} else if (entity instanceof Insert) {
-			this.writeInsert(entity);
+			this._writeInsert(entity);
 			children.push(...entity.attributes);
-			seqend = entity.attributes.Seqend;
+			seqend = entity.attributes.seqend;
 		} else if (entity instanceof Face3D) {
-			this.writeFace3D(entity);
+			this._writeFace3D(entity);
 		} else if (entity instanceof Hatch) {
-			this.writeHatch(entity);
+			this._writeHatch(entity);
 		} else if (entity instanceof Leader) {
-			this.writeLeader(entity);
+			this._writeLeader(entity);
 		} else if (entity instanceof Line) {
-			this.writeLine(entity);
+			this._writeLine(entity);
 		} else if (entity instanceof LwPolyline) {
-			this.writeLwPolyline(entity);
+			this._writeLwPolyline(entity);
 		} else if (entity instanceof Mesh) {
-			this.writeMesh(entity);
+			this._writeMesh(entity);
 		} else if (entity instanceof MLine) {
-			this.writeMLine(entity);
+			this._writeMLine(entity);
 		} else if (entity instanceof MText) {
-			this.writeMText(entity);
+			this._writeMText(entity);
 		} else if (entity instanceof MultiLeader) {
-			this.writeMultiLeader(entity);
+			this._writeMultiLeader(entity);
 		} else if (entity instanceof Ole2Frame) {
-			this.writeOle2Frame(entity);
+			this._writeOle2Frame(entity);
 		} else if (entity instanceof PdfUnderlay) {
-			this.writePdfUnderlay(entity);
+			this._writePdfUnderlay(entity);
 		} else if (entity instanceof Point) {
-			this.writePoint(entity);
+			this._writePoint(entity);
 		} else if (entity instanceof ProxyEntity) {
-			this.writeProxyEntity(entity);
+			this._writeProxyEntity(entity);
 		} else if (entity instanceof Wall) {
-			this.writeWall(entity);
+			this._writeWall(entity);
 		} else if (entity instanceof PolyfaceMesh) {
-			this.writePolyfaceMesh(entity);
+			this._writePolyfaceMesh(entity);
 			children.push(...entity.vertices, ...entity.faces);
-			seqend = entity.vertices.Seqend;
+			seqend = entity.vertices.seqend;
 		} else if (entity instanceof Polyline2D) {
-			this.writePolyline2D(entity);
+			this._writePolyline2D(entity);
 			children.push(...entity.vertices);
-			seqend = entity.vertices.Seqend;
+			seqend = entity.vertices.seqend;
 		} else if (entity instanceof Polyline3D) {
-			this.writePolyline3D(entity);
+			this._writePolyline3D(entity);
 			children.push(...entity.vertices);
-			seqend = entity.vertices.Seqend;
+			seqend = entity.vertices.seqend;
 		} else if (entity instanceof PolygonMesh) {
-			this.writePolygonMesh(entity);
+			this._writePolygonMesh(entity);
 			children.push(...entity.vertices);
-			seqend = entity.vertices.Seqend;
+			seqend = entity.vertices.seqend;
 		} else if (entity instanceof Ray) {
-			this.writeRay(entity);
+			this._writeRay(entity);
 		} else if (entity instanceof Shape) {
-			this.writeShape(entity);
+			this._writeShape(entity);
 		} else if (entity instanceof Solid) {
-			this.writeSolid(entity);
+			this._writeSolid(entity);
 		} else if (entity instanceof Solid3D) {
-			this.writeSolid3D(entity);
+			this._writeSolid3D(entity);
 		} else if (entity instanceof CadBody) {
-			this.writeCadBody(entity);
+			this._writeCadBody(entity);
 		} else if (entity instanceof Region) {
-			this.writeRegion(entity);
+			this._writeRegion(entity);
 		} else if (entity instanceof Spline) {
-			this.writeSpline(entity);
+			this._writeSpline(entity);
 		} else if (entity instanceof CadWipeoutBase) {
-			this.writeCadImage(entity);
+			this._writeCadImage(entity);
 		} else if (entity instanceof AttributeEntity) {
-			this.writeAttribute(entity);
+			this._writeAttribute(entity);
 		} else if (entity instanceof AttributeDefinition) {
-			this.writeAttDefinition(entity);
+			this._writeAttDefinition(entity);
 		} else if (entity instanceof TextEntity) {
-			this.writeTextEntity(entity);
+			this._writeTextEntity(entity);
 		} else if (entity instanceof Tolerance) {
-			this.writeTolerance(entity);
+			this._writeTolerance(entity);
 		} else if (entity instanceof Vertex2D) {
-			this.writeVertex2D(entity);
+			this._writeVertex2D(entity);
 		} else if (entity instanceof VertexFaceRecord) {
-			this.writeFaceRecord(entity);
+			this._writeFaceRecord(entity);
 		} else if (entity instanceof Vertex3D || entity instanceof VertexFaceMesh || entity instanceof PolygonMeshVertex) {
-			this.writeVertex(entity as Vertex);
+			this._writeVertex(entity as Vertex);
 		} else if (entity instanceof Viewport) {
-			this.writeViewport(entity);
+			this._writeViewport(entity);
 		} else if (entity instanceof XLine) {
-			this.writeXLine(entity);
+			this._writeXLine(entity);
 		} else {
 			throw new Error(`Entity not implemented : ${entity.constructor.name}`);
 		}
 
-		this.registerObject(entity);
-		this.writeChildEntities(children, seqend);
+		this._registerObject(entity);
+		this._writeChildEntities(children, seqend);
 	}
 
-	private writePdfUnderlay(underlay: PdfUnderlay): void {
+	private _writePdfUnderlay(underlay: PdfUnderlay): void {
 		this._writer.write3BitDouble(underlay.normal);
 		this._writer.write3BitDouble(underlay.insertPoint);
 		this._writer.writeBitDouble(underlay.rotation);
@@ -1557,12 +1557,12 @@ export class DwgObjectWriter extends DwgSectionIO {
 		}
 	}
 
-	private enqueueObject(object: NonGraphicalObject | null | undefined): void {
+	private _enqueueObject(object: NonGraphicalObject | null | undefined): void {
 		if (object == null || object.handle === 0) {
 			return;
 		}
 
-		if (this.Map.has(object.handle)) {
+		if (this.map.has(object.handle)) {
 			return;
 		}
 
@@ -1573,10 +1573,10 @@ export class DwgObjectWriter extends DwgSectionIO {
 		this._objects.push(object);
 	}
 
-	private writeCommonProxyData(proxy: IProxy): void {
+	private _writeCommonProxyData(proxy: IProxy): void {
 		this._writer.writeBitLong(proxy.classId);
 
-		if (!this.R2000Plus) {
+		if (!this.r2000Plus) {
 			return;
 		}
 
@@ -1584,7 +1584,7 @@ export class DwgObjectWriter extends DwgSectionIO {
 			this._writer.writeVariableText('');
 		}
 
-		if (!this.R2018Plus) {
+		if (!this.r2018Plus) {
 			this._writer.writeBitLong((proxy.version as number) | (proxy.maintenanceVersion << 16));
 		} else {
 			this._writer.writeBitLong(proxy.version);
@@ -1594,37 +1594,37 @@ export class DwgObjectWriter extends DwgSectionIO {
 		this._writer.writeBit(proxy.originalDataFormatDxf);
 	}
 
-	private writeArc(arc: Arc): void {
-		this.writeCircle(arc);
+	private _writeArc(arc: Arc): void {
+		this._writeCircle(arc);
 		this._writer.writeBitDouble(arc.startAngle);
 		this._writer.writeBitDouble(arc.endAngle);
 	}
 
-	private writeAttribute(att: AttributeEntity): void {
-		this.writeCommonAttData(att);
+	private _writeAttribute(att: AttributeEntity): void {
+		this._writeCommonAttData(att);
 	}
 
-	private writeAttDefinition(attdef: AttributeDefinition): void {
-		this.writeCommonAttData(attdef);
-		if (this.R2010Plus) {
+	private _writeAttDefinition(attdef: AttributeDefinition): void {
+		this._writeCommonAttData(attdef);
+		if (this.r2010Plus) {
 			this._writer.writeByte(attdef.version);
 		}
 		this._writer.writeVariableText(attdef.prompt);
 	}
 
-	private writeCommonAttData(att: AttributeBase): void {
-		this.writeTextEntity(att);
+	private _writeCommonAttData(att: AttributeBase): void {
+		this._writeTextEntity(att);
 
-		if (this.R2010Plus) {
+		if (this.r2010Plus) {
 			this._writer.writeByte(att.version);
 		}
 
-		if (this.R2018Plus) {
+		if (this.r2018Plus) {
 			this._writer.writeByte(att.attributeType);
 			if (att.attributeType === AttributeType.MultiLine ||
 				att.attributeType === AttributeType.ConstantMultiLine) {
-				this.writeEntityMode(att.mText);
-				this.writeMText(att.mText);
+				this._writeEntityMode(att.mText);
+				this._writeMText(att.mText);
 				this._writer.writeBitShort(0);
 			}
 		}
@@ -1633,20 +1633,20 @@ export class DwgObjectWriter extends DwgSectionIO {
 		this._writer.writeBitShort(0);
 		this._writer.writeByte(att.flags);
 
-		if (this.R2007Plus) {
+		if (this.r2007Plus) {
 			this._writer.writeBit(att.isReallyLocked);
 		}
 	}
 
-	private writeCircle(circle: Circle): void {
+	private _writeCircle(circle: Circle): void {
 		this._writer.write3BitDouble(circle.center);
 		this._writer.writeBitDouble(circle.radius);
 		this._writer.writeBitThickness(circle.thickness);
 		this._writer.writeBitExtrusion(circle.normal);
 	}
 
-	private writeCommonDimensionData(dimension: Dimension): void {
-		if (this.R2010Plus) {
+	private _writeCommonDimensionData(dimension: Dimension): void {
+		if (this.r2010Plus) {
 			this._writer.writeByte(dimension.version);
 		}
 
@@ -1664,14 +1664,14 @@ export class DwgObjectWriter extends DwgSectionIO {
 		this._writer.write3BitDouble(new XYZ(1, 1, 1));
 		this._writer.writeBitDouble(0);
 
-		if (this.R2000Plus) {
+		if (this.r2000Plus) {
 			this._writer.writeBitShort(dimension.attachmentPoint);
 			this._writer.writeBitShort(dimension.lineSpacingStyle);
 			this._writer.writeBitDouble(dimension.lineSpacingFactor);
 			this._writer.writeBitDouble(dimension.measurement);
 		}
 
-		if (this.R2007Plus) {
+		if (this.r2007Plus) {
 			this._writer.writeBit(false);
 			this._writer.writeBit(dimension.flipArrow1);
 			this._writer.writeBit(dimension.flipArrow2);
@@ -1682,25 +1682,25 @@ export class DwgObjectWriter extends DwgSectionIO {
 		this._writer.handleReferenceTyped(DwgReferenceType.HardPointer, dimension.block);
 	}
 
-	private writeDimensionLinear(dimension: DimensionLinear): void {
-		this.writeDimensionAligned(dimension);
+	private _writeDimensionLinear(dimension: DimensionLinear): void {
+		this._writeDimensionAligned(dimension);
 		this._writer.writeBitDouble(dimension.rotation);
 	}
 
-	private writeDimensionAligned(dimension: DimensionAligned): void {
+	private _writeDimensionAligned(dimension: DimensionAligned): void {
 		this._writer.write3BitDouble(dimension.firstPoint);
 		this._writer.write3BitDouble(dimension.secondPoint);
 		this._writer.write3BitDouble(dimension.definitionPoint);
 		this._writer.writeBitDouble(dimension.extLineRotation);
 	}
 
-	private writeDimensionRadius(dimension: DimensionRadius): void {
+	private _writeDimensionRadius(dimension: DimensionRadius): void {
 		this._writer.write3BitDouble(dimension.definitionPoint);
 		this._writer.write3BitDouble(dimension.angleVertex);
 		this._writer.writeBitDouble(dimension.leaderLength);
 	}
 
-	private writeDimensionAngular2Line(dimension: DimensionAngular2Line): void {
+	private _writeDimensionAngular2Line(dimension: DimensionAngular2Line): void {
 		this._writer.write2RawDouble(new XY(dimension.dimensionArc.x, dimension.dimensionArc.y));
 		this._writer.write3BitDouble(dimension.firstPoint);
 		this._writer.write3BitDouble(dimension.secondPoint);
@@ -1708,27 +1708,27 @@ export class DwgObjectWriter extends DwgSectionIO {
 		this._writer.write3BitDouble(dimension.definitionPoint);
 	}
 
-	private writeDimensionAngular3Pt(dimension: DimensionAngular3Pt): void {
+	private _writeDimensionAngular3Pt(dimension: DimensionAngular3Pt): void {
 		this._writer.write3BitDouble(dimension.definitionPoint);
 		this._writer.write3BitDouble(dimension.firstPoint);
 		this._writer.write3BitDouble(dimension.secondPoint);
 		this._writer.write3BitDouble(dimension.angleVertex);
 	}
 
-	private writeDimensionDiameter(dimension: DimensionDiameter): void {
+	private _writeDimensionDiameter(dimension: DimensionDiameter): void {
 		this._writer.write3BitDouble(dimension.definitionPoint);
 		this._writer.write3BitDouble(dimension.angleVertex);
 		this._writer.writeBitDouble(dimension.leaderLength);
 	}
 
-	private writeDimensionOrdinate(dimension: DimensionOrdinate): void {
+	private _writeDimensionOrdinate(dimension: DimensionOrdinate): void {
 		this._writer.write3BitDouble(dimension.definitionPoint);
 		this._writer.write3BitDouble(dimension.featureLocation);
 		this._writer.write3BitDouble(dimension.leaderEndpoint);
 		this._writer.writeByte(dimension.isOrdinateTypeX ? 1 : 0);
 	}
 
-	private writeEllipse(ellipse: Ellipse): void {
+	private _writeEllipse(ellipse: Ellipse): void {
 		this._writer.write3BitDouble(ellipse.center);
 		this._writer.write3BitDouble(ellipse.majorAxisEndPoint);
 		this._writer.write3BitDouble(ellipse.normal);
@@ -1737,16 +1737,16 @@ export class DwgObjectWriter extends DwgSectionIO {
 		this._writer.writeBitDouble(ellipse.endParameter);
 	}
 
-	private writeInsert(insert: Insert): void {
+	private _writeInsert(insert: Insert): void {
 		this._writer.write3BitDouble(insert.insertPoint);
 
-		if (this.R13_14Only) {
+		if (this.r13_14Only) {
 			this._writer.writeBitDouble(insert.xScale);
 			this._writer.writeBitDouble(insert.yScale);
 			this._writer.writeBitDouble(insert.zScale);
 		}
 
-		if (this.R2000Plus) {
+		if (this.r2000Plus) {
 			if (insert.xScale === 1.0 && insert.yScale === 1.0 && insert.zScale === 1.0) {
 				this._writer.write2Bits(3);
 			} else if (insert.xScale === insert.yScale && insert.xScale === insert.zScale) {
@@ -1768,7 +1768,7 @@ export class DwgObjectWriter extends DwgSectionIO {
 		this._writer.write3BitDouble(insert.normal);
 		this._writer.writeBit(insert.hasAttributes);
 
-		if (this.R2004Plus && insert.hasAttributes) {
+		if (this.r2004Plus && insert.hasAttributes) {
 			this._writer.writeBitLong(insert.attributes.length);
 		}
 
@@ -1786,17 +1786,17 @@ export class DwgObjectWriter extends DwgSectionIO {
 		if (this._version >= ACadVersion.AC1012 && this._version <= ACadVersion.AC1015) {
 			this._writer.handleReferenceTyped(DwgReferenceType.SoftPointer, insert.attributes[0]);
 			this._writer.handleReferenceTyped(DwgReferenceType.SoftPointer, insert.attributes[insert.attributes.length - 1]);
-		} else if (this.R2004Plus) {
+		} else if (this.r2004Plus) {
 			for (const att of insert.attributes) {
 				this._writer.handleReferenceTyped(DwgReferenceType.HardOwnership, att);
 			}
 		}
 
-		this._writer.handleReferenceTyped(DwgReferenceType.HardOwnership, insert.attributes.Seqend);
+		this._writer.handleReferenceTyped(DwgReferenceType.HardOwnership, insert.attributes.seqend);
 	}
 
-	private writeFace3D(face: Face3D): void {
-		if (this.R13_14Only) {
+	private _writeFace3D(face: Face3D): void {
+		if (this.r13_14Only) {
 			this._writer.write3BitDouble(face.firstCorner);
 			this._writer.write3BitDouble(face.secondCorner);
 			this._writer.write3BitDouble(face.thirdCorner);
@@ -1804,7 +1804,7 @@ export class DwgObjectWriter extends DwgSectionIO {
 			this._writer.writeBitShort(face.flags);
 		}
 
-		if (this.R2000Plus) {
+		if (this.r2000Plus) {
 			const noFlags = face.flags === InvisibleEdgeFlags.None;
 			this._writer.writeBit(noFlags);
 			const zIsZero = face.firstCorner.z === 0.0;
@@ -1826,7 +1826,7 @@ export class DwgObjectWriter extends DwgSectionIO {
 		}
 	}
 
-	private writeMesh(mesh: Mesh): void {
+	private _writeMesh(mesh: Mesh): void {
 		this._writer.writeBitShort(mesh.version);
 		this._writer.writeBit(mesh.blendCrease !== 0);
 		this._writer.writeBitLong(mesh.subdivisionLevel);
@@ -1858,7 +1858,7 @@ export class DwgObjectWriter extends DwgSectionIO {
 		this._writer.writeBitLong(0);
 	}
 
-	private writeMLine(mline: MLine): void {
+	private _writeMLine(mline: MLine): void {
 		this._writer.writeBitDouble(mline.scaleFactor);
 		this._writer.writeByte(mline.justification);
 		this._writer.write3BitDouble(mline.startPoint);
@@ -1893,7 +1893,7 @@ export class DwgObjectWriter extends DwgSectionIO {
 		this._writer.handleReferenceTyped(DwgReferenceType.HardPointer, mline.style);
 	}
 
-	private writeLwPolyline(lwPolyline: LwPolyline): void {
+	private _writeLwPolyline(lwPolyline: LwPolyline): void {
 		let nbulges = false;
 		let ndiffwidth = false;
 		for (const item of lwPolyline.vertices) {
@@ -1907,7 +1907,7 @@ export class DwgObjectWriter extends DwgSectionIO {
 		if (lwPolyline.constantWidth !== 0.0) flags |= 0x4;
 		if (lwPolyline.elevation !== 0.0) flags |= 0x8;
 		if (lwPolyline.thickness !== 0.0) flags |= 2;
-		if (!XYZ.equals(lwPolyline.normal, XYZ.AxisZ)) flags |= 1;
+		if (!XYZ.equals(lwPolyline.normal, XYZ.axisZ)) flags |= 1;
 		if (nbulges) flags |= 0x10;
 		if (ndiffwidth) flags |= 0x20;
 
@@ -1916,19 +1916,19 @@ export class DwgObjectWriter extends DwgSectionIO {
 		if (lwPolyline.constantWidth !== 0.0) this._writer.writeBitDouble(lwPolyline.constantWidth);
 		if (lwPolyline.elevation !== 0.0) this._writer.writeBitDouble(lwPolyline.elevation);
 		if (lwPolyline.thickness !== 0.0) this._writer.writeBitDouble(lwPolyline.thickness);
-		if (!XYZ.equals(lwPolyline.normal, XYZ.AxisZ)) this._writer.write3BitDouble(lwPolyline.normal);
+		if (!XYZ.equals(lwPolyline.normal, XYZ.axisZ)) this._writer.write3BitDouble(lwPolyline.normal);
 
 		this._writer.writeBitLong(lwPolyline.vertices.length);
 		if (nbulges) this._writer.writeBitLong(lwPolyline.vertices.length);
 		if (ndiffwidth) this._writer.writeBitLong(lwPolyline.vertices.length);
 
-		if (this.R13_14Only) {
+		if (this.r13_14Only) {
 			for (const v of lwPolyline.vertices) {
 				this._writer.write2RawDouble(v.location);
 			}
 		}
 
-		if (this.R2000Plus && lwPolyline.vertices.length > 0) {
+		if (this.r2000Plus && lwPolyline.vertices.length > 0) {
 			let last = lwPolyline.vertices[0];
 			this._writer.write2RawDouble(last.location);
 			for (let j = 1; j < lwPolyline.vertices.length; j++) {
@@ -1952,8 +1952,8 @@ export class DwgObjectWriter extends DwgSectionIO {
 		}
 	}
 
-	private writeHatch(hatch: Hatch): void {
-		if (this.R2004Plus) {
+	private _writeHatch(hatch: Hatch): void {
+		if (this.r2004Plus) {
 			const gradient = hatch.gradientColor;
 			this._writer.writeBitLong(gradient.enabled ? 1 : 0);
 			this._writer.writeBitLong(gradient.reserved);
@@ -1991,9 +1991,9 @@ export class DwgObjectWriter extends DwgSectionIO {
 				this._writer.writeBit(pline.isClosed);
 				this._writer.writeBitLong(pline.vertices.length);
 				for (const vertex of pline.vertices) {
-					this._writer.write2RawDouble(new XY(vertex.X, vertex.Y));
+					this._writer.write2RawDouble(new XY(vertex.x, vertex.y));
 					if (pline.hasBulge) {
-						this._writer.writeBitDouble(vertex.Z);
+						this._writer.writeBitDouble(vertex.z);
 					}
 				}
 			} else {
@@ -2026,13 +2026,13 @@ export class DwgObjectWriter extends DwgSectionIO {
 							this._writer.writeBitDouble(k);
 						}
 						for (let p = 0; p < edge.controlPoints.length; ++p) {
-							this._writer.write2RawDouble(new XY(edge.controlPoints[p].X, edge.controlPoints[p].Y));
+							this._writer.write2RawDouble(new XY(edge.controlPoints[p].x, edge.controlPoints[p].y));
 							if (edge.isRational) {
-								this._writer.writeBitDouble(edge.controlPoints[p].Z);
+								this._writer.writeBitDouble(edge.controlPoints[p].z);
 							}
 						}
 
-						if (this.R2010Plus) {
+						if (this.r2010Plus) {
 							this._writer.writeBitLong(edge.fitPoints.length);
 							if (edge.fitPoints.length > 0) {
 								for (const fp of edge.fitPoints) {
@@ -2085,7 +2085,7 @@ export class DwgObjectWriter extends DwgSectionIO {
 		}
 	}
 
-	private writeLeader(leader: Leader): void {
+	private _writeLeader(leader: Leader): void {
 		this._writer.writeBit(false);
 		this._writer.writeBitShort(leader.creationType);
 		this._writer.writeBitShort(leader.pathType);
@@ -2095,7 +2095,7 @@ export class DwgObjectWriter extends DwgSectionIO {
 			this._writer.write3BitDouble(v);
 		}
 
-		this._writer.write3BitDouble(leader.vertices.length > 0 ? leader.vertices[0] : XYZ.Zero);
+		this._writer.write3BitDouble(leader.vertices.length > 0 ? leader.vertices[0] : XYZ.zero);
 		this._writer.write3BitDouble(leader.normal);
 		this._writer.write3BitDouble(leader.horizontalDirection);
 		this._writer.write3BitDouble(leader.blockOffset);
@@ -2104,7 +2104,7 @@ export class DwgObjectWriter extends DwgSectionIO {
 			this._writer.write3BitDouble(leader.annotationOffset);
 		}
 
-		if (this.R13_14Only) {
+		if (this.r13_14Only) {
 			this._writer.writeBitDouble(leader.style.dimensionLineGap);
 		}
 
@@ -2116,7 +2116,7 @@ export class DwgObjectWriter extends DwgSectionIO {
 		this._writer.writeBit(leader.hookLineDirection === HookLineDirection.Same);
 		this._writer.writeBit(leader.arrowHeadEnabled);
 
-		if (this.R13_14Only) {
+		if (this.r13_14Only) {
 			this._writer.writeBitShort(0);
 			this._writer.writeBitDouble(leader.style.arrowSize * leader.style.scaleFactor);
 			this._writer.writeBit(false);
@@ -2127,7 +2127,7 @@ export class DwgObjectWriter extends DwgSectionIO {
 			this._writer.writeBit(false);
 		}
 
-		if (this.R2000Plus) {
+		if (this.r2000Plus) {
 			this._writer.writeBitShort(0);
 			this._writer.writeBit(false);
 			this._writer.writeBit(false);
@@ -2137,24 +2137,24 @@ export class DwgObjectWriter extends DwgSectionIO {
 		this._writer.handleReferenceTyped(DwgReferenceType.HardPointer, leader.style);
 	}
 
-	private writeOle2Frame(ole2Frame: Ole2Frame): void {
+	private _writeOle2Frame(ole2Frame: Ole2Frame): void {
 		this._writer.writeBitShort(ole2Frame.version);
-		if (this.R2000Plus) {
+		if (this.r2000Plus) {
 			this._writer.writeBitShort(0);
 		}
 		this._writer.writeBitLong(ole2Frame.binaryData.length);
 		this._writer.writeBytes(ole2Frame.binaryData);
-		if (this.R2000Plus) {
+		if (this.r2000Plus) {
 			this._writer.writeByte(3);
 		}
 	}
 
-	private writeMultiLeader(multiLeader: MultiLeader): void {
-		if (this.R2010Plus) {
+	private _writeMultiLeader(multiLeader: MultiLeader): void {
+		if (this.r2010Plus) {
 			this._writer.writeBitShort(2);
 		}
 
-		this.writeMultiLeaderAnnotContextSubObject(true, multiLeader.contextData);
+		this._writeMultiLeaderAnnotContextSubObject(true, multiLeader.contextData);
 
 		this._writer.handleReferenceTyped(DwgReferenceType.HardPointer, multiLeader.style);
 		this._writer.writeBitLong(multiLeader.propertyOverrideFlags);
@@ -2183,7 +2183,7 @@ export class DwgObjectWriter extends DwgSectionIO {
 		this._writer.writeBitShort(multiLeader.blockContentConnection);
 		this._writer.writeBit(multiLeader.enableAnnotationScale);
 
-		if (this.R2007Pre) {
+		if (this.r2007Pre) {
 			const arrowheadEntries: Array<{ handle: BlockRecord | null; isDefault: boolean }> = [];
 			if (multiLeader.arrowhead != null) {
 				arrowheadEntries.push({ handle: multiLeader.arrowhead, isDefault: true });
@@ -2218,18 +2218,18 @@ export class DwgObjectWriter extends DwgSectionIO {
 		this._writer.writeBitShort(multiLeader.textAttachmentPoint);
 		this._writer.writeBitDouble(multiLeader.scaleFactor);
 
-		if (this.R2010Plus) {
+		if (this.r2010Plus) {
 			this._writer.writeBitShort(multiLeader.textAttachmentDirection);
 			this._writer.writeBitShort(multiLeader.textBottomAttachment);
 			this._writer.writeBitShort(multiLeader.textTopAttachment);
 		}
 
-		if (this.R2013Plus) {
+		if (this.r2013Plus) {
 			this._writer.writeBit(multiLeader.extendedToText);
 		}
 	}
 
-	private writeMultiLeaderAnnotContextSubObject(writeLeaderRootsCount: boolean, annotContext: MultiLeaderObjectContextData): void {
+	private _writeMultiLeaderAnnotContextSubObject(writeLeaderRootsCount: boolean, annotContext: MultiLeaderObjectContextData): void {
 		const leaderRootCount = annotContext.leaderRoots.length;
 		if (writeLeaderRootsCount) {
 			this._writer.writeBitLong(leaderRootCount);
@@ -2245,7 +2245,7 @@ export class DwgObjectWriter extends DwgSectionIO {
 		}
 
 		for (let i = 0; i < leaderRootCount; i++) {
-			this.writeLeaderRoot(annotContext.leaderRoots[i]);
+			this._writeLeaderRoot(annotContext.leaderRoots[i]);
 		}
 
 		this._writer.writeBitDouble(annotContext.scaleFactor);
@@ -2304,14 +2304,14 @@ export class DwgObjectWriter extends DwgSectionIO {
 				this._writer.writeCmColor(annotContext.blockContentColor);
 
 				const m4 = annotContext.transformationMatrix;
-				this._writer.writeBitDouble(m4.M00); this._writer.writeBitDouble(m4.M10);
-				this._writer.writeBitDouble(m4.M20); this._writer.writeBitDouble(m4.M30);
-				this._writer.writeBitDouble(m4.M01); this._writer.writeBitDouble(m4.M11);
-				this._writer.writeBitDouble(m4.M21); this._writer.writeBitDouble(m4.M31);
-				this._writer.writeBitDouble(m4.M02); this._writer.writeBitDouble(m4.M12);
-				this._writer.writeBitDouble(m4.M22); this._writer.writeBitDouble(m4.M32);
-				this._writer.writeBitDouble(m4.M03); this._writer.writeBitDouble(m4.M13);
-				this._writer.writeBitDouble(m4.M23); this._writer.writeBitDouble(m4.M33);
+				this._writer.writeBitDouble(m4.m00); this._writer.writeBitDouble(m4.m10);
+				this._writer.writeBitDouble(m4.m20); this._writer.writeBitDouble(m4.m30);
+				this._writer.writeBitDouble(m4.m01); this._writer.writeBitDouble(m4.m11);
+				this._writer.writeBitDouble(m4.m21); this._writer.writeBitDouble(m4.m31);
+				this._writer.writeBitDouble(m4.m02); this._writer.writeBitDouble(m4.m12);
+				this._writer.writeBitDouble(m4.m22); this._writer.writeBitDouble(m4.m32);
+				this._writer.writeBitDouble(m4.m03); this._writer.writeBitDouble(m4.m13);
+				this._writer.writeBitDouble(m4.m23); this._writer.writeBitDouble(m4.m33);
 			}
 		}
 
@@ -2320,13 +2320,13 @@ export class DwgObjectWriter extends DwgSectionIO {
 		this._writer.write3BitDouble(annotContext.baseVertical);
 		this._writer.writeBit(annotContext.normalReversed);
 
-		if (this.R2010Plus) {
+		if (this.r2010Plus) {
 			this._writer.writeBitShort(annotContext.textTopAttachment);
 			this._writer.writeBitShort(annotContext.textBottomAttachment);
 		}
 	}
 
-	private writeLeaderRoot(leaderRoot: LeaderRoot): void {
+	private _writeLeaderRoot(leaderRoot: LeaderRoot): void {
 		this._writer.writeBit(leaderRoot.contentValid);
 		this._writer.writeBit(true);
 		this._writer.write3BitDouble(leaderRoot.connectionPoint);
@@ -2343,15 +2343,15 @@ export class DwgObjectWriter extends DwgSectionIO {
 
 		this._writer.writeBitLong(leaderRoot.lines.length);
 		for (const leaderLine of leaderRoot.lines) {
-			this.writeLeaderLine(leaderLine);
+			this._writeLeaderLine(leaderLine);
 		}
 
-		if (this.R2010Plus) {
+		if (this.r2010Plus) {
 			this._writer.writeBitShort(leaderRoot.textAttachmentDirection);
 		}
 	}
 
-	private writeLeaderLine(leaderLine: LeaderLine): void {
+	private _writeLeaderLine(leaderLine: LeaderLine): void {
 		this._writer.writeBitLong(leaderLine.points.length);
 		for (const point of leaderLine.points) {
 			this._writer.write3BitDouble(point);
@@ -2369,7 +2369,7 @@ export class DwgObjectWriter extends DwgSectionIO {
 
 		this._writer.writeBitLong(leaderLine.index);
 
-		if (this.R2010Plus) {
+		if (this.r2010Plus) {
 			this._writer.writeBitShort(leaderLine.pathType);
 			this._writer.writeCmColor(leaderLine.lineColor);
 			this._writer.handleReferenceTyped(DwgReferenceType.HardPointer, leaderLine.lineType);
@@ -2380,13 +2380,13 @@ export class DwgObjectWriter extends DwgSectionIO {
 		}
 	}
 
-	private writeLine(line: Line): void {
-		if (this.R13_14Only) {
+	private _writeLine(line: Line): void {
+		if (this.r13_14Only) {
 			this._writer.write3BitDouble(line.startPoint);
 			this._writer.write3BitDouble(line.endPoint);
 		}
 
-		if (this.R2000Plus) {
+		if (this.r2000Plus) {
 			const flag = line.startPoint.z === 0.0 && line.endPoint.z === 0.0;
 			this._writer.writeBit(flag);
 			this._writer.writeRawDouble(line.startPoint.x);
@@ -2404,19 +2404,19 @@ export class DwgObjectWriter extends DwgSectionIO {
 		this._writer.writeBitExtrusion(line.normal);
 	}
 
-	private writePoint(point: Point): void {
+	private _writePoint(point: Point): void {
 		this._writer.write3BitDouble(point.location);
 		this._writer.writeBitThickness(point.thickness);
 		this._writer.writeBitExtrusion(point.normal);
 		this._writer.writeBitDouble(point.rotation);
 	}
 
-	private writeProxyEntity(proxy: ProxyEntity): void {
-		this.writeCommonProxyData(proxy);
+	private _writeProxyEntity(proxy: ProxyEntity): void {
+		this._writeCommonProxyData(proxy);
 	}
 
-	private writeWall(wall: Wall): void {
-		if (this.R2000Plus) {
+	private _writeWall(wall: Wall): void {
+		if (this.r2000Plus) {
 			this._writer.writeBitLong(wall.version);
 		}
 
@@ -2428,16 +2428,16 @@ export class DwgObjectWriter extends DwgSectionIO {
 		this._writer.handleReference(wall.style ?? 0);
 		this._writer.handleReference(wall.cleanupGroup ?? 0);
 
-		this.enqueueObject(wall.binRecord);
-		this.enqueueObject(wall.style);
-		this.enqueueObject(wall.cleanupGroup);
+		this._enqueueObject(wall.binRecord);
+		this._enqueueObject(wall.style);
+		this._enqueueObject(wall.cleanupGroup);
 	}
 
-	private writePolyfaceMesh(fm: PolyfaceMesh): void {
+	private _writePolyfaceMesh(fm: PolyfaceMesh): void {
 		this._writer.writeBitShort(fm.vertices.length);
 		this._writer.writeBitShort(fm.faces.length);
 
-		if (this.R2004Plus) {
+		if (this.r2004Plus) {
 			this._writer.writeBitLong(fm.vertices.length + fm.faces.length);
 			for (const v of fm.vertices) {
 				this._writer.handleReferenceTyped(DwgReferenceType.SoftPointer, v);
@@ -2447,16 +2447,16 @@ export class DwgObjectWriter extends DwgSectionIO {
 			}
 		}
 
-		if (this.R13_15Only) {
+		if (this.r13_15Only) {
 			const child: CadObject[] = [...fm.vertices, ...fm.faces];
 			this._writer.handleReferenceTyped(DwgReferenceType.SoftPointer, child.length > 0 ? child[0] : null);
 			this._writer.handleReferenceTyped(DwgReferenceType.SoftPointer, child.length > 0 ? child[child.length - 1] : null);
 		}
 
-		this._writer.handleReferenceTyped(DwgReferenceType.SoftPointer, fm.vertices.Seqend);
+		this._writer.handleReferenceTyped(DwgReferenceType.SoftPointer, fm.vertices.seqend);
 	}
 
-	private writePolyline2D(pline: Polyline2D): void {
+	private _writePolyline2D(pline: Polyline2D): void {
 		this._writer.writeBitShort(pline.flags);
 		this._writer.writeBitShort(pline.smoothSurface);
 		this._writer.writeBitDouble(pline.startWidth);
@@ -2465,7 +2465,7 @@ export class DwgObjectWriter extends DwgSectionIO {
 		this._writer.writeBitDouble(pline.elevation);
 		this._writer.writeBitExtrusion(pline.normal);
 
-		if (this.R2004Plus) {
+		if (this.r2004Plus) {
 			this._writer.writeBitLong(pline.vertices.length);
 			for (const v of pline.vertices) {
 				this._writer.handleReferenceTyped(DwgReferenceType.HardOwnership, v);
@@ -2477,14 +2477,14 @@ export class DwgObjectWriter extends DwgSectionIO {
 			this._writer.handleReferenceTyped(DwgReferenceType.SoftPointer, pline.vertices.length > 0 ? pline.vertices[pline.vertices.length - 1] : null);
 		}
 
-		this._writer.handleReferenceTyped(DwgReferenceType.HardOwnership, pline.vertices.Seqend);
+		this._writer.handleReferenceTyped(DwgReferenceType.HardOwnership, pline.vertices.seqend);
 	}
 
-	private writePolyline3D(pline: Polyline3D): void {
+	private _writePolyline3D(pline: Polyline3D): void {
 		this._writer.writeByte(0);
 		this._writer.writeByte((pline.flags & PolylineFlags.ClosedPolylineOrClosedPolygonMeshInM) !== 0 ? 1 : 0);
 
-		if (this.R2004Plus) {
+		if (this.r2004Plus) {
 			this._writer.writeBitLong(pline.vertices.length);
 			for (const vertex of pline.vertices) {
 				this._writer.handleReferenceTyped(DwgReferenceType.HardOwnership, vertex);
@@ -2496,10 +2496,10 @@ export class DwgObjectWriter extends DwgSectionIO {
 			this._writer.handleReferenceTyped(DwgReferenceType.SoftPointer, pline.vertices.length > 0 ? pline.vertices[pline.vertices.length - 1] : null);
 		}
 
-		this._writer.handleReferenceTyped(DwgReferenceType.HardOwnership, pline.vertices.Seqend);
+		this._writer.handleReferenceTyped(DwgReferenceType.HardOwnership, pline.vertices.seqend);
 	}
 
-	private writePolygonMesh(pline: PolygonMesh): void {
+	private _writePolygonMesh(pline: PolygonMesh): void {
 		this._writer.writeBitShort(pline.flags);
 		this._writer.writeBitShort(pline.smoothSurface);
 		this._writer.writeBitShort(pline.mVertexCount);
@@ -2512,17 +2512,17 @@ export class DwgObjectWriter extends DwgSectionIO {
 			this._writer.handleReferenceTyped(DwgReferenceType.SoftPointer, pline.vertices.length > 0 ? pline.vertices[pline.vertices.length - 1] : null);
 		}
 
-		if (this.R2004Plus) {
+		if (this.r2004Plus) {
 			this._writer.writeBitLong(pline.vertices.length);
 			for (const vertex of pline.vertices) {
 				this._writer.handleReferenceTyped(DwgReferenceType.HardOwnership, vertex);
 			}
 		}
 
-		this._writer.handleReferenceTyped(DwgReferenceType.HardOwnership, pline.vertices.Seqend);
+		this._writer.handleReferenceTyped(DwgReferenceType.HardOwnership, pline.vertices.seqend);
 	}
 
-	private writeSeqend(seqend: Seqend | null): void {
+	private _writeSeqend(seqend: Seqend | null): void {
 		if (seqend == null) return;
 
 		const prevHolder = this._prev;
@@ -2530,14 +2530,14 @@ export class DwgObjectWriter extends DwgSectionIO {
 		this._prev = null;
 		this._next = null;
 
-		this.writeCommonEntityData(seqend);
-		this.registerObject(seqend);
+		this._writeCommonEntityData(seqend);
+		this._registerObject(seqend);
 
 		this._prev = prevHolder;
 		this._next = nextHolder;
 	}
 
-	private writeShape(shape: Shape): void {
+	private _writeShape(shape: Shape): void {
 		this._writer.write3BitDouble(shape.insertionPoint);
 		this._writer.writeBitDouble(shape.size);
 		this._writer.writeBitDouble(shape.rotation);
@@ -2549,7 +2549,7 @@ export class DwgObjectWriter extends DwgSectionIO {
 		this._writer.handleReferenceTyped(DwgReferenceType.HardPointer, shape.shapeStyle ?? null);
 	}
 
-	private writeSolid(solid: Solid): void {
+	private _writeSolid(solid: Solid): void {
 		this._writer.writeBitThickness(solid.thickness);
 		this._writer.writeBitDouble(solid.firstCorner.z);
 
@@ -2565,21 +2565,21 @@ export class DwgObjectWriter extends DwgSectionIO {
 		this._writer.writeBitExtrusion(solid.normal);
 	}
 
-	private writeSolid3D(solid: Solid3D): void {
-		this.writeModelerGeometry(solid);
-		if (this.R2007Plus) {
+	private _writeSolid3D(solid: Solid3D): void {
+		this._writeModelerGeometry(solid);
+		if (this.r2007Plus) {
 			this._writer.handleReference(0);
 		}
 	}
 
-	private writeTableEntity(table: TableEntity): void {
-		this.writeInsert(table);
+	private _writeTableEntity(table: TableEntity): void {
+		this._writeInsert(table);
 
-		if (this.R2010Plus) {
+		if (this.r2010Plus) {
 			this._writer.writeByte(table.version);
 			this._writer.handleReference(0);
 			this._writer.writeBitLong(0);
-			if (this.R2013Plus) {
+			if (this.r2013Plus) {
 				this._writer.writeBitLong(0);
 			} else {
 				this._writer.writeBit(false);
@@ -2601,7 +2601,7 @@ export class DwgObjectWriter extends DwgSectionIO {
 		this._writer.handleReference(table.style);
 		for (const row of table.rows) {
 			for (const cell of row.cells) {
-				this.writeTableCell(cell);
+				this._writeTableCell(cell);
 			}
 		}
 
@@ -2611,16 +2611,16 @@ export class DwgObjectWriter extends DwgSectionIO {
 		this._writer.writeBit(false);
 	}
 
-	private writeCadBody(body: CadBody): void {
-		this.writeModelerGeometry(body);
+	private _writeCadBody(body: CadBody): void {
+		this._writeModelerGeometry(body);
 	}
 
-	private writeRegion(region: Region): void {
-		this.writeModelerGeometry(region);
+	private _writeRegion(region: Region): void {
+		this._writeModelerGeometry(region);
 	}
 
-	private writeModelerGeometry(geometry: ModelerGeometry): void {
-		if (!this.R2013Plus) {
+	private _writeModelerGeometry(geometry: ModelerGeometry): void {
+		if (!this.r2013Plus) {
 			this._writer.writeBit(true);
 		}
 
@@ -2637,7 +2637,7 @@ export class DwgObjectWriter extends DwgSectionIO {
 		if (geometry.wires.length > 0) {
 			this._writer.writeBitLong(geometry.wires.length);
 			for (const wire of geometry.wires) {
-				this.writeModelerGeometryWire(wire);
+				this._writeModelerGeometryWire(wire);
 			}
 		}
 
@@ -2653,19 +2653,19 @@ export class DwgObjectWriter extends DwgSectionIO {
 			if (silhouette.wires.length > 0) {
 				this._writer.writeBitLong(silhouette.wires.length);
 				for (const wire of silhouette.wires) {
-					this.writeModelerGeometryWire(wire);
+					this._writeModelerGeometryWire(wire);
 				}
 			}
 		}
 
 		this._writer.writeBit(true);
 
-		if (this.R2007Plus) {
+		if (this.r2007Plus) {
 			this._writer.writeBitLong(0);
 		}
 	}
 
-	private writeModelerGeometryWire(wire: ModelerGeometryWire): void {
+	private _writeModelerGeometryWire(wire: ModelerGeometryWire): void {
 		this._writer.writeByte(wire.type);
 		this._writer.writeBitLong(wire.selectionMarker);
 		this._writer.writeBitShort(wire.color?.getApproxIndex() ?? 256);
@@ -2690,7 +2690,7 @@ export class DwgObjectWriter extends DwgSectionIO {
 		this._writer.writeBit(wire.hasShear);
 	}
 
-	private writeTableCell(cell: TableEntityCell): void {
+	private _writeTableCell(cell: TableEntityCell): void {
 		this._writer.writeBitShort(cell.type);
 		this._writer.writeByte(cell.edgeFlags);
 		this._writer.writeBit(cell.mergedValue !== 0);
@@ -2710,13 +2710,13 @@ export class DwgObjectWriter extends DwgSectionIO {
 
 		this._writer.writeBit(false);
 
-		if (this.R2007Plus) {
+		if (this.r2007Plus) {
 			this._writer.writeBitLong(0);
-			this.writeCadValue(cell.content?.cadValue ?? { ...new CadValue(), valueType: 4, value: '' } as CadValue);
+			this._writeCadValue(cell.content?.cadValue ?? { ...new CadValue(), valueType: 4, value: '' } as CadValue);
 		}
 	}
 
-	private writeCadImage(image: CadWipeoutBase): void {
+	private _writeCadImage(image: CadWipeoutBase): void {
 		this._writer.writeBitLong(image.classVersion);
 		this._writer.write3BitDouble(image.insertPoint);
 		this._writer.write3BitDouble(image.uVector);
@@ -2728,7 +2728,7 @@ export class DwgObjectWriter extends DwgSectionIO {
 		this._writer.writeByte(image.contrast);
 		this._writer.writeByte(image.fade);
 
-		if (this.R2010Plus) {
+		if (this.r2010Plus) {
 			this._writer.writeBit(image.clipMode === ClipMode.Inside);
 		}
 
@@ -2755,10 +2755,10 @@ export class DwgObjectWriter extends DwgSectionIO {
 		}
 	}
 
-	private writeSpline(spline: Spline): void {
+	private _writeSpline(spline: Spline): void {
 		let scenario: number;
 
-		if (this.R2013Plus) {
+		if (this.r2013Plus) {
 			if (spline.knotParametrization === KnotParametrization.Custom || spline.fitPoints.length === 0) {
 				scenario = 1;
 				spline.flags1 &= ~SplineFlags1.UseKnotParameter;
@@ -2813,13 +2813,13 @@ export class DwgObjectWriter extends DwgSectionIO {
 		}
 	}
 
-	private writeRay(ray: Ray): void {
+	private _writeRay(ray: Ray): void {
 		this._writer.write3BitDouble(ray.startPoint);
 		this._writer.write3BitDouble(ray.direction);
 	}
 
-	private writeTextEntity(text: TextEntity): void {
-		if (this.R13_14Only) {
+	private _writeTextEntity(text: TextEntity): void {
+		if (this.r13_14Only) {
 			this._writer.writeBitDouble(text.insertPoint.z);
 			this._writer.writeRawDouble(text.insertPoint.x);
 			this._writer.writeRawDouble(text.insertPoint.y);
@@ -2838,7 +2838,7 @@ export class DwgObjectWriter extends DwgSectionIO {
 		} else {
 			let dataFlags = 0;
 			if (text.insertPoint.z === 0.0) dataFlags |= 0b1;
-			if (XYZ.equals(text.alignmentPoint, XYZ.Zero)) dataFlags |= 0b10;
+			if (XYZ.equals(text.alignmentPoint, XYZ.zero)) dataFlags |= 0b10;
 			if (text.obliqueAngle === 0.0) dataFlags |= 0b100;
 			if (text.rotation === 0.0) dataFlags |= 0b1000;
 			if (text.widthFactor === 1.0) dataFlags |= 0b10000;
@@ -2874,13 +2874,13 @@ export class DwgObjectWriter extends DwgSectionIO {
 		this._writer.handleReferenceTyped(DwgReferenceType.HardPointer, text.style);
 	}
 
-	private writeMText(mtext: MText): void {
+	private _writeMText(mtext: MText): void {
 		this._writer.write3BitDouble(mtext.insertPoint);
 		this._writer.write3BitDouble(mtext.normal);
 		this._writer.write3BitDouble(mtext.alignmentPoint);
 		this._writer.writeBitDouble(mtext.rectangleWidth);
 
-		if (this.R2007Plus) {
+		if (this.r2007Plus) {
 			this._writer.writeBitDouble(mtext.rectangleHeight);
 		}
 
@@ -2892,13 +2892,13 @@ export class DwgObjectWriter extends DwgSectionIO {
 		this._writer.writeVariableText(mtext.value);
 		this._writer.handleReferenceTyped(DwgReferenceType.HardPointer, mtext.style);
 
-		if (this.R2000Plus) {
+		if (this.r2000Plus) {
 			this._writer.writeBitShort(mtext.lineSpacingStyle);
 			this._writer.writeBitDouble(mtext.lineSpacing);
 			this._writer.writeBit(false);
 		}
 
-		if (this.R2004Plus) {
+		if (this.r2004Plus) {
 			this._writer.writeBitLong(mtext.backgroundFillFlags);
 
 			if ((mtext.backgroundFillFlags & BackgroundFillFlags.UseBackgroundFillColor) !== BackgroundFillFlags.None
@@ -2909,7 +2909,7 @@ export class DwgObjectWriter extends DwgSectionIO {
 			}
 		}
 
-		if (!this.R2018Plus) return;
+		if (!this.r2018Plus) return;
 
 		this._writer.writeBit(!mtext.isAnnotative);
 		if (mtext.isAnnotative) return;
@@ -2947,14 +2947,14 @@ export class DwgObjectWriter extends DwgSectionIO {
 		}
 	}
 
-	private writeFaceRecord(face: VertexFaceRecord): void {
+	private _writeFaceRecord(face: VertexFaceRecord): void {
 		this._writer.writeBitShort(face.index1);
 		this._writer.writeBitShort(face.index2);
 		this._writer.writeBitShort(face.index3);
 		this._writer.writeBitShort(face.index4);
 	}
 
-	private writeVertex2D(vertex: Vertex2D): void {
+	private _writeVertex2D(vertex: Vertex2D): void {
 		this._writer.writeByte(vertex.flags);
 		this._writer.writeBitDouble(vertex.location.x);
 		this._writer.writeBitDouble(vertex.location.y);
@@ -2969,20 +2969,20 @@ export class DwgObjectWriter extends DwgSectionIO {
 
 		this._writer.writeBitDouble(vertex.bulge);
 
-		if (this.R2010Plus) {
+		if (this.r2010Plus) {
 			this._writer.writeBitLong(vertex.id);
 		}
 
 		this._writer.writeBitDouble(vertex.curveTangent);
 	}
 
-	private writeVertex(vertex: Vertex): void {
+	private _writeVertex(vertex: Vertex): void {
 		this._writer.writeByte(vertex.flags);
 		this._writer.write3BitDouble(vertex.location);
 	}
 
-	private writeTolerance(tolerance: Tolerance): void {
-		if (this.R13_14Only) {
+	private _writeTolerance(tolerance: Tolerance): void {
+		if (this.r13_14Only) {
 			this._writer.writeBitShort(0);
 			this._writer.writeBitDouble(0.0);
 			this._writer.writeBitDouble(0.0);
@@ -2995,12 +2995,12 @@ export class DwgObjectWriter extends DwgSectionIO {
 		this._writer.handleReferenceTyped(DwgReferenceType.HardPointer, tolerance.style);
 	}
 
-	private writeViewport(viewport: Viewport): void {
+	private _writeViewport(viewport: Viewport): void {
 		this._writer.write3BitDouble(viewport.center);
 		this._writer.writeBitDouble(viewport.width);
 		this._writer.writeBitDouble(viewport.height);
 
-		if (this.R2000Plus) {
+		if (this.r2000Plus) {
 			this._writer.write3BitDouble(viewport.viewTarget);
 			this._writer.write3BitDouble(viewport.viewDirection);
 			this._writer.writeBitDouble(viewport.twistAngle);
@@ -3016,11 +3016,11 @@ export class DwgObjectWriter extends DwgSectionIO {
 			this._writer.writeBitShort(viewport.circleZoomPercent);
 		}
 
-		if (this.R2007Plus) {
+		if (this.r2007Plus) {
 			this._writer.writeBitShort(viewport.majorGridLineFrequency);
 		}
 
-		if (this.R2000Plus) {
+		if (this.r2000Plus) {
 			this._writer.writeBitLong(viewport.frozenLayers.length);
 			this._writer.writeBitLong(viewport.status);
 			this._writer.writeVariableText('');
@@ -3034,11 +3034,11 @@ export class DwgObjectWriter extends DwgSectionIO {
 			this._writer.writeBitShort(viewport.ucsOrthographicType);
 		}
 
-		if (this.R2004Plus) {
+		if (this.r2004Plus) {
 			this._writer.writeBitShort(viewport.shadePlotMode);
 		}
 
-		if (this.R2007Plus) {
+		if (this.r2007Plus) {
 			this._writer.writeBit(viewport.useDefaultLighting);
 			this._writer.writeByte(viewport.defaultLightingType);
 			this._writer.writeBitDouble(viewport.brightness);
@@ -3046,13 +3046,13 @@ export class DwgObjectWriter extends DwgSectionIO {
 			this._writer.writeCmColor(viewport.ambientLightColor);
 		}
 
-		if (this.R13_14Only) {
+		if (this.r13_14Only) {
 			this._writer.handleReferenceTyped(DwgReferenceType.HardPointer, null);
 		}
 
-		if (this.R2000Plus) {
+		if (this.r2000Plus) {
 			for (const layer of viewport.frozenLayers) {
-				if (this.R2004Plus) {
+				if (this.r2004Plus) {
 					this._writer.handleReferenceTyped(DwgReferenceType.SoftPointer, layer);
 				} else {
 					this._writer.handleReferenceTyped(DwgReferenceType.HardPointer, layer);
@@ -3065,12 +3065,12 @@ export class DwgObjectWriter extends DwgSectionIO {
 			this._writer.handleReferenceTyped(DwgReferenceType.HardPointer, null);
 		}
 
-		if (this.R2000Plus) {
+		if (this.r2000Plus) {
 			this._writer.handleReferenceTyped(DwgReferenceType.HardPointer, null);
 			this._writer.handleReferenceTyped(DwgReferenceType.HardPointer, null);
 		}
 
-		if (this.R2007Plus) {
+		if (this.r2007Plus) {
 			this._writer.handleReferenceTyped(DwgReferenceType.SoftPointer, null);
 			this._writer.handleReferenceTyped(DwgReferenceType.HardPointer, null);
 			this._writer.handleReferenceTyped(DwgReferenceType.SoftPointer, null);
@@ -3078,12 +3078,12 @@ export class DwgObjectWriter extends DwgSectionIO {
 		}
 	}
 
-	private writeXLine(xline: XLine): void {
+	private _writeXLine(xline: XLine): void {
 		this._writer.write3BitDouble(xline.firstPoint);
 		this._writer.write3BitDouble(xline.direction);
 	}
 
-	private writeChildEntities(entities: Entity[], seqend: Seqend | null): void {
+	private _writeChildEntities(entities: Entity[], seqend: Seqend | null): void {
 		if (entities.length === 0) return;
 
 		const prevHolder = this._prev;
@@ -3094,32 +3094,32 @@ export class DwgObjectWriter extends DwgSectionIO {
 		let curr = entities[0];
 		for (let i = 1; i < entities.length; i++) {
 			this._next = entities[i];
-			this.writeEntity(curr);
+			this._writeEntity(curr);
 			this._prev = curr;
 			curr = this._next;
 		}
 
 		this._next = null;
-		this.writeEntity(curr);
+		this._writeEntity(curr);
 
 		this._prev = prevHolder;
 		this._next = nextHolder;
 
 		if (seqend != null) {
-			this.writeSeqend(seqend);
+			this._writeSeqend(seqend);
 		}
 	}
 
 	// ==================== Object Writers ====================
 
-	private addEntriesToWriter(dictionary: CadDictionary): void {
+	private _addEntriesToWriter(dictionary: CadDictionary): void {
 		for (const e of dictionary) {
 			this._objects.push(e);
 		}
 	}
 
-	private skipEntry(entry: NonGraphicalObject): { skip: boolean; notify: boolean } {
-		if (entry instanceof XRecord && !this.WriteXRecords) return { skip: true, notify: false };
+	private _skipEntry(entry: NonGraphicalObject): { skip: boolean; notify: boolean } {
+		if (entry instanceof XRecord && !this.writeXRecords) return { skip: true, notify: false };
 		if (entry instanceof UnknownNonGraphicalObject
 		) {
 			return { skip: true, notify: true };
@@ -3127,7 +3127,7 @@ export class DwgObjectWriter extends DwgSectionIO {
 		return { skip: false, notify: false };
 	}
 
-	private write4x3Matrix(matrix: Matrix4): void {
+	private _write4x3Matrix(matrix: Matrix4): void {
 		for (let i = 0; i < 3; i++) {
 			for (let j = 0; j < 4; j++) {
 				this._writer.writeBitDouble(matrix.get(i, j));
@@ -3135,15 +3135,15 @@ export class DwgObjectWriter extends DwgSectionIO {
 		}
 	}
 
-	private writeObjects(): void {
+	private _writeObjects(): void {
 		while (this._objects.length > 0) {
 			const obj = this._objects.shift()!;
-			this.writeObject(obj);
+			this._writeObject(obj);
 		}
 	}
 
-	private writeObject(obj: NonGraphicalObject): void {
-		const { skip, notify: shouldNotify } = this.skipEntry(obj);
+	private _writeObject(obj: NonGraphicalObject): void {
+		const { skip, notify: shouldNotify } = this._skipEntry(obj);
 		if (skip) {
 			if (shouldNotify) {
 				this.notify(`Object type not implemented ${obj.constructor.name}`, NotificationType.NotImplemented);
@@ -3151,91 +3151,91 @@ export class DwgObjectWriter extends DwgSectionIO {
 			return;
 		}
 
-		this.writeCommonNonEntityData(obj);
+		this._writeCommonNonEntityData(obj);
 
 		if (obj instanceof AcdbPlaceHolder) {
-			this.writeAcdbPlaceHolder(obj);
+			this._writeAcdbPlaceHolder(obj);
 		} else if (obj instanceof BookColor) {
-			this.writeBookColor(obj);
+			this._writeBookColor(obj);
 		} else if (obj instanceof CadDictionaryWithDefault) {
-			this.writeCadDictionaryWithDefault(obj);
+			this._writeCadDictionaryWithDefault(obj);
 		} else if (obj instanceof CadDictionary) {
-			this.writeDictionary(obj);
+			this._writeDictionary(obj);
 		} else if (obj instanceof AecBinRecord) {
-			this.writeAecBinRecord(obj);
+			this._writeAecBinRecord(obj);
 		} else if (obj instanceof AecCleanupGroup) {
-			this.writeAecCleanupGroup(obj);
+			this._writeAecCleanupGroup(obj);
 		} else if (obj instanceof AecWallStyle) {
-			this.writeAecWallStyle(obj);
+			this._writeAecWallStyle(obj);
 		} else if (obj instanceof DictionaryVariable) {
-			this.writeDictionaryVariable(obj);
+			this._writeDictionaryVariable(obj);
 		} else if (obj instanceof DimensionAssociation) {
-			this.writeDimensionAssociation(obj);
+			this._writeDimensionAssociation(obj);
 		} else if (obj instanceof EvaluationGraph) {
-			this.writeEvaluationGraph(obj);
+			this._writeEvaluationGraph(obj);
 		} else if (obj instanceof TableStyle) {
-			this.writeTableStyle(obj);
+			this._writeTableStyle(obj);
 		} else if (obj instanceof Material) {
-			this.writeMaterial(obj);
+			this._writeMaterial(obj);
 		} else if (obj instanceof VisualStyle) {
-			this.writeVisualStyle(obj);
+			this._writeVisualStyle(obj);
 		} else if (obj instanceof ProxyObject) {
-			this.writeProxyObject(obj);
+			this._writeProxyObject(obj);
 		} else if (obj instanceof BlockRepresentationData) {
-			this.writeBlockRepresentationData(obj);
+			this._writeBlockRepresentationData(obj);
 		} else if (obj instanceof BlockReferenceObjectContextData) {
-			this.writeBlockReferenceObjectContextData(obj);
+			this._writeBlockReferenceObjectContextData(obj);
 		} else if (obj instanceof MTextAttributeObjectContextData) {
-			this.writeMTextAttributeObjectContextData(obj);
+			this._writeMTextAttributeObjectContextData(obj);
 		} else if (obj instanceof GeoData) {
-			this.writeGeoData(obj);
+			this._writeGeoData(obj);
 		} else if (obj instanceof Group) {
-			this.writeGroup(obj);
+			this._writeGroup(obj);
 		} else if (obj instanceof ImageDefinitionReactor) {
-			this.writeImageDefinitionReactor(obj);
+			this._writeImageDefinitionReactor(obj);
 		} else if (obj instanceof ImageDefinition) {
-			this.writeImageDefinition(obj);
+			this._writeImageDefinition(obj);
 		} else if (obj instanceof Layout) {
-			this.writeLayout(obj);
+			this._writeLayout(obj);
 		} else if (obj instanceof MLineStyle) {
-			this.writeMLineStyle(obj);
+			this._writeMLineStyle(obj);
 		} else if (obj instanceof MultiLeaderStyle) {
-			this.writeMultiLeaderStyle(obj);
+			this._writeMultiLeaderStyle(obj);
 		} else if (obj instanceof MultiLeaderObjectContextData) {
-			this.writeObjectContextData(obj);
-			this.writeAnnotScaleObjectContextData(obj);
-			this.writeMultiLeaderAnnotContext(obj);
+			this._writeObjectContextData(obj);
+			this._writeAnnotScaleObjectContextData(obj);
+			this._writeMultiLeaderAnnotContext(obj);
 		} else if (obj instanceof PdfUnderlayDefinition) {
-			this.writePdfDefinition(obj);
+			this._writePdfDefinition(obj);
 		} else if (obj instanceof PlotSettings) {
-			this.writePlotSettings(obj);
+			this._writePlotSettings(obj);
 		} else if (obj instanceof RasterVariables) {
-			this.writeRasterVariables(obj);
+			this._writeRasterVariables(obj);
 		} else if (obj instanceof Scale) {
-			this.writeScale(obj);
+			this._writeScale(obj);
 		} else if (obj instanceof SortEntitiesTable) {
-			this.writeSortEntitiesTable(obj);
+			this._writeSortEntitiesTable(obj);
 		} else if (obj instanceof SpatialFilter) {
-			this.writeSpatialFilter(obj);
+			this._writeSpatialFilter(obj);
 		} else if (obj instanceof Field) {
-			this.writeField(obj);
+			this._writeField(obj);
 		} else if (obj instanceof FieldList) {
-			this.writeFieldList(obj);
+			this._writeFieldList(obj);
 		} else if (obj instanceof XRecord) {
-			this.writeXRecord(obj);
+			this._writeXRecord(obj);
 		} else {
 			throw new Error(`Object not implemented : ${obj.constructor.name}`);
 		}
 
-		this.registerObject(obj);
+		this._registerObject(obj);
 	}
 
-	private writeAcdbPlaceHolder(_acdbPlaceHolder: AcdbPlaceHolder): void {
+	private _writeAcdbPlaceHolder(_acdbPlaceHolder: AcdbPlaceHolder): void {
 		// Empty in C# source
 	}
 
-	private writeAecBinRecord(binRecord: AecBinRecord): void {
-		if (this.R2000Plus) {
+	private _writeAecBinRecord(binRecord: AecBinRecord): void {
+		if (this.r2000Plus) {
 			this._writer.writeBitLong(binRecord.version);
 		}
 
@@ -3244,8 +3244,8 @@ export class DwgObjectWriter extends DwgSectionIO {
 		}
 	}
 
-	private writeAecCleanupGroup(cleanupGroup: AecCleanupGroup): void {
-		if (this.R2000Plus) {
+	private _writeAecCleanupGroup(cleanupGroup: AecCleanupGroup): void {
+		if (this.r2000Plus) {
 			this._writer.writeBitLong(cleanupGroup.version);
 		}
 
@@ -3256,8 +3256,8 @@ export class DwgObjectWriter extends DwgSectionIO {
 		}
 	}
 
-	private writeAecWallStyle(wallStyle: AecWallStyle): void {
-		if (this.R2000Plus) {
+	private _writeAecWallStyle(wallStyle: AecWallStyle): void {
+		if (this.r2000Plus) {
 			this._writer.writeBitLong(wallStyle.version);
 		}
 
@@ -3268,20 +3268,20 @@ export class DwgObjectWriter extends DwgSectionIO {
 		}
 	}
 
-	private writeAnnotScaleObjectContextData(annotScaleObjectContextData: AnnotScaleObjectContextData): void {
+	private _writeAnnotScaleObjectContextData(annotScaleObjectContextData: AnnotScaleObjectContextData): void {
 		this._writer.handleReferenceTyped(DwgReferenceType.HardPointer, annotScaleObjectContextData.scale);
 	}
 
-	private writeObjectContextData(objectContextData: ObjectContextData): void {
+	private _writeObjectContextData(objectContextData: ObjectContextData): void {
 		this._writer.writeBitShort(objectContextData.version);
 		this._writer.writeBit(objectContextData.hasFileToExtensionDictionary);
 		this._writer.writeBit(objectContextData.default);
 	}
 
-	private writeBookColor(color: BookColor): void {
+	private _writeBookColor(color: BookColor): void {
 		this._writer.writeBitShort(0);
 
-		if (this.R2004Plus) {
+		if (this.r2004Plus) {
 			const arr = new Uint8Array([
 				color.color.b,
 				color.color.g,
@@ -3301,15 +3301,15 @@ export class DwgObjectWriter extends DwgSectionIO {
 		}
 	}
 
-	private writeCadDictionaryWithDefault(dictionary: CadDictionaryWithDefault): void {
-		this.writeDictionary(dictionary);
+	private _writeCadDictionaryWithDefault(dictionary: CadDictionaryWithDefault): void {
+		this._writeDictionary(dictionary);
 		this._writer.handleReferenceTyped(DwgReferenceType.HardPointer, dictionary.defaultEntry);
 	}
 
-	private writeDictionary(dictionary: CadDictionary): void {
+	private _writeDictionary(dictionary: CadDictionary): void {
 		const entries: NonGraphicalObject[] = [];
 		for (const item of dictionary) {
-			if (this.skipEntry(item).skip) continue;
+			if (this._skipEntry(item).skip) continue;
 			entries.push(item);
 		}
 
@@ -3319,63 +3319,63 @@ export class DwgObjectWriter extends DwgSectionIO {
 			this._writer.writeByte(0);
 		}
 
-		if (this.R2000Plus) {
+		if (this.r2000Plus) {
 			this._writer.writeBitShort(dictionary.clonningFlags);
 			this._writer.writeByte(dictionary.hardOwnerFlag ? 1 : 0);
 		}
 
 		for (const item of entries) {
-			if (this.skipEntry(item).skip) continue;
+			if (this._skipEntry(item).skip) continue;
 			this._writer.writeVariableText(item.name);
 			this._writer.handleReferenceTyped(DwgReferenceType.SoftOwnership, item.handle);
 		}
 
-		this.addEntriesToWriter(dictionary);
+		this._addEntriesToWriter(dictionary);
 	}
 
-	private writeDictionaryVariable(dictionaryVariable: DictionaryVariable): void {
+	private _writeDictionaryVariable(dictionaryVariable: DictionaryVariable): void {
 		this._writer.writeByte(0);
 		this._writer.writeVariableText(dictionaryVariable.value);
 	}
 
-	private writeDimensionAssociation(association: DimensionAssociation): void {
+	private _writeDimensionAssociation(association: DimensionAssociation): void {
 		this._writer.handleReferenceTyped(DwgReferenceType.SoftPointer, association.dimension);
 		this._writer.writeBitLong(association.associativityFlags);
 		this._writer.writeBit(association.isTransSpace);
 		this._writer.writeByte(association.rotatedDimensionType);
 
 		if ((association.associativityFlags & AssociativityFlags.FirstPointReference) !== 0) {
-			this.writeOsnapPointRef(association.firstPointRef);
+			this._writeOsnapPointRef(association.firstPointRef);
 		}
 		if ((association.associativityFlags & AssociativityFlags.SecondPointReference) !== 0) {
-			this.writeOsnapPointRef(association.secondPointRef);
+			this._writeOsnapPointRef(association.secondPointRef);
 		}
 		if ((association.associativityFlags & AssociativityFlags.ThirdPointReference) !== 0) {
-			this.writeOsnapPointRef(association.thirdPointRef);
+			this._writeOsnapPointRef(association.thirdPointRef);
 		}
 		if ((association.associativityFlags & AssociativityFlags.FourthPointReference) !== 0) {
-			this.writeOsnapPointRef(association.fourthPointRef);
+			this._writeOsnapPointRef(association.fourthPointRef);
 		}
 	}
 
-	private writeOsnapPointRef(osnap: OsnapPointRef): void {
-		this._writer.writeVariableText(DimensionAssociation.OsnapPointRefClassName);
+	private _writeOsnapPointRef(osnap: OsnapPointRef): void {
+		this._writer.writeVariableText(DimensionAssociation.osnapPointRefClassName);
 		this._writer.writeByte(osnap.objectOsnapType);
 		this._writer.handleReferenceTyped(DwgReferenceType.Undefined, osnap.geometry);
 	}
 
-	private writeProxyObject(proxy: ProxyObject): void {
-		this.writeCommonProxyData(proxy);
+	private _writeProxyObject(proxy: ProxyObject): void {
+		this._writeCommonProxyData(proxy);
 	}
 
-	private writeBlockRepresentationData(representation: BlockRepresentationData): void {
+	private _writeBlockRepresentationData(representation: BlockRepresentationData): void {
 		this._writer.writeBitShort(representation.value70);
 		this._writer.handleReference(representation.block);
 	}
 
-	private writeBlockReferenceObjectContextData(contextData: BlockReferenceObjectContextData): void {
-		this.writeObjectContextData(contextData);
-		this.writeAnnotScaleObjectContextData(contextData);
+	private _writeBlockReferenceObjectContextData(contextData: BlockReferenceObjectContextData): void {
+		this._writeObjectContextData(contextData);
+		this._writeAnnotScaleObjectContextData(contextData);
 		this._writer.writeBitDouble(contextData.rotation);
 		this._writer.write3BitDouble(contextData.insertionPoint);
 		this._writer.writeBitDouble(contextData.xScale);
@@ -3383,12 +3383,12 @@ export class DwgObjectWriter extends DwgSectionIO {
 		this._writer.writeBitDouble(contextData.zScale);
 	}
 
-	private writeMTextAttributeObjectContextData(contextData: MTextAttributeObjectContextData): void {
-		this.writeObjectContextData(contextData);
-		this.writeAnnotScaleObjectContextData(contextData);
+	private _writeMTextAttributeObjectContextData(contextData: MTextAttributeObjectContextData): void {
+		this._writeObjectContextData(contextData);
+		this._writeAnnotScaleObjectContextData(contextData);
 	}
 
-	private writeEvaluationGraph(evaluationGraph: EvaluationGraph): void {
+	private _writeEvaluationGraph(evaluationGraph: EvaluationGraph): void {
 		this._writer.writeBitLong(evaluationGraph.value96);
 		this._writer.writeBitLong(evaluationGraph.value97);
 		this._writer.writeBitLong(evaluationGraph.nodes.length);
@@ -3405,7 +3405,7 @@ export class DwgObjectWriter extends DwgSectionIO {
 		this._writer.writeBitLong(evaluationGraph.edges.length);
 	}
 
-	private writeVisualStyle(visualStyle: VisualStyle): void {
+	private _writeVisualStyle(visualStyle: VisualStyle): void {
 		this._writer.writeVariableText(visualStyle.name);
 		this._writer.writeBitLong(visualStyle.type);
 		this._writer.writeBitShort(0);
@@ -3413,8 +3413,8 @@ export class DwgObjectWriter extends DwgSectionIO {
 		this._writer.writeBitLong(0);
 	}
 
-	private writeTableStyle(tableStyle: TableStyle): void {
-		if (this.R2007Plus) {
+	private _writeTableStyle(tableStyle: TableStyle): void {
+		if (this.r2007Plus) {
 			const cellStyles = tableStyle.cellStyles.length > 0
 				? tableStyle.cellStyles
 				: [tableStyle.dataCellStyle, tableStyle.titleCellStyle, tableStyle.headerCellStyle];
@@ -3423,14 +3423,14 @@ export class DwgObjectWriter extends DwgSectionIO {
 			this._writer.writeBitLong(0);
 			this._writer.writeBitLong(0);
 			this._writer.handleReference(0);
-			this.writeCellStyle(tableStyle.tableCellStyle);
+			this._writeCellStyle(tableStyle.tableCellStyle);
 			this._writer.writeBitLong(tableStyle.tableCellStyle.id);
 			this._writer.writeBitLong(tableStyle.tableCellStyle.styleClass);
 			this._writer.writeVariableText(tableStyle.tableCellStyle.name);
 			this._writer.writeBitLong(cellStyles.length);
 			for (const cellStyle of cellStyles) {
 				this._writer.writeBitLong(0);
-				this.writeCellStyle(cellStyle);
+				this._writeCellStyle(cellStyle);
 				this._writer.writeBitLong(cellStyle.id);
 				this._writer.writeBitLong(cellStyle.styleClass);
 				this._writer.writeVariableText(cellStyle.name);
@@ -3445,13 +3445,13 @@ export class DwgObjectWriter extends DwgSectionIO {
 		this._writer.writeBitDouble(tableStyle.verticalCellMargin);
 		this._writer.writeBit(tableStyle.suppressTitle);
 		this._writer.writeBit(tableStyle.suppressHeaderRow);
-		this.writeRowCellStyle(tableStyle.dataCellStyle);
-		this.writeRowCellStyle(tableStyle.titleCellStyle);
-		this.writeRowCellStyle(tableStyle.headerCellStyle);
+		this._writeRowCellStyle(tableStyle.dataCellStyle);
+		this._writeRowCellStyle(tableStyle.titleCellStyle);
+		this._writeRowCellStyle(tableStyle.headerCellStyle);
 	}
 
-	private writeTableStyleColor(color: Color): void {
-		if (this.R2004Pre && this._writer instanceof DwgMergedStreamWriter) {
+	private _writeTableStyleColor(color: Color): void {
+		if (this.r2004Pre && this._writer instanceof DwgMergedStreamWriter) {
 			this._writer.writeMergedCmColor(color);
 			return;
 		}
@@ -3459,28 +3459,28 @@ export class DwgObjectWriter extends DwgSectionIO {
 		this._writer.writeCmColor(color);
 	}
 
-	private writeRowCellStyle(style: CellStyle): void {
+	private _writeRowCellStyle(style: CellStyle): void {
 		this._writer.handleReference(style.textStyle);
 		this._writer.writeBitDouble(style.textHeight);
 		this._writer.writeBitShort(style.cellAlignment);
-		this.writeTableStyleColor(style.textColor);
-		this.writeTableStyleColor(style.backgroundColor);
+		this._writeTableStyleColor(style.textColor);
+		this._writeTableStyleColor(style.backgroundColor);
 		this._writer.writeBit(style.isFillColorOn);
-		this.writeBorderStyle(style.topBorder);
-		this.writeBorderStyle(style.horizontalInsideBorder);
-		this.writeBorderStyle(style.bottomBorder);
-		this.writeBorderStyle(style.leftBorder);
-		this.writeBorderStyle(style.verticalInsideBorder);
-		this.writeBorderStyle(style.rightBorder);
+		this._writeBorderStyle(style.topBorder);
+		this._writeBorderStyle(style.horizontalInsideBorder);
+		this._writeBorderStyle(style.bottomBorder);
+		this._writeBorderStyle(style.leftBorder);
+		this._writeBorderStyle(style.verticalInsideBorder);
+		this._writeBorderStyle(style.rightBorder);
 	}
 
-	private writeBorderStyle(border: CellBorder): void {
+	private _writeBorderStyle(border: CellBorder): void {
 		this._writer.writeBitShort(border.lineWeight);
 		this._writer.writeBit(!border.isInvisible);
-		this.writeTableStyleColor(border.color);
+		this._writeTableStyleColor(border.color);
 	}
 
-	private writeCellStyle(style: CellStyle): void {
+	private _writeCellStyle(style: CellStyle): void {
 		this._writer.writeBitLong(style.cellStyleType);
 		this._writer.writeBitShort(style.hasData ? 1 : 0);
 		if (!style.hasData) {
@@ -3491,7 +3491,7 @@ export class DwgObjectWriter extends DwgSectionIO {
 		this._writer.writeBitLong(style.tableCellStylePropertyFlags);
 		this._writer.writeCmColor(style.backgroundColor);
 		this._writer.writeBitLong(style.contentLayoutFlags);
-		this.writeCellContentFormat(style);
+		this._writeCellContentFormat(style);
 		this._writer.writeBitShort(style.marginOverrideFlags);
 		if ((style.marginOverrideFlags & MarginFlags.Override) !== 0) {
 			this._writer.writeBitDouble(style.verticalMargin);
@@ -3514,11 +3514,11 @@ export class DwgObjectWriter extends DwgSectionIO {
 		this._writer.writeBitLong(borders.length);
 		for (const border of borders) {
 			this._writer.writeBitLong(border.edgeFlags);
-			this.writeBorder(border);
+			this._writeBorder(border);
 		}
 	}
 
-	private writeBorder(border: CellBorder): void {
+	private _writeBorder(border: CellBorder): void {
 		this._writer.writeBitLong(border.propertyOverrideFlags);
 		this._writer.writeBitLong(border.type);
 		this._writer.writeCmColor(border.color);
@@ -3528,7 +3528,7 @@ export class DwgObjectWriter extends DwgSectionIO {
 		this._writer.writeBitDouble(border.doubleLineSpacing);
 	}
 
-	private writeCellContentFormat(format: ContentFormat): void {
+	private _writeCellContentFormat(format: ContentFormat): void {
 		this._writer.writeBitLong(format.propertyOverrideFlags);
 		this._writer.writeBitLong(format.propertyFlags);
 		this._writer.writeBitLong(format.valueDataType);
@@ -3542,60 +3542,60 @@ export class DwgObjectWriter extends DwgSectionIO {
 		this._writer.writeBitDouble(format.textHeight);
 	}
 
-	private writeMaterial(material: Material): void {
+	private _writeMaterial(material: Material): void {
 		this._writer.writeVariableText(material.name);
 		this._writer.writeVariableText(material.description);
 
-		this.writeMaterialColor(material.ambientColorMethod, material.ambientColorFactor, material.ambientColor);
-		this.writeMaterialColor(material.diffuseColorMethod, material.diffuseColorFactor, material.diffuseColor);
+		this._writeMaterialColor(material.ambientColorMethod, material.ambientColorFactor, material.ambientColor);
+		this._writeMaterialColor(material.diffuseColorMethod, material.diffuseColorFactor, material.diffuseColor);
 		this._writer.writeBitDouble(material.diffuseMapBlendFactor);
 		this._writer.writeByte(material.diffuseProjectionMethod);
 		this._writer.writeByte(material.diffuseTilingMethod);
 		this._writer.writeByte(material.diffuseAutoTransform);
-		this.writeMatrix4Values(material.diffuseMatrix);
-		this.writeMaterialMap(material.diffuseMapSource, material.diffuseMapFileName);
+		this._writeMatrix4Values(material.diffuseMatrix);
+		this._writeMaterialMap(material.diffuseMapSource, material.diffuseMapFileName);
 
-		this.writeMaterialColor(material.specularColorMethod, material.specularColorFactor, material.specularColor);
+		this._writeMaterialColor(material.specularColorMethod, material.specularColorFactor, material.specularColor);
 		this._writer.writeBitDouble(material.specularMapBlendFactor);
 		this._writer.writeByte(material.specularProjectionMethod);
 		this._writer.writeByte(material.specularTilingMethod);
 		this._writer.writeByte(material.specularAutoTransform);
-		this.writeMatrix4Values(material.specularMatrix);
-		this.writeMaterialMap(material.specularMapSource, material.specularMapFileName);
+		this._writeMatrix4Values(material.specularMatrix);
+		this._writeMaterialMap(material.specularMapSource, material.specularMapFileName);
 		this._writer.writeBitDouble(material.specularGlossFactor);
 
 		this._writer.writeBitDouble(material.reflectionMapBlendFactor);
 		this._writer.writeByte(material.reflectionProjectionMethod);
 		this._writer.writeByte(material.reflectionTilingMethod);
 		this._writer.writeByte(material.reflectionAutoTransform);
-		this.writeMatrix4Values(material.reflectionMatrix);
-		this.writeMaterialMap(material.reflectionMapSource, material.reflectionMapFileName);
+		this._writeMatrix4Values(material.reflectionMatrix);
+		this._writeMaterialMap(material.reflectionMapSource, material.reflectionMapFileName);
 		this._writer.writeBitDouble(material.opacity);
 
 		this._writer.writeBitDouble(material.opacityMapBlendFactor);
 		this._writer.writeByte(material.opacityProjectionMethod);
 		this._writer.writeByte(material.opacityTilingMethod);
 		this._writer.writeByte(material.opacityAutoTransform);
-		this.writeMatrix4Values(material.opacityMatrix);
-		this.writeMaterialMap(material.opacityMapSource, material.opacityMapFileName);
+		this._writeMatrix4Values(material.opacityMatrix);
+		this._writeMaterialMap(material.opacityMapSource, material.opacityMapFileName);
 
 		this._writer.writeBitDouble(material.bumpMapBlendFactor);
 		this._writer.writeByte(material.bumpProjectionMethod);
 		this._writer.writeByte(material.bumpTilingMethod);
 		this._writer.writeByte(material.bumpAutoTransform);
-		this.writeMatrix4Values(material.bumpMatrix);
-		this.writeMaterialMap(material.bumpMapSource, material.bumpMapFileName);
+		this._writeMatrix4Values(material.bumpMatrix);
+		this._writeMaterialMap(material.bumpMapSource, material.bumpMapFileName);
 		this._writer.writeBitDouble(material.refractionIndex);
 
 		this._writer.writeBitDouble(material.refractionMapBlendFactor);
 		this._writer.writeByte(material.refractionProjectionMethod);
 		this._writer.writeByte(material.refractionTilingMethod);
 		this._writer.writeByte(material.refractionAutoTransform);
-		this.writeMatrix4Values(material.refractionMatrix);
-		this.writeMaterialMap(material.refractionMapSource, material.refractionMapFileName);
+		this._writeMatrix4Values(material.refractionMatrix);
+		this._writeMaterialMap(material.refractionMapSource, material.refractionMapFileName);
 	}
 
-	private writeMaterialColor(method: ColorMethod, factor: number, color: Color): void {
+	private _writeMaterialColor(method: ColorMethod, factor: number, color: Color): void {
 		this._writer.writeByte(method);
 		this._writer.writeBitDouble(factor);
 		if (method === ColorMethod.Override) {
@@ -3603,7 +3603,7 @@ export class DwgObjectWriter extends DwgSectionIO {
 		}
 	}
 
-	private writeMaterialMap(source: MapSource, fileName: string): void {
+	private _writeMaterialMap(source: MapSource, fileName: string): void {
 		let writtenSource = source;
 		if (source === MapSource.Procedural) {
 			this.notify('Procedural material maps are downgraded to current-scene maps when writing DWG.', NotificationType.Warning);
@@ -3615,14 +3615,14 @@ export class DwgObjectWriter extends DwgSectionIO {
 		}
 	}
 
-	private writeMatrix4Values(matrix: number[]): void {
+	private _writeMatrix4Values(matrix: number[]): void {
 		for (let i = 0; i < 16; i++) {
 			const isIdentityCell = i % 5 === 0;
 			this._writer.writeBitDouble(matrix[i] ?? (isIdentityCell ? 1 : 0));
 		}
 	}
 
-	private writeField(field: Field): void {
+	private _writeField(field: Field): void {
 		this._writer.writeVariableText(field.evaluatorId);
 		this._writer.writeVariableText(field.fieldCode);
 
@@ -3647,14 +3647,14 @@ export class DwgObjectWriter extends DwgSectionIO {
 		this._writer.writeBitLong(field.evaluationErrorCode);
 		this._writer.writeVariableText(field.evaluationErrorMessage);
 
-		this.writeCadValue(field.value);
+		this._writeCadValue(field.value);
 
 		this._writer.writeVariableText(field.formatString);
 		this._writer.writeBitLong(field.formatString.length);
 		this._writer.writeBitLong(field.values.size);
 		for (const [key, value] of field.values) {
 			this._writer.writeVariableText(key);
-			this.writeCadValue(value);
+			this._writeCadValue(value);
 		}
 
 		for (const c of field.children) {
@@ -3662,7 +3662,7 @@ export class DwgObjectWriter extends DwgSectionIO {
 		}
 	}
 
-	private writeFieldList(fieldList: FieldList): void {
+	private _writeFieldList(fieldList: FieldList): void {
 		this._writer.writeBitLong(fieldList.fields.length);
 		this._writer.writeBit(true);
 		for (const field of fieldList.fields) {
@@ -3670,13 +3670,13 @@ export class DwgObjectWriter extends DwgSectionIO {
 		}
 	}
 
-	private writeCadValue(value: CadValue): void {
-		if (this.R2007Plus) {
+	private _writeCadValue(value: CadValue): void {
+		if (this.r2007Plus) {
 			this._writer.writeBitLong(value.flags);
 		}
 
 		this._writer.writeBitLong(value.valueType);
-		if (!this.R2007Plus || !value.isEmpty) {
+		if (!this.r2007Plus || !value.isEmpty) {
 			switch (value.valueType) {
 				case CadValueType.Unknown:
 					this._writer.writeBitLong(0);
@@ -3689,16 +3689,16 @@ export class DwgObjectWriter extends DwgSectionIO {
 					break;
 				case CadValueType.General:
 				case CadValueType.String:
-					this.writeStringCadValue(value.value as string);
+					this._writeStringCadValue(value.value as string);
 					break;
 				case CadValueType.Date:
-					this.writeDateCadValue(value.value as Date | null);
+					this._writeDateCadValue(value.value as Date | null);
 					break;
 				case CadValueType.Point2D:
-					this.writeCadValueXY(value.value as XY | null);
+					this._writeCadValueXY(value.value as XY | null);
 					break;
 				case CadValueType.Point3D:
-					this.writeCadValueXYZ(value.value as XYZ | null);
+					this._writeCadValueXYZ(value.value as XYZ | null);
 					break;
 				case CadValueType.Handle:
 					this._writer.handleReferenceTyped(DwgReferenceType.SoftPointer, value.value as IHandledCadObject);
@@ -3714,14 +3714,14 @@ export class DwgObjectWriter extends DwgSectionIO {
 			}
 		}
 
-		if (this.R2007Plus) {
+		if (this.r2007Plus) {
 			this._writer.writeBitLong(value.units);
 			this._writer.writeVariableText(value.format);
 			this._writer.writeVariableText(value.formattedValue);
 		}
 	}
 
-	private writeCadValueXY(xy: XY | null): void {
+	private _writeCadValueXY(xy: XY | null): void {
 		if (xy != null) {
 			this._writer.writeBitLong(16);
 			this._writer.write2RawDouble(xy);
@@ -3730,21 +3730,21 @@ export class DwgObjectWriter extends DwgSectionIO {
 		}
 	}
 
-	private writeCadValueXYZ(xyz: XYZ | null): void {
+	private _writeCadValueXYZ(xyz: XYZ | null): void {
 		if (xyz != null) {
 			this._writer.writeBitLong(24);
-			this._writer.writeRawDouble(xyz.X);
-			this._writer.writeRawDouble(xyz.Y);
-			this._writer.writeRawDouble(xyz.Z);
+			this._writer.writeRawDouble(xyz.x);
+			this._writer.writeRawDouble(xyz.y);
+			this._writer.writeRawDouble(xyz.z);
 		} else {
 			this._writer.writeBitLong(0);
 		}
 	}
 
-	private writeDateCadValue(date: Date | null): void {
+	private _writeDateCadValue(date: Date | null): void {
 		if (date != null) {
 			let array: Uint8Array;
-			if (this.R2007Plus) {
+			if (this.r2007Plus) {
 				array = new Uint8Array(16);
 				const dv = new DataView(array.buffer);
 				dv.setInt16(0, date.getFullYear(), true);
@@ -3772,27 +3772,27 @@ export class DwgObjectWriter extends DwgSectionIO {
 		}
 	}
 
-	private writeStringCadValue(value: string): void {
+	private _writeStringCadValue(value: string): void {
 		if (!value) {
 			this._writer.writeBitLong(0);
 		}
 
 		let bytes: Uint8Array;
-		if (this.R2007Plus) {
-			bytes = this.encodeUtf16LE(value);
+		if (this.r2007Plus) {
+			bytes = this._encodeUtf16LE(value);
 			this._writer.writeBitLong(bytes.length + 2);
 			this._writer.writeBytes(bytes);
 			this._writer.writeByte(0);
 			this._writer.writeByte(0);
 		} else {
-			bytes = this.encodeText(value);
+			bytes = this._encodeText(value);
 			this._writer.writeBitLong(bytes.length + 1);
 			this._writer.writeBytes(bytes);
 			this._writer.writeByte(0);
 		}
 	}
 
-	private writeGeoData(geodata: GeoData): void {
+	private _writeGeoData(geodata: GeoData): void {
 		this._writer.writeBitLong(geodata.version);
 		this._writer.handleReferenceTyped(DwgReferenceType.SoftPointer, geodata.hostBlock);
 		this._writer.writeBitShort(geodata.coordinatesType);
@@ -3802,7 +3802,7 @@ export class DwgObjectWriter extends DwgSectionIO {
 				this._writer.write3BitDouble(geodata.referencePoint);
 				this._writer.writeBitLong(geodata.horizontalUnits);
 				this._writer.write3BitDouble(geodata.designPoint);
-				this._writer.write3BitDouble(XYZ.Zero);
+				this._writer.write3BitDouble(XYZ.zero);
 				this._writer.write3BitDouble(geodata.upDirection);
 				this._writer.writeBitDouble(Math.PI / 2.0 - geodata.northDirection.getAngle());
 				this._writer.write3BitDouble(new XYZ(1, 1, 1));
@@ -3851,7 +3851,7 @@ export class DwgObjectWriter extends DwgSectionIO {
 		}
 	}
 
-	private writeGroup(group: Group): void {
+	private _writeGroup(group: Group): void {
 		this._writer.writeVariableText(group.description);
 		this._writer.writeBitShort(group.isUnnamed ? 1 : 0);
 		this._writer.writeBitShort(group.selectable ? 1 : 0);
@@ -3862,7 +3862,7 @@ export class DwgObjectWriter extends DwgSectionIO {
 		}
 	}
 
-	private writeImageDefinition(definition: ImageDefinition): void {
+	private _writeImageDefinition(definition: ImageDefinition): void {
 		this._writer.writeBitLong(definition.classVersion);
 		this._writer.write2RawDouble(definition.size);
 		this._writer.writeVariableText(definition.fileName);
@@ -3871,12 +3871,12 @@ export class DwgObjectWriter extends DwgSectionIO {
 		this._writer.write2RawDouble(definition.defaultSize);
 	}
 
-	private writeImageDefinitionReactor(definitionReactor: ImageDefinitionReactor): void {
+	private _writeImageDefinitionReactor(definitionReactor: ImageDefinitionReactor): void {
 		this._writer.writeBitLong(definitionReactor.classVersion);
 	}
 
-	private writeLayout(layout: Layout): void {
-		this.writePlotSettings(layout);
+	private _writeLayout(layout: Layout): void {
+		this._writePlotSettings(layout);
 		this._writer.writeVariableText(layout.name);
 		this._writer.writeBitLong(layout.tabOrder);
 		this._writer.writeBitShort(layout.layoutFlags);
@@ -3891,7 +3891,7 @@ export class DwgObjectWriter extends DwgSectionIO {
 		this._writer.write3BitDouble(layout.minExtents);
 		this._writer.write3BitDouble(layout.maxExtents);
 
-		if (this.R2004Plus) {
+		if (this.r2004Plus) {
 			this._writer.writeBitLong(layout.viewports.length);
 		}
 
@@ -3906,14 +3906,14 @@ export class DwgObjectWriter extends DwgSectionIO {
 			this._writer.handleReferenceTyped(DwgReferenceType.HardPointer, null);
 		}
 
-		if (this.R2004Plus) {
+		if (this.r2004Plus) {
 			for (const viewport of layout.viewports) {
 				this._writer.handleReferenceTyped(DwgReferenceType.SoftPointer, viewport);
 			}
 		}
 	}
 
-	private writeMLineStyle(mlineStyle: MLineStyle): void {
+	private _writeMLineStyle(mlineStyle: MLineStyle): void {
 		this._writer.writeVariableText(mlineStyle.name);
 		this._writer.writeVariableText(mlineStyle.description);
 
@@ -3936,7 +3936,7 @@ export class DwgObjectWriter extends DwgSectionIO {
 		for (const element of mlineStyle.elements) {
 			this._writer.writeBitDouble(element.offset);
 			this._writer.writeCmColor(element.color);
-			if (this.R2018Plus) {
+			if (this.r2018Plus) {
 				this._writer.handleReferenceTyped(DwgReferenceType.HardPointer, element.lineType);
 			} else {
 				this._writer.writeBitShort(0);
@@ -3944,12 +3944,12 @@ export class DwgObjectWriter extends DwgSectionIO {
 		}
 	}
 
-	private writeMultiLeaderAnnotContext(multiLeaderAnnotContext: MultiLeaderObjectContextData): void {
-		this.writeMultiLeaderAnnotContextSubObject(false, multiLeaderAnnotContext);
+	private _writeMultiLeaderAnnotContext(multiLeaderAnnotContext: MultiLeaderObjectContextData): void {
+		this._writeMultiLeaderAnnotContextSubObject(false, multiLeaderAnnotContext);
 	}
 
-	private writeMultiLeaderStyle(mLeaderStyle: MultiLeaderStyle): void {
-		if (this.R2010Plus) {
+	private _writeMultiLeaderStyle(mLeaderStyle: MultiLeaderStyle): void {
+		if (this.r2010Plus) {
 			this._writer.writeBitShort(2);
 		}
 
@@ -3993,23 +3993,23 @@ export class DwgObjectWriter extends DwgSectionIO {
 		this._writer.writeBit(mLeaderStyle.isAnnotative);
 		this._writer.writeBitDouble(mLeaderStyle.breakGapSize);
 
-		if (this.R2010Plus) {
+		if (this.r2010Plus) {
 			this._writer.writeBitShort(mLeaderStyle.textAttachmentDirection);
 			this._writer.writeBitShort(mLeaderStyle.textBottomAttachment);
 			this._writer.writeBitShort(mLeaderStyle.textTopAttachment);
 		}
 
-		if (this.R2013Plus) {
+		if (this.r2013Plus) {
 			this._writer.writeBit(mLeaderStyle.unknownFlag298);
 		}
 	}
 
-	private writePdfDefinition(definition: PdfUnderlayDefinition): void {
+	private _writePdfDefinition(definition: PdfUnderlayDefinition): void {
 		this._writer.writeVariableText(definition.file);
 		this._writer.writeVariableText(definition.page);
 	}
 
-	private writePlotSettings(plot: PlotSettings): void {
+	private _writePlotSettings(plot: PlotSettings): void {
 		this._writer.writeVariableText(plot.pageName);
 		this._writer.writeVariableText(plot.systemPrinterName);
 		this._writer.writeBitShort(plot.flags);
@@ -4045,26 +4045,26 @@ export class DwgObjectWriter extends DwgSectionIO {
 		this._writer.writeBitDouble(plot.standardScale);
 		this._writer.write2BitDouble(plot.paperImageOrigin);
 
-		if (this.R2004Plus) {
+		if (this.r2004Plus) {
 			this._writer.writeBitShort(plot.shadePlotMode);
 			this._writer.writeBitShort(plot.shadePlotResolutionMode);
 			this._writer.writeBitShort(plot.shadePlotDPI);
 			this._writer.handleReferenceTyped(DwgReferenceType.HardPointer, null);
 		}
 
-		if (this.R2007Plus) {
+		if (this.r2007Plus) {
 			this._writer.handleReferenceTyped(DwgReferenceType.SoftPointer, null);
 		}
 	}
 
-	private writeRasterVariables(vars: RasterVariables): void {
+	private _writeRasterVariables(vars: RasterVariables): void {
 		this._writer.writeBitLong(vars.classVersion);
 		this._writer.writeBitShort(vars.isDisplayFrameShown ? 1 : 0);
 		this._writer.writeBitShort(vars.displayQuality);
 		this._writer.writeBitShort(vars.units);
 	}
 
-	private writeScale(scale: Scale): void {
+	private _writeScale(scale: Scale): void {
 		this._writer.writeBitShort(0);
 		this._writer.writeVariableText(scale.name);
 		this._writer.writeBitDouble(scale.paperUnits);
@@ -4072,7 +4072,7 @@ export class DwgObjectWriter extends DwgSectionIO {
 		this._writer.writeBit(scale.isUnitScale);
 	}
 
-	private writeSortEntitiesTable(sortEntitiesTable: SortEntitiesTable): void {
+	private _writeSortEntitiesTable(sortEntitiesTable: SortEntitiesTable): void {
 		this._writer.handleReferenceTyped(DwgReferenceType.SoftPointer, sortEntitiesTable.blockOwner);
 
 		const sorters = Array.from(sortEntitiesTable);
@@ -4083,7 +4083,7 @@ export class DwgObjectWriter extends DwgSectionIO {
 		}
 	}
 
-	private writeSpatialFilter(filter: SpatialFilter): void {
+	private _writeSpatialFilter(filter: SpatialFilter): void {
 		this._writer.writeBitShort(filter.boundaryPoints.length);
 		for (const pt of filter.boundaryPoints) {
 			this._writer.write2RawDouble(pt);
@@ -4102,11 +4102,11 @@ export class DwgObjectWriter extends DwgSectionIO {
 			this._writer.writeBitDouble(filter.backDistance);
 		}
 
-		this.write4x3Matrix(filter.inverseInsertTransform);
-		this.write4x3Matrix(filter.insertTransform);
+		this._write4x3Matrix(filter.inverseInsertTransform);
+		this._write4x3Matrix(filter.insertTransform);
 	}
 
-	private writeXRecord(xrecord: XRecord): void {
+	private _writeXRecord(xrecord: XRecord): void {
 		const chunks: number[] = [];
 		const getHandleValue = (value: unknown): number => {
 			if (typeof value === 'number') {
@@ -4173,9 +4173,9 @@ export class DwgObjectWriter extends DwgSectionIO {
 					break;
 				case GroupCodeValueType.Point3D: {
 					const xyz = entry.value as XYZ;
-					pushFloat64LE(xyz.X);
-					pushFloat64LE(xyz.Y);
-					pushFloat64LE(xyz.Z);
+					pushFloat64LE(xyz.x);
+					pushFloat64LE(xyz.y);
+					pushFloat64LE(xyz.z);
 					break;
 				}
 				case GroupCodeValueType.Chunk:
@@ -4188,12 +4188,12 @@ export class DwgObjectWriter extends DwgSectionIO {
 				case GroupCodeValueType.Handle: {
 					const handle = getHandleValue(entry.value);
 					const text = handle === 0 ? '' : handle.toString(16).toUpperCase();
-					this.writeStringInChunks(chunks, text);
+					this._writeStringInChunks(chunks, text);
 					break;
 				}
 				case GroupCodeValueType.String:
 				case GroupCodeValueType.ExtendedDataString:
-					this.writeStringInChunks(chunks, entry.value as string);
+					this._writeStringInChunks(chunks, entry.value as string);
 					break;
 				case GroupCodeValueType.ObjectId:
 				case GroupCodeValueType.ExtendedDataHandle: {
@@ -4209,29 +4209,29 @@ export class DwgObjectWriter extends DwgSectionIO {
 		this._writer.writeBitLong(chunks.length);
 		this._writer.writeBytesOffset(new Uint8Array(chunks), 0, chunks.length);
 
-		if (this.R2000Plus) {
+		if (this.r2000Plus) {
 			this._writer.writeBitShort(xrecord.cloningFlags);
 		}
 	}
 
 	// ==================== Utility Methods ====================
 
-	private writeStringInChunks(chunks: number[], text: string): void {
-		if (this.R2007Plus) {
+	private _writeStringInChunks(chunks: number[], text: string): void {
+		if (this.r2007Plus) {
 			if (!text) {
 				chunks.push(0, 0);
 				return;
 			}
 			const len = text.length;
 			chunks.push(len & 0xFF, (len >> 8) & 0xFF);
-			const bytes = this.encodeUtf16LE(text);
+			const bytes = this._encodeUtf16LE(text);
 			for (let i = 0; i < bytes.length; i++) chunks.push(bytes[i]);
 		} else if (!text) {
 			chunks.push(0, 0);
 			const codeIndex = CadUtils.getCodeIndex(CadUtils.getCodePage(this._writer.encoding));
 			chunks.push(codeIndex);
 		} else {
-			const bytes = this.encodeText(text);
+			const bytes = this._encodeText(text);
 			const len = bytes.length;
 			chunks.push(len & 0xFF, (len >> 8) & 0xFF);
 			const codeIndex = CadUtils.getCodeIndex(CadUtils.getCodePage(this._writer.encoding));
@@ -4240,11 +4240,11 @@ export class DwgObjectWriter extends DwgSectionIO {
 		}
 	}
 
-	private encodeUtf16LE(text: string): Uint8Array {
+	private _encodeUtf16LE(text: string): Uint8Array {
 		return encodeUtf16Le(text);
 	}
 
-	private encodeText(text: string): Uint8Array {
+	private _encodeText(text: string): Uint8Array {
 		return encodeCadString(text, this._writer.encoding);
 	}
 }

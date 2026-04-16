@@ -38,14 +38,14 @@ export class EvaluationGraph extends NonGraphicalObject {
 	edges: EvaluationGraphEdge[] = [];
 	nodes: EvaluationGraphNode[] = [];
 
-	override get objectName(): string { return DxfFileToken.ObjectEvalGraph; }
+	override get objectName(): string { return DxfFileToken.objectEvalGraph; }
 	override get objectType(): ObjectType { return ObjectType.UNLISTED; }
-	override get subclassMarker(): string { return DxfSubclassMarker.EvalGraph; }
+	override get subclassMarker(): string { return DxfSubclassMarker.evalGraph; }
 
 	value96: number = 0;
 	value97: number = 0;
 
-	static readonly DictionaryEntryName = 'ACAD_ENHANCEDBLOCK';
+	static readonly dictionaryEntryName = 'ACAD_ENHANCEDBLOCK';
 
 	override clone(): CadObject {
 		const clone = super.clone() as EvaluationGraph;

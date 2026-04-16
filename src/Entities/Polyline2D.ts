@@ -6,7 +6,7 @@ import type { BoundingBox } from '../Math/BoundingBox.js';
 
 export class Polyline2D extends Polyline {
 	override get objectName(): string {
-		return DxfFileToken.EntityPolyline;
+		return DxfFileToken.entityPolyline;
 	}
 
 	override get objectType(): ObjectType {
@@ -14,7 +14,7 @@ export class Polyline2D extends Polyline {
 	}
 
 	override get subclassMarker(): string {
-		return DxfSubclassMarker.Polyline;
+		return DxfSubclassMarker.polyline;
 	}
 
 	override getBoundingBox(): BoundingBox | null { return super.getBoundingBox(); }

@@ -41,7 +41,7 @@ export class TextEntity extends Entity implements IText {
 	normal: XYZ = new XYZ(0, 0, 1);
 
 	override get objectName(): string {
-		return DxfFileToken.EntityText;
+		return DxfFileToken.entityText;
 	}
 
 	override get objectType(): ObjectType {
@@ -67,7 +67,7 @@ export class TextEntity extends Entity implements IText {
 	}
 
 	override get subclassMarker(): string {
-		return DxfSubclassMarker.Text;
+		return DxfSubclassMarker.text;
 	}
 
 	thickness: number = 0.0;
@@ -88,7 +88,7 @@ export class TextEntity extends Entity implements IText {
 
 	private _height: number = 1.0;
 	private _mirror: TextMirrorFlag = TextMirrorFlag.None;
-	private _style: TextStyle = TextStyle.Default;
+	private _style: TextStyle = TextStyle.default;
 	private _value: string = '';
 
 	constructor() {
@@ -137,7 +137,7 @@ export class TextEntity extends Entity implements IText {
 	protected override _tableOnRemove(sender: unknown, e: CollectionChangedEventArgs): void {
 		super._tableOnRemove(sender, e);
 		if (e.item === this._style) {
-			this._style = this.document!.textStyles.get(TextStyle.DefaultName)!;
+			this._style = this.document!.textStyles.get(TextStyle.defaultName)!;
 		}
 	}
 }

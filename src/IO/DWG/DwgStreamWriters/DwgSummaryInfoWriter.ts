@@ -7,7 +7,7 @@ import { IDwgStreamWriter } from './IDwgStreamWriter.js';
 import { encodeCadString } from '../../TextEncoding.js';
 
 export class DwgSummaryInfoWriter extends DwgSectionIO {
-	override get SectionName(): string { return DwgSectionDefinition.SummaryInfo; }
+	override get sectionName(): string { return DwgSectionDefinition.summaryInfo; }
 
 	get bytesWritten(): number { return Math.ceil(this._writer.positionInBits / 8); }
 	get writerStream(): ArrayBuffer { return this._writer.main.stream; }
@@ -24,7 +24,7 @@ export class DwgSummaryInfoWriter extends DwgSectionIO {
 		this._writer = DwgStreamWriterBase.getStreamWriter(version, stream, encoding);
 
 		if (version < ACadVersion.AC1021) {
-			this._writeStringMethod = (value: string) => this.writeUnicodeString(value);
+			this._writeStringMethod = (value: string) => this._writeUnicodeString(value);
 		} else {
 			this._writeStringMethod = (value: string) => this._writer.writeTextUnicode(value);
 		}
@@ -63,7 +63,7 @@ export class DwgSummaryInfoWriter extends DwgSectionIO {
 		this._writer.writeInt(0);
 	}
 
-	private writeUnicodeString(value: string): void {
+	private _writeUnicodeString(value: string): void {
 		const bytes = encodeCadString(value ?? '', this._encoding);
 		this._writer.writeRawShort(bytes.length + 1);
 		this._writer.writeBytes(bytes);

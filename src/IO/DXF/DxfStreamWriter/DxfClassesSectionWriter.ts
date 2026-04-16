@@ -7,8 +7,8 @@ import { DxfFileToken } from '../../../DxfFileToken.js';
 import { ACadVersion } from '../../../ACadVersion.js';
 
 export class DxfClassesSectionWriter extends DxfSectionWriterBase {
-  public get SectionName(): string {
-    return DxfFileToken.ClassesSection;
+  public get sectionName(): string {
+    return DxfFileToken.classesSection;
   }
 
   public constructor(
@@ -27,18 +27,18 @@ export class DxfClassesSectionWriter extends DxfSectionWriterBase {
     }
 
     for (const c of classes) {
-      this._writer.Write(0, DxfFileToken.ClassEntry);
-      this._writer.Write(1, c.dxfName);
-      this._writer.Write(2, c.cppClassName);
-      this._writer.Write(3, c.applicationName);
-      this._writer.Write(90, c.proxyFlags as number);
+      this._writer.write(0, DxfFileToken.classEntry);
+      this._writer.write(1, c.dxfName);
+      this._writer.write(2, c.cppClassName);
+      this._writer.write(3, c.applicationName);
+      this._writer.write(90, c.proxyFlags as number);
 
-      if (this.Version > ACadVersion.AC1015) {
-        this._writer.Write(91, c.instanceCount);
+      if (this.version > ACadVersion.AC1015) {
+        this._writer.write(91, c.instanceCount);
       }
 
-      this._writer.Write(280, c.wasZombie);
-      this._writer.Write(281, c.isAnEntity);
+      this._writer.write(280, c.wasZombie);
+      this._writer.write(281, c.isAnEntity);
     }
   }
 }

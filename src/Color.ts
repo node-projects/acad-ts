@@ -1,17 +1,17 @@
 export class Color {
-	public static get Black(): Color { return new Color(250); }
-	public static get Blue(): Color { return new Color(5); }
-	public static get ByBlock(): Color { return Color.fromIndex(0); }
-	public static get ByEntity(): Color { return Color.fromIndex(257); }
-	public static get ByLayer(): Color { return Color.fromIndex(256); }
-	public static get Cyan(): Color { return new Color(4); }
-	public static get DarkGray(): Color { return new Color(8); }
-	public static get Default(): Color { return new Color(7); }
-	public static get Green(): Color { return new Color(3); }
-	public static get LightGray(): Color { return new Color(9); }
-	public static get Magenta(): Color { return new Color(6); }
-	public static get Red(): Color { return new Color(1); }
-	public static get Yellow(): Color { return new Color(2); }
+	public static get black(): Color { return new Color(250); }
+	public static get blue(): Color { return new Color(5); }
+	public static get byBlock(): Color { return Color._fromIndex(0); }
+	public static get byEntity(): Color { return Color._fromIndex(257); }
+	public static get byLayer(): Color { return Color._fromIndex(256); }
+	public static get cyan(): Color { return new Color(4); }
+	public static get darkGray(): Color { return new Color(8); }
+	public static get default(): Color { return new Color(7); }
+	public static get green(): Color { return new Color(3); }
+	public static get lightGray(): Color { return new Color(9); }
+	public static get magenta(): Color { return new Color(6); }
+	public static get red(): Color { return new Color(1); }
+	public static get yellow(): Color { return new Color(2); }
 
 	public get b(): number { return this.getRgb()[2]; }
 	public get g(): number { return this.getRgb()[1]; }
@@ -117,7 +117,7 @@ export class Color {
 		}
 	}
 
-	private static fromIndex(index: number): Color {
+	private static _fromIndex(index: number): Color {
 		const c = new Color(0);
 		c._color = index;
 		return c;

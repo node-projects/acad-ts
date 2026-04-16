@@ -4,36 +4,36 @@ import { CadDocumentBuilder } from '../CadDocumentBuilder.js';
 import { CadTableEntryTemplate } from './CadTableEntryTemplate.js';
 
 export class CadLineTypeTemplate extends CadTableEntryTemplate<LineType> {
-	LtypeControlHandle: number | null = null;
+	ltypeControlHandle: number | null = null;
 
-	TotalLen: number | null = null;
+	totalLen: number | null = null;
 
-	SegmentTemplates: CadLineTypeTemplate.SegmentTemplate[] = [];
+	segmentTemplates: CadLineTypeTemplate.SegmentTemplate[] = [];
 
 	constructor(entry?: LineType) {
 		super(entry ?? new LineType());
 	}
 
-	protected override build(builder: CadDocumentBuilder): void {
-		super.build(builder);
+	protected override _build(builder: CadDocumentBuilder): void {
+		super._build(builder);
 
-		for (const item of this.SegmentTemplates) {
-			item.Build(builder);
-			this.CadObject.addSegment(item.Segment);
+		for (const item of this.segmentTemplates) {
+			item.build(builder);
+			this.cadObject.addSegment(item.segment);
 		}
 	}
 }
 
 export namespace CadLineTypeTemplate {
 	export class SegmentTemplate {
-		StyleHandle: number | null = null;
+		styleHandle: number | null = null;
 
-		Segment: LineTypeSegment = new LineTypeSegment();
+		segment: LineTypeSegment = new LineTypeSegment();
 
-		Build(builder: CadDocumentBuilder): void {
-			const style = builder.TryGetCadObject<TextStyle>(this.StyleHandle);
+		build(builder: CadDocumentBuilder): void {
+			const style = builder.tryGetCadObject<TextStyle>(this.styleHandle);
 			if (style) {
-				this.Segment.style = style;
+				this.segment.style = style;
 			}
 		}
 	}

@@ -77,8 +77,8 @@ export class CadDocument implements IHandledCadObject {
 	public materials: MaterialCollection | null = null;
 	public mLeaderStyles: MLeaderStyleCollection | null = null;
 	public mLineStyles: MLineStyleCollection | null = null;
-	public get modelSpace(): BlockRecord | null { return this.blockRecords?.tryGetValue(BlockRecord.ModelSpaceName) ?? null; }
-	public get paperSpace(): BlockRecord | null { return this.blockRecords?.tryGetValue(BlockRecord.PaperSpaceName) ?? null; }
+	public get modelSpace(): BlockRecord | null { return this.blockRecords?.tryGetValue(BlockRecord.modelSpaceName) ?? null; }
+	public get paperSpace(): BlockRecord | null { return this.blockRecords?.tryGetValue(BlockRecord.paperSpaceName) ?? null; }
 	public pdfDefinitions: PdfDefinitionCollection | null = null;
 	public get rootDictionary(): CadDictionary | null { return this._rootDictionary; }
 	public set rootDictionary(value: CadDictionary | null) {
@@ -214,22 +214,22 @@ export class CadDocument implements IHandledCadObject {
 			return;
 		}
 
-		const groups = this.updateCollectionDict(CadDictionary.AcadGroup, createDictionaries);
+		const groups = this._updateCollectionDict(CadDictionary.acadGroup, createDictionaries);
 		this.groups = groups.success && groups.dictionary
 			? new GroupCollection(groups.dictionary)
 			: null;
 
-		const layouts = this.updateCollectionDict(CadDictionary.AcadLayout, createDictionaries);
+		const layouts = this._updateCollectionDict(CadDictionary.acadLayout, createDictionaries);
 		this.layouts = layouts.success && layouts.dictionary
 			? new LayoutCollection(layouts.dictionary)
 			: null;
 
-		const colors = this.updateCollectionDict(CadDictionary.AcadColor, createDictionaries);
+		const colors = this._updateCollectionDict(CadDictionary.acadColor, createDictionaries);
 		this.colors = colors.success && colors.dictionary
 			? new ColorCollection(colors.dictionary)
 			: null;
 
-		const materials = this.updateCollectionDict(CadDictionary.AcadMaterial, createDictionaries);
+		const materials = this._updateCollectionDict(CadDictionary.acadMaterial, createDictionaries);
 		if (materials.success && materials.dictionary) {
 			this.materials = new MaterialCollection(materials.dictionary);
 			if (createDefaults) {
@@ -239,7 +239,7 @@ export class CadDocument implements IHandledCadObject {
 			this.materials = null;
 		}
 
-		const { success, dictionary } = this.updateCollectionDict(CadDictionary.AcadMLineStyle, createDictionaries);
+		const { success, dictionary } = this._updateCollectionDict(CadDictionary.acadMLineStyle, createDictionaries);
 		if (success && dictionary) {
 			this.mLineStyles = new MLineStyleCollection(dictionary);
 			if (createDefaults) {
@@ -294,7 +294,7 @@ export class CadDocument implements IHandledCadObject {
 			image.definitionReactor = reactor;
 			usedReactors.add(reactor);
 			if (reactor.document == null) {
-				this.addCadObject(reactor);
+				this._addCadObject(reactor);
 			}
 			if (!image.definition.reactors.includes(reactor)) {
 				image.definition.addReactor(reactor);
@@ -303,7 +303,7 @@ export class CadDocument implements IHandledCadObject {
 
 		for (const reactor of reactors) {
 			if (!usedReactors.has(reactor)) {
-				this.removeCadObject(reactor);
+				this._removeCadObject(reactor);
 			}
 		}
 	}
@@ -319,13 +319,13 @@ export class CadDocument implements IHandledCadObject {
 				collection.owner = this;
 			}
 			if (collection.document == null) {
-				this.addCadObject(collection);
+				this._addCadObject(collection);
 			}
 		}
 
 		if (isObservableCollection(collection)) {
-			collection.onAdd = this.onAdd.bind(this);
-			collection.onRemove = this.onRemove.bind(this);
+			collection.onAdd = this._onAdd.bind(this);
+			collection.onRemove = this._onRemove.bind(this);
 		}
 
 		if (collection instanceof AppIdsTable) this.appIds = collection;
@@ -341,7 +341,7 @@ export class CadDocument implements IHandledCadObject {
 
 		if (isIterable(collection)) {
 			for (const item of collection) {
-				this.wireCollectionItem(item);
+				this._wireCollectionItem(item);
 			}
 		}
 	}
@@ -373,7 +373,7 @@ export class CadDocument implements IHandledCadObject {
 		}
 
 		if (collection instanceof CadObject) {
-			this.removeCadObject(collection);
+			this._removeCadObject(collection);
 		}
 
 		if (isSeqendCollection(collection)) {
@@ -381,7 +381,7 @@ export class CadDocument implements IHandledCadObject {
 			collection.onSeqendRemoved = null;
 		}
 		if (isSeqendCollection(collection) && collection.seqend instanceof CadObject) {
-			this.removeCadObject(collection.seqend);
+			this._removeCadObject(collection.seqend);
 		}
 
 		if (!isIterable(collection)) {
@@ -392,12 +392,12 @@ export class CadDocument implements IHandledCadObject {
 			if (item instanceof CadDictionary) {
 				this.unregisterCollection(item);
 			} else if (item instanceof CadObject) {
-				this.removeCadObject(item);
+				this._removeCadObject(item);
 			}
 		}
 	}
 
-	private addCadObject(cadObject: CadObject): void {
+	private _addCadObject(cadObject: CadObject): void {
 		if (cadObject.document != null) {
 			throw new Error(`The item with handle ${cadObject.handle} is already assigned to a document`);
 		}
@@ -416,40 +416,40 @@ export class CadDocument implements IHandledCadObject {
 		cadObject.assignDocument(this);
 	}
 
-	private onAdd(sender: unknown, e: CollectionChangedEventArgs): void {
-		this.wireCollectionItem(e.item);
+	private _onAdd(sender: unknown, e: CollectionChangedEventArgs): void {
+		this._wireCollectionItem(e.item);
 	}
 
-	private onRemove(sender: unknown, e: CollectionChangedEventArgs): void {
-		this.unregisterBlockMarkers(e.item);
-		this.removeCadObject(e.item);
+	private _onRemove(sender: unknown, e: CollectionChangedEventArgs): void {
+		this._unregisterBlockMarkers(e.item);
+		this._removeCadObject(e.item);
 	}
 
-	private registerBlockMarkers(item: unknown): void {
+	private _registerBlockMarkers(item: unknown): void {
 		if (!hasBlockMarkers(item)) {
 			return;
 		}
 
 		for (const marker of [item.blockEntity, item.blockEnd]) {
 			if (marker instanceof CadObject && marker.document == null) {
-				this.addCadObject(marker);
+				this._addCadObject(marker);
 			}
 		}
 	}
 
-	private unregisterBlockMarkers(item: unknown): void {
+	private _unregisterBlockMarkers(item: unknown): void {
 		if (!hasBlockMarkers(item)) {
 			return;
 		}
 
 		for (const marker of [item.blockEntity, item.blockEnd]) {
 			if (marker instanceof CadObject && marker.document === this) {
-				this.removeCadObject(marker);
+				this._removeCadObject(marker);
 			}
 		}
 	}
 
-	private removeCadObject(cadObject: CadObject): void {
+	private _removeCadObject(cadObject: CadObject): void {
 		const result = this.tryGetCadObject(cadObject.handle);
 		if (!result.found || !this._cadObjects.delete(cadObject.handle)) {
 			return;
@@ -457,7 +457,7 @@ export class CadDocument implements IHandledCadObject {
 		cadObject.unassignDocument();
 	}
 
-	private updateCollectionDict(dictName: string, createDictionary: boolean): { success: boolean; dictionary: CadDictionary | null } {
+	private _updateCollectionDict(dictName: string, createDictionary: boolean): { success: boolean; dictionary: CadDictionary | null } {
 		let dictionary = this.rootDictionary?.getEntry<CadDictionary>(dictName) ?? null;
 		if (!dictionary && createDictionary && this.rootDictionary) {
 			dictionary = new CadDictionary(dictName);
@@ -467,32 +467,32 @@ export class CadDocument implements IHandledCadObject {
 		return { success: dictionary != null, dictionary };
 	}
 
-	private wireCollectionItem(item: unknown): void {
+	private _wireCollectionItem(item: unknown): void {
 		if (item instanceof CadDictionary) {
 			this.registerCollection(item);
 			return;
 		}
 
 		if (item instanceof CadObject && item.document == null) {
-			this.addCadObject(item);
+			this._addCadObject(item);
 		}
 
-		this.registerBlockMarkers(item);
-		this.wireEntityCollection(item);
+		this._registerBlockMarkers(item);
+		this._wireEntityCollection(item);
 	}
 
-	private wireEntityCollection(item: unknown): void {
+	private _wireEntityCollection(item: unknown): void {
 		if (!hasEntityCollection(item)) {
 			return;
 		}
 
 		const entities = item.entities;
-		entities.onAdd = this.onAdd.bind(this);
-		entities.onRemove = this.onRemove.bind(this);
+		entities.onAdd = this._onAdd.bind(this);
+		entities.onRemove = this._onRemove.bind(this);
 
 		for (const entity of entities) {
 			if (entity instanceof CadObject && entity.document == null) {
-				this.addCadObject(entity);
+				this._addCadObject(entity);
 			}
 		}
 	}

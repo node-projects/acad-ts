@@ -11,7 +11,7 @@ export class DxfMap extends DxfMapBase {
 	public static create(type: Function | string, name?: string): DxfMap {
 		const typeName = typeof type === 'string' ? type : type.name;
 		if (DxfMap._cache.has(typeName)) {
-			return DxfMap.clone(DxfMap._cache.get(typeName)!, name);
+			return DxfMap._clone(DxfMap._cache.get(typeName)!, name);
 		}
 
 		const map = new DxfMap();
@@ -56,7 +56,7 @@ export class DxfMap extends DxfMapBase {
 		}
 
 		DxfMap._cache.set(typeName, map);
-		return DxfMap.clone(map, name);
+		return DxfMap._clone(map, name);
 	}
 
 	public static clearCache(): void {
@@ -67,7 +67,7 @@ export class DxfMap extends DxfMapBase {
 		return `DxfMap:${this.name}`;
 	}
 
-	private static clone(source: DxfMap, name?: string): DxfMap {
+	private static _clone(source: DxfMap, name?: string): DxfMap {
 		const map = new DxfMap();
 		map.name = name ?? source.name;
 		for (const [k, v] of source.dxfProperties) {

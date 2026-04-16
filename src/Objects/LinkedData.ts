@@ -4,7 +4,7 @@ import { CellRange, CellStyle } from '../Entities/TableEntity.js';
 
 export abstract class LinkedData extends NonGraphicalObject {
 	override get subclassMarker(): string {
-		return DxfSubclassMarker.LinkedData;
+		return DxfSubclassMarker.linkedData;
 	}
 
 	description: string = '';
@@ -12,7 +12,7 @@ export abstract class LinkedData extends NonGraphicalObject {
 
 export abstract class LinkedTableData extends LinkedData {
 	override get subclassMarker(): string {
-		return DxfSubclassMarker.LinkedTableData;
+		return DxfSubclassMarker.linkedTableData;
 	}
 
 	rows: unknown[] = [];
@@ -21,7 +21,7 @@ export abstract class LinkedTableData extends LinkedData {
 
 export abstract class FormattedTableData extends LinkedTableData {
 	override get subclassMarker(): string {
-		return DxfSubclassMarker.FormattedTableData;
+		return DxfSubclassMarker.formattedTableData;
 	}
 
 	mergedCellRanges: CellRange[] = [];
