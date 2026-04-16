@@ -3228,14 +3228,7 @@ export class DwgObjectReader extends DwgSectionIO {
     material.diffuseAutoTransform = this._mergedReaders.readByte() as AutoTransformMethodFlags;
     material.diffuseMatrix = this.readMatrix4();
     material.diffuseMapSource = this._mergedReaders.readByte() as MapSource;
-    switch (material.diffuseMapSource) {
-      case MapSource.UseCurrentScene: break;
-      case MapSource.UseImageFile:
-        material.diffuseMapFileName = this._mergedReaders.readVariableText();
-        break;
-      case MapSource.Procedural:
-        throw new Error('Procedural map source not implemented');
-    }
+    material.diffuseMapFileName = this.readMaterialMapFileName(material.diffuseMapSource, 'diffuse');
 
     // Specular
     material.specularColorMethod = this._mergedReaders.readByte() as ColorMethod;
@@ -3251,14 +3244,7 @@ export class DwgObjectReader extends DwgSectionIO {
     material.specularAutoTransform = this._mergedReaders.readByte() as AutoTransformMethodFlags;
     material.specularMatrix = this.readMatrix4();
     material.specularMapSource = this._mergedReaders.readByte() as MapSource;
-    switch (material.specularMapSource) {
-      case MapSource.UseCurrentScene: break;
-      case MapSource.UseImageFile:
-        material.specularMapFileName = this._mergedReaders.readVariableText();
-        break;
-      case MapSource.Procedural:
-        throw new Error('Procedural map source not implemented');
-    }
+    material.specularMapFileName = this.readMaterialMapFileName(material.specularMapSource, 'specular');
     material.specularGlossFactor = this._objectReader.readBitDouble();
 
     // Reflection
@@ -3268,14 +3254,7 @@ export class DwgObjectReader extends DwgSectionIO {
     material.reflectionAutoTransform = this._mergedReaders.readByte() as AutoTransformMethodFlags;
     material.reflectionMatrix = this.readMatrix4();
     material.reflectionMapSource = this._mergedReaders.readByte() as MapSource;
-    switch (material.reflectionMapSource) {
-      case MapSource.UseCurrentScene: break;
-      case MapSource.UseImageFile:
-        material.reflectionMapFileName = this._mergedReaders.readVariableText();
-        break;
-      case MapSource.Procedural:
-        throw new Error('Procedural map source not implemented');
-    }
+    material.reflectionMapFileName = this.readMaterialMapFileName(material.reflectionMapSource, 'reflection');
     material.opacity = this._mergedReaders.readBitDouble();
 
     // Opacity
@@ -3285,14 +3264,7 @@ export class DwgObjectReader extends DwgSectionIO {
     material.opacityAutoTransform = this._mergedReaders.readByte() as AutoTransformMethodFlags;
     material.opacityMatrix = this.readMatrix4();
     material.opacityMapSource = this._mergedReaders.readByte() as MapSource;
-    switch (material.opacityMapSource) {
-      case MapSource.UseCurrentScene: break;
-      case MapSource.UseImageFile:
-        material.opacityMapFileName = this._mergedReaders.readVariableText();
-        break;
-      case MapSource.Procedural:
-        throw new Error('Procedural map source not implemented');
-    }
+    material.opacityMapFileName = this.readMaterialMapFileName(material.opacityMapSource, 'opacity');
 
     // Bump
     material.bumpMapBlendFactor = this._mergedReaders.readBitDouble();
@@ -3301,14 +3273,7 @@ export class DwgObjectReader extends DwgSectionIO {
     material.bumpAutoTransform = this._mergedReaders.readByte() as AutoTransformMethodFlags;
     material.bumpMatrix = this.readMatrix4();
     material.bumpMapSource = this._mergedReaders.readByte() as MapSource;
-    switch (material.bumpMapSource) {
-      case MapSource.UseCurrentScene: break;
-      case MapSource.UseImageFile:
-        material.bumpMapFileName = this._mergedReaders.readVariableText();
-        break;
-      case MapSource.Procedural:
-        throw new Error('Procedural map source not implemented');
-    }
+    material.bumpMapFileName = this.readMaterialMapFileName(material.bumpMapSource, 'bump');
     material.refractionIndex = this._mergedReaders.readBitDouble();
 
     // Refraction
@@ -3318,15 +3283,29 @@ export class DwgObjectReader extends DwgSectionIO {
     material.refractionAutoTransform = this._mergedReaders.readByte() as AutoTransformMethodFlags;
     material.refractionMatrix = this.readMatrix4();
     material.refractionMapSource = this._mergedReaders.readByte() as MapSource;
-    switch (material.refractionMapSource) {
-      case MapSource.UseCurrentScene: break;
-      case MapSource.UseImageFile:
-        material.refractionMapFileName = this._mergedReaders.readVariableText();
-        break;
-      case MapSource.Procedural:
-        throw new Error('Procedural map source not implemented');
-    }
+    material.refractionMapFileName = this.readMaterialMapFileName(material.refractionMapSource, 'refraction');
     return template;
+  }
+
+  private readMaterialMapFileName(source: MapSource, channel: string): string {
+    switch (source) {
+      case MapSource.UseCurrentScene:
+        return '';
+      case MapSource.UseImageFile:
+        return this._mergedReaders.readVariableText();
+      case MapSource.Procedural:
+        this._builder.Notify(
+          `DWG material ${channel} map uses an unsupported procedural source; preserving the source flag without procedural payload details.`,
+          NotificationType.Warning,
+        );
+        return '';
+      default:
+        this._builder.Notify(
+          `DWG material ${channel} map uses an unknown source value ${source}; leaving the map filename empty.`,
+          NotificationType.Warning,
+        );
+        return '';
+    }
   }
 
   private readMLine(): CadTemplate {
@@ -3800,7 +3779,7 @@ export class DwgObjectReader extends DwgSectionIO {
     if (this.R2000Plus) {
       wall.version = this._mergedReaders.readBitLong();
     }
-    this.handleReference();
+    template.BinRecordHandle = this.handleReference();
     template.StyleHandle = this.handleReference();
     template.CleanupGroupHandle = this.handleReference();
     const objectPos = this._objectReader.positionInBits();
@@ -4165,6 +4144,7 @@ export class DwgObjectReader extends DwgSectionIO {
     this.readCommonNonEntityData(template);
     const contextData = template.CadObject as ObjectContextData;
     contextData.version = this._objectReader.readBitShort();
+    contextData.hasFileToExtensionDictionary = this._objectReader.readBit();
     contextData.default = this._objectReader.readBit();
   }
 
@@ -4294,16 +4274,59 @@ export class DwgObjectReader extends DwgSectionIO {
     const code = this._mergedReaders.readBitShort();
     if (code > 0) {
       const groupValue = GroupCodeValue.transformValue(code);
-      switch (groupValue) {
-        case GroupCodeValueType.Double:
-        case GroupCodeValueType.ExtendedDataDouble:
-          this._mergedReaders.readBitDouble();
-          break;
-        default:
-          throw new Error(`[EvaluationExpression] Code not implemented ${groupValue}`);
-      }
+      this.readEvaluationExpressionValue(groupValue, code);
     }
     template.CadObject.id = this._objectReader.readBitLong();
+  }
+
+  private readEvaluationExpressionValue(groupValue: GroupCodeValueType, code: number): void {
+    switch (groupValue) {
+      case GroupCodeValueType.String:
+      case GroupCodeValueType.ExtendedDataString:
+      case GroupCodeValueType.Comment:
+        this._mergedReaders.readVariableText();
+        break;
+      case GroupCodeValueType.Point3D:
+        this._mergedReaders.read3BitDouble();
+        break;
+      case GroupCodeValueType.Double:
+      case GroupCodeValueType.ExtendedDataDouble:
+        this._mergedReaders.readBitDouble();
+        break;
+      case GroupCodeValueType.Byte:
+        this._mergedReaders.readByte();
+        break;
+      case GroupCodeValueType.Int16:
+      case GroupCodeValueType.ExtendedDataInt16:
+        this._mergedReaders.readBitShort();
+        break;
+      case GroupCodeValueType.Int32:
+      case GroupCodeValueType.ExtendedDataInt32:
+        this._mergedReaders.readBitLong();
+        break;
+      case GroupCodeValueType.Int64:
+        this._mergedReaders.readBitLongLong();
+        break;
+      case GroupCodeValueType.Handle:
+      case GroupCodeValueType.ObjectId:
+      case GroupCodeValueType.ExtendedDataHandle:
+        this.handleReference();
+        break;
+      case GroupCodeValueType.Bool:
+        this._mergedReaders.readBit();
+        break;
+      case GroupCodeValueType.Chunk:
+      case GroupCodeValueType.ExtendedDataChunk:
+        this._mergedReaders.readBytes(this._mergedReaders.readBitLong());
+        break;
+      case GroupCodeValueType.None:
+      default:
+        this._builder.Notify(
+          `[EvaluationExpression] Unsupported group code ${code} (${groupValue}); leaving the value payload unread.`,
+          NotificationType.Warning,
+        );
+        break;
+    }
   }
 
   private readRowCellStyle(tableStyleTemplate: CadTableStyleTemplate, style: CellStyle): void {
@@ -4559,8 +4582,16 @@ export class DwgObjectReader extends DwgSectionIO {
         case CadValueType.Handle:
           template.ValueHandle = this.handleReference();
           break;
+        case CadValueType.Buffer:
+        case CadValueType.ResultBuffer:
+          value.value = this._mergedReaders.readBitLong();
+          break;
         default:
-          throw new Error('CadValue type not implemented');
+          this._builder.Notify(
+            `DWG CadValue uses an unsupported value type ${value.valueType}; leaving the raw value empty.`,
+            NotificationType.Warning,
+          );
+          break;
       }
     }
     if (this.R2007Plus) {

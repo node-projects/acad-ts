@@ -16,7 +16,7 @@ export class TableStyle extends NonGraphicalObject {
 	headerCellStyle: CellStyle = new CellStyle();
 	horizontalCellMargin: number = 0.06;
 
-	override get objectName(): string { return DxfFileToken.TableStyle; }
+	override get objectName(): string { return DxfFileToken.ObjectTableStyle; }
 	override get objectType(): ObjectType { return ObjectType.UNLISTED; }
 	override get subclassMarker(): string { return DxfSubclassMarker.TableStyle; }
 

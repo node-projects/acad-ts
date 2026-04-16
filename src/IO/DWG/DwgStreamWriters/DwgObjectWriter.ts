@@ -48,6 +48,7 @@ import { Ray } from '../../../Entities/Ray.js';
 import { Shape } from '../../../Entities/Shape.js';
 import { Solid } from '../../../Entities/Solid.js';
 import { Solid3D } from '../../../Entities/Solid3D.js';
+import { ModelerGeometry, ModelerGeometryWire } from '../../../Entities/ModelerGeometry.js';
 import { Spline, SplineFlags, SplineFlags1, KnotParametrization } from '../../../Entities/Spline.js';
 import { CadWipeoutBase, ClipType, ClipMode } from '../../../Entities/CadWipeoutBase.js';
 import { TextEntity, TextMirrorFlag, TextHorizontalAlignment, TextVerticalAlignmentType } from '../../../Entities/TextEntity.js';
@@ -70,7 +71,7 @@ import { BlockRecord, BlockTypeFlags } from '../../../Tables/BlockRecord.js';
 import { UnknownEntity } from '../../../Entities/UnknownEntity.js';
 import { Wall } from '../../../Entities/AecObjects/Wall.js';
 import { ProxyEntity } from '../../../Entities/ProxyEntity.js';
-import { TableEntity } from '../../../Entities/TableEntity.js';
+import { TableEntity, TableEntityCell, CellType, CellBorder, CellStyle, CellEdgeFlags, ContentFormat, MarginFlags } from '../../../Entities/TableEntity.js';
 import { CadBody } from '../../../Entities/CadBody.js';
 import { Region } from '../../../Entities/Region.js';
 import { IPolyline } from '../../../Entities/IPolyline.js';
@@ -117,6 +118,7 @@ import { ObjectContextData } from '../../../Objects/ObjectContextData.js';
 import { FlowDirectionType } from '../../../FlowDirectionType.js';
 import { GroupCodeValue } from '../../../GroupCodeValue.js';
 import { IHandledCadObject } from '../../../IHandledCadObject.js';
+import { IProxy } from '../../../IProxy.js';
 import { DxfClass } from '../../../Classes/DxfClass.js';
 
 // XData
@@ -142,7 +144,7 @@ import { AecWallStyle } from '../../../Objects/AEC/AecWallStyle.js';
 import { AecCleanupGroup } from '../../../Objects/AEC/AecCleanupGroup.js';
 import { AecBinRecord } from '../../../Objects/AEC/AecBinRecord.js';
 import { EvaluationGraph } from '../../../Objects/Evaluations/EvaluationGraph.js';
-import { Material } from '../../../Objects/Material.js';
+import { Material, ColorMethod, MapSource } from '../../../Objects/Material.js';
 import { UnknownNonGraphicalObject } from '../../../Objects/UnknownNonGraphicalObject.js';
 import { VisualStyle } from '../../../Objects/VisualStyle.js';
 import { TableStyle } from '../../../Objects/TableStyle.js';
@@ -370,15 +372,6 @@ export class DwgObjectWriter extends DwgSectionIO {
 		if (entity instanceof Seqend) return false;
 		if (entity instanceof UnknownEntity) return false;
 		if (entity instanceof Shape) return this.WriteShapes;
-		if (entity instanceof Wall
-			|| entity instanceof ProxyEntity
-			|| entity instanceof TableEntity
-			|| entity instanceof Solid3D
-			|| entity instanceof CadBody
-			|| entity instanceof Region) {
-			this.notify(`Entity type not implemented ${entity.constructor.name}`, NotificationType.NotImplemented);
-			return false;
-		}
 		return true;
 	}
 
@@ -1131,9 +1124,9 @@ export class DwgObjectWriter extends DwgSectionIO {
 		switch (cadObject.objectType) {
 			case ObjectType.LAYOUT:
 				if (this.R2004Pre) {
-					if (this._document.classes.tryGetByName(cadObject.objectName)) {
-						const dxfClass = this._document.classes.getByName(cadObject.objectName);
-							this._writer.writeObjectType(dxfClass.classNumber);
+					const dxfClassLookup = this._document.classes.tryGetByName(cadObject.objectName);
+					if (dxfClassLookup.found && dxfClassLookup.result) {
+						this._writer.writeObjectType(dxfClassLookup.result.classNumber);
 					} else {
 						this.notify(`Dxf Class not found for ${cadObject.objectType} fullname: ${cadObject.constructor.name}`, NotificationType.Warning);
 						return;
@@ -1143,12 +1136,14 @@ export class DwgObjectWriter extends DwgSectionIO {
 				this._writer.writeObjectType(cadObject.objectType);
 				break;
 			case ObjectType.UNLISTED:
-				if (this._document.classes.tryGetByName(cadObject.objectName)) {
-					const dxfClass = this._document.classes.getByName(cadObject.objectName);
-						this._writer.writeObjectType(dxfClass.classNumber);
-				} else {
-					this.notify(`Dxf Class not found for ${cadObject.objectType} fullname: ${cadObject.constructor.name}`, NotificationType.Warning);
-					return;
+				{
+					const dxfClassLookup = this._document.classes.tryGetByName(cadObject.objectName);
+					if (dxfClassLookup.found && dxfClassLookup.result) {
+						this._writer.writeObjectType(dxfClassLookup.result.classNumber);
+					} else {
+						this.notify(`Dxf Class not found for ${cadObject.objectType} fullname: ${cadObject.constructor.name}`, NotificationType.Warning);
+						return;
+					}
 				}
 				break;
 			case ObjectType.INVALID:
@@ -1437,6 +1432,8 @@ export class DwgObjectWriter extends DwgSectionIO {
 			}
 		} else if (entity instanceof Ellipse) {
 			this.writeEllipse(entity);
+		} else if (entity instanceof TableEntity) {
+			this.writeTableEntity(entity);
 		} else if (entity instanceof Insert) {
 			this.writeInsert(entity);
 			children.push(...entity.attributes);
@@ -1465,6 +1462,10 @@ export class DwgObjectWriter extends DwgSectionIO {
 			this.writePdfUnderlay(entity);
 		} else if (entity instanceof Point) {
 			this.writePoint(entity);
+		} else if (entity instanceof ProxyEntity) {
+			this.writeProxyEntity(entity);
+		} else if (entity instanceof Wall) {
+			this.writeWall(entity);
 		} else if (entity instanceof PolyfaceMesh) {
 			this.writePolyfaceMesh(entity);
 			children.push(...entity.faces, ...entity.vertices);
@@ -1489,6 +1490,10 @@ export class DwgObjectWriter extends DwgSectionIO {
 			this.writeSolid(entity);
 		} else if (entity instanceof Solid3D) {
 			this.writeSolid3D(entity);
+		} else if (entity instanceof CadBody) {
+			this.writeCadBody(entity);
+		} else if (entity instanceof Region) {
+			this.writeRegion(entity);
 		} else if (entity instanceof Spline) {
 			this.writeSpline(entity);
 		} else if (entity instanceof CadWipeoutBase) {
@@ -1534,6 +1539,43 @@ export class DwgObjectWriter extends DwgSectionIO {
 		for (const v of underlay.clipBoundaryVertices) {
 			this._writer.write2RawDouble(v);
 		}
+	}
+
+	private enqueueObject(object: NonGraphicalObject | null | undefined): void {
+		if (object == null || object.handle === 0) {
+			return;
+		}
+
+		if (this.Map.has(object.handle)) {
+			return;
+		}
+
+		if (this._objects.some((entry) => entry.handle === object.handle)) {
+			return;
+		}
+
+		this._objects.push(object);
+	}
+
+	private writeCommonProxyData(proxy: IProxy): void {
+		this._writer.writeBitLong(proxy.classId);
+
+		if (!this.R2000Plus) {
+			return;
+		}
+
+		if (this._version > ACadVersion.AC1015) {
+			this._writer.writeVariableText('');
+		}
+
+		if (!this.R2018Plus) {
+			this._writer.writeBitLong((proxy.version as number) | (proxy.maintenanceVersion << 16));
+		} else {
+			this._writer.writeBitLong(proxy.version);
+			this._writer.writeBitLong(proxy.maintenanceVersion);
+		}
+
+		this._writer.writeBit(proxy.originalDataFormatDxf);
 	}
 
 	private writeArc(arc: Arc): void {
@@ -2125,6 +2167,26 @@ export class DwgObjectWriter extends DwgSectionIO {
 		this._writer.writeBitShort(multiLeader.blockContentConnection);
 		this._writer.writeBit(multiLeader.enableAnnotationScale);
 
+		if (this.R2007Pre) {
+			const arrowheadEntries: Array<{ handle: BlockRecord | null; isDefault: boolean }> = [];
+			if (multiLeader.arrowhead != null) {
+				arrowheadEntries.push({ handle: multiLeader.arrowhead, isDefault: true });
+			}
+			for (const leaderRoot of multiLeader.contextData.leaderRoots) {
+				for (const leaderLine of leaderRoot.lines) {
+					if (leaderLine.arrowhead != null) {
+						arrowheadEntries.push({ handle: leaderLine.arrowhead, isDefault: false });
+					}
+				}
+			}
+
+			this._writer.writeBitLong(arrowheadEntries.length);
+			for (const entry of arrowheadEntries) {
+				this._writer.writeBit(entry.isDefault);
+				this._writer.handleReference(entry.handle);
+			}
+		}
+
 		const blockLabelCount = multiLeader.blockAttributes.length;
 		this._writer.writeBitLong(blockLabelCount);
 		for (let bl = 0; bl < blockLabelCount; bl++) {
@@ -2214,24 +2276,27 @@ export class DwgObjectWriter extends DwgSectionIO {
 
 			this._writer.writeBit(annotContext.wordBreak);
 			this._writer.writeBit(false);
-		} else if (annotContext.hasContentsBlock) {
+		} else {
 			this._writer.writeBit(annotContext.hasContentsBlock);
-			this._writer.handleReferenceTyped(DwgReferenceType.SoftPointer, annotContext.blockContent);
-			this._writer.write3BitDouble(annotContext.blockContentNormal);
-			this._writer.write3BitDouble(annotContext.blockContentLocation);
-			this._writer.write3BitDouble(annotContext.blockContentScale);
-			this._writer.writeBitDouble(annotContext.blockContentRotation);
-			this._writer.writeCmColor(annotContext.blockContentColor);
 
-			const m4 = annotContext.transformationMatrix;
-			this._writer.writeBitDouble(m4.M00); this._writer.writeBitDouble(m4.M10);
-			this._writer.writeBitDouble(m4.M20); this._writer.writeBitDouble(m4.M30);
-			this._writer.writeBitDouble(m4.M01); this._writer.writeBitDouble(m4.M11);
-			this._writer.writeBitDouble(m4.M21); this._writer.writeBitDouble(m4.M31);
-			this._writer.writeBitDouble(m4.M02); this._writer.writeBitDouble(m4.M12);
-			this._writer.writeBitDouble(m4.M22); this._writer.writeBitDouble(m4.M32);
-			this._writer.writeBitDouble(m4.M03); this._writer.writeBitDouble(m4.M13);
-			this._writer.writeBitDouble(m4.M23); this._writer.writeBitDouble(m4.M33);
+			if (annotContext.hasContentsBlock) {
+				this._writer.handleReferenceTyped(DwgReferenceType.SoftPointer, annotContext.blockContent);
+				this._writer.write3BitDouble(annotContext.blockContentNormal);
+				this._writer.write3BitDouble(annotContext.blockContentLocation);
+				this._writer.write3BitDouble(annotContext.blockContentScale);
+				this._writer.writeBitDouble(annotContext.blockContentRotation);
+				this._writer.writeCmColor(annotContext.blockContentColor);
+
+				const m4 = annotContext.transformationMatrix;
+				this._writer.writeBitDouble(m4.M00); this._writer.writeBitDouble(m4.M10);
+				this._writer.writeBitDouble(m4.M20); this._writer.writeBitDouble(m4.M30);
+				this._writer.writeBitDouble(m4.M01); this._writer.writeBitDouble(m4.M11);
+				this._writer.writeBitDouble(m4.M21); this._writer.writeBitDouble(m4.M31);
+				this._writer.writeBitDouble(m4.M02); this._writer.writeBitDouble(m4.M12);
+				this._writer.writeBitDouble(m4.M22); this._writer.writeBitDouble(m4.M32);
+				this._writer.writeBitDouble(m4.M03); this._writer.writeBitDouble(m4.M13);
+				this._writer.writeBitDouble(m4.M23); this._writer.writeBitDouble(m4.M33);
+			}
 		}
 
 		this._writer.write3BitDouble(annotContext.basePoint);
@@ -2328,6 +2393,28 @@ export class DwgObjectWriter extends DwgSectionIO {
 		this._writer.writeBitThickness(point.thickness);
 		this._writer.writeBitExtrusion(point.normal);
 		this._writer.writeBitDouble(point.rotation);
+	}
+
+	private writeProxyEntity(proxy: ProxyEntity): void {
+		this.writeCommonProxyData(proxy);
+	}
+
+	private writeWall(wall: Wall): void {
+		if (this.R2000Plus) {
+			this._writer.writeBitLong(wall.version);
+		}
+
+		if (wall.rawData != null && wall.rawData.length > 0) {
+			this._writer.writeBytes(wall.rawData);
+		}
+
+		this._writer.handleReference(wall.binRecord ?? wall.binRecordHandle ?? 0);
+		this._writer.handleReference(wall.style ?? 0);
+		this._writer.handleReference(wall.cleanupGroup ?? 0);
+
+		this.enqueueObject(wall.binRecord);
+		this.enqueueObject(wall.style);
+		this.enqueueObject(wall.cleanupGroup);
 	}
 
 	private writePolyfaceMesh(fm: PolyfaceMesh): void {
@@ -2462,8 +2549,155 @@ export class DwgObjectWriter extends DwgSectionIO {
 		this._writer.writeBitExtrusion(solid.normal);
 	}
 
-	private writeSolid3D(_solid: Solid3D): void {
-		// Empty in C# source
+	private writeSolid3D(solid: Solid3D): void {
+		this.writeModelerGeometry(solid);
+		if (this.R2007Plus) {
+			this._writer.handleReference(0);
+		}
+	}
+
+	private writeTableEntity(table: TableEntity): void {
+		this.writeInsert(table);
+
+		if (this.R2010Plus) {
+			this._writer.writeByte(table.version);
+			this._writer.handleReference(0);
+			this._writer.writeBitLong(0);
+			if (this.R2013Plus) {
+				this._writer.writeBitLong(0);
+			} else {
+				this._writer.writeBit(false);
+			}
+			return;
+		}
+
+		this._writer.writeBitShort(table.valueFlag);
+		this._writer.write3BitDouble(table.horizontalDirection);
+		this._writer.writeBitLong(table.columns.length);
+		this._writer.writeBitLong(table.rows.length);
+		for (const column of table.columns) {
+			this._writer.writeBitDouble(column.width);
+		}
+		for (const row of table.rows) {
+			this._writer.writeBitDouble(row.height);
+		}
+
+		this._writer.handleReference(table.style);
+		for (const row of table.rows) {
+			for (const cell of row.cells) {
+				this.writeTableCell(cell);
+			}
+		}
+
+		this._writer.writeBit(false);
+		this._writer.writeBit(false);
+		this._writer.writeBit(false);
+		this._writer.writeBit(false);
+	}
+
+	private writeCadBody(body: CadBody): void {
+		this.writeModelerGeometry(body);
+	}
+
+	private writeRegion(region: Region): void {
+		this.writeModelerGeometry(region);
+	}
+
+	private writeModelerGeometry(geometry: ModelerGeometry): void {
+		if (!this.R2013Plus) {
+			this._writer.writeBit(true);
+		}
+
+		this._writer.writeBit(true);
+
+		const hasPoint = geometry.point.x !== 0 || geometry.point.y !== 0 || geometry.point.z !== 0;
+		this._writer.writeBit(hasPoint);
+		if (hasPoint) {
+			this._writer.write3BitDouble(geometry.point);
+		}
+
+		this._writer.writeBitLong(0);
+		this._writer.writeBit(geometry.wires.length > 0);
+		if (geometry.wires.length > 0) {
+			this._writer.writeBitLong(geometry.wires.length);
+			for (const wire of geometry.wires) {
+				this.writeModelerGeometryWire(wire);
+			}
+		}
+
+		this._writer.writeBitLong(geometry.silhouettes.length);
+		for (const silhouette of geometry.silhouettes) {
+			this._writer.writeBitLongLong(silhouette.viewportId);
+			this._writer.write3BitDouble(silhouette.viewportTarget);
+			this._writer.write3BitDouble(silhouette.viewportDirectionFromTarget);
+			this._writer.write3BitDouble(silhouette.viewportUpDirection);
+			this._writer.writeBit(silhouette.viewportPerspective);
+
+			this._writer.writeBit(silhouette.wires.length > 0);
+			if (silhouette.wires.length > 0) {
+				this._writer.writeBitLong(silhouette.wires.length);
+				for (const wire of silhouette.wires) {
+					this.writeModelerGeometryWire(wire);
+				}
+			}
+		}
+
+		this._writer.writeBit(true);
+
+		if (this.R2007Plus) {
+			this._writer.writeBitLong(0);
+		}
+	}
+
+	private writeModelerGeometryWire(wire: ModelerGeometryWire): void {
+		this._writer.writeByte(wire.type);
+		this._writer.writeBitLong(wire.selectionMarker);
+		this._writer.writeBitShort(wire.color?.getApproxIndex() ?? 256);
+		this._writer.writeBitLong(wire.acisIndex);
+		this._writer.writeBitLong(wire.points.length);
+		for (const point of wire.points) {
+			this._writer.write3BitDouble(point);
+		}
+
+		this._writer.writeBit(wire.applyTransformPresent);
+		if (!wire.applyTransformPresent) {
+			return;
+		}
+
+		this._writer.write3BitDouble(wire.xAxis);
+		this._writer.write3BitDouble(wire.yAxis);
+		this._writer.write3BitDouble(wire.zAxis);
+		this._writer.write3BitDouble(wire.translation);
+		this._writer.writeBitDouble(wire.scale);
+		this._writer.writeBit(wire.hasRotation);
+		this._writer.writeBit(wire.hasReflection);
+		this._writer.writeBit(wire.hasShear);
+	}
+
+	private writeTableCell(cell: TableEntityCell): void {
+		this._writer.writeBitShort(cell.type);
+		this._writer.writeByte(cell.edgeFlags);
+		this._writer.writeBit(cell.mergedValue !== 0);
+		this._writer.writeBit(cell.autoFit);
+		this._writer.writeBitLong(cell.borderWidth);
+		this._writer.writeBitLong(cell.borderHeight);
+		this._writer.writeBitDouble(cell.rotation);
+
+		this._writer.handleReference(0);
+		if (cell.type === CellType.Text) {
+			const value = cell.content?.cadValue.value;
+			this._writer.writeVariableText(typeof value === 'string' ? value : value == null ? '' : String(value));
+		} else if (cell.type === CellType.Block) {
+			this._writer.writeBitDouble(cell.blockScale);
+			this._writer.writeBit(false);
+		}
+
+		this._writer.writeBit(false);
+
+		if (this.R2007Plus) {
+			this._writer.writeBitLong(0);
+			this.writeCadValue(cell.content?.cadValue ?? { ...new CadValue(), valueType: 4, value: '' } as CadValue);
+		}
 	}
 
 	private writeCadImage(image: CadWipeoutBase): void {
@@ -2870,19 +3104,8 @@ export class DwgObjectWriter extends DwgSectionIO {
 
 	private skipEntry(entry: NonGraphicalObject): { skip: boolean; notify: boolean } {
 		if (entry instanceof XRecord && !this.WriteXRecords) return { skip: true, notify: false };
-		if (entry instanceof AecWallStyle
-			|| entry instanceof AecCleanupGroup
-			|| entry instanceof AecBinRecord
-			|| entry instanceof DimensionAssociation
-			|| entry instanceof EvaluationGraph
-			|| entry instanceof Material
-			|| entry instanceof UnknownNonGraphicalObject
-			|| entry instanceof VisualStyle
-			|| entry instanceof TableStyle
-			|| entry instanceof ProxyObject
-			|| entry instanceof BlockRepresentationData
-			|| entry instanceof BlockReferenceObjectContextData
-			|| entry instanceof MTextAttributeObjectContextData) {
+		if (entry instanceof UnknownNonGraphicalObject
+		) {
 			return { skip: true, notify: true };
 		}
 		return { skip: false, notify: false };
@@ -2922,10 +3145,32 @@ export class DwgObjectWriter extends DwgSectionIO {
 			this.writeCadDictionaryWithDefault(obj);
 		} else if (obj instanceof CadDictionary) {
 			this.writeDictionary(obj);
+		} else if (obj instanceof AecBinRecord) {
+			this.writeAecBinRecord(obj);
+		} else if (obj instanceof AecCleanupGroup) {
+			this.writeAecCleanupGroup(obj);
+		} else if (obj instanceof AecWallStyle) {
+			this.writeAecWallStyle(obj);
 		} else if (obj instanceof DictionaryVariable) {
 			this.writeDictionaryVariable(obj);
 		} else if (obj instanceof DimensionAssociation) {
 			this.writeDimensionAssociation(obj);
+		} else if (obj instanceof EvaluationGraph) {
+			this.writeEvaluationGraph(obj);
+		} else if (obj instanceof TableStyle) {
+			this.writeTableStyle(obj);
+		} else if (obj instanceof Material) {
+			this.writeMaterial(obj);
+		} else if (obj instanceof VisualStyle) {
+			this.writeVisualStyle(obj);
+		} else if (obj instanceof ProxyObject) {
+			this.writeProxyObject(obj);
+		} else if (obj instanceof BlockRepresentationData) {
+			this.writeBlockRepresentationData(obj);
+		} else if (obj instanceof BlockReferenceObjectContextData) {
+			this.writeBlockReferenceObjectContextData(obj);
+		} else if (obj instanceof MTextAttributeObjectContextData) {
+			this.writeMTextAttributeObjectContextData(obj);
 		} else if (obj instanceof GeoData) {
 			this.writeGeoData(obj);
 		} else if (obj instanceof Group) {
@@ -2971,6 +3216,40 @@ export class DwgObjectWriter extends DwgSectionIO {
 
 	private writeAcdbPlaceHolder(_acdbPlaceHolder: AcdbPlaceHolder): void {
 		// Empty in C# source
+	}
+
+	private writeAecBinRecord(binRecord: AecBinRecord): void {
+		if (this.R2000Plus) {
+			this._writer.writeBitLong(binRecord.version);
+		}
+
+		if (binRecord.binaryData.length > 0) {
+			this._writer.writeBytes(binRecord.binaryData);
+		}
+	}
+
+	private writeAecCleanupGroup(cleanupGroup: AecCleanupGroup): void {
+		if (this.R2000Plus) {
+			this._writer.writeBitLong(cleanupGroup.version);
+		}
+
+		this._writer.writeVariableText(cleanupGroup.description);
+
+		if (cleanupGroup.rawData != null && cleanupGroup.rawData.length > 0) {
+			this._writer.writeBytes(cleanupGroup.rawData);
+		}
+	}
+
+	private writeAecWallStyle(wallStyle: AecWallStyle): void {
+		if (this.R2000Plus) {
+			this._writer.writeBitLong(wallStyle.version);
+		}
+
+		this._writer.writeVariableText(wallStyle.description);
+
+		if (wallStyle.rawData != null && wallStyle.rawData.length > 0) {
+			this._writer.writeBytes(wallStyle.rawData);
+		}
 	}
 
 	private writeAnnotScaleObjectContextData(annotScaleObjectContextData: AnnotScaleObjectContextData): void {
@@ -3069,6 +3348,255 @@ export class DwgObjectWriter extends DwgSectionIO {
 		this._writer.handleReferenceTyped(DwgReferenceType.Undefined, osnap.geometry);
 	}
 
+	private writeProxyObject(proxy: ProxyObject): void {
+		this.writeCommonProxyData(proxy);
+	}
+
+	private writeBlockRepresentationData(representation: BlockRepresentationData): void {
+		this._writer.writeBitShort(representation.value70);
+		this._writer.handleReference(representation.block);
+	}
+
+	private writeBlockReferenceObjectContextData(contextData: BlockReferenceObjectContextData): void {
+		this.writeObjectContextData(contextData);
+		this.writeAnnotScaleObjectContextData(contextData);
+		this._writer.writeBitDouble(contextData.rotation);
+		this._writer.write3BitDouble(contextData.insertionPoint);
+		this._writer.writeBitDouble(contextData.xScale);
+		this._writer.writeBitDouble(contextData.yScale);
+		this._writer.writeBitDouble(contextData.zScale);
+	}
+
+	private writeMTextAttributeObjectContextData(contextData: MTextAttributeObjectContextData): void {
+		this.writeObjectContextData(contextData);
+		this.writeAnnotScaleObjectContextData(contextData);
+	}
+
+	private writeEvaluationGraph(evaluationGraph: EvaluationGraph): void {
+		this._writer.writeBitLong(evaluationGraph.value96);
+		this._writer.writeBitLong(evaluationGraph.value97);
+		this._writer.writeBitLong(evaluationGraph.nodes.length);
+		for (const node of evaluationGraph.nodes) {
+			this._writer.writeBitLong(node.index);
+			this._writer.writeBitLong(node.flags);
+			this._writer.writeBitLong(node.nextNodeIndex);
+			this._writer.handleReference(node.expression ?? 0);
+			this._writer.writeBitLong(node.data1);
+			this._writer.writeBitLong(node.data2);
+			this._writer.writeBitLong(node.data3);
+			this._writer.writeBitLong(node.data4);
+		}
+		this._writer.writeBitLong(evaluationGraph.edges.length);
+	}
+
+	private writeVisualStyle(visualStyle: VisualStyle): void {
+		this._writer.writeVariableText(visualStyle.name);
+		this._writer.writeBitLong(visualStyle.type);
+		this._writer.writeBitShort(0);
+		this._writer.writeBit(visualStyle.internalFlag);
+		this._writer.writeBitLong(0);
+	}
+
+	private writeTableStyle(tableStyle: TableStyle): void {
+		if (this.R2007Plus) {
+			const cellStyles = tableStyle.cellStyles.length > 0
+				? tableStyle.cellStyles
+				: [tableStyle.dataCellStyle, tableStyle.titleCellStyle, tableStyle.headerCellStyle];
+			this._writer.writeByte(0);
+			this._writer.writeVariableText(tableStyle.description);
+			this._writer.writeBitLong(0);
+			this._writer.writeBitLong(0);
+			this._writer.handleReference(0);
+			this.writeCellStyle(tableStyle.tableCellStyle);
+			this._writer.writeBitLong(tableStyle.tableCellStyle.id);
+			this._writer.writeBitLong(tableStyle.tableCellStyle.styleClass);
+			this._writer.writeVariableText(tableStyle.tableCellStyle.name);
+			this._writer.writeBitLong(cellStyles.length);
+			for (const cellStyle of cellStyles) {
+				this._writer.writeBitLong(0);
+				this.writeCellStyle(cellStyle);
+				this._writer.writeBitLong(cellStyle.id);
+				this._writer.writeBitLong(cellStyle.styleClass);
+				this._writer.writeVariableText(cellStyle.name);
+			}
+			return;
+		}
+
+		this._writer.writeVariableText(tableStyle.description);
+		this._writer.writeBitShort(tableStyle.flowDirection);
+		this._writer.writeBitShort(tableStyle.flags);
+		this._writer.writeBitDouble(tableStyle.horizontalCellMargin);
+		this._writer.writeBitDouble(tableStyle.verticalCellMargin);
+		this._writer.writeBit(tableStyle.suppressTitle);
+		this._writer.writeBit(tableStyle.suppressHeaderRow);
+		this.writeRowCellStyle(tableStyle.dataCellStyle);
+		this.writeRowCellStyle(tableStyle.titleCellStyle);
+		this.writeRowCellStyle(tableStyle.headerCellStyle);
+	}
+
+	private writeRowCellStyle(style: CellStyle): void {
+		this._writer.handleReference(style.textStyle);
+		this._writer.writeBitDouble(style.textHeight);
+		this._writer.writeBitShort(style.cellAlignment);
+		this._writer.writeCmColor(style.textColor);
+		this._writer.writeCmColor(style.backgroundColor);
+		this._writer.writeBit(style.isFillColorOn);
+		this.writeBorderStyle(style.topBorder);
+		this.writeBorderStyle(style.horizontalInsideBorder);
+		this.writeBorderStyle(style.bottomBorder);
+		this.writeBorderStyle(style.leftBorder);
+		this.writeBorderStyle(style.verticalInsideBorder);
+		this.writeBorderStyle(style.rightBorder);
+	}
+
+	private writeBorderStyle(border: CellBorder): void {
+		this._writer.writeBitShort(border.lineWeight);
+		this._writer.writeBit(!border.isInvisible);
+		this._writer.writeCmColor(border.color);
+	}
+
+	private writeCellStyle(style: CellStyle): void {
+		this._writer.writeBitLong(style.cellStyleType);
+		this._writer.writeBitShort(style.hasData ? 1 : 0);
+		if (!style.hasData) {
+			return;
+		}
+
+		this._writer.writeBitLong(style.propertyOverrideFlags);
+		this._writer.writeBitLong(style.tableCellStylePropertyFlags);
+		this._writer.writeCmColor(style.backgroundColor);
+		this._writer.writeBitLong(style.contentLayoutFlags);
+		this.writeCellContentFormat(style);
+		this._writer.writeBitShort(style.marginOverrideFlags);
+		if ((style.marginOverrideFlags & MarginFlags.Override) !== 0) {
+			this._writer.writeBitDouble(style.verticalMargin);
+			this._writer.writeBitDouble(style.horizontalMargin);
+			this._writer.writeBitDouble(style.bottomMargin);
+			this._writer.writeBitDouble(style.rightMargin);
+			this._writer.writeBitDouble(style.marginHorizontalSpacing);
+			this._writer.writeBitDouble(style.marginVerticalSpacing);
+		}
+
+		const borders = [
+			style.topBorder,
+			style.rightBorder,
+			style.bottomBorder,
+			style.leftBorder,
+			style.verticalInsideBorder,
+			style.horizontalInsideBorder,
+		].filter((border) => border.edgeFlags !== CellEdgeFlags.Unknown);
+
+		this._writer.writeBitLong(borders.length);
+		for (const border of borders) {
+			this._writer.writeBitLong(border.edgeFlags);
+			this.writeBorder(border);
+		}
+	}
+
+	private writeBorder(border: CellBorder): void {
+		this._writer.writeBitLong(border.propertyOverrideFlags);
+		this._writer.writeBitLong(border.type);
+		this._writer.writeCmColor(border.color);
+		this._writer.writeBitLong(border.lineWeight);
+		this._writer.handleReference(0);
+		this._writer.writeBitLong(border.isInvisible ? 1 : 0);
+		this._writer.writeBitDouble(border.doubleLineSpacing);
+	}
+
+	private writeCellContentFormat(format: ContentFormat): void {
+		this._writer.writeBitLong(format.propertyOverrideFlags);
+		this._writer.writeBitLong(format.propertyFlags);
+		this._writer.writeBitLong(format.valueDataType);
+		this._writer.writeBitLong(format.valueUnitType);
+		this._writer.writeVariableText(format.valueFormatString);
+		this._writer.writeBitDouble(format.rotation);
+		this._writer.writeBitDouble(format.scale);
+		this._writer.writeBitLong(format.alignment);
+		this._writer.writeCmColor(format.color);
+		this._writer.handleReference(format.textStyle);
+		this._writer.writeBitDouble(format.textHeight);
+	}
+
+	private writeMaterial(material: Material): void {
+		this._writer.writeVariableText(material.name);
+		this._writer.writeVariableText(material.description);
+
+		this.writeMaterialColor(material.ambientColorMethod, material.ambientColorFactor, material.ambientColor);
+		this.writeMaterialColor(material.diffuseColorMethod, material.diffuseColorFactor, material.diffuseColor);
+		this._writer.writeBitDouble(material.diffuseMapBlendFactor);
+		this._writer.writeByte(material.diffuseProjectionMethod);
+		this._writer.writeByte(material.diffuseTilingMethod);
+		this._writer.writeByte(material.diffuseAutoTransform);
+		this.writeMatrix4Values(material.diffuseMatrix);
+		this.writeMaterialMap(material.diffuseMapSource, material.diffuseMapFileName);
+
+		this.writeMaterialColor(material.specularColorMethod, material.specularColorFactor, material.specularColor);
+		this._writer.writeBitDouble(material.specularMapBlendFactor);
+		this._writer.writeByte(material.specularProjectionMethod);
+		this._writer.writeByte(material.specularTilingMethod);
+		this._writer.writeByte(material.specularAutoTransform);
+		this.writeMatrix4Values(material.specularMatrix);
+		this.writeMaterialMap(material.specularMapSource, material.specularMapFileName);
+		this._writer.writeBitDouble(material.specularGlossFactor);
+
+		this._writer.writeBitDouble(material.reflectionMapBlendFactor);
+		this._writer.writeByte(material.reflectionProjectionMethod);
+		this._writer.writeByte(material.reflectionTilingMethod);
+		this._writer.writeByte(material.reflectionAutoTransform);
+		this.writeMatrix4Values(material.reflectionMatrix);
+		this.writeMaterialMap(material.reflectionMapSource, material.reflectionMapFileName);
+		this._writer.writeBitDouble(material.opacity);
+
+		this._writer.writeBitDouble(material.opacityMapBlendFactor);
+		this._writer.writeByte(material.opacityProjectionMethod);
+		this._writer.writeByte(material.opacityTilingMethod);
+		this._writer.writeByte(material.opacityAutoTransform);
+		this.writeMatrix4Values(material.opacityMatrix);
+		this.writeMaterialMap(material.opacityMapSource, material.opacityMapFileName);
+
+		this._writer.writeBitDouble(material.bumpMapBlendFactor);
+		this._writer.writeByte(material.bumpProjectionMethod);
+		this._writer.writeByte(material.bumpTilingMethod);
+		this._writer.writeByte(material.bumpAutoTransform);
+		this.writeMatrix4Values(material.bumpMatrix);
+		this.writeMaterialMap(material.bumpMapSource, material.bumpMapFileName);
+		this._writer.writeBitDouble(material.refractionIndex);
+
+		this._writer.writeBitDouble(material.refractionMapBlendFactor);
+		this._writer.writeByte(material.refractionProjectionMethod);
+		this._writer.writeByte(material.refractionTilingMethod);
+		this._writer.writeByte(material.refractionAutoTransform);
+		this.writeMatrix4Values(material.refractionMatrix);
+		this.writeMaterialMap(material.refractionMapSource, material.refractionMapFileName);
+	}
+
+	private writeMaterialColor(method: ColorMethod, factor: number, color: Color): void {
+		this._writer.writeByte(method);
+		this._writer.writeBitDouble(factor);
+		if (method === ColorMethod.Override) {
+			this._writer.writeBitLong((color.b | (color.g << 8) | (color.r << 16)) >>> 0);
+		}
+	}
+
+	private writeMaterialMap(source: MapSource, fileName: string): void {
+		let writtenSource = source;
+		if (source === MapSource.Procedural) {
+			this.notify('Procedural material maps are downgraded to current-scene maps when writing DWG.', NotificationType.Warning);
+			writtenSource = MapSource.UseCurrentScene;
+		}
+		this._writer.writeByte(writtenSource);
+		if (writtenSource === MapSource.UseImageFile) {
+			this._writer.writeVariableText(fileName);
+		}
+	}
+
+	private writeMatrix4Values(matrix: number[]): void {
+		for (let i = 0; i < 16; i++) {
+			const isIdentityCell = i % 5 === 0;
+			this._writer.writeBitDouble(matrix[i] ?? (isIdentityCell ? 1 : 0));
+		}
+	}
+
 	private writeField(field: Field): void {
 		this._writer.writeVariableText(field.evaluatorId);
 		this._writer.writeVariableText(field.fieldCode);
@@ -3150,8 +3678,14 @@ export class DwgObjectWriter extends DwgSectionIO {
 				case CadValueType.Handle:
 					this._writer.handleReferenceTyped(DwgReferenceType.SoftPointer, value.value as IHandledCadObject);
 					break;
+				case CadValueType.Buffer:
+				case CadValueType.ResultBuffer:
+					this._writer.writeBitLong(typeof value.value === 'number' ? value.value : 0);
+					break;
 				default:
-					throw new Error('Not implemented');
+					this.notify(`DWG CadValue type ${value.valueType} is unsupported during writing; emitting an empty placeholder value.`, NotificationType.Warning);
+					this._writer.writeBitLong(0);
+					break;
 			}
 		}
 

@@ -13,6 +13,10 @@ import { CadDocument } from '../../../src/CadDocument.js';
 import { ACadVersion } from '../../../src/ACadVersion.js';
 import { Line } from '../../../src/Entities/Line.js';
 import { Point } from '../../../src/Entities/Point.js';
+import { ProxyEntity } from '../../../src/Entities/ProxyEntity.js';
+import { DxfClass } from '../../../src/Classes/DxfClass.js';
+import { DxfSubclassMarker } from '../../../src/DxfSubclassMarker.js';
+import { DxfFileToken } from '../../../src/DxfFileToken.js';
 import { getDecoderEncodingLabel } from '../../../src/IO/TextEncoding.js';
 
 const versions = [
@@ -129,5 +133,41 @@ describe('DwgWriterTests', () => {
         expect(info.comments).toBe(doc.summaryInfo!.comments);
       }
     });
+  });
+
+  it('WriteProxyEntityRoundtrip', () => {
+    const version = ACadVersion.AC1021;
+    const doc = new CadDocument();
+    doc.createDefaults();
+    doc.header.version = version;
+
+    const proxyClass = Object.assign(new DxfClass(), {
+      applicationName: 'ObjectDBX Classes',
+      classNumber: 700,
+      cppClassName: DxfSubclassMarker.ProxyEntity,
+      dxfName: DxfFileToken.EntityProxyEntity,
+      dwgVersion: version,
+      maintenanceVersion: 0,
+      wasZombie: false,
+    });
+    proxyClass.isAnEntity = true;
+    doc.classes?.addOrUpdate(proxyClass);
+
+    const proxy = new ProxyEntity();
+    proxy.dxfClass = proxyClass;
+    proxy.version = version;
+    proxy.originalDataFormatDxf = false;
+    doc.entities.add(proxy);
+
+    const buffer = new ArrayBuffer(1024 * 1024);
+    const writer = new DwgWriter(buffer, doc);
+    writer.Write();
+
+    const reread = new DwgReader(buffer.slice(0)).Read();
+    const proxies = [...reread.entities].filter((entity): entity is ProxyEntity => entity instanceof ProxyEntity);
+
+    expect(proxies).toHaveLength(1);
+    expect(proxies[0].dxfClass?.classNumber).toBe(proxyClass.classNumber);
+    expect(proxies[0].version).toBe(version);
   });
 });
