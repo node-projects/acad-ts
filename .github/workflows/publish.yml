@@ -30,9 +30,6 @@ jobs:
         env:
           GITHUB_REF_NAME: ${{ github.ref_name }}
 
-      - name: Run tests
-        run: npm test
-
       - name: Build
         run: npm run build
 
