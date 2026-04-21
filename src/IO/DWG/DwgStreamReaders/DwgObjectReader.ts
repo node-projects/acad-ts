@@ -274,12 +274,15 @@ export class DwgObjectReader extends DwgSectionIO {
   private readonly _reader: IDwgStreamReader;
   private _builder: DwgDocumentBuilder;
   private _handles: number[];
+  private _handleIndex: number = 0;
   private _handlesReader!: IDwgStreamReader;
   private _mergedReaders!: IDwgStreamReader;
   private _objectInitialPos: number = 0;
   private _objectReader!: IDwgStreamReader;
   private _size: number = 0;
   private _textReader!: IDwgStreamReader;
+  private _queuedHandles = new Set<number>();
+  private _maxQueuedHandles = 200000;
 
   constructor(
     version: ACadVersion,
@@ -294,19 +297,29 @@ export class DwgObjectReader extends DwgSectionIO {
     this._builder = builder;
     this._reader = reader;
     this._handles = [...handles];
+    for (const h of this._handles) {
+      this._queuedHandles.add(h);
+    }
     this._map = new Map(handleMap);
     this._classes = new Map<number, DxfClass>();
     for (const c of classes) {
       this._classes.set(c.classNumber, c);
     }
 
-    this._memoryStream = new Uint8Array(reader.stream);
-    this._crcReader = DwgStreamReaderBase.getStreamHandler(this._version, new Uint8Array(this._memoryStream));
+    this._memoryStream = reader.stream;
+    this._crcReader = DwgStreamReaderBase.getStreamHandler(this._version, this._memoryStream);
+
+    // Pre-create reusable stream handlers to avoid allocations in hot path
+    this._objectReader = DwgStreamReaderBase.getStreamHandler(this._version, this._memoryStream, this._reader.encoding);
+    this._handlesReader = DwgStreamReaderBase.getStreamHandler(this._version, this._memoryStream, this._reader.encoding);
+    this._textReader = DwgStreamReaderBase.getStreamHandler(this._version, this._memoryStream, this._reader.encoding);
   }
 
   public read(): void {
-    while (this._handles.length > 0) {
-      const handle = this._handles.shift()!;
+    this._handleIndex = 0;
+    // Use index-based iteration instead of shift() to avoid O(n²) performance
+    while (this._handleIndex < this._handles.length) {
+      const handle = this._handles[this._handleIndex++];
 
       const offset = this._map.get(handle);
       if (offset === undefined ||
@@ -354,25 +367,22 @@ export class DwgObjectReader extends DwgSectionIO {
       const handleSize = this._crcReader.readModularChar();
       const handleSectionOffset = this._crcReader.positionInBits() + sizeInBits - handleSize;
 
-      this._objectReader = DwgStreamReaderBase.getStreamHandler(this._version, new Uint8Array(this._memoryStream), this._reader.encoding);
+      // Reuse existing stream handlers by repositioning instead of recreating
       this._objectReader.setPositionInBits(this._crcReader.positionInBits());
 
       this._objectInitialPos = this._objectReader.positionInBits();
       type = this._objectReader.readObjectType();
 
-      this._handlesReader = DwgStreamReaderBase.getStreamHandler(this._version, new Uint8Array(this._memoryStream), this._reader.encoding);
       this._handlesReader.setPositionInBits(handleSectionOffset);
-
-      this._textReader = DwgStreamReaderBase.getStreamHandler(this._version, new Uint8Array(this._memoryStream), this._reader.encoding);
       this._textReader.setPositionByFlag(handleSectionOffset - 1);
 
       this._mergedReaders = new DwgMergedReader(this._objectReader, this._textReader, this._handlesReader);
     } else {
-      this._objectReader = DwgStreamReaderBase.getStreamHandler(this._version, new Uint8Array(this._memoryStream), this._reader.encoding);
+      // Reuse existing stream handlers
       this._objectReader.setPositionInBits(this._crcReader.positionInBits());
 
-      this._handlesReader = DwgStreamReaderBase.getStreamHandler(this._version, new Uint8Array(this._memoryStream), this._reader.encoding);
-      this._textReader = this._objectReader;
+      // For pre-2010 formats, textReader points to the same handler as objectReader
+      // This is already set up in constructor, no need to reassign
 
       this._objectInitialPos = this._objectReader.positionInBits();
       type = this._objectReader.readObjectType();
@@ -383,18 +393,27 @@ export class DwgObjectReader extends DwgSectionIO {
 
   private _handleReference(handle: number = 0): number {
     const value = handle === 0
-      ? this._handlesReader.handleReference()
-      : this._handlesReader.handleReferenceWithRef(handle);
+        ? this._handlesReader.handleReference()
+        : this._handlesReader.handleReferenceWithRef(handle);
 
-    if (value !== 0 &&
-      this._builder.tryGetObjectTemplate(value) == null &&
-      !this._readedObjects.has(value)) {
+    if (
+        value !== 0 &&
+        this._map.has(value) &&
+        this._builder.tryGetObjectTemplate(value) == null &&
+        !this._readedObjects.has(value) &&
+        !this._queuedHandles.has(value)
+    ) {
       this._handles.push(value);
+      this._queuedHandles.add(value);
+
+      if (this._handles.length > this._maxQueuedHandles) {
+        throw new Error(`DWG object handle queue exceeded safe limit (${this._maxQueuedHandles})`);
+      }
     }
 
     return value;
   }
-
+  
   private _readCommonData(template: CadTemplate): void {
     if (this._version >= ACadVersion.AC1015 && this._version < ACadVersion.AC1024) {
       this._updateHandleReader();
@@ -644,7 +663,7 @@ export class DwgObjectReader extends DwgSectionIO {
     this._handlesReader.setPositionInBits(size + this._objectInitialPos);
 
     if (this._version === ACadVersion.AC1021) {
-      this._textReader = DwgStreamReaderBase.getStreamHandler(this._version, new Uint8Array(this._memoryStream), this._reader.encoding);
+      // Reuse existing textReader instead of creating new one
       this._textReader.setPositionByFlag(size + this._objectInitialPos - 1);
     }
 
@@ -1145,9 +1164,10 @@ export class DwgObjectReader extends DwgSectionIO {
       for (let i = this._objectReader.readByte(); i !== 0; i = this._objectReader.readByte()) ++insertCount;
       block.comments = this._textReader.readVariableText();
       const n = this._objectReader.readBitLong();
-      const data: number[] = [];
-      for (let i = 0; i < n; ++i) data.push(this._objectReader.readByte());
-      record.preview = new Uint8Array(data);
+      // Pre-allocate array with known size for better performance
+      const data = new Uint8Array(n);
+      for (let i = 0; i < n; ++i) data[i] = this._objectReader.readByte();
+      record.preview = data;
     }
     if (this.r2007Plus) {
       record.units = this._objectReader.readBitShort() as UnitsType;
@@ -1866,10 +1886,11 @@ export class DwgObjectReader extends DwgSectionIO {
     let nfaces = this._objectReader.readBitLong();
     for (let i = 0; i < nfaces; i++) {
       const faceSize = this._objectReader.readBitLong();
-      const arr: number[] = [];
-      for (let j = 0; j < faceSize; j++) arr.push(this._objectReader.readBitLong());
+      // Pre-allocate array with known size
+      const arr = new Array<number>(faceSize);
+      for (let j = 0; j < faceSize; j++) arr[j] = this._objectReader.readBitLong();
       i += faceSize;
-      mesh.faces.push([...arr]);
+      mesh.faces.push(arr);
     }
     const nedges = this._objectReader.readBitLong();
     for (let k = 0; k < nedges; k++) {

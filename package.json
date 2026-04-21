@@ -1,17 +1,20 @@
 {
-  "name": "@node-projects/acad-ts",
-  "version": "2.3.0",
-  "description": "TypeScript library to read and write AutoCAD DWG and DXF files",
+  "name": "@jvnvr/acad-ts",
+  "version": "0.0.11",
+  "description": "TypeScript library to read and write AutoCAD DWG and DXF files. Forked from https://github.com/node-projects/acad-ts",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/node-projects/acad-ts.git"
+    "url": "git+https://github.com/jvnvr/acad-ts.git"
   },
-  "author": "Jochen Kühner <jochen.kuehner@gmx.de>",
+  "author": "Vasco Rola (https://github.com/jvnvr)",
+  "contributors": [
+    "Jochen Kühner <jochen.kuehner@gmx.de>"
+  ],
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/node-projects/acad-ts/issues"
+    "url": "https://github.com/jvnvr/acad-ts/issues"
   },
-  "homepage": "https://github.com/node-projects/acad-ts#readme",
+  "homepage": "https://github.com/jvnvr/acad-ts#readme",
   "type": "module",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
@@ -40,16 +43,20 @@
   },
   "scripts": {
     "build": "tsc",
-    "test": "vitest run",
-    "test:watch": "vitest",
+    "test": "NODE_OPTIONS=--max-old-space-size=4096 vitest run",
+    "test:watch": "NODE_OPTIONS=--max-old-space-size=4096 vitest",
+    "typecheck:test": "tsc -p tsconfig.vitest.json --noEmit",
     "prepublishOnly": "npm run build && npm run bundle",
-    "bundle": "esbuild ./dist/index.js --format=esm --minify --platform=neutral --bundle --outfile=./dist/index-min.js"
-  
+    "bundle": "esbuild ./dist/index.js --format=esm --minify --platform=neutral --bundle --outfile=./dist/index-min.js",
+    "version:patch": "npm version patch --no-git-tag-version",
+    "version:minor": "npm version minor --no-git-tag-version",
+    "version:major": "npm version major --no-git-tag-version",
+    "validate:version": "node scripts/validate-version.js"
   },
   "devDependencies": {
     "@types/node": "^25.6.0",
     "esbuild": "^0.28.0",
-    "typescript": "^6.0.2",
+    "typescript": "^6.0.3",
     "vitest": "^4.1.4"
   }
 }
