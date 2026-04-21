@@ -221,7 +221,6 @@ export class DwgReader extends CadReaderBase<DwgReaderConfiguration> {
 
 	private _readObjects(): void {
 		const handles = this._readHandles();
-		this._document.classes = this._readClasses();
 
 		let sreader: IDwgStreamReader;
 		if (this._fileHeader.acadVersion <= ACadVersion.AC1015) {
@@ -790,41 +789,67 @@ export class DwgReader extends CadReaderBase<DwgReaderConfiguration> {
 		const descriptor = fileheader.descriptors.get(sectionName);
 		if (!descriptor) return null;
 
-		const totalSize = descriptor.decompressedSize * descriptor.localSections.length;
+		const totalSize = descriptor.localSections.reduce((sum, s) => {
+			const size = s.decompressedSize | 0;
+			if (size < 0) {
+				throw new Error(`Negative decompressed size in section ${sectionName}`);
+			}
+			return sum + size;
+		}, 0);
+
+		const MAX_SECTION_SIZE = 512 * 1024 * 1024; // 512 MB guardrail
+		if (!Number.isFinite(totalSize) || totalSize < 0 || totalSize > MAX_SECTION_SIZE) {
+			throw new Error(
+				`Suspicious DWG section size for ${sectionName}: ${totalSize} bytes`
+			);
+		}
+
 		const memoryStream = new Uint8Array(totalSize);
 		let msPos = 0;
 
 		for (const section of descriptor.localSections) {
+			const pageSize = section.decompressedSize | 0;
+
+			if (pageSize < 0 || msPos + pageSize > memoryStream.length) {
+				throw new Error(
+					`Invalid page size while reading ${sectionName}: pageSize=${pageSize}, msPos=${msPos}, total=${memoryStream.length}`
+				);
+			}
+
 			if (section.isEmpty) {
-				// Fill with zeros
-				for (let i = 0; i < section.decompressedSize; ++i) {
-					memoryStream[msPos++] = 0;
-				}
+				memoryStream.fill(0, msPos, msPos + pageSize);
+				msPos += pageSize;
+				continue;
+			}
+
+			const secreader = DwgStreamReaderBase.getStreamHandler(fileheader.acadVersion, this._fileBytes);
+			secreader.position = section.seeker;
+
+			this._decryptDataSection(section, secreader);
+
+			if (section.compressedSize < 0 || section.pageSize < 0) {
+				throw new Error(
+					`Invalid encrypted section header for ${sectionName}: compressedSize=${section.compressedSize}, pageSize=${section.pageSize}`
+				);
+			}
+
+			if (descriptor.isCompressed) {
+				const decompressed = DwgLZ77AC18Decompressor.decompress(
+					secreader.stream,
+					secreader.position,
+					pageSize,
+				);
+				memoryStream.set(decompressed.subarray(0, pageSize), msPos);
+				msPos += pageSize;
 			} else {
-				const secreader = DwgStreamReaderBase.getStreamHandler(fileheader.acadVersion, this._fileBytes);
-				secreader.position = section.seeker;
-
-				// Decrypt the data section header
-				this._decryptDataSection(section, secreader);
-
-				if (descriptor.isCompressed) {
-					// Decompress to memory stream
-					const decompressed = DwgLZ77AC18Decompressor.decompress(
-						secreader.stream, secreader.position, section.decompressedSize);
-					memoryStream.set(decompressed.subarray(0, section.decompressedSize), msPos);
-					msPos += section.decompressedSize;
-				} else {
-					// Read directly
-					const buf = secreader.readBytes(section.compressedSize);
-					memoryStream.set(buf, msPos);
-					msPos += section.compressedSize;
-				}
+				const buf = secreader.readBytes(section.compressedSize);
+				memoryStream.set(buf.subarray(0, pageSize), msPos);
+				msPos += pageSize;
 			}
 		}
 
 		return memoryStream.subarray(0, msPos);
 	}
-
 	private _decryptDataSection(section: DwgLocalSectionMap, sreader: IDwgStreamReader): void {
 		const secMask = 0x4164536B ^ sreader.position;
 

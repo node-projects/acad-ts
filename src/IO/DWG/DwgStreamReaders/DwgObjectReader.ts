@@ -281,6 +281,8 @@ export class DwgObjectReader extends DwgSectionIO {
   private _objectReader!: IDwgStreamReader;
   private _size: number = 0;
   private _textReader!: IDwgStreamReader;
+  private _queuedHandles = new Set<number>();
+  private _maxQueuedHandles = 200000;
 
   constructor(
     version: ACadVersion,
@@ -295,13 +297,16 @@ export class DwgObjectReader extends DwgSectionIO {
     this._builder = builder;
     this._reader = reader;
     this._handles = [...handles];
+    for (const h of this._handles) {
+      this._queuedHandles.add(h);
+    }
     this._map = new Map(handleMap);
     this._classes = new Map<number, DxfClass>();
     for (const c of classes) {
       this._classes.set(c.classNumber, c);
     }
 
-    this._memoryStream = new Uint8Array(reader.stream);
+    this._memoryStream = reader.stream;
     this._crcReader = DwgStreamReaderBase.getStreamHandler(this._version, this._memoryStream);
 
     // Pre-create reusable stream handlers to avoid allocations in hot path
@@ -388,18 +393,27 @@ export class DwgObjectReader extends DwgSectionIO {
 
   private _handleReference(handle: number = 0): number {
     const value = handle === 0
-      ? this._handlesReader.handleReference()
-      : this._handlesReader.handleReferenceWithRef(handle);
+        ? this._handlesReader.handleReference()
+        : this._handlesReader.handleReferenceWithRef(handle);
 
-    if (value !== 0 &&
-      this._builder.tryGetObjectTemplate(value) == null &&
-      !this._readedObjects.has(value)) {
+    if (
+        value !== 0 &&
+        this._map.has(value) &&
+        this._builder.tryGetObjectTemplate(value) == null &&
+        !this._readedObjects.has(value) &&
+        !this._queuedHandles.has(value)
+    ) {
       this._handles.push(value);
+      this._queuedHandles.add(value);
+
+      if (this._handles.length > this._maxQueuedHandles) {
+        throw new Error(`DWG object handle queue exceeded safe limit (${this._maxQueuedHandles})`);
+      }
     }
 
     return value;
   }
-
+  
   private _readCommonData(template: CadTemplate): void {
     if (this._version >= ACadVersion.AC1015 && this._version < ACadVersion.AC1024) {
       this._updateHandleReader();
