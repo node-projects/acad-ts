@@ -497,7 +497,7 @@ export class DwgObjectReader extends DwgSectionIO {
 
     entity.lineTypeScale = this._objectReader.readBitDouble();
 
-    if (!(this._version >= ACadVersion.AC1015)) {
+    if (this._version < ACadVersion.AC1015) {
       entity.isInvisible = (this._objectReader.readBitShort() & 1) === 0;
       return;
     }
