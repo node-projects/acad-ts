@@ -361,3 +361,6 @@ MigrationBackup/
 /samples/local
 /samples/out
 /output
+
+# macos
+.DS_Store
