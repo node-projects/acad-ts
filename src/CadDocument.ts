@@ -170,6 +170,9 @@ export class CadDocument implements IHandledCadObject {
 		if (this.vPorts && typeof this.vPorts.createDefaultEntries === 'function') {
 			this.vPorts.createDefaultEntries();
 		}
+
+		// Initialize named object dictionaries and create default entries for materials, etc.
+		this.updateCollections(false, true);
 	}
 
 	public getCadObject(handle: number): CadObject | null {
