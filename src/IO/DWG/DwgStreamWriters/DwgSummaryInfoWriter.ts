@@ -14,31 +14,23 @@ export class DwgSummaryInfoWriter extends DwgSectionIO {
 
 	private _writer: IDwgStreamWriter;
 	declare protected readonly _version: ACadVersion;
-	private _writeStringMethod: (value: string) => void;
-    private readonly _encoding: string;
 
 	constructor(version: ACadVersion, stream: Uint8Array, encoding: string) {
 		super(version);
 		this._version = version;
-		this._encoding = encoding;
 		this._writer = DwgStreamWriterBase.getStreamWriter(version, stream, encoding);
-
-		if (version < ACadVersion.AC1021) {
-			this._writeStringMethod = (value: string) => this._writeUnicodeString(value);
-		} else {
-			this._writeStringMethod = (value: string) => this._writer.writeTextUnicode(value);
-		}
 	}
 
 	write(summaryInfo: CadSummaryInfo): void {
-		this._writeStringMethod(summaryInfo.title ?? '');
-		this._writeStringMethod(summaryInfo.subject ?? '');
-		this._writeStringMethod(summaryInfo.author ?? '');
-		this._writeStringMethod(summaryInfo.keywords ?? '');
-		this._writeStringMethod(summaryInfo.comments ?? '');
-		this._writeStringMethod(summaryInfo.lastSavedBy ?? '');
-		this._writeStringMethod(summaryInfo.revisionNumber ?? '');
-		this._writeStringMethod(summaryInfo.hyperlinkBase ?? '');
+		// ACadSharp always uses WriteTextUnicode for all versions >= AC1018
+		this._writer.writeTextUnicode(summaryInfo.title ?? '');
+		this._writer.writeTextUnicode(summaryInfo.subject ?? '');
+		this._writer.writeTextUnicode(summaryInfo.author ?? '');
+		this._writer.writeTextUnicode(summaryInfo.keywords ?? '');
+		this._writer.writeTextUnicode(summaryInfo.comments ?? '');
+		this._writer.writeTextUnicode(summaryInfo.lastSavedBy ?? '');
+		this._writer.writeTextUnicode(summaryInfo.revisionNumber ?? '');
+		this._writer.writeTextUnicode(summaryInfo.hyperlinkBase ?? '');
 
 		// Two unknown ints
 		this._writer.writeInt(0);
@@ -53,20 +45,13 @@ export class DwgSummaryInfoWriter extends DwgSectionIO {
 		this._writer.writeRawShort(nproperties);
 		if (summaryInfo.properties) {
 			for (const [name, value] of summaryInfo.properties) {
-				this._writeStringMethod(name);
-				this._writeStringMethod(value);
+				this._writer.writeTextUnicode(name);
+				this._writer.writeTextUnicode(value);
 			}
 		}
 
 		// Two trailing unknown ints
 		this._writer.writeInt(0);
 		this._writer.writeInt(0);
-	}
-
-	private _writeUnicodeString(value: string): void {
-		const bytes = encodeCadString(value ?? '', this._encoding);
-		this._writer.writeRawShort(bytes.length + 1);
-		this._writer.writeBytes(bytes);
-		this._writer.writeByte(0);
 	}
 }

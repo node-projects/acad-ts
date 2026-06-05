@@ -300,11 +300,9 @@ export abstract class DwgStreamWriterBase implements IDwgStreamWriter {
 		const text = value ?? '';
 		const bytes = encodeCadString(text, this.encoding);
 		this.writeRawShort(bytes.length + 1);
-		this._ensureCapacity(bytes.length + 1);
-		for (let i = 0; i < bytes.length; i++) {
-			this._buffer[this._position++] = bytes[i];
-		}
-		this._buffer[this._position++] = 0;
+		// Use writeBytes to respect bit-shift alignment
+		this.writeBytes(bytes);
+		this.writeByte(0);
 	}
 
 	write2Bits(value: number): void {
