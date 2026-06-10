@@ -119,7 +119,7 @@ export class VPort extends TableEntry {
 
 	public contrast: number = 0;
 
-	public ambientColor: Color = new Color(0);
+	public ambientColor: Color = new Color(250);
 
 	private _direction: XYZ = new XYZ(0, 0, 1);
 

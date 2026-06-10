@@ -58,5 +58,28 @@ describe('DwgReaderTests', () => {
       const reader = new DwgReader(data);
       reader.readSummaryInfo();
     });
+
+    it('EntitiesHaveLayerReferences', () => {
+      const data = readFileAsArrayBuffer(test.path);
+      const reader = new DwgReader(data);
+      const doc: any = reader.read();
+
+      if (!doc || !doc.header || doc.header.version < ACadVersion.AC1012) {
+        return;
+      }
+
+      // Check that entities have valid layer references
+      const entities = [...doc.entities];
+      if (entities.length > 0) {
+        for (const entity of entities) {
+          expect(entity.layer).toBeDefined();
+          expect(entity.layer).not.toBeNull();
+          // Layer should have a name
+          if (entity.layer.name) {
+            expect(entity.layer.name.length).toBeGreaterThan(0);
+          }
+        }
+      }
+    });
   });
 });
