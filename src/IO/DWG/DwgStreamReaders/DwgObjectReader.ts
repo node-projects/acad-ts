@@ -381,8 +381,12 @@ export class DwgObjectReader extends DwgSectionIO {
       // Reuse existing stream handlers
       this._objectReader.setPositionInBits(this._crcReader.positionInBits());
 
-      // For pre-2010 formats, textReader points to the same handler as objectReader
-      // This is already set up in constructor, no need to reassign
+      // Pre-2010 stores strings inline in the object data stream, so the text
+      // reader must share the object reader's cursor (matches ACadSharp).
+      // AC1021 keeps its own string stream, positioned in _updateHandleReader.
+      if (this._version !== ACadVersion.AC1021) {
+        this._textReader = this._objectReader;
+      }
 
       this._objectInitialPos = this._objectReader.positionInBits();
       type = this._objectReader.readObjectType();
