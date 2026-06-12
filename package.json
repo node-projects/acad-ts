@@ -44,12 +44,11 @@
     "test:watch": "vitest",
     "prepublishOnly": "npm run build && npm run bundle",
     "bundle": "esbuild ./dist/index.js --format=esm --minify --platform=neutral --bundle --outfile=./dist/index-min.js"
-  
   },
   "devDependencies": {
     "@types/node": "^25.6.0",
     "esbuild": "^0.28.0",
-    "typescript": "^6.0.2",
-    "vitest": "^4.1.4"
+    "typescript": "^6.0.3",
+    "vitest": "^4.1.5"
   }
 }
