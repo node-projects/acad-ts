@@ -32,6 +32,9 @@ export class DwgDocumentBuilder extends CadDocumentBuilder {
 			item.setBlockToRecord(this, this.headerHandles);
 		}
 
+		this._attachSpaceEntities(this.headerHandles.model_space, this.modelSpaceEntities);
+		this._attachSpaceEntities(this.headerHandles.paper_space, this.paperSpaceEntities);
+
 		this.registerTables();
 		this.buildTables();
 		if (this.documentToBuild.vEntityControl) {
@@ -45,6 +48,22 @@ export class DwgDocumentBuilder extends CadDocumentBuilder {
 		this._ensureDefaultTableEntries();
 
 		this.headerHandles.updateHeader(this.documentToBuild.header, this);
+	}
+
+	private _attachSpaceEntities(spaceHandle: number | null, entities: Entity[]): void {
+		if (spaceHandle == null || spaceHandle === 0 || entities.length === 0) {
+			return;
+		}
+
+		const space = this.blockRecordTemplates.find(template => template.cadObject.handle === spaceHandle);
+		if (!space) {
+			this.notify(`Block record ${spaceHandle} for ${entities.length} explicit space entit${entities.length === 1 ? 'y' : 'ies'} was not found.`);
+			return;
+		}
+
+		for (const entity of entities) {
+			space.ownedObjectsHandlers.add(entity.handle);
+		}
 	}
 
 	private _ensureDefaultTableEntries(): void {

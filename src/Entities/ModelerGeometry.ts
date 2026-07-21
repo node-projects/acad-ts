@@ -47,6 +47,9 @@ export abstract class ModelerGeometry extends Entity {
 
 	modelerFormatVersion: number = 0;
 
+	/** Raw SAT/SAB modeler payload when it is stored inline in the entity. */
+	binaryData: Uint8Array = new Uint8Array(0);
+
 	proprietaryData: string = '';
 
 	override applyTransform(transform: unknown): void {

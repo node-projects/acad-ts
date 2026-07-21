@@ -276,6 +276,7 @@ export class DwgObjectReader extends DwgSectionIO {
   private _handles: number[];
   private _handlesReader!: IDwgStreamReader;
   private _mergedReaders!: IDwgStreamReader;
+	private _objectDataEndInBits: number = 0;
   private _objectInitialPos: number = 0;
   private _objectReader!: IDwgStreamReader;
   private _size: number = 0;
@@ -358,6 +359,7 @@ export class DwgObjectReader extends DwgSectionIO {
     if (this.r2010Plus) {
       const handleSize = this._crcReader.readModularChar();
       const handleSectionOffset = this._crcReader.positionInBits() + sizeInBits - handleSize;
+			this._objectDataEndInBits = handleSectionOffset;
 
       this._objectReader = DwgStreamReaderBase.getStreamHandler(this._version, this._memoryStream, this._reader.encoding);
       this._objectReader.setPositionInBits(this._crcReader.positionInBits());
@@ -381,6 +383,7 @@ export class DwgObjectReader extends DwgSectionIO {
 
       this._objectInitialPos = this._objectReader.positionInBits();
       type = this._objectReader.readObjectType();
+			this._objectDataEndInBits = this._crcReader.positionInBits() + sizeInBits;
     }
 
     return type;
@@ -823,6 +826,7 @@ export class DwgObjectReader extends DwgSectionIO {
       case 'ACDBDICTIONARYWDFLT': template = this._readDictionaryWithDefault(); break;
       case 'ACDBPLACEHOLDER': template = this._readPlaceHolder(); break;
       case 'ACAD_TABLE': template = this._readTableEntity(); break;
+			case 'ACIDBLOCKREFERENCE': template = this._readInsert(); break;
       case DxfFileToken.objectDimensionAssociation: template = this._readDimensionAssociation(); break;
       case 'DBCOLOR': template = this._readDbColor(); break;
       case 'DICTIONARYVAR': template = this._readDictionaryVar(); break;
@@ -2184,12 +2188,9 @@ export class DwgObjectReader extends DwgSectionIO {
   private _readModelerGeometry(template: CadEntityTemplate): CadEntityTemplate {
     const geometry = template.cadObject as ModelerGeometry;
     this._readCommonEntityData(template);
-    if (!this.r2013Plus) {
-      const hasData = this._mergedReaders.readBit();
-      if (!hasData) {
-        this._readModelerGeometryData(template);
-        return template;
-      }
+		const acisEmpty = this._mergedReaders.readBit();
+		if (!acisEmpty) {
+			this._readModelerGeometryData(template);
     }
     const isWireframe = this._mergedReaders.readBit();
     if (isWireframe) {
@@ -2232,10 +2233,72 @@ export class DwgObjectReader extends DwgSectionIO {
   }
 
   private _readModelerGeometryData(template: CadEntityTemplate): void {
-    this._mergedReaders.readBit();
+		const geometry = template.cadObject as ModelerGeometry;
+		this._mergedReaders.readBit();
     const version = this._mergedReaders.readBitShort();
-    this.notify(`Stream data reader hasn't been implemented for ${template.cadObject.objectName}`, NotificationType.NotImplemented);
+		geometry.modelerFormatVersion = version;
+		if (version === 1) {
+			const chunks: Uint8Array[] = [];
+			for (;;) {
+				const length = this._mergedReaders.readBitLong();
+				if (length === 0) break;
+				if (length < 0 || length > 0x10000000) throw new Error(`Invalid SAT block length ${length}`);
+				const encoded = this._mergedReaders.readBytes(length);
+				for (let index = 0; index < encoded.length; index++) {
+					if (encoded[index]! >= 0x20 && encoded[index]! <= 0x7e) encoded[index] = 0x9f - encoded[index]!;
+					else if (encoded[index] === 0x09) encoded[index] = 0x20;
+				}
+				chunks.push(encoded);
+			}
+			geometry.binaryData = DwgObjectReader._concatBytes(chunks);
+			return;
+		}
+		if (version === 2) {
+			const start = this._objectReader.positionInBits();
+			const remaining = Math.max(0, Math.floor((this._objectDataEndInBits - start) / 8));
+			const preview = this._mergedReaders.readBytes(remaining);
+			this._objectReader.setPositionInBits(start);
+			const length = DwgObjectReader._modelerPayloadLength(preview);
+			if (length > 0) {
+				geometry.binaryData = this._mergedReaders.readBytes(length);
+				return;
+			}
+		}
+		this.notify(`Unable to preserve version ${version} stream data for ${template.cadObject.objectName}`, NotificationType.NotImplemented);
   }
+
+	private static _concatBytes(chunks: readonly Uint8Array[]): Uint8Array {
+		const result = new Uint8Array(chunks.reduce((sum, chunk) => sum + chunk.length, 0));
+		let offset = 0;
+		for (const chunk of chunks) { result.set(chunk, offset); offset += chunk.length; }
+		return result;
+	}
+
+	private static _modelerPayloadLength(data: Uint8Array): number {
+		const binaryHeader = new TextEncoder().encode('ACIS BinaryFile');
+		const encodedAcisEnd = new Uint8Array([0x45, 0x6e, 0x64, 0x0e, 0x02, 0x6f, 0x66, 0x0e, 0x04, 0x41, 0x43, 0x49, 0x53, 0x0d, 0x04, 0x64, 0x61, 0x74, 0x61]);
+		const plainEnds = [new TextEncoder().encode('End-of-ACIS-data'), new TextEncoder().encode('End-of-ASM-data')];
+		if (!DwgObjectReader._startsWith(data, binaryHeader)) return 0;
+		for (const marker of [encodedAcisEnd, ...plainEnds]) {
+			const index = DwgObjectReader._indexOfBytes(data, marker);
+			if (index >= 0) return index + marker.length;
+		}
+		return 0;
+	}
+
+	private static _startsWith(data: Uint8Array, prefix: Uint8Array): boolean {
+		if (data.length < prefix.length) return false;
+		for (let index = 0; index < prefix.length; index++) if (data[index] !== prefix[index]) return false;
+		return true;
+	}
+
+	private static _indexOfBytes(data: Uint8Array, needle: Uint8Array): number {
+		outer: for (let offset = 0; offset <= data.length - needle.length; offset++) {
+			for (let index = 0; index < needle.length; index++) if (data[offset + index] !== needle[index]) continue outer;
+			return offset;
+		}
+		return -1;
+	}
 
   private _readSolid3D(): CadTemplate {
     const solid = new Solid3D();

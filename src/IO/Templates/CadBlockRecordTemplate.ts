@@ -98,6 +98,9 @@ export class CadBlockRecordTemplate extends CadTableEntryTemplate<BlockRecord> i
 		if (!builder.keepUnknownEntities && entity instanceof UnknownEntity) {
 			return;
 		}
+		if (entity.owner === this.cadObject) {
+			return;
+		}
 
 		this.cadObject.entities.add(entity);
 	}
