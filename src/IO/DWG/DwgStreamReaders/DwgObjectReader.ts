@@ -300,13 +300,18 @@ export class DwgObjectReader extends DwgSectionIO {
       this._classes.set(c.classNumber, c);
     }
 
-    this._memoryStream = new Uint8Array(reader.stream);
-    this._crcReader = DwgStreamReaderBase.getStreamHandler(this._version, new Uint8Array(this._memoryStream));
+    // Reader instances maintain independent cursors and do not mutate bytes,
+    // so they can safely share the decompressed object-section buffer.
+    this._memoryStream = reader.stream;
+    this._crcReader = DwgStreamReaderBase.getStreamHandler(this._version, this._memoryStream);
   }
 
   public read(): void {
-    while (this._handles.length > 0) {
-      const handle = this._handles.shift()!;
+    // Treat the handle array as a growing queue without removing its head.
+    // Array.shift() moves every remaining element and makes large drawings
+    // quadratic; referenced handles appended during decoding are still visited.
+    for (let handleIndex = 0; handleIndex < this._handles.length; handleIndex++) {
+      const handle = this._handles[handleIndex]!;
 
       const offset = this._map.get(handle);
       if (offset === undefined ||
@@ -354,24 +359,24 @@ export class DwgObjectReader extends DwgSectionIO {
       const handleSize = this._crcReader.readModularChar();
       const handleSectionOffset = this._crcReader.positionInBits() + sizeInBits - handleSize;
 
-      this._objectReader = DwgStreamReaderBase.getStreamHandler(this._version, new Uint8Array(this._memoryStream), this._reader.encoding);
+      this._objectReader = DwgStreamReaderBase.getStreamHandler(this._version, this._memoryStream, this._reader.encoding);
       this._objectReader.setPositionInBits(this._crcReader.positionInBits());
 
       this._objectInitialPos = this._objectReader.positionInBits();
       type = this._objectReader.readObjectType();
 
-      this._handlesReader = DwgStreamReaderBase.getStreamHandler(this._version, new Uint8Array(this._memoryStream), this._reader.encoding);
+      this._handlesReader = DwgStreamReaderBase.getStreamHandler(this._version, this._memoryStream, this._reader.encoding);
       this._handlesReader.setPositionInBits(handleSectionOffset);
 
-      this._textReader = DwgStreamReaderBase.getStreamHandler(this._version, new Uint8Array(this._memoryStream), this._reader.encoding);
+      this._textReader = DwgStreamReaderBase.getStreamHandler(this._version, this._memoryStream, this._reader.encoding);
       this._textReader.setPositionByFlag(handleSectionOffset - 1);
 
       this._mergedReaders = new DwgMergedReader(this._objectReader, this._textReader, this._handlesReader);
     } else {
-      this._objectReader = DwgStreamReaderBase.getStreamHandler(this._version, new Uint8Array(this._memoryStream), this._reader.encoding);
+      this._objectReader = DwgStreamReaderBase.getStreamHandler(this._version, this._memoryStream, this._reader.encoding);
       this._objectReader.setPositionInBits(this._crcReader.positionInBits());
 
-      this._handlesReader = DwgStreamReaderBase.getStreamHandler(this._version, new Uint8Array(this._memoryStream), this._reader.encoding);
+      this._handlesReader = DwgStreamReaderBase.getStreamHandler(this._version, this._memoryStream, this._reader.encoding);
       this._textReader = this._objectReader;
 
       this._objectInitialPos = this._objectReader.positionInBits();
@@ -644,7 +649,7 @@ export class DwgObjectReader extends DwgSectionIO {
     this._handlesReader.setPositionInBits(size + this._objectInitialPos);
 
     if (this._version === ACadVersion.AC1021) {
-      this._textReader = DwgStreamReaderBase.getStreamHandler(this._version, new Uint8Array(this._memoryStream), this._reader.encoding);
+      this._textReader = DwgStreamReaderBase.getStreamHandler(this._version, this._memoryStream, this._reader.encoding);
       this._textReader.setPositionByFlag(size + this._objectInitialPos - 1);
     }
 
