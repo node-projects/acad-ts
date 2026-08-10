@@ -4,6 +4,7 @@ import { DxfReader } from '../../../src/IO/DXF/DxfReader.js';
 import { ACadVersion } from '../../../src/ACadVersion.js';
 import { DxfBinaryReader } from '../../../src/IO/DXF/DxfStreamReader/DxfBinaryReader.js';
 import { encodeCadString, getDecoderEncodingLabel } from '../../../src/IO/TextEncoding.js';
+import { LwPolyline } from '../../../src/Entities/LwPolyline.js';
 
 const dxfAsciiFiles = getDxfAsciiFiles();
 const dxfBinaryFiles = getDxfBinaryFiles();
@@ -120,6 +121,41 @@ describe('DxfReaderTests', () => {
 
     expect(streamReader.encoding).toBe(getDecoderEncodingLabel('ANSI_1252'));
     expect(streamReader.find('layer-säöü')).toBe(true);
+  });
+
+  it('ReadLwPolylineSubclassFields', () => {
+    const data = createAsciiDxf([
+      '0', 'SECTION',
+      '2', 'HEADER',
+      '9', '$ACADVER',
+      '1', 'AC1015',
+      '0', 'ENDSEC',
+      '0', 'SECTION',
+      '2', 'ENTITIES',
+      '0', 'LWPOLYLINE',
+      '5', '1F',
+      '100', 'AcDbEntity',
+      '8', '0',
+      '100', 'AcDbPolyline',
+      '90', '2',
+      '70', '1',
+      '38', '5.0',
+      '39', '2.0',
+      '43', '0.5',
+      '10', '0.0', '20', '0.0',
+      '10', '10.0', '20', '0.0',
+      '0', 'ENDSEC',
+      '0', 'EOF',
+    ], 'ANSI_1252');
+
+    const doc = new DxfReader(data).read();
+    const polyline = [...doc.entities].find(e => e instanceof LwPolyline) as LwPolyline;
+
+    expect(polyline.vertices.length).toBe(2);
+    expect(polyline.isClosed).toBe(true);
+    expect(polyline.elevation).toBe(5);
+    expect(polyline.thickness).toBe(2);
+    expect(polyline.constantWidth).toBe(0.5);
   });
 
   describe.each(dxfAsciiFiles.map(f => [f.fileName, f]))('ASCII: %s', (_name, test) => {
