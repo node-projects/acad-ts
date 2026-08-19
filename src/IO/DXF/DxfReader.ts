@@ -90,6 +90,7 @@ export class DxfReader extends CadReaderBase<DxfReaderConfiguration> {
 
     this._builder = new DxfDocumentBuilder(this._version, this._document, this.configuration);
     this._builder.onNotification = this.onNotificationEvent.bind(this);
+    this._builder.onProgress = this.onProgressEvent.bind(this);
 
     while (this._reader.valueAsString !== DxfFileToken.endOfFile) {
       if (this._reader.valueAsString !== DxfFileToken.beginSection) {
