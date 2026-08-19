@@ -3,6 +3,9 @@ import { CadHeader } from '../../Header/CadHeader.js';
 import { CadSystemVariable } from '../../CadSystemVariable.js';
 
 export class DxfWriterConfiguration extends CadWriterConfiguration {
+  /** Maximum decimal places for ASCII DXF doubles. Null preserves round-trip precision. */
+  public decimalPrecision: number | null = null;
+
   public static readonly variables: string[] = [
     "$ACADVER",
     "$DWGCODEPAGE",

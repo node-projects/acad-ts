@@ -2,6 +2,8 @@ import { DxfStreamWriterBase } from './DxfStreamWriterBase.js';
 import { GroupCodeValue, GroupCodeValueType } from '../../../GroupCodeValue.js';
 
 export class DxfAsciiWriter extends DxfStreamWriterBase {
+  public decimalPrecision: number | null = null;
+
   private _writer: { write(s: string): void; flush?(): void; close?(): void };
   private _lines: string[] = [];
 
@@ -109,12 +111,17 @@ export class DxfAsciiWriter extends DxfStreamWriterBase {
     if (typeof value !== 'number' || isNaN(value)) {
       return '0.0';
     }
-    let s = value.toFixed(16);
+    const precision = this.decimalPrecision;
+    let s = precision == null
+      ? value.toString()
+      : value.toFixed(Math.max(0, Math.min(100, Math.trunc(precision))));
     // Remove trailing zeros but keep at least one decimal place
     if (s.includes('.')) {
       s = s.replace(/0+$/, '');
-      if (s.endsWith('.')) {
+      if (s.endsWith('.') && precision == null) {
         s += '0';
+      } else if (s.endsWith('.')) {
+        s = s.slice(0, -1);
       }
     }
     return s;

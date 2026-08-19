@@ -151,7 +151,9 @@ export class DxfWriter extends CadWriterBase<DxfWriterConfiguration, DxfWriteTar
     if (this.isBinary) {
       this._writer = new DxfBinaryWriter(this._createBinaryTarget(), this._encoding);
     } else {
-      this._writer = new DxfAsciiWriter(this._createTextTarget());
+      const writer = new DxfAsciiWriter(this._createTextTarget());
+      writer.decimalPrecision = this.configuration.decimalPrecision;
+      this._writer = writer;
     }
 
     this._writer.writeOptional = this.configuration.writeOptionalValues;
