@@ -82,6 +82,9 @@ export abstract class DxfPropertyBase {
 			switch (code) {
 				case 62:
 				case 70:
+				case 176:
+				case 177:
+				case 178:
 					this.setPropertyValue(obj, new Color(toNumber(value)));
 					return;
 				case 90:
@@ -215,6 +218,9 @@ export abstract class DxfPropertyBase {
 			switch (code) {
 				case 62:
 				case 70:
+				case 176:
+				case 177:
+				case 178:
 					return value.index;
 				case 420:
 					return value.trueColor;
