@@ -2745,6 +2745,13 @@ export const metadataLookupEntities: readonly ClassMetadata[] = [
     "baseTypeName": "Entity",
     "properties": [
       {
+        "propertyName": "activeStatus",
+        "valueCodes": [
+          68
+        ],
+        "referenceType": 0
+      },
+      {
         "propertyName": "ambientLightColor",
         "valueCodes": [
           63,
