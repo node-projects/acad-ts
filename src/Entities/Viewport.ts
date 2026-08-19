@@ -16,6 +16,9 @@ import { XYZ } from '../Math/XYZ.js';
 import { XY } from '../Math/XY.js';
 
 export class Viewport extends Entity {
+	/** -1 = on but inactive/off-screen, 0 = off, positive = active stacking order. */
+	activeStatus: number = 1;
+
 	ambientLightColor: Color | null = null;
 
 	backClipPlane: number = 0;
