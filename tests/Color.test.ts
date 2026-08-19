@@ -13,12 +13,15 @@ describe('ColorTests', () => {
   });
 
   it('ParsesTrueColors', () => {
-    for (let i = 0; i < 1000; i++) {
-      const r = Math.floor(Math.random() * 256);
-      const g = Math.floor(Math.random() * 256);
-      const b = Math.floor(Math.random() * 256);
+    const rgbValues = [
+      [255, 0, 0],
+      [0, 255, 0],
+      [0, 0, 255],
+      [18, 52, 86],
+    ];
 
-      const intColor = r | (g << 8) | (b << 16);
+    for (const [r, g, b] of rgbValues) {
+      const intColor = (r << 16) | (g << 8) | b;
       const color = new Color(r, g, b);
 
       expect(color.isTrueColor).toBe(true);
@@ -30,6 +33,14 @@ describe('ColorTests', () => {
       expect(rgb[1]).toBe(g);
       expect(rgb[2]).toBe(b);
     }
+  });
+
+  it('ParsesTrueColorIntegersAsRgb', () => {
+    const color = Color.fromTrueColor(0x123456);
+
+    expect(color.r).toBe(0x12);
+    expect(color.g).toBe(0x34);
+    expect(color.b).toBe(0x56);
   });
 
   it('Handles000TrueColor', () => {

@@ -1,6 +1,6 @@
 {
   "name": "@node-projects/acad-ts",
-  "version": "3.0.0",
+  "version": "3.0.1",
   "description": "TypeScript library to read and write AutoCAD DWG and DXF files",
   "repository": {
     "type": "git",

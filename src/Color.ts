@@ -184,10 +184,10 @@ export class Color {
 	}
 
 	private static _getInt24(array: number[]): number {
-		return (array[0] | (array[1] << 8) | (array[2] << 16));
+		return (array[2] | (array[1] << 8) | (array[0] << 16));
 	}
 
 	private static _getRGBfromTrueColor(color: number): number[] {
-		return [color & 0xFF, (color >> 8) & 0xFF, (color >> 16) & 0xFF];
+		return [(color >> 16) & 0xFF, (color >> 8) & 0xFF, color & 0xFF];
 	}
 }
