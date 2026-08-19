@@ -79,11 +79,22 @@ export class DxfAsciiWriter extends DxfStreamWriterBase {
       case GroupCodeValueType.Chunk:
       case GroupCodeValueType.ExtendedDataChunk: {
         const chunk = value as Uint8Array;
-        let hex = '';
-        for (let i = 0; i < chunk.length; i++) {
-          hex += chunk[i].toString(16).toUpperCase().padStart(2, '0');
+        const maxChunkLength = 127;
+        const lines: string[] = [];
+        for (let offset = 0; offset < chunk.length; offset += maxChunkLength) {
+          let hex = '';
+          const end = Math.min(offset + maxChunkLength, chunk.length);
+          for (let i = offset; i < end; i++) {
+            hex += chunk[i].toString(16).toUpperCase().padStart(2, '0');
+          }
+          lines.push(hex);
         }
-        line = hex;
+        line = lines.shift() ?? '';
+        for (const continuation of lines) {
+          this._writer.write(line + '\n');
+          this.writeDxfCode(code);
+          line = continuation;
+        }
         break;
       }
       default:
