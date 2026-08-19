@@ -561,6 +561,7 @@ export class DwgReader extends CadReaderBase<DwgReaderConfiguration> {
 			// 0x20  Section Name (64 bytes)
 			descriptor.name = readDsString(64);
 
+			let decompressedSizeCounter = 0;
 			for (let j = 0; j < descriptor.pageCount; ++j) {
 				const localmap = new DwgLocalSectionMap();
 				// Page number
@@ -570,10 +571,21 @@ export class DwgReader extends CadReaderBase<DwgReaderConfiguration> {
 				// Start offset (64-bit)
 				localmap.offset = readDsULong();
 
+				while (decompressedSizeCounter < localmap.offset) {
+					const emptyPage = new DwgLocalSectionMap();
+					emptyPage.isEmpty = true;
+					emptyPage.offset = decompressedSizeCounter;
+					emptyPage.compressedSize = 0;
+					emptyPage.decompressedSize = descriptor.decompressedSize;
+					descriptor.localSections.push(emptyPage);
+					decompressedSizeCounter += descriptor.decompressedSize;
+				}
+
 				localmap.decompressedSize = descriptor.decompressedSize;
 				localmap.seeker = fileheader.records.get(localmap.pageNumber)?.seeker ?? 0;
 
 				descriptor.localSections.push(localmap);
+				decompressedSizeCounter += localmap.decompressedSize;
 			}
 
 			// Get the final size for the local section
@@ -760,6 +772,15 @@ export class DwgReader extends CadReaderBase<DwgReaderConfiguration> {
 				page.checksum = readSmULong();
 				// 8  Page CRC (64-bit)
 				page.crc = readSmULong();
+
+				if (currentOffset < page.offset) {
+					const emptyPage = new DwgLocalSectionMap();
+					emptyPage.isEmpty = true;
+					emptyPage.offset = currentOffset;
+					emptyPage.compressedSize = 0;
+					emptyPage.decompressedSize = page.offset - currentOffset;
+					section.localSections.push(emptyPage);
+				}
 
 				section.localSections.push(page);
 				currentOffset = page.offset + page.decompressedSize;
