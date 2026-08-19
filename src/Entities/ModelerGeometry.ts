@@ -44,11 +44,29 @@ export abstract class ModelerGeometry extends Entity {
 
 	/** @internal */
 	guid: string = '';
+	/** @internal */ acisTextEncoded: boolean | null = null;
 
 	modelerFormatVersion: number = 0;
 
 	/** Raw SAT/SAB modeler payload when it is stored inline in the entity. */
 	binaryData: Uint8Array = new Uint8Array(0);
+
+	get acisData(): Uint8Array { return this.binaryData; }
+	set acisData(value: Uint8Array) { this.binaryData = value; }
+
+	get isBinaryAcisData(): boolean {
+		const signature = 'ACIS BinaryFile';
+		if (this.binaryData.length < signature.length) return false;
+		for (let i = 0; i < signature.length; i++) {
+			if (this.binaryData[i] !== signature.charCodeAt(i)) return false;
+		}
+		return true;
+	}
+
+	getAcisText(): string | null {
+		if (this.binaryData.length === 0 || this.isBinaryAcisData) return null;
+		return new TextDecoder('ascii').decode(this.binaryData);
+	}
 
 	proprietaryData: string = '';
 
