@@ -129,6 +129,7 @@ import { Mesh } from '../../../Entities/Mesh.js';
 import { Vertex } from '../../../Entities/Vertex.js';
 import { DimensionAligned } from '../../../Entities/DimensionAligned.js';
 import { DimensionAngular3Pt } from '../../../Entities/DimensionAngular3Pt.js';
+import { DimensionArc } from '../../../Entities/DimensionArc.js';
 import { DimensionAngular2Line } from '../../../Entities/DimensionAngular2Line.js';
 import { DimensionDiameter } from '../../../Entities/DimensionDiameter.js';
 import { DimensionLinear } from '../../../Entities/DimensionLinear.js';
@@ -820,6 +821,7 @@ export class DwgObjectReader extends DwgSectionIO {
 
     switch (c.dxfName) {
       case DxfFileToken.entityAecWall: template = this._readAecWall(); break;
+      case DxfFileToken.entityArcDimension: template = this._readDimArc(); break;
       case DxfFileToken.objectBinRecord: template = this._readBinRecord(); break;
       case DxfFileToken.objectAecWallStyle: template = this._readAecWallStyle(); break;
       case DxfFileToken.objectAecCleanupGroupDef: template = this._readAecCleanupGroup(); break;
@@ -2265,6 +2267,24 @@ export class DwgObjectReader extends DwgSectionIO {
 			}
 		}
 		this.notify(`Unable to preserve version ${version} stream data for ${template.cadObject.objectName}`, NotificationType.NotImplemented);
+  }
+
+  private _readDimArc(): CadTemplate {
+    const dimension = new DimensionArc();
+    const template = new CadDimensionTemplate(dimension);
+    this._readCommonDimensionData(template);
+    dimension.definitionPoint = this._objectReader.read3BitDouble();
+    dimension.firstPoint = this._objectReader.read3BitDouble();
+    dimension.secondPoint = this._objectReader.read3BitDouble();
+    dimension.center = this._objectReader.read3BitDouble();
+    dimension.isPartial = this._objectReader.readBit();
+    dimension.startAngle = this._objectReader.readBitDouble();
+    dimension.endAngle = this._objectReader.readBitDouble();
+    dimension.hasLeader = this._objectReader.readBit();
+    dimension.leaderPoint1 = this._objectReader.read3BitDouble();
+    dimension.leaderPoint2 = this._objectReader.read3BitDouble();
+    this._readCommonDimensionHandles(template);
+    return template;
   }
 
 	private static _concatBytes(chunks: readonly Uint8Array[]): Uint8Array {

@@ -25,6 +25,7 @@ import { DimensionAligned } from '../../../Entities/DimensionAligned.js';
 import { DimensionRadius } from '../../../Entities/DimensionRadius.js';
 import { DimensionAngular2Line } from '../../../Entities/DimensionAngular2Line.js';
 import { DimensionAngular3Pt } from '../../../Entities/DimensionAngular3Pt.js';
+import { DimensionArc } from '../../../Entities/DimensionArc.js';
 import { DimensionDiameter } from '../../../Entities/DimensionDiameter.js';
 import { DimensionOrdinate } from '../../../Entities/DimensionOrdinate.js';
 import { Ellipse } from '../../../Entities/Ellipse.js';
@@ -1439,6 +1440,8 @@ export class DwgObjectWriter extends DwgSectionIO {
 				this._writeDimensionAngular2Line(entity);
 			} else if (entity instanceof DimensionAngular3Pt) {
 				this._writeDimensionAngular3Pt(entity);
+			} else if (entity instanceof DimensionArc) {
+				this._writeDimensionArc(entity);
 			} else if (entity instanceof DimensionDiameter) {
 				this._writeDimensionDiameter(entity);
 			} else if (entity instanceof DimensionOrdinate) {
@@ -3595,6 +3598,18 @@ export class DwgObjectWriter extends DwgSectionIO {
 		this._writeMaterialMap(material.refractionMapSource, material.refractionMapFileName);
 	}
 
+	private _writeDimensionArc(dimension: DimensionArc): void {
+		this._writer.write3BitDouble(dimension.definitionPoint);
+		this._writer.write3BitDouble(dimension.firstPoint);
+		this._writer.write3BitDouble(dimension.secondPoint);
+		this._writer.write3BitDouble(dimension.center);
+		this._writer.writeBit(dimension.isPartial);
+		this._writer.writeBitDouble(dimension.startAngle);
+		this._writer.writeBitDouble(dimension.endAngle);
+		this._writer.writeBit(dimension.hasLeader);
+		this._writer.write3BitDouble(dimension.leaderPoint1);
+		this._writer.write3BitDouble(dimension.leaderPoint2);
+	}
 	private _writeMaterialColor(method: ColorMethod, factor: number, color: Color): void {
 		this._writer.writeByte(method);
 		this._writer.writeBitDouble(factor);
