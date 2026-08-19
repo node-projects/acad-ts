@@ -4,6 +4,7 @@ export { ACadVersion } from './ACadVersion.js';
 export { XYZ_Zero, Block } from './Blocks/Block.js';
 export { BlockEnd } from './Blocks/BlockEnd.js';
 export { BlockTypeFlags } from './Blocks/BlockTypeFlags.js';
+export { DimensionArrowhead } from './Blocks/DimensionArrowhead.js';
 export { CadDocument } from './CadDocument.js';
 export { CadObject } from './CadObject.js';
 export { CadObjectCollection } from './CadObjectCollection.js';
