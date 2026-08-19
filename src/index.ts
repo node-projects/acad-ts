@@ -443,7 +443,7 @@ export { LeaderDrawOrderType } from './Objects/LeaderDrawOrderType.js';
 export { LeaderLinePropertOverrideFlags } from './Objects/LeaderLinePropertOverrideFlags.js';
 export { LinkedData, LinkedTableData, FormattedTableData } from './Objects/LinkedData.js';
 export { MapSource } from './Objects/MapSource.js';
-export { Material } from './Objects/Material.js';
+export { Material, MaterialChannelFlags, MaterialIlluminationModel, MaterialMode } from './Objects/Material.js';
 export { MLineStyleElement, MLineStyle } from './Objects/MLineStyle.js';
 export { MLineStyleFlags } from './Objects/MLineStyleFlags.js';
 export { MTextAttributeObjectContextData } from './Objects/MTextAttributeObjectContextData.js';
