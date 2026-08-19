@@ -62,6 +62,9 @@ import { CadImage } from '../../../Entities/CadWipeoutBase.js';
 import { RasterImage } from '../../../Entities/RasterImage.js';
 import { Wipeout } from '../../../Entities/Wipeout.js';
 import { Seqend } from '../../../Entities/Seqend.js';
+import { ModelerGeometry } from '../../../Entities/ModelerGeometry.js';
+import { Region } from '../../../Entities/Region.js';
+import { Solid3D } from '../../../Entities/Solid3D.js';
 import { AttributeBase } from '../../../Entities/AttributeBase.js';
 import { AttributeEntity } from '../../../Entities/AttributeEntity.js';
 import { AttributeDefinition } from '../../../Entities/AttributeDefinition.js';
@@ -93,6 +96,7 @@ import { UnknownEntity } from '../../../Entities/UnknownEntity.js';
 import { MathHelper } from '../../../Math/MathHelper.js';
 import { XYZ } from '../../../Math/XYZ.js';
 import { XY } from '../../../Math/XY.js';
+import { AcisTextCodec } from '../../AcisTextCodec.js';
 
 export abstract class DxfSectionWriterBase {
   public onNotification: NotificationEventHandler | null = null;
@@ -376,6 +380,8 @@ export abstract class DxfSectionWriterBase {
       this._writeRay(entity, map);
     } else if (entity instanceof Shape) {
       this._writeShape(entity, map);
+    } else if (entity instanceof Region || entity instanceof Solid3D) {
+      this._writeModelerGeometry(entity);
     } else if (entity instanceof Solid) {
       this._writeSolid(entity, map);
     } else if (entity instanceof Spline) {
@@ -1076,6 +1082,41 @@ export abstract class DxfSectionWriterBase {
     this._writer.writeVector(13, solid.fourthCorner, subclass);
     this._writer.write(39, solid.thickness, subclass);
     this._writer.writeVector(210, solid.normal, subclass);
+  }
+
+  private _writeModelerGeometry(geometry: ModelerGeometry): void {
+    this._writer.write(DxfCode.Subclass, DxfSubclassMarker.modelerGeometry);
+
+    if (this.version >= ACadVersion.AC1027) {
+      this._writer.write(290, 1);
+      if (geometry.guid) {
+        this._writer.write(2, geometry.guid);
+      }
+      this.holder.modelerGeometries.push(geometry);
+    } else {
+      this._writer.write(70, geometry.modelerFormatVersion || 1);
+      const acisText = geometry.getAcisText();
+      if (acisText !== null) {
+        for (const line of acisText.split(/\r?\n/)) {
+          let encoded = AcisTextCodec.decode(line) as string;
+          this._writer.write(1, encoded.substring(0, 250));
+          encoded = encoded.substring(250);
+          while (encoded.length > 0) {
+            this._writer.write(3, encoded.substring(0, 250));
+            encoded = encoded.substring(250);
+          }
+        }
+      } else if (geometry.acisData.length > 0) {
+        this.notify(
+          `Binary ACIS payload for ${geometry.constructor.name} requires DXF R2013 or newer`,
+          NotificationType.Warning,
+        );
+      }
+    }
+
+    if (geometry instanceof Solid3D) {
+      this._writer.write(DxfCode.Subclass, DxfSubclassMarker.solid3D);
+    }
   }
 
   private _writeSpline(spline: Spline, map: DxfMap): void {

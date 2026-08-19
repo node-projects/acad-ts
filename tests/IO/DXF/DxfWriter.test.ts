@@ -10,6 +10,8 @@ import { Line } from '../../../src/Entities/Line.js';
 import { Point } from '../../../src/Entities/Point.js';
 import { Arc } from '../../../src/Entities/Arc.js';
 import { TextEntity } from '../../../src/Entities/TextEntity.js';
+import { Region } from '../../../src/Entities/Region.js';
+import { Solid3D } from '../../../src/Entities/Solid3D.js';
 import { Layer } from '../../../src/Tables/Layer.js';
 
 const versions = [
@@ -84,12 +86,46 @@ function containsByteSequence(data: Uint8Array, sequence: number[]): boolean {
   return false;
 }
 
-function isKnownDxfReadGap(error: unknown): boolean {
-  const msg = error instanceof Error ? error.message : String(error);
-  return msg.includes('Invalid dxf code with value 0') || msg.includes('Invalid array length');
-}
-
 describe('DxfWriterTests', () => {
+  it.each([
+    ['ASCII', false],
+    ['binary', true],
+  ] as const)('round-trips R2013 modeler payloads in %s DXF', (_label, binary) => {
+    const doc = new CadDocument(ACadVersion.AC1027);
+    const region = new Region();
+    const solid = new Solid3D();
+    region.acisData = Uint8Array.from({ length: 300 }, (_, index) => index & 0xFF);
+    solid.acisData = new TextEncoder().encode('ACIS BinaryFile solid payload');
+    doc.entities.add(region);
+    doc.entities.add(solid);
+
+    const stream = binary ? new InMemoryBinaryStream() : new InMemoryAsciiStream();
+    new DxfWriter(stream as any, doc, binary).write();
+
+    const reread = new DxfReader(stream.toUint8Array()).read();
+    const rereadRegion = [...reread.entities].find((entity): entity is Region => entity instanceof Region);
+    const rereadSolid = [...reread.entities].find((entity): entity is Solid3D => entity instanceof Solid3D);
+
+    expect(rereadRegion?.acisData).toEqual(region.acisData);
+    expect(rereadSolid?.acisData).toEqual(solid.acisData);
+  });
+
+  it('round-trips inline SAT text in pre-R2013 DXF', () => {
+    const doc = new CadDocument(ACadVersion.AC1024);
+    const region = new Region();
+    const sat = `400 0 1 0\nbody ${'x'.repeat(300)} #`;
+    region.acisData = new TextEncoder().encode(sat);
+    doc.entities.add(region);
+
+    const stream = new InMemoryAsciiStream();
+    new DxfWriter(stream as any, doc, false).write();
+
+    const reread = new DxfReader(stream.toUint8Array()).read();
+    const rereadRegion = [...reread.entities].find((entity): entity is Region => entity instanceof Region);
+
+    expect(rereadRegion?.getAcisText()).toBe(sat);
+  });
+
   describe.each(versions.map(v => [ACadVersion[v] ?? `v${v}`, v]))('Version %s', (_name, version) => {
     it('WriteEmptyAscii', () => {
       if (version < ACadVersion.AC1015) return;
@@ -133,13 +169,8 @@ describe('DxfWriterTests', () => {
 
       // Read back
       const reader = new DxfReader(data);
-      try {
-        const readed = reader.read();
-        expect(readed).not.toBeNull();
-      } catch (e) {
-        if (isKnownDxfReadGap(e)) return;
-        throw e;
-      }
+      const readed = reader.read();
+      expect(readed).not.toBeNull();
     });
 
     it('WriteDocumentWithEntities', () => {

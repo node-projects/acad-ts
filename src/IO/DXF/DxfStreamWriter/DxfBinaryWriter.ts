@@ -73,8 +73,9 @@ export class DxfBinaryWriter extends DxfStreamWriterBase {
         this._position += 8;
         break;
       case GroupCodeValueType.Byte:
-        this._ensureCapacity(1);
-        this._buffer[this._position++] = (value as number) & 0xFF;
+        this._ensureCapacity(2);
+        this._writer.setInt16(this._position, Number(value), true);
+        this._position += 2;
         break;
       case GroupCodeValueType.Int16:
       case GroupCodeValueType.ExtendedDataInt16:

@@ -118,7 +118,12 @@ export class DxfDocumentBuilder extends CadDocumentBuilder {
       } else if (owner instanceof CadInsertTemplate && template.cadObject instanceof Seqend) {
         owner.seqendHandle = template.cadObject.handle;
       } else {
-        this.notify(`Owner ${owner.constructor.name} with handle ${template.ownerHandle} assignation not implemented for ${template.cadObject.constructor.name} with handle ${template.cadObject.handle}`, NotificationType.Warning);
+        const genericOwner = owner as CadTemplate & Partial<ICadOwnerTemplate>;
+        if (genericOwner.ownedObjectsHandlers instanceof Set) {
+          genericOwner.ownedObjectsHandlers.add(template.cadObject.handle);
+        } else {
+          this.notify(`Owner ${owner.constructor.name} with handle ${template.ownerHandle} assignation not implemented for ${template.cadObject.constructor.name} with handle ${template.cadObject.handle}`, NotificationType.Warning);
+        }
       }
     } else {
       this.notify(`Owner ${template.ownerHandle} not found for ${template.constructor.name} with handle ${template.cadObject.handle}`, NotificationType.Warning);

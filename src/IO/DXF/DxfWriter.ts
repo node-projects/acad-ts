@@ -15,6 +15,8 @@ import { DxfCode } from '../../DxfCode.js';
 import { DxfFileToken } from '../../DxfFileToken.js';
 import { NotificationEventHandler } from '../NotificationEventHandler.js';
 import { encodeCadString } from '../TextEncoding.js';
+import { ACadVersion } from '../../ACadVersion.js';
+import { ModelerGeometry } from '../../Entities/ModelerGeometry.js';
 
 type DxfTextOutput = {
   write(value: string): void;
@@ -218,7 +220,101 @@ export class DxfWriter extends CadWriterBase<DxfWriterConfiguration, DxfWriteTar
   }
 
   private _writeACDSData(): void {
-    // not implemented
+    if (this._document.header.version < ACadVersion.AC1027) {
+      return;
+    }
+
+    const records = new Map<number, ModelerGeometry>();
+    for (const geometry of this._objectHolder.modelerGeometries) {
+      if (geometry.acisData.length > 0) {
+        records.set(geometry.handle, geometry);
+      }
+    }
+    if (records.size === 0) {
+      return;
+    }
+
+    this._writer.write(DxfCode.Start, DxfFileToken.beginSection);
+    this._writer.write(DxfCode.SymbolTableName, DxfFileToken.acdsDataSection);
+    this._writer.write(70, 2);
+    this._writer.write(71, 8);
+
+    this._writeModelerDataSchema();
+
+    for (const geometry of records.values()) {
+      this._writer.write(DxfCode.Start, DxfFileToken.acdsRecord);
+      this._writer.write(90, 1);
+      this._writer.write(2, 'AcDbDs::ID');
+      this._writer.write(280, 10);
+      this._writer.write(320, geometry.handle);
+      this._writer.write(2, 'ASM_Data');
+      this._writer.write(280, 15);
+      this._writer.write(94, geometry.acisData.length);
+
+      for (let offset = 0; offset < geometry.acisData.length; offset += 127) {
+        this._writer.write(310, geometry.acisData.slice(offset, offset + 127));
+      }
+    }
+
+    this._writer.write(DxfCode.Start, DxfFileToken.endSection);
+  }
+
+  private _writeModelerDataSchema(): void {
+    this._writer.write(DxfCode.Start, DxfFileToken.acdsSchema);
+    this._writer.write(90, 1);
+    this._writer.write(1, 'AcDb3DSolid_ASM_Data');
+    this._writer.write(2, 'AcDbDs::ID');
+    this._writer.write(280, 10);
+    this._writer.write(91, 8);
+    this._writer.write(2, 'ASM_Data');
+    this._writer.write(280, 15);
+    this._writer.write(91, 0);
+
+    this._writeModelerSchemaAttribute(2, 'AcDbDs::TreatedAsObjectData', 1, 291, 1);
+    this._writeModelerSchemaAttribute(3, 'AcDbDs::Legacy', 1, 291, 1);
+    this._writeModelerSchemaAttribute(4, 'AcDs:Indexable', 1, 291, 1, 'AcDbDs::ID');
+    this._writeModelerSchemaAttribute(5, 'AcDbDs::HandleAttribute', 7, 282, 1, 'AcDbDs::ID');
+
+    this._writeModelerAttributeSchema(2, 'AcDbDs::TreatedAsObjectDataSchema', 'AcDbDs::TreatedAsObjectData', 1);
+    this._writeModelerAttributeSchema(3, 'AcDbDs::LegacySchema', 'AcDbDs::Legacy', 1);
+    this._writeModelerAttributeSchema(4, 'AcDbDs::IndexedPropertySchema', 'AcDs:Indexable', 1);
+
+    this._writer.write(DxfCode.Start, DxfFileToken.acdsSchema);
+    this._writer.write(90, 5);
+    this._writer.write(1, 'AcDbDs::HandleAttributeSchema');
+    this._writer.write(2, 'AcDbDs::HandleAttribute');
+    this._writer.write(280, 7);
+    this._writer.write(91, 1);
+    this._writer.write(284, 1);
+  }
+
+  private _writeModelerSchemaAttribute(
+    id: number,
+    name: string,
+    type: number,
+    valueCode: number,
+    value: number,
+    owner?: string
+  ): void {
+    this._writer.write(101, DxfFileToken.acdsRecord);
+    if (owner) {
+      this._writer.write(1, owner);
+    } else {
+      this._writer.write(95, 1);
+    }
+    this._writer.write(90, id);
+    this._writer.write(2, name);
+    this._writer.write(280, type);
+    this._writer.write(valueCode, value);
+  }
+
+  private _writeModelerAttributeSchema(id: number, schema: string, name: string, type: number): void {
+    this._writer.write(DxfCode.Start, DxfFileToken.acdsSchema);
+    this._writer.write(90, id);
+    this._writer.write(1, schema);
+    this._writer.write(2, name);
+    this._writer.write(280, type);
+    this._writer.write(91, 0);
   }
 
   protected createDefaultConfiguration(): DxfWriterConfiguration {
