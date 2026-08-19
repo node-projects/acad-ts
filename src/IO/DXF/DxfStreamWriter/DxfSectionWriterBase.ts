@@ -20,6 +20,7 @@ import { DimensionRadius } from '../../../Entities/DimensionRadius.js';
 import { DimensionDiameter } from '../../../Entities/DimensionDiameter.js';
 import { DimensionAngular2Line } from '../../../Entities/DimensionAngular2Line.js';
 import { DimensionAngular3Pt } from '../../../Entities/DimensionAngular3Pt.js';
+import { DimensionArc } from '../../../Entities/DimensionArc.js';
 import { DimensionOrdinate } from '../../../Entities/DimensionOrdinate.js';
 import { Dimension } from '../../../Entities/Dimension.js';
 import { Ellipse } from '../../../Entities/Ellipse.js';
@@ -452,6 +453,9 @@ export abstract class DxfSectionWriterBase {
     if (dim instanceof DimensionAngular3Pt) {
       this._writeDimensionAngular3Pt(dim, map);
     }
+    if (dim instanceof DimensionArc) {
+      this._writeDimensionArc(dim, map);
+    }
     if (dim instanceof DimensionOrdinate) {
       this._writeDimensionOrdinate(dim, map);
     }
@@ -500,6 +504,22 @@ export abstract class DxfSectionWriterBase {
     this._writer.writeVector(13, dim.firstPoint, subclass);
     this._writer.writeVector(14, dim.secondPoint, subclass);
     this._writer.writeVector(15, dim.angleVertex, subclass);
+  }
+
+  private _writeDimensionArc(dim: DimensionArc, map: DxfMap): void {
+    const subclass = map.subClasses.get(DxfSubclassMarker.arcDimension)!;
+    this._writer.write(DxfCode.Subclass, DxfSubclassMarker.arcDimension);
+    this._writer.writeVector(13, dim.firstPoint, subclass);
+    this._writer.writeVector(14, dim.secondPoint, subclass);
+    this._writer.writeVector(15, dim.center, subclass);
+    this._writer.write(70, dim.isPartial ? 1 : 0, subclass);
+    this._writer.write(40, dim.startAngle, subclass);
+    this._writer.write(41, dim.endAngle, subclass);
+    this._writer.write(71, dim.hasLeader ? 1 : 0, subclass);
+    if (dim.hasLeader) {
+      this._writer.writeVector(16, dim.leaderPoint1, subclass);
+      this._writer.writeVector(17, dim.leaderPoint2, subclass);
+    }
   }
 
   private _writeDimensionOrdinate(dim: DimensionOrdinate, map: DxfMap): void {
