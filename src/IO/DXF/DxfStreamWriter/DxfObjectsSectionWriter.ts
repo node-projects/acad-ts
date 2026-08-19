@@ -441,6 +441,8 @@ export class DxfObjectsSectionWriter extends DxfSectionWriterBase {
       this._writeSpatialFilter(co);
     } else if (co instanceof SortEntitiesTable) {
       this._writeSortentsTable(co);
+    } else if (co instanceof TableStyle) {
+      this._writeTableStyle(co);
     } else if (co instanceof XRecord) {
       this.writeXRecord(co);
     } else {
@@ -575,7 +577,6 @@ export class DxfObjectsSectionWriter extends DxfSectionWriterBase {
       co instanceof Material ||
       co instanceof MultiLeaderObjectContextData ||
       co instanceof VisualStyle ||
-      co instanceof TableStyle ||
       co instanceof ProxyObject ||
       co instanceof BlockRepresentationData ||
       co instanceof MTextAttributeObjectContextData ||
@@ -590,6 +591,48 @@ export class DxfObjectsSectionWriter extends DxfSectionWriterBase {
   private _writeAcdbPlaceHolder(acdbPlaceHolder: AcdbPlaceHolder): void {
     // empty
   }
+
+	private _writeTableStyle(style: TableStyle): void {
+		const map = DxfClassMap.create(TableStyle);
+		this._writer.write(DxfCode.Subclass, DxfSubclassMarker.tableStyle);
+		this._writer.write(3, style.description, map);
+		this._writer.write(70, style.flowDirection, map);
+		this._writer.write(71, style.flags, map);
+		this._writer.write(40, style.horizontalCellMargin, map);
+		this._writer.write(41, style.verticalCellMargin, map);
+		this._writer.write(280, style.suppressTitle ? 1 : 0, map);
+		this._writer.write(281, style.suppressHeaderRow ? 1 : 0, map);
+		this._writeCellStyle(style.dataCellStyle);
+		this._writeCellStyle(style.titleCellStyle);
+		this._writeCellStyle(style.headerCellStyle);
+	}
+
+	private _writeCellStyle(cellStyle: import('../../../Entities/TableEntity.js').CellStyle): void {
+		if (cellStyle.textStyle != null) {
+			this._writer.writeName(7, cellStyle.textStyle);
+		} else {
+			this._writer.write(7, 'Standard');
+		}
+		this._writer.write(140, cellStyle.textHeight);
+		this._writer.write(170, cellStyle.cellAlignment);
+		this._writer.write(62, cellStyle.contentColor.getApproxIndex());
+		this._writer.write(63, cellStyle.backgroundColor.getApproxIndex());
+		this._writer.write(283, cellStyle.isFillColorOn ? 1 : 0);
+		this._writer.write(90, cellStyle.cellStyleType);
+		this._writer.write(91, cellStyle.valueDataType);
+		this._writeCellStyleBorder(cellStyle.topBorder, 0);
+		this._writeCellStyleBorder(cellStyle.horizontalInsideBorder, 1);
+		this._writeCellStyleBorder(cellStyle.bottomBorder, 2);
+		this._writeCellStyleBorder(cellStyle.leftBorder, 3);
+		this._writeCellStyleBorder(cellStyle.verticalInsideBorder, 4);
+		this._writeCellStyleBorder(cellStyle.rightBorder, 5);
+	}
+
+	private _writeCellStyleBorder(border: import('../../../Entities/TableEntity.js').CellBorder, index: number): void {
+		this._writer.write(274 + index, border.lineWeight);
+		this._writer.write(284 + index, border.isInvisible ? 0 : 1);
+		this._writer.write(64 + index, border.color.getApproxIndex());
+	}
 
   private _writeDimensionAssociation(dimAssociation: DimensionAssociation): void {
     const map = DxfClassMap.create(DimensionAssociation);
