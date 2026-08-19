@@ -3596,6 +3596,15 @@ export class DwgObjectWriter extends DwgSectionIO {
 		this._writer.writeByte(material.refractionAutoTransform);
 		this._writeMatrix4Values(material.refractionMatrix);
 		this._writeMaterialMap(material.refractionMapSource, material.refractionMapFileName);
+
+		if (this.r2007Plus) {
+			this._writer.writeBitDouble(material.translucence);
+			this._writer.writeBitDouble(0); // self illumination is not modeled
+			this._writer.writeBitDouble(material.reflectivity);
+			this._writer.writeBitLong(material.illuminationModel);
+			this._writer.writeBitLong(material.channelFlags);
+			this._writer.writeBitLong(material.mode);
+		}
 	}
 
 	private _writeDimensionArc(dimension: DimensionArc): void {

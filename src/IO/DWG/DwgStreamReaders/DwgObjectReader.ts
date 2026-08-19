@@ -180,7 +180,7 @@ import { ImageDefinitionReactor } from '../../../Objects/ImageDefinitionReactor.
 import { Layout, LayoutFlags } from '../../../Objects/Layout.js';
 import { MLineStyle, MLineStyleFlags , MLineStyleElement} from '../../../Objects/MLineStyle.js';
 import { MultiLeaderStyle, MultiLeaderDrawOrderType, LeaderDrawOrderType } from '../../../Objects/MultiLeaderStyle.js';
-import { Material, ColorMethod, ProjectionMethod, TilingMethod, AutoTransformMethodFlags, MapSource } from '../../../Objects/Material.js';
+import { Material, ColorMethod, ProjectionMethod, TilingMethod, AutoTransformMethodFlags, MapSource, MaterialChannelFlags, MaterialIlluminationModel, MaterialMode } from '../../../Objects/Material.js';
 import { PlotSettings, PlotFlags, PlotPaperUnits, PlotRotation, PlotType, ScaledType, ShadePlotMode, ShadePlotResolutionMode, PaperMargin } from '../../../Objects/PlotSettings.js';
 import { RasterVariables, ImageDisplayQuality } from '../../../Objects/RasterVariables.js';
 import { Scale } from '../../../Objects/Scale.js';
@@ -3376,6 +3376,15 @@ export class DwgObjectReader extends DwgSectionIO {
     material.refractionMatrix = this._readMatrix4();
     material.refractionMapSource = this._mergedReaders.readByte() as MapSource;
     material.refractionMapFileName = this._readMaterialMapFileName(material.refractionMapSource, 'refraction');
+
+	if (this.r2007Plus) {
+		material.translucence = this._mergedReaders.readBitDouble();
+		this._mergedReaders.readBitDouble(); // self illumination is not modeled
+		material.reflectivity = this._mergedReaders.readBitDouble();
+		material.illuminationModel = this._mergedReaders.readBitLong() as MaterialIlluminationModel;
+		material.channelFlags = this._mergedReaders.readBitLong() as MaterialChannelFlags;
+		material.mode = this._mergedReaders.readBitLong() as MaterialMode;
+	}
     return template;
   }
 
