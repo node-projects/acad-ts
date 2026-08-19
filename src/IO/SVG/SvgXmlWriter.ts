@@ -166,18 +166,16 @@ export class SvgXmlWriter {
 
   writeEndElement(): void {
     this._indent--;
+    const name = this._elementStack.pop();
+    if (name == null) {
+      throw new Error('Cannot close an SVG element because no element is open.');
+    }
+
     if (this._currentElementOpen) {
       this._output += ' />\n';
       this._currentElementOpen = false;
-      this._elementStack.pop();
     } else {
-      this._elementStack.pop();
-      this._output += `${this._getIndent()}</${this._elementStack.length >= 0 ? '' : ''}`;
-      // Re-get the element name before it was popped
-      this._output = this._output.slice(0, this._output.lastIndexOf(`${this._getIndent()}<`));
-      // Actually let's redo this
-      const name = this._elementStack.length >= 0 ? '' : '';
-      this._output += `${this._getIndent()}</${this._getClosingTag()}>\n`;
+      this._output += `${this._getIndent()}</${name}>\n`;
     }
   }
 
@@ -291,11 +289,6 @@ export class SvgXmlWriter {
 
   private _getIndent(): string {
     return '  '.repeat(this._indent);
-  }
-
-  private _getClosingTag(): string {
-    // We need to track this differently
-    return '';
   }
 
   private _escapeXml(str: string): string {

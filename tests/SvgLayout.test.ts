@@ -18,6 +18,8 @@ describe('SvgLayoutTests', () => {
 		expect(() => writer.writeLayout(layout)).not.toThrow();
 		expect(writer.getOutput()).toContain('<svg');
 		expect(writer.getOutput()).toContain('<line');
+		expect(writer.getOutput()).toContain('</svg>');
+		expect(writer.getOutput()).not.toContain('</>');
 	});
 
 	it('WritesLayoutsWithSvgDocumentBuilder', () => {

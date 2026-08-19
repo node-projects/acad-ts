@@ -19,6 +19,7 @@ import { MultiLeaderStyle } from '../Objects/MultiLeaderStyle.js';
 import { BlockRecord } from '../Tables/BlockRecord.js';
 import { LineType } from '../Tables/LineType.js';
 import { TextStyle } from '../Tables/TextStyle.js';
+import { Transform } from '../Math/Transform.js';
 
 export class MultiLeaderBlockAttribute {
 	attributeDefinition: AttributeDefinition | null = null;
@@ -120,7 +121,75 @@ export class MultiLeader extends Entity {
 	textAligninIPE: boolean = false;
 
 	override applyTransform(transform: unknown): void {
-		// No-op
+		const axisScale = this.getTransformAxisScale(transform);
+		const scaleX = axisScale.x === 0 ? 1 : Math.abs(axisScale.x);
+		const scaleY = axisScale.y === 0 ? 1 : Math.abs(axisScale.y);
+		const scaleZ = axisScale.z === 0 ? 1 : Math.abs(axisScale.z);
+		const planarScale = (scaleX + scaleY) / 2;
+		const point = (value: XYZ): XYZ => this.applyTransformToPoint(transform, value);
+		const vector = (value: XYZ): XYZ => this.applyTransformToVector(transform, value);
+		const direction = (value: XYZ): XYZ => {
+			const transformed = vector(value);
+			return transformed.getLength() === 0 ? transformed : transformed.normalize();
+		};
+		const transformPair = (pair: StartEndPointPair): void => {
+			pair.startPoint = point(pair.startPoint);
+			pair.endPoint = point(pair.endPoint);
+		};
+
+		this.arrowheadSize *= planarScale;
+		this.landingDistance *= planarScale;
+		this.scaleFactor *= planarScale;
+		this.blockContentScale = new XYZ(
+			this.blockContentScale.x * scaleX,
+			this.blockContentScale.y * scaleY,
+			this.blockContentScale.z * scaleZ,
+		);
+		if (transform instanceof Transform) {
+			this.blockContentRotation += transform.eulerRotation.z;
+			this.textAngle += transform.eulerRotation.z;
+		}
+
+		const context = this.contextData;
+		context.basePoint = point(context.basePoint);
+		context.contentBasePoint = point(context.contentBasePoint);
+		context.textLocation = point(context.textLocation);
+		context.blockContentLocation = point(context.blockContentLocation);
+		context.baseDirection = direction(context.baseDirection);
+		context.baseVertical = direction(context.baseVertical);
+		context.direction = direction(context.direction);
+		context.blockContentNormal = direction(context.blockContentNormal);
+		context.textNormal = direction(context.textNormal);
+		context.arrowheadSize *= planarScale;
+		context.boundaryWidth *= scaleX;
+		context.boundaryHeight *= scaleY;
+		context.columnGutter *= scaleX;
+		context.columnWidth *= scaleX;
+		context.columnSizes = context.columnSizes.map((size) => size * scaleX);
+		context.landingGap *= planarScale;
+		context.scaleFactor *= planarScale;
+		context.textHeight *= scaleY;
+		context.blockContentScale = new XYZ(
+			context.blockContentScale.x * scaleX,
+			context.blockContentScale.y * scaleY,
+			context.blockContentScale.z * scaleZ,
+		);
+		if (transform instanceof Transform) {
+			context.blockContentRotation += transform.eulerRotation.z;
+			context.textRotation += transform.eulerRotation.z;
+		}
+
+		for (const root of context.leaderRoots) {
+			root.connectionPoint = point(root.connectionPoint);
+			root.direction = direction(root.direction);
+			root.landingDistance *= planarScale;
+			for (const pair of root.breakStartEndPointsPairs) transformPair(pair);
+			for (const line of root.lines) {
+				line.points = line.points.map(point);
+				line.arrowheadSize *= planarScale;
+				for (const pair of line.startEndPoints) transformPair(pair);
+			}
+		}
 	}
 
 	override clone(): CadObject {
@@ -146,7 +215,7 @@ export class MultiLeader extends Entity {
 			}
 		};
 		const pushLeaderRoot = (root: LeaderRoot): void => {
-			points.push(root.connectionPoint, root.direction);
+			points.push(root.connectionPoint);
 			for (const pair of root.breakStartEndPointsPairs) {
 				pushPair(pair);
 			}

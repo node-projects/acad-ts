@@ -9,6 +9,8 @@ import { XYZ } from '../src/Math/XYZ.js';
 import { XY } from '../src/Math/XY.js';
 import { BlockRecord } from '../src/Tables/BlockRecord.js';
 import { Wall } from '../src/Entities/AecObjects/Wall.js';
+import { MultiLeader } from '../src/Entities/MultiLeader.js';
+import { LeaderLine, LeaderRoot, StartEndPointPair } from '../src/Objects/MultiLeaderObjectContextData.js';
 
 describe('EntityTransformTests', () => {
 	it('TransformsWallGeometryAndDimensions', () => {
@@ -29,6 +31,36 @@ describe('EntityTransformTests', () => {
 		expect(wall.height).toBeCloseTo(12);
 		expect(wall.baseHeight).toBeCloseTo(4);
 		expect(wall.normal).toEqual(new XYZ(0, 0, 1));
+	});
+
+	it('TransformsMultiLeaderGeometryAndSizes', () => {
+		const multiLeader = new MultiLeader();
+		const root = new LeaderRoot();
+		const line = new LeaderLine();
+		multiLeader.contextData.basePoint = new XYZ(1, 2, 0);
+		multiLeader.contextData.textLocation = new XYZ(3, 4, 0);
+		multiLeader.contextData.baseDirection = new XYZ(1, 1, 0);
+		multiLeader.contextData.blockContentScale = new XYZ(1, 1, 1);
+		multiLeader.arrowheadSize = 2;
+		root.connectionPoint = new XYZ(2, 1, 0);
+		root.direction = new XYZ(1, 1, 0);
+		line.points = [new XYZ(0, 0, 0), new XYZ(4, 2, 0)];
+		line.startEndPoints = [new StartEndPointPair(new XYZ(1, 0, 0), new XYZ(2, 0, 0))];
+		root.lines.push(line);
+		multiLeader.contextData.leaderRoots.push(root);
+
+		multiLeader.applyScaling(new XYZ(2, 3, 1));
+		multiLeader.applyTranslation(new XYZ(5, -1, 0));
+
+		expect(multiLeader.contextData.basePoint).toEqual(new XYZ(7, 5, 0));
+		expect(multiLeader.contextData.textLocation).toEqual(new XYZ(11, 11, 0));
+		expect(root.connectionPoint).toEqual(new XYZ(9, 2, 0));
+		expect(line.points).toEqual([new XYZ(5, -1, 0), new XYZ(13, 5, 0)]);
+		expect(line.startEndPoints[0].startPoint).toEqual(new XYZ(7, -1, 0));
+		expect(root.direction.x).toBeCloseTo(new XYZ(2, 3, 0).normalize().x);
+		expect(root.direction.y).toBeCloseTo(new XYZ(2, 3, 0).normalize().y);
+		expect(multiLeader.arrowheadSize).toBeCloseTo(5);
+		expect(multiLeader.contextData.blockContentScale).toEqual(new XYZ(2, 3, 1));
 	});
 
 	it('AppliesBaseRotationWrapperToEllipse', () => {
