@@ -1,5 +1,6 @@
 import { CadReaderBase } from '../CadReaderBase.js';
 import { DxfReaderConfiguration } from './DxfReaderConfiguration.js';
+import { DxfAcdsDataSectionReader } from './DxfStreamReader/DxfAcdsDataSectionReader.js';
 import { DxfDocumentBuilder } from './DxfDocumentBuilder.js';
 import { IDxfStreamReader } from './DxfStreamReader/IDxfStreamReader.js';
 import { DxfTextReader } from './DxfStreamReader/DxfTextReader.js';
@@ -118,6 +119,9 @@ export class DxfReader extends CadReaderBase<DxfReaderConfiguration> {
           break;
         case DxfFileToken.objectsSection:
           this._readObjects();
+          break;
+        case DxfFileToken.acdsDataSection:
+          new DxfAcdsDataSectionReader(this._reader, this._builder).read();
           break;
         default:
           this.triggerNotification(`Section not implemented ${this._reader.valueAsString}`, NotificationType.NotImplemented);
