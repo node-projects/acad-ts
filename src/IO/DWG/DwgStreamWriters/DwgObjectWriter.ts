@@ -3619,11 +3619,12 @@ export class DwgObjectWriter extends DwgSectionIO {
 		this._writer.write3BitDouble(dimension.leaderPoint1);
 		this._writer.write3BitDouble(dimension.leaderPoint2);
 	}
+
 	private _writeMaterialColor(method: ColorMethod, factor: number, color: Color): void {
 		this._writer.writeByte(method);
 		this._writer.writeBitDouble(factor);
 		if (method === ColorMethod.Override) {
-			this._writer.writeBitLong((color.b | (color.g << 8) | (color.r << 16)) >>> 0);
+			this._writer.writeBitLong((color.b | (color.g << 8) | (color.r << 16) | (0xc2 << 24)) >>> 0);
 		}
 	}
 
