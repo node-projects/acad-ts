@@ -30,6 +30,7 @@ export class DxfWriterConfiguration extends CadWriterConfiguration {
     "$EXTNAMES",
     "$INSBASE",
     "$INSUNITS",
+    "$MEASUREMENT",
     "$LTSCALE",
     "$LWDISPLAY",
     "$PDMODE",
