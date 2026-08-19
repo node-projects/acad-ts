@@ -22,7 +22,7 @@ export class TableStyle extends NonGraphicalObject {
 
 	suppressHeaderRow: boolean = false;
 	suppressTitle: boolean = false;
-	tableCellStyle: CellStyle = new CellStyle();
+	tableCellStyle: CellStyle = TableStyle.createDefaultCellStyle('Table', 4);
 	titleCellStyle: CellStyle = new CellStyle();
 	verticalCellMargin: number = 0.06;
 
@@ -30,6 +30,14 @@ export class TableStyle extends NonGraphicalObject {
 
 	constructor(name: string = '') {
 		super(name);
+	}
+
+	static createDefaultCellStyle(name: string, id: number): CellStyle {
+		const style = new CellStyle();
+		style.name = name;
+		style.id = id;
+		style.hasData = true;
+		return style;
 	}
 }
 

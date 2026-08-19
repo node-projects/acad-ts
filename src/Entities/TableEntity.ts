@@ -426,6 +426,10 @@ export class TableEntity extends Insert {
 
 	get content(): TableContent { return this._content; }
 
+	get cellStyleOverride(): CellStyle { return this._content.cellStyleOverride; }
+
+	get mergedCellRanges(): CellRange[] { return this._content.mergedCellRanges; }
+
 	tableBreakData: BreakData = new BreakData();
 
 	private _content: TableContent = new TableContent();
@@ -447,4 +451,6 @@ export class TableContent {
 	columns: TableEntityColumn[] = [];
 	rows: TableEntityRow[] = [];
 	style: TableStyle | null = null;
+	cellStyleOverride: CellStyle = new CellStyle();
+	mergedCellRanges: CellRange[] = [];
 }
