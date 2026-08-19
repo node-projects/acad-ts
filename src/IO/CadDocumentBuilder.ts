@@ -30,9 +30,11 @@ import { ICadDictionaryTemplate } from './Templates/ICadDictionaryTemplate.js';
 import { ICadTableEntryTemplate } from './Templates/ICadTableEntryTemplate.js';
 import { ICadTableTemplate } from './Templates/ICadTableTemplate.js';
 import { CadTemplate } from './Templates/CadTemplate.js';
+import { CadObjectData, ProgressEventArgs, ProgressEventHandler, ReadStage } from './ProgressEventHandler.js';
 
 export abstract class CadDocumentBuilder {
 	onNotification: NotificationEventHandler | null = null;
+	onProgress: ProgressEventHandler | null = null;
 
 	appIds: AppIdsTable = new AppIdsTable();
 	blockRecords: BlockRecordsTable = new BlockRecordsTable();
@@ -42,6 +44,7 @@ export abstract class CadDocumentBuilder {
 
 	abstract get keepUnknownEntities(): boolean;
 	abstract get keepUnknownNonGraphicalObjects(): boolean;
+	abstract get ignoreProxyGraphics(): boolean;
 
 	layers: LayersTable = new LayersTable();
 	lineTypesTable: LineTypesTable = new LineTypesTable();
@@ -65,6 +68,7 @@ export abstract class CadDocumentBuilder {
 	}
 
 	addTemplate(template: ICadObjectTemplate): void {
+		this.notifyProgress(ReadStage.Read, template.cadObject);
 		if (!this._addToMap(template)) {
 			return;
 		}
@@ -123,6 +127,10 @@ export abstract class CadDocumentBuilder {
 
 	notify(message: string, notificationType: NotificationType = NotificationType.None, exception: Error | null = null): void {
 		this.onNotification?.(this, new NotificationEventArgs(message, notificationType, exception));
+	}
+
+	notifyProgress(stage: ReadStage, cadObject: CadObject): void {
+		this.onProgress?.(this, new ProgressEventArgs(stage, new CadObjectData(cadObject)));
 	}
 
 	registerTables(): void {

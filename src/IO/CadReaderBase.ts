@@ -4,9 +4,11 @@ import { CadReaderConfiguration } from './CadReaderConfiguration.js';
 import { ICadReader } from './ICadReader.js';
 import { NotificationEventHandler, NotificationEventArgs, NotificationType } from './NotificationEventHandler.js';
 import { getDecoderEncodingLabel } from './TextEncoding.js';
+import { ProgressEventArgs, ProgressEventHandler } from './ProgressEventHandler.js';
 
 export abstract class CadReaderBase<T extends CadReaderConfiguration> implements ICadReader {
 	onNotification: NotificationEventHandler | null = null;
+	onProgress: ProgressEventHandler | null = null;
 
 	configuration: T;
 
@@ -44,5 +46,9 @@ export abstract class CadReaderBase<T extends CadReaderConfiguration> implements
 
 	protected onNotificationEvent(sender: object | null, e: NotificationEventArgs): void {
 		this.onNotification?.(this, e);
+	}
+
+	protected onProgressEvent(sender: object | null, e: ProgressEventArgs): void {
+		this.onProgress?.(this, e);
 	}
 }

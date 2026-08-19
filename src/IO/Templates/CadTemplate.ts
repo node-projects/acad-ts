@@ -8,6 +8,7 @@ import { CadDictionary } from '../../Objects/CadDictionary.js';
 import { CadDocumentBuilder } from '../CadDocumentBuilder.js';
 import { NotificationType } from '../NotificationEventHandler.js';
 import { ICadObjectTemplate } from './ICadObjectTemplate.js';
+import { ReadStage } from '../ProgressEventHandler.js';
 
 export abstract class CadTemplate<T extends CadObject = CadObject> implements ICadObjectTemplate {
 	cadObject: CadObject;
@@ -36,6 +37,7 @@ export abstract class CadTemplate<T extends CadObject = CadObject> implements IC
 		}
 
 		this._build(builder);
+		builder.notifyProgress(ReadStage.Build, this.cadObject);
 	}
 
 	toString(): string {
