@@ -1410,8 +1410,8 @@ export class DwgObjectReader extends DwgSectionIO {
     const dimension = new DimensionDiameter();
     const template = new CadDimensionTemplate(dimension);
     this._readCommonDimensionData(template);
-    dimension.definitionPoint = this._objectReader.read3BitDouble();
     dimension.angleVertex = this._objectReader.read3BitDouble();
+    dimension.definitionPoint = this._objectReader.read3BitDouble();
     dimension.leaderLength = this._objectReader.readBitDouble();
     this._readCommonDimensionHandles(template);
     return template;

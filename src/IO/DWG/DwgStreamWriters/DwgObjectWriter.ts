@@ -1716,8 +1716,8 @@ export class DwgObjectWriter extends DwgSectionIO {
 	}
 
 	private _writeDimensionDiameter(dimension: DimensionDiameter): void {
-		this._writer.write3BitDouble(dimension.definitionPoint);
 		this._writer.write3BitDouble(dimension.angleVertex);
+		this._writer.write3BitDouble(dimension.definitionPoint);
 		this._writer.writeBitDouble(dimension.leaderLength);
 	}
 
