@@ -11,6 +11,7 @@ import { DimensionAligned } from '../../../Entities/DimensionAligned.js';
 import { DimensionDiameter } from '../../../Entities/DimensionDiameter.js';
 import { DimensionAngular2Line } from '../../../Entities/DimensionAngular2Line.js';
 import { DimensionAngular3Pt } from '../../../Entities/DimensionAngular3Pt.js';
+import { DimensionArc } from '../../../Entities/DimensionArc.js';
 import { DimensionRadius } from '../../../Entities/DimensionRadius.js';
 import { DimensionOrdinate } from '../../../Entities/DimensionOrdinate.js';
 import { DimensionType } from '../../../Entities/DimensionType.js';
@@ -277,6 +278,8 @@ export abstract class DxfSectionReaderBase {
         return this.readEntityCodes(new CadEntityTemplate(new CadBody()), this._readEntitySubclassMap.bind(this), CadBody);
       case DxfFileToken.entityCircle:
         return this.readEntityCodes(new CadEntityTemplate(new Circle()), this._readCircle.bind(this), Circle);
+      case DxfFileToken.entityArcDimension:
+        return this.readEntityCodes(new CadDimensionTemplate(new DimensionArc()), this._readDimension.bind(this), DimensionArc);
       case DxfFileToken.entityDimension: {
         const dimTemplate = this.readEntityCodes(new CadDimensionTemplate(), this._readDimension.bind(this), Dimension);
         if (dimTemplate.cadObject instanceof DimensionPlaceholder) {
@@ -821,7 +824,23 @@ export abstract class DxfSectionReaderBase {
         }
         return true;
       }
+      case 40:
+        if (tmp.cadObject instanceof DimensionArc && this.currentSubclass === DxfSubclassMarker.arcDimension) {
+          tmp.cadObject.startAngle = this._reader.valueAsDouble;
+          return true;
+        }
+        return this.tryAssignCurrentValue(template.cadObject, map.subClasses.get(tmp.cadObject.subclassMarker)!);
+      case 41:
+        if (tmp.cadObject instanceof DimensionArc && this.currentSubclass === DxfSubclassMarker.arcDimension) {
+          tmp.cadObject.endAngle = this._reader.valueAsDouble;
+          return true;
+        }
+        return true;
       case 70: {
+		if (tmp.cadObject instanceof DimensionArc && this.currentSubclass === DxfSubclassMarker.arcDimension) {
+			tmp.cadObject.isPartial = this._reader.valueAsBool;
+			return true;
+		}
         tmp.setDimensionFlags(this._reader.valueAsShort as DimensionType);
 
         if (tmp.cadObject instanceof DimensionPlaceholder && this._builder.version < ACadVersion.AC1012) {
@@ -875,6 +894,7 @@ export abstract class DxfSectionReaderBase {
       case 361:
         return true;
       case 100:
+		this.currentSubclass = this._reader.valueAsString;
         switch (this._reader.valueAsString as string) {
           case DxfSubclassMarker.dimension:
             return this.tryAssignCurrentValue(template.cadObject, map.subClasses.get(DxfSubclassMarker.dimension)!);
@@ -893,6 +913,10 @@ export abstract class DxfSectionReaderBase {
           case DxfSubclassMarker.angular3PointDimension:
             tmp.setDimensionObject(new DimensionAngular3Pt());
             map.subClasses.set(this._reader.valueAsString, DxfClassMap.create(DimensionAngular3Pt));
+            return true;
+          case DxfSubclassMarker.arcDimension:
+            tmp.setDimensionObject(new DimensionArc());
+            map.subClasses.set(this._reader.valueAsString, DxfClassMap.create(DimensionArc));
             return true;
           case DxfSubclassMarker.radialDimension:
             tmp.setDimensionObject(new DimensionRadius());
