@@ -1244,7 +1244,7 @@ export class DwgObjectWriter extends DwgSectionIO {
 		this._writer.writeBitDouble(entity.lineTypeScale);
 
 		if (!(this._version >= ACadVersion.AC1015)) {
-			this._writer.writeBitShort(entity.isInvisible ? 0 : 1);
+			this._writer.writeBitShort(entity.isInvisible ? 1 : 0);
 			return;
 		}
 
