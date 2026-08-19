@@ -84,6 +84,9 @@ export class DxfObjectsSectionWriter extends DxfSectionWriterBase {
     this._writer.write(281, dict.clonningFlags as number);
 
     for (const item of dict) {
+	  if (item.name === CadDictionary.acadMaterial || !this._isObjectSupported(item)) {
+		continue;
+	  }
       if (item instanceof XRecord && !this.configuration.writeXRecords) {
         continue;
       }
