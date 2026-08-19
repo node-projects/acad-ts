@@ -8,6 +8,7 @@ export class DxfSubclassMarker {
 	public static readonly alignedDimension = "AcDbAlignedDimension";
 	public static readonly angular2LineDimension = "AcDb2LineAngularDimension";
 	public static readonly angular3PointDimension = "AcDb3PointAngularDimension";
+	public static readonly arcDimension = "AcDbArcDimension";
 	public static readonly annotScaleObjectContextData = "AcDbAnnotScaleObjectContextData";
 	public static readonly arc = "AcDbArc";
 	public static readonly attribute = "AcDbAttribute";

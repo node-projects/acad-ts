@@ -20,6 +20,7 @@ export class DxfFileToken {
 	public static readonly entityArc = "ARC";
 	public static readonly entityAttribute = "ATTRIB";
 	public static readonly entityAttributeDefinition = "ATTDEF";
+	public static readonly entityArcDimension = "ARC_DIMENSION";
 	public static readonly entityBody = "BODY";
 	public static readonly entityCircle = "CIRCLE";
 	public static readonly entityCoordinationModel = "COORDINATION MODEL";

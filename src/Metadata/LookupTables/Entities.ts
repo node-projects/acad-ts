@@ -508,6 +508,24 @@ export const metadataLookupEntities: readonly ClassMetadata[] = [
     "dxfSubClassName": "AcDb3PointAngularDimension"
   },
   {
+    "typeName": "DimensionArc",
+    "baseTypeName": "Dimension",
+    "properties": [
+      { "propertyName": "center", "valueCodes": [15, 25, 35], "referenceType": 0 },
+      { "propertyName": "endAngle", "valueCodes": [41], "referenceType": 0 },
+      { "propertyName": "firstPoint", "valueCodes": [13, 23, 33], "referenceType": 0 },
+      { "propertyName": "hasLeader", "valueCodes": [71], "referenceType": 0 },
+      { "propertyName": "isPartial", "valueCodes": [70], "referenceType": 0 },
+      { "propertyName": "leaderPoint1", "valueCodes": [16, 26, 36], "referenceType": 0 },
+      { "propertyName": "leaderPoint2", "valueCodes": [17, 27, 37], "referenceType": 0 },
+      { "propertyName": "secondPoint", "valueCodes": [14, 24, 34], "referenceType": 0 },
+      { "propertyName": "startAngle", "valueCodes": [40], "referenceType": 0 }
+    ],
+    "systemVariables": [],
+    "dxfName": "ARC_DIMENSION",
+    "dxfSubClassName": "AcDbArcDimension"
+  },
+  {
     "typeName": "DimensionDiameter",
     "baseTypeName": "Dimension",
     "properties": [

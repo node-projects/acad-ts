@@ -47,6 +47,7 @@ export { Dimension } from './Entities/Dimension.js';
 export { DimensionAligned } from './Entities/DimensionAligned.js';
 export { DimensionAngular2Line } from './Entities/DimensionAngular2Line.js';
 export { DimensionAngular3Pt } from './Entities/DimensionAngular3Pt.js';
+export { DimensionArc } from './Entities/DimensionArc.js';
 export { DimensionDiameter } from './Entities/DimensionDiameter.js';
 export { DimensionLinear } from './Entities/DimensionLinear.js';
 export { DimensionOrdinate } from './Entities/DimensionOrdinate.js';
