@@ -1244,7 +1244,7 @@ export class DwgObjectReader extends DwgSectionIO {
     this._readXrefDependantBit(template.cadObject);
     if (this.r13_14Only) {
       if (this._objectReader.readBit()) layer.flags |= LayerFlags.Frozen;
-      layer.isOn = this._objectReader.readBit();
+      layer.isOn = !this._objectReader.readBit();
       if (this._objectReader.readBit()) layer.flags |= LayerFlags.FrozenNewViewports;
       if (this._objectReader.readBit()) layer.flags |= LayerFlags.Locked;
     }
