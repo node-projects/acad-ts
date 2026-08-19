@@ -15,8 +15,8 @@ import { DwgReader } from '@node-projects/acad-ts';
 const buffer = fs.readFileSync('drawing.dwg');
 const arrayBuffer = buffer.buffer.slice(buffer.byteOffset, buffer.byteOffset + buffer.byteLength);
 
-const doc = DwgReader.ReadFromStream(arrayBuffer, (sender, e) => {
-  console.log(e.Message);
+const doc = DwgReader.readFromStream(arrayBuffer, (sender, e) => {
+  console.log(e.message);
 });
 ```
 
@@ -46,8 +46,8 @@ Save your document using `DwgWriter` or `DxfWriter`:
 ```ts
 import { DwgWriter } from '@node-projects/acad-ts';
 
-const buffer = new ArrayBuffer(0);
-DwgWriter.WriteToStream(buffer, doc);
+const output = DwgWriter.writeToBuffer(doc);
+fs.writeFileSync('drawing.dwg', output);
 ```
 
 For writer configuration details see [CadWriter](./CadWriterDocs.md).

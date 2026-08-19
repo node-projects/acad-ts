@@ -77,8 +77,8 @@ import { DwgReader } from '@node-projects/acad-ts';
 const buffer = fs.readFileSync('drawing.dwg');
 const arrayBuffer = buffer.buffer.slice(buffer.byteOffset, buffer.byteOffset + buffer.byteLength);
 
-const doc = DwgReader.ReadFromStream(arrayBuffer, (sender, e) => {
-  console.log(e.Message);
+const doc = DwgReader.readFromStream(arrayBuffer, (sender, e) => {
+  console.log(e.message);
 });
 
 // Access entities in model space
@@ -96,8 +96,8 @@ import { DxfReader } from '@node-projects/acad-ts';
 const buffer = fs.readFileSync('drawing.dxf');
 const data = new Uint8Array(buffer.buffer, buffer.byteOffset, buffer.byteLength);
 
-const doc = DxfReader.ReadFromStream(data, (sender, e) => {
-  console.log(e.Message);
+const doc = DxfReader.readFromStream(data, (sender, e) => {
+  console.log(e.message);
 });
 ```
 
@@ -117,8 +117,8 @@ line.startPoint = new XYZ(0, 0, 0);
 line.endPoint = new XYZ(100, 100, 0);
 doc.modelSpace.addEntity(line);
 
-const buffer = new ArrayBuffer(0);
-DwgWriter.WriteToStream(buffer, doc);
+const output = DwgWriter.writeToBuffer(doc);
+fs.writeFileSync('drawing.dwg', output);
 ```
 
 ### Writing a DXF file
@@ -132,7 +132,7 @@ doc.header.codePage = 'ANSI_1252';
 
 const output = new Uint8Array(1024 * 1024);
 const writer = new DxfWriter(output, doc);
-writer.Write();
+writer.write();
 ```
 
 `doc.header.codePage` controls the legacy encoding used for DWG/DXF text data. For exact non-UTF-8 ASCII DXF bytes, prefer a `Uint8Array` target. If you send ASCII DXF to a string-based text sink, that sink's own encoding policy still determines the final bytes.
@@ -144,7 +144,7 @@ import { SvgWriter } from '@node-projects/acad-ts';
 
 const output = new Uint8Array(1024 * 1024);
 const svgWriter = new SvgWriter(output, doc);
-svgWriter.Write();
+svgWriter.write();
 ```
 
 ### Working with entities

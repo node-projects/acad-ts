@@ -11,7 +11,9 @@ import { encodeCadString } from '../../TextEncoding.js';
 
 // Factory registration for breaking circular dependency
 type WriterFactory = new (stream: Uint8Array, encoding: string) => IDwgStreamWriter;
-type MergedWriterFactory = new (...args: unknown[]) => IDwgStreamWriter;
+type LegacyMergedWriterFactory = new (stream: Uint8Array, main: IDwgStreamWriter, handle: IDwgStreamWriter) => IDwgStreamWriter;
+type SplitMergedWriterFactory = new (stream: Uint8Array, main: IDwgStreamWriter, text: IDwgStreamWriter, handle: IDwgStreamWriter) => IDwgStreamWriter;
+type MergedWriterFactory = LegacyMergedWriterFactory | SplitMergedWriterFactory;
 const _writerFactories: Map<string, WriterFactory> = new Map();
 const _mergedWriterFactories: Map<string, MergedWriterFactory> = new Map();
 
@@ -143,12 +145,14 @@ export abstract class DwgStreamWriterBase implements IDwgStreamWriter {
 		}
 
 		if (mergedKey === 'MergedAC14') {
-			return new MergedFactory(
+			const LegacyFactory = MergedFactory as LegacyMergedWriterFactory;
+			return new LegacyFactory(
 				stream,
 				new WriterFactory(stream, encoding),
 				new WriterFactory(new Uint8Array(0), encoding));
 		} else {
-			return new MergedFactory(
+			const SplitFactory = MergedFactory as SplitMergedWriterFactory;
+			return new SplitFactory(
 				stream,
 				new WriterFactory(stream, encoding),
 				new WriterFactory(new Uint8Array(0), encoding),
@@ -268,7 +272,7 @@ export abstract class DwgStreamWriterBase implements IDwgStreamWriter {
 
 	writeBitLongLong(value: number): void {
 		let size = 0;
-		let hold = value < 0 ? value + 0x10000000000000000 : value;
+		const hold = value < 0 ? value + 0x10000000000000000 : value;
 
 		let tmp = hold;
 		while (tmp !== 0) {

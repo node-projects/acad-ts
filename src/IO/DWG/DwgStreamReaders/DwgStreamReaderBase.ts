@@ -46,8 +46,6 @@ export abstract class DwgStreamReaderBase implements IDwgStreamReader {
 	}
 
 	public static getStreamHandler(version: ACadVersion, stream: Uint8Array, encoding?: string, resetPosition: boolean = false): IDwgStreamReader {
-		let reader: IDwgStreamReader;
-
 		let key: string;
 		switch (version) {
 			case ACadVersion.Unknown:
@@ -88,7 +86,7 @@ export abstract class DwgStreamReaderBase implements IDwgStreamReader {
 		if (!Factory) {
 			throw new Error(`DwgStreamReader factory for ${key} not registered. Import DwgStreamReaderFactory first.`);
 		}
-		reader = new Factory(stream, resetPosition);
+		const reader: IDwgStreamReader = new Factory(stream, resetPosition);
 
 		if (encoding !== undefined) {
 			reader.encoding = encoding;
@@ -293,7 +291,7 @@ export abstract class DwgStreamReaderBase implements IDwgStreamReader {
 
 	public readModularChar(): number {
 		let shift = 0;
-		let lastByte = this.readByte();
+		const lastByte = this.readByte();
 
 		let value = lastByte & 0b01111111;
 
@@ -343,7 +341,7 @@ export abstract class DwgStreamReaderBase implements IDwgStreamReader {
 				}
 			}
 		} else {
-			let lastByte = this.applyShiftToLastByte();
+			const lastByte = this.applyShiftToLastByte();
 			if ((lastByte & 0b10000000) === 0) {
 				value = lastByte & 0b00111111;
 				if ((lastByte & 0b01000000) > 0) {
@@ -666,7 +664,7 @@ export abstract class DwgStreamReaderBase implements IDwgStreamReader {
 		}
 
 		this.advanceByte();
-		let num = this._lastByte;
+		const num = this._lastByte;
 		this.advanceByte();
 
 		return (num | (this._lastByte << 8)) & 0xFFFF;
@@ -768,7 +766,7 @@ export abstract class DwgStreamReaderBase implements IDwgStreamReader {
 	}
 
 	protected applyShiftToLastByte(): number {
-		let value = (this._lastByte << this.bitShift) & 0xFF;
+		const value = (this._lastByte << this.bitShift) & 0xFF;
 		this.advanceByte();
 		return (value | (this._lastByte >>> (8 - this.bitShift))) & 0xFF;
 	}

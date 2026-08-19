@@ -32,8 +32,8 @@ export class DwgLZ77AC18Compressor implements ICompressor {
 		let compressionOffset = 0;
 		let matchPos = 0;
 
-		let currOffset = { value: 0 };
-		let lastMatchPos = { value: 0 };
+		const currOffset = { value: 0 };
+		const lastMatchPos = { value: 0 };
 
 		while (this._currPosition < this._totalOffset - 0x13) {
 			if (!this._compressChunk(currOffset, lastMatchPos)) {

@@ -10,8 +10,23 @@ import { Polyline2D } from '../src/Entities/Polyline2D.js';
 import { Solid } from '../src/Entities/Solid.js';
 import { XYZ } from '../src/Math/XYZ.js';
 import { XY } from '../src/Math/XY.js';
+import { Wall, WallJustification } from '../src/Entities/AecObjects/Wall.js';
 
 describe('EntityBoundingBoxTests', () => {
+	it('ReturnsWallPrismBounds', () => {
+		const wall = new Wall();
+		wall.startPoint = new XYZ(0, 0, 0);
+		wall.endPoint = new XYZ(10, 0, 0);
+		wall.width = 2;
+		wall.height = 3;
+		wall.justification = WallJustification.Center;
+
+		const bounds = wall.getBoundingBox();
+
+		expect(bounds.min).toEqual(new XYZ(0, -1, 0));
+		expect(bounds.max).toEqual(new XYZ(10, 1, 3));
+	});
+
 	it('ReturnsPointBounds', () => {
 		const point = new Point(new XYZ(2, 3, 4));
 		const bounds = point.getBoundingBox();

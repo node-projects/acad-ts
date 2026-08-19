@@ -136,6 +136,7 @@ export { Wipeout } from './Entities/Wipeout.js';
 export { XLine } from './Entities/XLine.js';
 export { CadNotSupportedException } from './Exceptions/CadNotSupportedException.js';
 export { DwgException } from './Exceptions/DwgException.js';
+export { DwgOutputBufferTooSmallError } from './Exceptions/DwgOutputBufferTooSmallError.js';
 export { DxfException } from './Exceptions/DxfException.js';
 export { CadObjectExtensions } from './Extensions/CadObjectExtensions.js';
 export { INamedCadObjectExtensions } from './Extensions/INamedCadObjectExtensions.js';

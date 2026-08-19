@@ -1226,7 +1226,7 @@ export class DxfObjectsSectionReader extends DxfSectionReaderBase {
 
     this._reader.readNext();
 
-    let end = false;
+    const end = false;
     while (this._reader.code === 1) {
       if (this._reader.valueAsString.toUpperCase() === 'TABLEFORMAT_BEGIN') {
         this._readStyleOverride(new CadCellStyleTemplate(cell.styleOverride));

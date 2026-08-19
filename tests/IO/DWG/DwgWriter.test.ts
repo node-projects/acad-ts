@@ -19,6 +19,8 @@ import { DxfClass } from '../../../src/Classes/DxfClass.js';
 import { DxfSubclassMarker } from '../../../src/DxfSubclassMarker.js';
 import { DxfFileToken } from '../../../src/DxfFileToken.js';
 import { getDecoderEncodingLabel } from '../../../src/IO/TextEncoding.js';
+import { DwgOutputBufferTooSmallError } from '../../../src/Exceptions/DwgOutputBufferTooSmallError.js';
+import { XYZ } from '../../../src/Math/XYZ.js';
 
 const versions = [
   ACadVersion.AC1012,
@@ -37,6 +39,33 @@ function isSupportedVersion(version: ACadVersion): boolean {
 }
 
 describe('DwgWriterTests', () => {
+  it('ReturnsCompactAutomaticallySizedOutput', () => {
+    const doc = new CadDocument();
+    doc.header.version = ACadVersion.AC1032;
+    doc.entities.add(new Line(new XYZ(0, 0, 0), new XYZ(10, 5, 0)));
+
+    const output = DwgWriter.writeToBuffer(doc);
+    const input = output.buffer.slice(output.byteOffset, output.byteOffset + output.byteLength);
+    const reread = new DwgReader(input).read();
+
+    expect(output.byteLength).toBeGreaterThan(0);
+    expect(output.byteLength).toBeLessThan(1024 * 1024);
+    expect([...reread.entities].some(entity => entity instanceof Line)).toBe(true);
+  });
+
+  it('ReportsCapacityAndWritesIntoUint8ArrayTargets', () => {
+    const doc = new CadDocument();
+    doc.header.version = ACadVersion.AC1032;
+
+    expect(() => DwgWriter.writeToStream(new Uint8Array(0), doc)).toThrow(DwgOutputBufferTooSmallError);
+
+    const output = new Uint8Array(1024 * 1024);
+    const bytesWritten = DwgWriter.writeToStream(output, doc);
+
+    expect(bytesWritten).toBeGreaterThan(0);
+    expect(new TextDecoder().decode(output.slice(0, 6))).toBe('AC1032');
+  });
+
   describe.each(versions.map(v => [ACadVersion[v] ?? `v${v}`, v]))('Version %s', (_name, version) => {
     it('WriteEmpty', () => {
       const doc = new CadDocument();

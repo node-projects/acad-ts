@@ -23,6 +23,7 @@ import { DwgAppInfoWriter } from './DwgStreamWriters/DwgAppInfodWriter.js';
 import { DwgSummaryInfoWriter } from './DwgStreamWriters/DwgSummaryInfoWriter.js';
 import { ViewportEntityControl } from '../../Tables/Collections/ViewportEntityControl.js';
 import './DwgStreamWriters/DwgStreamWriterFactory.js';
+import { DwgOutputBufferTooSmallError } from '../../Exceptions/DwgOutputBufferTooSmallError.js';
 
 export class DwgWriter extends CadWriterBase<DwgWriterConfiguration> {
 	preview: DwgPreview | null = null;
@@ -76,17 +77,39 @@ export class DwgWriter extends CadWriterBase<DwgWriterConfiguration> {
 		// No-op in TS
 	}
 
-	static writeToStream(stream: ArrayBuffer | Uint8Array, document: CadDocument, configuration: DwgWriterConfiguration | null = null, notification: NotificationEventHandler | null = null): void {
+	static writeToStream(stream: ArrayBuffer | Uint8Array, document: CadDocument, configuration: DwgWriterConfiguration | null = null, notification: NotificationEventHandler | null = null): number {
 		const writer = new DwgWriter(stream, document);
 		if (configuration) {
 			writer.configuration = configuration;
 		}
 		writer.onNotification = notification;
 		writer.write();
+		const bytesWritten = writer.bytesWritten;
 		writer.dispose();
+		return bytesWritten;
+	}
+
+	/** Write a DWG into an automatically sized, compact byte array. */
+	static writeToBuffer(document: CadDocument, configuration: DwgWriterConfiguration | null = null, notification: NotificationEventHandler | null = null): Uint8Array {
+		let capacity = 1024 * 1024;
+
+		while (true) {
+			const stream = new Uint8Array(capacity);
+			try {
+				const bytesWritten = DwgWriter.writeToStream(stream, document, configuration, notification);
+				return stream.slice(0, bytesWritten);
+			} catch (error) {
+				if (!(error instanceof DwgOutputBufferTooSmallError)) {
+					throw error;
+				}
+
+				capacity = Math.max(capacity * 2, error.requiredLength * 2);
+			}
+		}
 	}
 
 	private _getFileHeaderWriter(): void {
+		const output = this._stream instanceof Uint8Array ? this._stream : new Uint8Array(this._stream);
 		switch (this._document.header.version) {
 			case ACadVersion.MC0_0:
 			case ACadVersion.AC1_2:
@@ -102,19 +125,19 @@ export class DwgWriter extends CadWriterBase<DwgWriterConfiguration> {
 				throw new CadNotSupportedException(this._document.header.version);
 			case ACadVersion.AC1014:
 			case ACadVersion.AC1015:
-				this._fileHeaderWriter = new DwgFileHeaderWriterAC15(new Uint8Array(this._stream), this._encoding, this._document);
+				this._fileHeaderWriter = new DwgFileHeaderWriterAC15(output, this._encoding, this._document);
 				break;
 			case ACadVersion.AC1018:
-				this._fileHeaderWriter = new DwgFileHeaderWriterAC18(new Uint8Array(this._stream), this._encoding, this._document);
+				this._fileHeaderWriter = new DwgFileHeaderWriterAC18(output, this._encoding, this._document);
 				break;
 			case ACadVersion.AC1021:
 				// AC1021 writer currently uses AC18-compatible section/page layout.
-				this._fileHeaderWriter = new DwgFileHeaderWriterAC18(new Uint8Array(this._stream), this._encoding, this._document);
+				this._fileHeaderWriter = new DwgFileHeaderWriterAC18(output, this._encoding, this._document);
 				break;
 			case ACadVersion.AC1024:
 			case ACadVersion.AC1027:
 			case ACadVersion.AC1032:
-				this._fileHeaderWriter = new DwgFileHeaderWriterAC18(new Uint8Array(this._stream), this._encoding, this._document);
+				this._fileHeaderWriter = new DwgFileHeaderWriterAC18(output, this._encoding, this._document);
 				break;
 			default:
 				throw new CadNotSupportedException();

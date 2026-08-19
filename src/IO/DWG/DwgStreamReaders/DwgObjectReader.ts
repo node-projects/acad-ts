@@ -1926,7 +1926,7 @@ export class DwgObjectReader extends DwgSectionIO {
     mesh.subdivisionLevel = this._objectReader.readBitLong();
     const nvertices = this._objectReader.readBitLong();
     for (let i = 0; i < nvertices; i++) mesh.vertices.push(this._objectReader.read3BitDouble());
-    let nfaces = this._objectReader.readBitLong();
+    const nfaces = this._objectReader.readBitLong();
     for (let i = 0; i < nfaces; i++) {
       const faceSize = this._objectReader.readBitLong();
       const arr = new Array<number>(faceSize);
@@ -3618,6 +3618,7 @@ export class DwgObjectReader extends DwgSectionIO {
     const bl2 = this._mergedReaders.readBitLong();
     const h = this._handleReference();
     const tableCellStyleTemplate = new CadCellStyleTemplate(style.tableCellStyle);
+    template.tableCellStyleTemplate = tableCellStyleTemplate;
     this._readCellStyle(tableCellStyleTemplate);
     style.tableCellStyle.id = this._mergedReaders.readBitLong();
     style.tableCellStyle.styleClass = this._mergedReaders.readBitLong() as CellStyleClass;

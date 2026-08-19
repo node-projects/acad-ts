@@ -300,7 +300,7 @@ export class Spline extends Entity {
 			this.updateFromFitPoints();
 		}
 
-		let c = [...this.controlPoints];
+		const c = [...this.controlPoints];
 		let w = [...this.weights];
 		let knots = [...this.knots];
 

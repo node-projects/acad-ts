@@ -8,8 +8,29 @@ import { Line } from '../src/Entities/Line.js';
 import { XYZ } from '../src/Math/XYZ.js';
 import { XY } from '../src/Math/XY.js';
 import { BlockRecord } from '../src/Tables/BlockRecord.js';
+import { Wall } from '../src/Entities/AecObjects/Wall.js';
 
 describe('EntityTransformTests', () => {
+	it('TransformsWallGeometryAndDimensions', () => {
+		const wall = new Wall();
+		wall.startPoint = new XYZ(0, 0, 0);
+		wall.endPoint = new XYZ(5, 0, 0);
+		wall.width = 2;
+		wall.height = 3;
+		wall.baseHeight = 1;
+
+		wall.applyScaling(new XYZ(2, 3, 4));
+		wall.applyTranslation(new XYZ(1, 2, 3));
+
+		expect(wall.startPoint).toEqual(new XYZ(1, 2, 3));
+		expect(wall.endPoint).toEqual(new XYZ(11, 2, 3));
+		expect(wall.length).toBeCloseTo(10);
+		expect(wall.width).toBeCloseTo(6);
+		expect(wall.height).toBeCloseTo(12);
+		expect(wall.baseHeight).toBeCloseTo(4);
+		expect(wall.normal).toEqual(new XYZ(0, 0, 1));
+	});
+
 	it('AppliesBaseRotationWrapperToEllipse', () => {
 		const ellipse = new Ellipse();
 		ellipse.center = new XYZ(1, 0, 0);

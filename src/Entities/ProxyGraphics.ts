@@ -21,28 +21,28 @@ export class ProxyRawGeometry implements IProxyGeometry {
 
 export class ProxyExtents implements IProxyGeometry {
 	readonly graphicsType = GraphicsType.Extents;
-	min = XYZ.zero; max = XYZ.zero;
+	min = new XYZ(); max = new XYZ();
 }
 
 export class ProxyCircle implements IProxyGeometry {
 	readonly graphicsType = GraphicsType.Circle;
-	center = XYZ.zero; radius = 0; normal = XYZ.axisZ;
+	center = new XYZ(); radius = 0; normal = new XYZ(0, 0, 1);
 }
 
 export class ProxyCirclePt3 implements IProxyGeometry {
 	readonly graphicsType = GraphicsType.CirclePt3;
-	point1 = XYZ.zero; point2 = XYZ.zero; point3 = XYZ.zero;
+	point1 = new XYZ(); point2 = new XYZ(); point3 = new XYZ();
 }
 
 export class ProxyCircularArc implements IProxyGeometry {
 	readonly graphicsType = GraphicsType.CircularArc;
-	center = XYZ.zero; radius = 0; normal = XYZ.axisZ; startVectorDirection = XYZ.axisX;
+	center = new XYZ(); radius = 0; normal = new XYZ(0, 0, 1); startVectorDirection = new XYZ(1, 0, 0);
 	sweepAngle = 0; arcType = 0;
 }
 
 export class ProxyCircularArc3Pt implements IProxyGeometry {
 	readonly graphicsType = GraphicsType.CircularArc3Pt;
-	point1 = XYZ.zero; point2 = XYZ.zero; point3 = XYZ.zero; arcType = 0;
+	point1 = new XYZ(); point2 = new XYZ(); point3 = new XYZ(); arcType = 0;
 }
 
 export class ProxyPolyline implements IProxyGeometry {
@@ -56,7 +56,7 @@ export class ProxyPolygon extends ProxyPolyline {
 
 export class ProxyPolylineWithNormal extends ProxyPolyline {
 	override readonly graphicsType = GraphicsType.PolylineWithNormal;
-	normal = XYZ.axisZ;
+	normal = new XYZ(0, 0, 1);
 }
 
 export class ProxyMesh implements IProxyGeometry {
@@ -74,12 +74,12 @@ export class ProxyShell implements IProxyGeometry {
 
 export class ProxyXLine implements IProxyGeometry {
 	readonly graphicsType = GraphicsType.XLine;
-	point1 = XYZ.zero; point2 = XYZ.zero;
+	point1 = new XYZ(); point2 = new XYZ();
 }
 
 export class ProxyRay implements IProxyGeometry {
 	readonly graphicsType = GraphicsType.Ray;
-	constructionLinePoint = XYZ.zero; point2 = XYZ.zero;
+	constructionLinePoint = new XYZ(); point2 = new XYZ();
 }
 
 export class ProxyScalarGeometry implements IProxyGeometry {

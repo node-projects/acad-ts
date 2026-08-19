@@ -40,7 +40,7 @@ export abstract class DxfStreamWriterBase implements IDxfStreamWriter {
     this.writeDxfCode(intCode);
 
     if (typeof value === 'string') {
-      let s = value
+      const s = value
         .replace(/\^/g, '^ ')
         .replace(/\n/g, '^J')
         .replace(/\r/g, '^M')

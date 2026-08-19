@@ -104,7 +104,7 @@ export class PolylineExtensions {
 		const startXY = this._toXY(current.location);
 		const endXY = this._toXY(next.location);
 		const { center, radius } = Arc.getCenter(startXY, endXY, bulge);
-		let startAngle = Math.atan2(startXY.y - center.y, startXY.x - center.x);
+		const startAngle = Math.atan2(startXY.y - center.y, startXY.x - center.x);
 		let endAngle = Math.atan2(endXY.y - center.y, endXY.x - center.x);
 
 		if (bulge > 0 && endAngle < startAngle) {

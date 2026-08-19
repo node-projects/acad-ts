@@ -218,7 +218,7 @@ export class DxfTablesSectionWriter extends DxfSectionWriterBase {
   }
 
   private _writeLayer(layer: Layer, map: DxfClassMap): void {
-    let index = layer.color.isTrueColor ? layer.color.getApproxIndex() : layer.color.index;
+    const index = layer.color.isTrueColor ? layer.color.getApproxIndex() : layer.color.index;
     if (layer.isOn) {
       this._writer.write(62, index, map);
     } else {

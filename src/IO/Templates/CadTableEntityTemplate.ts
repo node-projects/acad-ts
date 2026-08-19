@@ -1,9 +1,16 @@
-import { CadObject } from '../../CadObject.js';
 import { TableEntity, TableEntityCell, CellType, CellContent, CellStyle, CellBorder, ContentFormat, TableAttribute } from '../../Entities/TableEntity.js';
 import { CadDocumentBuilder } from '../CadDocumentBuilder.js';
 import { CadInsertTemplate } from './CadInsertTemplate.js';
 import { CadValueTemplate } from './CadValueTemplate.js';
 import { ICadTemplate } from './ICadTemplate.js';
+import { TextStyle } from '../../Tables/TextStyle.js';
+import { LineType } from '../../Tables/LineType.js';
+import { AttributeDefinition } from '../../Entities/AttributeDefinition.js';
+import { BlockRecord } from '../../Tables/BlockRecord.js';
+import { Field } from '../../Objects/Field.js';
+import { CadObject } from '../../CadObject.js';
+import type { TableStyle } from '../../Objects/TableStyle.js';
+import type { CadTableStyleTemplate } from './CadTableStyleTemplate.js';
 
 export class CadTableEntityTemplate extends CadInsertTemplate {
 	blockOwnerHandle: number | null = null;
@@ -45,6 +52,13 @@ export class CadTableEntityTemplate extends CadInsertTemplate {
 
 	protected override _build(builder: CadDocumentBuilder): void {
 		super._build(builder);
+		const styleTemplate = builder.tryGetObjectTemplate<CadTableStyleTemplate>(this.styleHandle);
+		if (styleTemplate) {
+			styleTemplate.build(builder);
+			this.tableEntity.style = styleTemplate.cadObject as TableStyle;
+		} else {
+			this.tableEntity.style = builder.tryGetCadObject<TableStyle>(this.styleHandle);
+		}
 
 		for (const cellTemplate of this.cadTableCellTemplates) {
 			cellTemplate.build(builder);
@@ -64,7 +78,8 @@ export class CadTableCellContentFormatTemplate implements ICadTemplate {
 	}
 
 	build(builder: CadDocumentBuilder): void {
-		throw new Error('Not implemented');
+		this.format.textStyle = builder.tryGetCadObject<TextStyle>(this.textStyleHandle)
+			?? (this.textStyleName ? builder.tryGetTableEntry<TextStyle>(this.textStyleName) : null);
 	}
 }
 
@@ -78,6 +93,13 @@ export class CadCellStyleTemplate extends CadTableCellContentFormatTemplate {
 	constructor(style?: CellStyle) {
 		super(style ?? new CellStyle());
 	}
+
+	override build(builder: CadDocumentBuilder): void {
+		super.build(builder);
+		for (const [border, handle] of this.borderLinetypePairs) {
+			border.lineType = builder.tryGetCadObject<LineType>(handle);
+		}
+	}
 }
 
 export class CadTableAttributeTemplate implements ICadTemplate {
@@ -90,7 +112,7 @@ export class CadTableAttributeTemplate implements ICadTemplate {
 	}
 
 	build(builder: CadDocumentBuilder): void {
-		throw new Error('Not implemented');
+		this._tableAtt.attributeDefinition = builder.tryGetCadObject<AttributeDefinition>(this.attDefHandle);
 	}
 }
 
@@ -108,7 +130,9 @@ export class CadTableCellContentTemplate implements ICadTemplate {
 	}
 
 	build(builder: CadDocumentBuilder): void {
-		throw new Error('Not implemented');
+		this.cadValueTemplate?.build(builder);
+		this.content.blockRecord = builder.tryGetCadObject<BlockRecord>(this.blockRecordHandle);
+		this.content.field = builder.tryGetCadObject<Field>(this.fieldHandle);
 	}
 }
 
@@ -134,6 +158,23 @@ export class CadTableCellTemplate implements ICadTemplate {
 	}
 
 	build(builder: CadDocumentBuilder): void {
-		const cadObject = builder.tryGetCadObject<CadObject>(this.valueHandle);
+		this.cell.value = builder.tryGetCadObject<CadObject>(this.valueHandle);
+		for (const contentTemplate of this.contentTemplates) {
+			contentTemplate.build(builder);
+		}
+
+		this.cell.styleOverride.textStyle = builder.tryGetCadObject<TextStyle>(this.textStyleOverrideHandle);
+		if (this.formatTextHeight != null) {
+			this.cell.styleOverride.textHeight = this.formatTextHeight;
+		}
+
+		for (const [handle, value] of this.attributeHandles) {
+			const attribute = new TableAttribute();
+			attribute.value = value;
+			const template = new CadTableAttributeTemplate(attribute);
+			template.attDefHandle = handle;
+			template.build(builder);
+			this.cell.attributes.push(attribute);
+		}
 	}
 }

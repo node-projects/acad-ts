@@ -1,6 +1,8 @@
 import { IVector } from './IVector.js';
 
 export class XYZ implements IVector {
+  [index: number]: number;
+
   x: number;
   y: number;
   z: number;

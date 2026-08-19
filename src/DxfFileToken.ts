@@ -144,7 +144,7 @@ export class DxfFileToken {
 	public static readonly objectTableContent = "TABLECONTENT";
 	public static readonly objectTableRow = "ROW";
 	public static readonly objectTableRowBegin = "TABLEROW_BEGIN";
-	public static readonly objectTableRowEnd = "TABLEOW_END";
+	public static readonly objectTableRowEnd = "TABLEROW_END";
 	public static readonly objectTableStyle = "TABLESTYLE";
 	public static readonly objectVisualStyle = "VISUALSTYLE";
 	public static readonly objectXRecord = "XRECORD";

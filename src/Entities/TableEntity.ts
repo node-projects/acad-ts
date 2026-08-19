@@ -10,6 +10,10 @@ import { XYZ } from '../Math/XYZ.js';
 import type { BoundingBox } from '../Math/BoundingBox.js';
 import type { TableStyle } from '../Objects/TableStyle.js';
 import type { TextStyle } from '../Tables/TextStyle.js';
+import type { AttributeDefinition } from './AttributeDefinition.js';
+import type { BlockRecord } from '../Tables/BlockRecord.js';
+import type { Field } from '../Objects/Field.js';
+import type { LineType } from '../Tables/LineType.js';
 
 // === Enums ===
 
@@ -224,6 +228,7 @@ export enum CellOverrideFlags {
 // === Data Classes ===
 
 export class TableAttribute {
+	attributeDefinition: AttributeDefinition | null = null;
 	value: string = '';
 }
 
@@ -270,6 +275,7 @@ export class CellBorder {
 	readonly edgeFlags: CellEdgeFlags;
 	isInvisible: boolean = false;
 	lineWeight: LineWeightType = LineWeightType.Default;
+	lineType: LineType | null = null;
 	propertyOverrideFlags: TableBorderPropertyFlags = 0;
 	type: TableEntityBorderType = TableEntityBorderType.Single;
 
@@ -279,9 +285,11 @@ export class CellBorder {
 }
 
 export class CellContent {
+	blockRecord: BlockRecord | null = null;
 	contentType: TableCellContentType = TableCellContentType.Unknown;
 	format: ContentFormat = new ContentFormat();
 	cadValue: CadValue = new CadValue();
+	field: Field | null = null;
 }
 
 export class CellStyle extends ContentFormat {
@@ -312,6 +320,7 @@ export class CellStyle extends ContentFormat {
 }
 
 export class TableEntityCell {
+	attributes: TableAttribute[] = [];
 	autoFit: boolean = false;
 	blockScale: number = 0;
 	borderHeight: number = 0;
@@ -341,6 +350,7 @@ export class TableEntityCell {
 	styleOverride: CellStyle = new CellStyle();
 	toolTip: string = '';
 	type: CellType = CellType.Text;
+	value: CadObject | null = null;
 	virtualEdgeFlag: number = 0;
 }
 

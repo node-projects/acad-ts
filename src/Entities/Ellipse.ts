@@ -160,7 +160,7 @@ export class Ellipse extends Entity {
 			throw new Error('The ellipse precision must be equal or greater than two.');
 		}
 
-		let start = this.startParameter;
+		const start = this.startParameter;
 		let end = this.endParameter;
 		if (end < start) {
 			end += Math.PI * 2;

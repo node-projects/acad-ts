@@ -25,10 +25,8 @@ export class DwgFileHeaderWriterAC18 extends DwgFileHeaderWriterBase<DwgFileHead
 	constructor(stream: Uint8Array, encoding: string, document: CadDocument) {
 		super(stream, encoding, document, new DwgFileHeaderAC18());
 
-		// Fill file header area with zeros
-		for (let i = 0; i < this.fileHeaderSize; i++) {
-			this._stream[this._streamPosition++] = 0;
-		}
+		// Reserve and zero the file header area through the bounded write path.
+		this.writeToStream(new Uint8Array(this.fileHeaderSize));
 	}
 
 	override addSection(name: string, stream: Uint8Array, isCompressed: boolean, decompsize: number = 0x7400): void {
@@ -224,7 +222,7 @@ export class DwgFileHeaderWriterAC18 extends DwgFileHeaderWriterBase<DwgFileHead
 
 		section.compressedSize = compressedArr.length;
 
-		let checkSumData = this._buildPageHeaderData(section);
+		const checkSumData = this._buildPageHeaderData(section);
 		section.checksum = DwgCheckSumCalculator.calculate(0, checkSumData, 0, checkSumData.length);
 		section.checksum = DwgCheckSumCalculator.calculate(section.checksum, compressedArr, 0, compressedArr.length);
 

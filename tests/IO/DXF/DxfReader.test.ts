@@ -5,6 +5,9 @@ import { ACadVersion } from '../../../src/ACadVersion.js';
 import { DxfBinaryReader } from '../../../src/IO/DXF/DxfStreamReader/DxfBinaryReader.js';
 import { encodeCadString, getDecoderEncodingLabel } from '../../../src/IO/TextEncoding.js';
 import { LwPolyline } from '../../../src/Entities/LwPolyline.js';
+import { NotificationType } from '../../../src/IO/NotificationEventHandler.js';
+import { TestVariables } from '../../TestVariables.js';
+import * as path from 'path';
 
 const dxfAsciiFiles = getDxfAsciiFiles();
 const dxfBinaryFiles = getDxfBinaryFiles();
@@ -77,6 +80,19 @@ function createBinaryDxf(encoding: string): Uint8Array {
 }
 
 describe('DxfReaderTests', () => {
+  it('ReadsGroupsWithoutMaskedErrorsInStrictMode', () => {
+    const data = readFileAsUint8Array(path.join(TestVariables.samplesFolder, 'sample_AC1032_ascii.dxf'));
+    const notifications: { notificationType: NotificationType }[] = [];
+    const reader = new DxfReader(data, (_sender, event) => notifications.push(event));
+    reader.configuration.failsafe = false;
+
+    const document = reader.read();
+    const groups = [...(document.groups ?? [])];
+
+    expect(notifications.filter(event => event.notificationType === NotificationType.Error)).toHaveLength(0);
+    expect(groups.map(group => group.entities.length)).toEqual([6, 6]);
+  });
+
   it('ReadAsciiAnsi1252SpecialChars', () => {
     const data = createAsciiDxf([
       '0', 'SECTION',

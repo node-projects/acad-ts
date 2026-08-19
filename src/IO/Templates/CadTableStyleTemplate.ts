@@ -7,6 +7,7 @@ export class CadTableStyleTemplate extends CadTemplate<TableStyle> {
 	cellStyleTemplates: CadCellStyleTemplate[] = [];
 
 	currentCellStyleTemplate!: CadCellStyleTemplate;
+	tableCellStyleTemplate: CadCellStyleTemplate | null = null;
 
 	constructor(tableStyle?: TableStyle) {
 		super(tableStyle ?? new TableStyle());
@@ -21,9 +22,13 @@ export class CadTableStyleTemplate extends CadTemplate<TableStyle> {
 	protected override _build(builder: CadDocumentBuilder): void {
 		super._build(builder);
 		const tableStyle = this.cadObject as TableStyle;
+		this.tableCellStyleTemplate?.build(builder);
 
 		for (const item of this.cellStyleTemplates) {
-			tableStyle.cellStyles.push(item.cellStyle);
+			item.build(builder);
+			if (!tableStyle.cellStyles.includes(item.cellStyle)) {
+				tableStyle.cellStyles.push(item.cellStyle);
+			}
 		}
 	}
 }

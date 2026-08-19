@@ -580,7 +580,7 @@ export abstract class DxfSectionReaderBase {
         tmp.currentCell.styleOverride.contentColor = new Color(this._reader.valueAsShort);
         return true;
       case 140:
-        if (tmp.currentCellTemplate !== null) {
+        if (tmp.currentCellTemplate != null) {
           tmp.currentCellTemplate.formatTextHeight = this._reader.valueAsDouble;
         }
         return true;
@@ -606,7 +606,9 @@ export abstract class DxfSectionReaderBase {
         return true;
       }
       case 144:
-        tmp.currentCellTemplate.formatTextHeight = this._reader.valueAsDouble;
+        if (tmp.currentCellTemplate != null) {
+          tmp.currentCellTemplate.formatTextHeight = this._reader.valueAsDouble;
+        }
         return true;
       case 145:
         tmp.currentCell.rotation = this._reader.valueAsDouble;
@@ -1583,6 +1585,9 @@ export abstract class DxfSectionReaderBase {
         return true;
       case 290:
         return true;
+      case 70:
+        geometry.modelerFormatVersion = this._reader.valueAsInt;
+        return true;
       default:
         return this.tryAssignCurrentValue(template.cadObject, map.subClasses.get(mapName)!);
     }
@@ -1832,8 +1837,8 @@ export abstract class DxfSectionReaderBase {
 
     for (let i = 0; i < nlines; i++) {
       const line = new HatchPatternLine();
-      let basePoint = new XY();
-      let offset = new XY();
+      const basePoint = new XY();
+      const offset = new XY();
 
       let end = false;
       const codes = new Set<number>();
@@ -2223,9 +2228,13 @@ export abstract class DxfSectionReaderBase {
     return reactors;
   }
 
-  protected tryAssignCurrentValue(cadObject: object, map: DxfMap): boolean;
-  protected tryAssignCurrentValue(cadObject: object, map: DxfClassMap): boolean;
-  protected tryAssignCurrentValue(cadObject: object, map: DxfMap | DxfClassMap): boolean {
+  protected tryAssignCurrentValue(cadObject: object, map: DxfMap | null | undefined): boolean;
+  protected tryAssignCurrentValue(cadObject: object, map: DxfClassMap | null | undefined): boolean;
+  protected tryAssignCurrentValue(cadObject: object, map: DxfMap | DxfClassMap | null | undefined): boolean {
+    if (map == null) {
+      return false;
+    }
+
     if (map instanceof DxfMap) {
       if (!this.currentSubclass) {
         return false;

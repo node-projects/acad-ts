@@ -83,8 +83,12 @@ export class DxfReader extends CadReaderBase<DxfReaderConfiguration> {
   }
 
   public override read(): CadDocument {
-    this._document = new CadDocument();
+    // Full-file reads must start without the default object graph. Otherwise the
+    // imported dictionaries are built beside the defaults and their entries are
+    // never attached to the document (groups were a visible casualty).
+    this._document = new CadDocument(ACadVersion.Unknown, false);
     this._document.summaryInfo = new CadSummaryInfo();
+    this._document.classes = new DxfClassCollection();
 
     this._reader = this._reader ?? this._getReader();
 
@@ -370,7 +374,7 @@ export class DxfReader extends CadReaderBase<DxfReaderConfiguration> {
       }
     }
 
-    let tmpReader = this._createReader(isBinary, isAC1009Format);
+    const tmpReader = this._createReader(isBinary, isAC1009Format);
 
     if (!tmpReader.find(DxfFileToken.headerSection)) {
       this.triggerNotification('Header section not found, using a generic reader.', NotificationType.Warning);

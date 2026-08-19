@@ -25,7 +25,7 @@ export class Arc extends Circle {
 	}
 
 	get sweep(): number {
-		let start = this.startAngle;
+		const start = this.startAngle;
 		let end = this.endAngle;
 		if (end < start) {
 			end += Math.PI * 2;
@@ -133,7 +133,7 @@ export class Arc extends Circle {
 			throw new Error('The arc precision must be equal or greater than two.');
 		}
 
-		let start = this.startAngle;
+		const start = this.startAngle;
 		let end = this.endAngle;
 		if (end < start) {
 			end += Math.PI * 2;
