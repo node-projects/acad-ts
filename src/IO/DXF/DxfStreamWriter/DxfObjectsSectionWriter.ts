@@ -54,6 +54,7 @@ import { MathHelper } from '../../../Math/MathHelper.js';
 import { XYZ } from '../../../Math/XYZ.js';
 import { XY } from '../../../Math/XY.js';
 import { NotificationType } from '../../NotificationEventHandler.js';
+import { CadFileFormat } from '../../CadFileFormat.js';
 
 export class DxfObjectsSectionWriter extends DxfSectionWriterBase {
 	private readonly _writtenHandles = new Set<number>();
@@ -396,6 +397,11 @@ export class DxfObjectsSectionWriter extends DxfSectionWriterBase {
     if (co instanceof XRecord && !this.configuration.writeXRecords) {
       return;
     }
+	const validationErrors = co.validate(CadFileFormat.DXF, this.version);
+	if (validationErrors.length > 0) {
+	  this.notify(`Invalid object ${co.constructor.name}: ${validationErrors.join(' ')}`, NotificationType.Warning);
+	  return;
+	}
 
     this._writer.write(DxfCode.Start, co.objectName);
 
