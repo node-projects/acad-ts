@@ -421,7 +421,7 @@ export class DwgObjectReader extends DwgSectionIO {
       const graphicImageSize = this._version >= ACadVersion.AC1024
         ? this._objectReader.readBitLongLong()
         : this._objectReader.readRawLong();
-      this._objectReader.advance(graphicImageSize);
+	  template.proxyGraphics = this._objectReader.readBytes(graphicImageSize);
     }
 
     if (this._version >= ACadVersion.AC1012 && this._version <= ACadVersion.AC1014) {
