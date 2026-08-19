@@ -148,6 +148,45 @@ import { AecWallStyle } from '../../../Objects/AEC/AecWallStyle.js';
 import { AecCleanupGroup } from '../../../Objects/AEC/AecCleanupGroup.js';
 import { AecBinRecord } from '../../../Objects/AEC/AecBinRecord.js';
 import { EvaluationGraph } from '../../../Objects/Evaluations/EvaluationGraph.js';
+import { EvaluationExpression } from '../../../Objects/Evaluations/EvaluationExpression.js';
+import { BlockElement } from '../../../Objects/Evaluations/BlockElement.js';
+import { BlockParameter } from '../../../Objects/Evaluations/BlockParameter.js';
+import { Block1PtParameter } from '../../../Objects/Evaluations/Block1PtParameter.js';
+import { Block2PtParameter } from '../../../Objects/Evaluations/Block2PtParameter.js';
+import { BlockAction } from '../../../Objects/Evaluations/BlockAction.js';
+import { BlockActionBasePt } from '../../../Objects/Evaluations/BlockActionBasePt.js';
+import { BlockGrip } from '../../../Objects/Evaluations/BlockGrip.js';
+import { BlockBasePointParameter } from '../../../Objects/Evaluations/BlockBasePointParameter.js';
+import { BlockLinearParameter } from '../../../Objects/Evaluations/BlockLinearParameter.js';
+import { BlockLookupParameter } from '../../../Objects/Evaluations/BlockLookupParameter.js';
+import { BlockPointParameter } from '../../../Objects/Evaluations/BlockPointParameter.js';
+import { BlockMoveAction } from '../../../Objects/Evaluations/BlockMoveAction.js';
+import { BlockLinearGrip } from '../../../Objects/Evaluations/BlockLinearGrip.js';
+import { BlockXYGrip } from '../../../Objects/Evaluations/BlockXYGrip.js';
+import { BlockScaleAction } from '../../../Objects/Evaluations/BlockScaleAction.js';
+import { BlockStretchAction } from '../../../Objects/Evaluations/BlockStretchAction.js';
+import { BlockLookupAction, BlockLookupActionColumnData } from '../../../Objects/Evaluations/BlockLookupAction.js';
+import { BlockLookupGrip } from '../../../Objects/Evaluations/BlockLookupGrip.js';
+import { BlockAlignmentGrip } from '../../../Objects/Evaluations/BlockAlignmentGrip.js';
+import { BlockAlignmentParameter } from '../../../Objects/Evaluations/BlockAlignmentParameter.js';
+import { BlockPolarGrip } from '../../../Objects/Evaluations/BlockPolarGrip.js';
+import { BlockPolarParameter } from '../../../Objects/Evaluations/BlockPolarParameter.js';
+import { BlockPolarStretchAction } from '../../../Objects/Evaluations/BlockPolarStretchAction.js';
+import { BlockXYParameter } from '../../../Objects/Evaluations/BlockXYParameter.js';
+import { BlockArrayAction } from '../../../Objects/Evaluations/BlockArrayAction.js';
+import { BlockFlipAction } from '../../../Objects/Evaluations/BlockFlipAction.js';
+import { BlockFlipParameter } from '../../../Objects/Evaluations/BlockFlipParameter.js';
+import { BlockFlipGrip } from '../../../Objects/Evaluations/BlockFlipGrip.js';
+import { BlockRotationAction } from '../../../Objects/Evaluations/BlockRotationAction.js';
+import { BlockRotationParameter } from '../../../Objects/Evaluations/BlockRotationParameter.js';
+import { BlockRotationGrip } from '../../../Objects/Evaluations/BlockRotationGrip.js';
+import { BlockVisibilityGrip } from '../../../Objects/Evaluations/BlockVisibilityGrip.js';
+import { BlockVisibilityParameter } from '../../../Objects/Evaluations/BlockVisibilityParameter.js';
+import { EvalConnection } from '../../../Objects/Evaluations/EvalConnection.js';
+import { EvalParameterProperty } from '../../../Objects/Evaluations/EvalParameterProperty.js';
+import { ParameterValueSet } from '../../../Objects/Evaluations/ParameterValueSet.js';
+import { StretchActionBase } from '../../../Objects/Evaluations/StretchActionBase.js';
+import { DynamicBlockPurgePreventer } from '../../../Objects/DynamicBlockPurgePreventer.js';
 import { Material, ColorMethod, MapSource } from '../../../Objects/Material.js';
 import { UnknownNonGraphicalObject } from '../../../Objects/UnknownNonGraphicalObject.js';
 import { VisualStyle } from '../../../Objects/VisualStyle.js';
@@ -3187,6 +3226,11 @@ export class DwgObjectWriter extends DwgSectionIO {
 			this._writeDimensionAssociation(obj);
 		} else if (obj instanceof EvaluationGraph) {
 			this._writeEvaluationGraph(obj);
+		} else if (obj instanceof EvaluationExpression) {
+			this._writeDynamicBlockObject(obj);
+		} else if (obj instanceof DynamicBlockPurgePreventer) {
+			this._writer.writeBitShort(obj.version);
+			this._writer.handleReferenceTyped(DwgReferenceType.HardPointer, obj.block ?? obj.blockHandle);
 		} else if (obj instanceof TableStyle) {
 			this._writeTableStyle(obj);
 		} else if (obj instanceof Material) {
@@ -3616,6 +3660,337 @@ export class DwgObjectWriter extends DwgSectionIO {
 			this._writer.writeBitLong(material.channelFlags);
 			this._writer.writeBitLong(material.mode);
 		}
+	}
+
+	private _writeDynamicBlockObject(value: EvaluationExpression): void {
+		if (value instanceof BlockLookupParameter) this._writeBlockLookupParameter(value);
+		else if (value instanceof BlockPointParameter) this._writeBlockPointParameter(value);
+		else if (value instanceof BlockBasePointParameter) this._writeBlockBasePointParameter(value);
+		else if (value instanceof BlockLinearParameter) this._writeBlockLinearParameter(value);
+		else if (value instanceof BlockAlignmentParameter) this._writeBlockAlignmentParameter(value);
+		else if (value instanceof BlockPolarParameter) this._writeBlockPolarParameter(value);
+		else if (value instanceof BlockXYParameter) this._writeBlockXYParameter(value);
+		else if (value instanceof BlockFlipParameter) this._writeBlockFlipParameter(value);
+		else if (value instanceof BlockRotationParameter) this._writeBlockRotationParameter(value);
+		else if (value instanceof BlockVisibilityParameter) this._writeBlockVisibilityParameter(value);
+		else if (value instanceof BlockAlignmentGrip) this._writeVectorGrip(value, value.alignmentX, value.alignmentY, value.alignmentZ);
+		else if (value instanceof BlockLinearGrip) this._writeVectorGrip(value, value.distanceX, value.distanceY, value.distanceZ);
+		else if (value instanceof BlockFlipGrip) this._writeBlockFlipGrip(value);
+		else if (value instanceof BlockGrip) this._writeBlockGrip(value);
+		else if (value instanceof BlockScaleAction) this._writeBlockScaleAction(value);
+		else if (value instanceof BlockStretchAction) this._writeBlockStretchAction(value);
+		else if (value instanceof BlockPolarStretchAction) this._writeBlockPolarStretchAction(value);
+		else if (value instanceof BlockLookupAction) this._writeBlockLookupAction(value);
+		else if (value instanceof BlockMoveAction) this._writeBlockMoveAction(value);
+		else if (value instanceof BlockArrayAction) this._writeBlockArrayAction(value);
+		else if (value instanceof BlockFlipAction) this._writeBlockFlipAction(value);
+		else if (value instanceof BlockRotationAction) this._writeBlockRotationAction(value);
+		else if (value instanceof BlockAction) this._writeBlockAction(value);
+		else if (value instanceof Block2PtParameter) this._writeBlock2PtParameter(value);
+		else if (value instanceof Block1PtParameter) this._writeBlock1PtParameter(value);
+		else if (value instanceof BlockParameter) this._writeBlockParameter(value);
+		else if (value instanceof BlockElement) this._writeBlockElement(value);
+		else this._writeEvaluationExpression(value);
+	}
+
+	private _writeEvaluationExpression(value: EvaluationExpression): void {
+		this._writer.writeBitLong(0);
+		this._writer.writeBitLong(value.value98);
+		this._writer.writeBitLong(value.value99);
+		this._writer.writeBitShort(0);
+		this._writer.writeBitLong(value.id);
+	}
+
+	private _writeBlockElement(value: BlockElement): void {
+		this._writeEvaluationExpression(value);
+		this._writer.writeVariableText(value.elementName);
+		this._writer.writeBitLong(value.value98);
+		this._writer.writeBitLong(value.value99);
+		this._writer.writeBitLong(value.value1071);
+	}
+
+	private _writeBlockParameter(value: BlockParameter): void {
+		this._writeBlockElement(value);
+		this._writer.writeBit(value.showProperties);
+		this._writer.writeBit(value.chainActions);
+	}
+
+	private _writeEvalConnection(value: EvalConnection): void {
+		this._writer.writeBitLong(value.id);
+		this._writer.writeVariableText(value.name);
+	}
+
+	private _writeEvalParameterProperty(value: EvalParameterProperty): void {
+		this._writer.writeBitShort(value.connections.length);
+		for (const connection of value.connections) this._writeEvalConnection(connection);
+	}
+
+	private _writeBlock1PtParameter(value: Block1PtParameter): void {
+		this._writeBlockParameter(value);
+		this._writer.write3BitDouble(value.location);
+		this._writeEvalParameterProperty(value.displacementX);
+		this._writeEvalParameterProperty(value.displacementY);
+		this._writer.writeBitLong(value.gripId);
+	}
+
+	private _writeBlock2PtParameter(value: Block2PtParameter): void {
+		this._writeBlockParameter(value);
+		this._writer.write3BitDouble(value.firstPoint);
+		this._writer.write3BitDouble(value.secondPoint);
+		this._writeEvalParameterProperty(value.firstPointDisplacementX);
+		this._writeEvalParameterProperty(value.firstPointDisplacementY);
+		this._writeEvalParameterProperty(value.secondPointDisplacementX);
+		this._writeEvalParameterProperty(value.secondPointDisplacementY);
+		for (let i = 0; i < 4; i++) this._writer.writeBitLong(value.gripIds[i] ?? 0);
+		this._writer.writeBitShort(value.baseLocation);
+	}
+
+	private _writeBlockAction(value: BlockAction): void {
+		this._writeBlockElement(value);
+		this._writer.write3BitDouble(value.labelPosition);
+		this._writer.writeBitLong(value.entities.length);
+		for (const entity of value.entities) this._writer.handleReferenceTyped(DwgReferenceType.SoftPointer, entity);
+		this._writer.writeBitLong(value.parametersIds.length);
+		for (const id of value.parametersIds) this._writer.writeBitLong(id);
+	}
+
+	private _writeBlockActionBasePt(value: BlockActionBasePt): void {
+		this._writeBlockAction(value);
+		this._writer.write3BitDouble(value.basePoint);
+		this._writeEvalConnection(value.updateBaseXConnection);
+		this._writeEvalConnection(value.updateBaseYConnection);
+		this._writer.writeBit(value.value280);
+		this._writer.write3BitDouble(value.value1012);
+	}
+
+	private _writeBlockGrip(value: BlockGrip): void {
+		this._writeBlockElement(value);
+		this._writer.writeBitLong(value.expressionId1);
+		this._writer.writeBitLong(value.expressionId2);
+		this._writer.write3BitDouble(value.location);
+		this._writer.writeBit(value.cycling);
+		this._writer.writeBitLong(value.value93);
+	}
+
+	private _writeVectorGrip(value: BlockGrip, x: number, y: number, z: number): void {
+		this._writeBlockGrip(value);
+		this._writer.writeBitDouble(x); this._writer.writeBitDouble(y); this._writer.writeBitDouble(z);
+	}
+
+	private _writeBlockFlipGrip(value: BlockFlipGrip): void {
+		this._writeBlockGrip(value);
+		this._writer.writeBitLong(value.flipExpressionId);
+		this._writer.writeBitDouble(value.directionX); this._writer.writeBitDouble(value.directionY); this._writer.writeBitDouble(value.directionZ);
+	}
+
+	private _writeParameterValueSet(value: ParameterValueSet): void {
+		this._writer.writeBitLong(value.type);
+		this._writer.writeBitDouble(value.minimum);
+		this._writer.writeBitDouble(value.maximum);
+		this._writer.writeBitDouble(value.increment);
+		this._writer.writeBitShort(value.allowedValues.length);
+		for (const item of value.allowedValues) this._writer.writeBitDouble(item);
+	}
+
+	private _writeBlockLookupParameter(value: BlockLookupParameter): void {
+		this._writeBlock1PtParameter(value);
+		this._writer.writeBitLong(value.actionId);
+		this._writer.writeVariableText(value.label);
+		this._writer.writeVariableText(value.description);
+	}
+
+	private _writeBlockPointParameter(value: BlockPointParameter): void {
+		this._writeBlock1PtParameter(value);
+		this._writer.writeVariableText(value.label);
+		this._writer.writeVariableText(value.description);
+		this._writer.write3BitDouble(value.labelPosition);
+	}
+
+	private _writeBlockBasePointParameter(value: BlockBasePointParameter): void {
+		this._writeBlock1PtParameter(value);
+		this._writer.write3BitDouble(value.point1010);
+		this._writer.write3BitDouble(value.point1012);
+	}
+
+	private _writeBlockLinearParameter(value: BlockLinearParameter): void {
+		this._writeBlock2PtParameter(value);
+		this._writer.writeVariableText(value.label);
+		this._writer.writeVariableText(value.description);
+		this._writer.writeBitDouble(value.labelOffset);
+		this._writeParameterValueSet(value.valueSet);
+	}
+
+	private _writeBlockAlignmentParameter(value: BlockAlignmentParameter): void {
+		this._writeBlock2PtParameter(value);
+		this._writer.writeBit(value.isPerpendicular);
+	}
+
+	private _writeBlockPolarParameter(value: BlockPolarParameter): void {
+		this._writeBlock2PtParameter(value);
+		this._writer.writeVariableText(value.label);
+		this._writer.writeVariableText(value.description);
+		this._writer.writeVariableText(value.angleName);
+		this._writer.writeVariableText(value.angleDescription);
+		this._writer.writeBitDouble(value.labelOffset);
+		this._writeParameterValueSet(value.distanceValueSet);
+		this._writeParameterValueSet(value.angleValueSet);
+	}
+
+	private _writeBlockXYParameter(value: BlockXYParameter): void {
+		this._writeBlock2PtParameter(value);
+		this._writer.writeVariableText(value.labelY);
+		this._writer.writeVariableText(value.labelX);
+		this._writer.writeVariableText(value.descriptionY);
+		this._writer.writeVariableText(value.descriptionX);
+		this._writer.writeBitDouble(value.labelOffsetX);
+		this._writer.writeBitDouble(value.labelOffsetY);
+		this._writeParameterValueSet(value.valueSetX);
+		this._writeParameterValueSet(value.valueSetY);
+	}
+
+	private _writeBlockFlipParameter(value: BlockFlipParameter): void {
+		this._writeBlock2PtParameter(value);
+		this._writer.writeVariableText(value.label);
+		this._writer.writeVariableText(value.description);
+		this._writer.writeVariableText(value.baseStateName);
+		this._writer.writeVariableText(value.flippedStateName);
+		this._writer.write3BitDouble(value.labelPosition);
+		this._writeEvalConnection(value.updatedFlipConnection);
+	}
+
+	private _writeBlockRotationParameter(value: BlockRotationParameter): void {
+		this._writeBlock2PtParameter(value);
+		this._writer.write3BitDouble(value.point);
+		this._writer.writeVariableText(value.label);
+		this._writer.writeVariableText(value.description);
+		this._writer.writeBitDouble(value.labelOffset);
+		this._writeParameterValueSet(value.valueSet);
+	}
+
+	private _writeBlockVisibilityParameter(value: BlockVisibilityParameter): void {
+		this._writeBlock1PtParameter(value);
+		this._writer.writeBit(value.chainActions);
+		this._writer.writeVariableText(value.label);
+		this._writer.writeVariableText(value.description);
+		this._writer.writeBit(value.value91);
+		this._writer.writeBitLong(value.entities.length);
+		for (const entity of value.entities) this._writer.handleReferenceTyped(DwgReferenceType.SoftPointer, entity);
+		this._writer.writeBitLong(value.states.size);
+		for (const state of value.states.values()) {
+			this._writer.writeVariableText(state.name);
+			this._writer.writeBitLong(state.entities.length);
+			for (const entity of state.entities) this._writer.handleReferenceTyped(DwgReferenceType.SoftPointer, entity);
+			this._writer.writeBitLong(state.expressions.length);
+			for (const expression of state.expressions) this._writer.handleReferenceTyped(DwgReferenceType.SoftPointer, expression);
+		}
+	}
+
+	private _writeBlockMoveAction(value: BlockMoveAction): void {
+		this._writeBlockAction(value);
+		this._writeEvalConnection(value.xDeltaConnection);
+		this._writeEvalConnection(value.yDeltaConnection);
+		this._writer.writeBitDouble(value.distanceMultiplier);
+		this._writer.writeBitDouble(value.angleOffset);
+		this._writer.writeByte(value.unknownFlag);
+	}
+
+	private _writeBlockScaleAction(value: BlockScaleAction): void {
+		this._writeBlockActionBasePt(value);
+		this._writeEvalConnection(value.scaleConnection);
+		this._writeEvalConnection(value.xScaleConnection);
+		this._writeEvalConnection(value.yScaleConnection);
+		this._writer.writeByte(value.scaleType);
+	}
+
+	private _writeBlockFlipAction(value: BlockFlipAction): void {
+		this._writeBlockAction(value);
+		this._writeEvalConnection(value.flipConnection);
+		this._writeEvalConnection(value.updatedFlipConnection);
+		this._writeEvalConnection(value.updatedBaseConnection);
+		this._writeEvalConnection(value.updatedEndConnection);
+	}
+
+	private _writeBlockRotationAction(value: BlockRotationAction): void {
+		this._writeBlockActionBasePt(value);
+		this._writeEvalConnection(value.angleDeltaConnection);
+	}
+
+	private _writeBlockArrayAction(value: BlockArrayAction): void {
+		this._writeBlockAction(value);
+		this._writeEvalConnection(value.baseConnection);
+		this._writeEvalConnection(value.endConnection);
+		this._writeEvalConnection(value.updatedBaseConnection);
+		this._writeEvalConnection(value.updatedEndConnection);
+		this._writer.writeBitDouble(value.rowOffset);
+		this._writer.writeBitDouble(value.columnOffset);
+	}
+
+	private _writeBlockLookupAction(value: BlockLookupAction): void {
+		this._writeBlockAction(value);
+		const rowCount = value.columns[0]?.rows.length ?? 0;
+		this._writer.writeBitLong(rowCount);
+		this._writer.writeBitLong(value.columns.length);
+		for (let row = 0; row < rowCount; row++) {
+			for (const column of value.columns) this._writer.writeVariableText(column.rows[row] ?? '');
+		}
+		for (const column of value.columns) this._writeLookupActionColumn(column);
+		this._writer.writeBit(value.unknownFlag);
+	}
+
+	private _writeLookupActionColumn(value: BlockLookupActionColumnData): void {
+		this._writer.writeBitLong(value.nodeId);
+		this._writer.writeBitLong(value.valueType);
+		this._writer.writeBitLong(value.type);
+		this._writer.writeBit(value.isLookupProperty);
+		this._writer.writeVariableText(value.unmatchedName);
+		this._writer.writeBit(!value.isReadOnly);
+		this._writer.writeVariableText(value.connectionName);
+	}
+
+	private _writeStretchData(value: StretchActionBase, includeRotationBindings: boolean): void {
+		this._writer.writeBitLong(value.boundary.length);
+		for (const point of value.boundary) this._writer.write2RawDouble(point);
+		if (includeRotationBindings) {
+			const polar = value as BlockPolarStretchAction;
+			this._writer.writeBitLong(polar.rotateBindings.length);
+			for (const entity of polar.rotateBindings) this._writer.handleReferenceTyped(DwgReferenceType.SoftPointer, entity);
+		}
+		this._writer.writeBitLong(value.stretchBindings.length);
+		for (const binding of value.stretchBindings) {
+			this._writer.handleReferenceTyped(DwgReferenceType.SoftPointer, binding.entity);
+			this._writer.writeBitLong(binding.pointIndexes.length);
+			for (const index of binding.pointIndexes) this._writer.writeBitLong(index);
+		}
+		this._writer.writeBitLong(value.stretchNodes.length);
+		for (const node of value.stretchNodes) {
+			this._writer.writeBitLong(node.nodeId);
+			this._writer.writeBitLong(node.pointIndexes.length);
+			for (const index of node.pointIndexes) this._writer.writeBitLong(index);
+		}
+	}
+
+	private _writeBlockStretchAction(value: BlockStretchAction): void {
+		this._writeBlockAction(value);
+		this._writeEvalConnection(value.endXDeltaConnection);
+		this._writeEvalConnection(value.endYDeltaConnection);
+		this._writeStretchData(value, false);
+		this._writer.writeBitDouble(value.distanceMultiplier);
+		this._writer.writeBitDouble(value.angleOffset);
+		this._writer.writeByte(value.unknownFlag);
+	}
+
+	private _writeBlockPolarStretchAction(value: BlockPolarStretchAction): void {
+		this._writeBlockAction(value);
+		this._writeEvalConnection(value.baseXDeltaConnection);
+		this._writeEvalConnection(value.baseYDeltaConnection);
+		this._writeEvalConnection(value.baseConnection);
+		this._writeEvalConnection(value.endConnection);
+		this._writeEvalConnection(value.updatedBaseConnection);
+		this._writeEvalConnection(value.updatedEndConnection);
+		this._writeStretchData(value, true);
+		this._writer.writeBitDouble(value.distanceMultiplier);
+		this._writer.writeBitDouble(value.angleOffset);
+		this._writer.writeBitLong(0);
 	}
 
 	private _writeDimensionArc(dimension: DimensionArc): void {

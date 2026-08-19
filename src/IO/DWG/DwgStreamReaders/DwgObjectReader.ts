@@ -203,6 +203,32 @@ import { BlockFlipParameter } from '../../../Objects/Evaluations/BlockFlipParame
 import { BlockRotationParameter } from '../../../Objects/Evaluations/BlockRotationParameter.js';
 import { BlockRotationAction } from '../../../Objects/Evaluations/BlockRotationAction.js';
 import { BlockVisibilityParameter } from '../../../Objects/Evaluations/BlockVisibilityParameter.js';
+import { EvalConnection } from '../../../Objects/Evaluations/EvalConnection.js';
+import { EvalParameterProperty } from '../../../Objects/Evaluations/EvalParameterProperty.js';
+import { LinearParameterBaseLocation } from '../../../Objects/Evaluations/LinearParameterBaseLocation.js';
+import { ParameterValueSet, ParameterValueSetType } from '../../../Objects/Evaluations/ParameterValueSet.js';
+import { BlockLookupParameter } from '../../../Objects/Evaluations/BlockLookupParameter.js';
+import { BlockPointParameter } from '../../../Objects/Evaluations/BlockPointParameter.js';
+import { BlockMoveAction } from '../../../Objects/Evaluations/BlockMoveAction.js';
+import { BlockLinearGrip } from '../../../Objects/Evaluations/BlockLinearGrip.js';
+import { BlockXYGrip } from '../../../Objects/Evaluations/BlockXYGrip.js';
+import { BlockScaleAction } from '../../../Objects/Evaluations/BlockScaleAction.js';
+import { BlockStretchAction } from '../../../Objects/Evaluations/BlockStretchAction.js';
+import { BlockLookupAction, BlockLookupActionColumnData } from '../../../Objects/Evaluations/BlockLookupAction.js';
+import { BlockLookupGrip } from '../../../Objects/Evaluations/BlockLookupGrip.js';
+import { BlockAlignmentGrip } from '../../../Objects/Evaluations/BlockAlignmentGrip.js';
+import { BlockAlignmentParameter } from '../../../Objects/Evaluations/BlockAlignmentParameter.js';
+import { BlockPolarGrip } from '../../../Objects/Evaluations/BlockPolarGrip.js';
+import { BlockPolarParameter } from '../../../Objects/Evaluations/BlockPolarParameter.js';
+import { BlockPolarStretchAction } from '../../../Objects/Evaluations/BlockPolarStretchAction.js';
+import { BlockXYParameter } from '../../../Objects/Evaluations/BlockXYParameter.js';
+import { BlockArrayAction } from '../../../Objects/Evaluations/BlockArrayAction.js';
+import { BlockBasePointParameter } from '../../../Objects/Evaluations/BlockBasePointParameter.js';
+import { BlockLinearParameter } from '../../../Objects/Evaluations/BlockLinearParameter.js';
+import { BlockFlipGrip } from '../../../Objects/Evaluations/BlockFlipGrip.js';
+import { StretchEntityBind } from '../../../Objects/Evaluations/StretchEntityBind.js';
+import { StretchNode } from '../../../Objects/Evaluations/StretchNode.js';
+import { DynamicBlockPurgePreventer } from '../../../Objects/DynamicBlockPurgePreventer.js';
 import { BlockAction } from '../../../Objects/Evaluations/BlockAction.js';
 import { BlockActionBasePt } from '../../../Objects/Evaluations/BlockActionBasePt.js';
 import { BlockGrip } from '../../../Objects/Evaluations/BlockGrip.js';
@@ -858,6 +884,26 @@ export class DwgObjectReader extends DwgSectionIO {
       case DxfFileToken.objectEvalGraph: template = this._readEvaluationGraph(); break;
       case DxfFileToken.objectBlockRotationParameter: template = this._readBlockRotationParameter(); break;
       case DxfFileToken.objectBlockVisibilityParameter: template = this._readBlockVisibilityParameter(); break;
+      case DxfFileToken.objectBlockBasePointParameter: template = this._readBlockBasePointParameter(); break;
+      case DxfFileToken.objectBlockLinearParameter: template = this._readBlockLinearParameter(); break;
+      case DxfFileToken.objectBlockFlipGrip: template = this._readBlockFlipGrip(); break;
+      case DxfFileToken.objectBlockLookupParameter: template = this._readBlockLookupParameter(); break;
+      case DxfFileToken.objectBlockPointParameter: template = this._readBlockPointParameter(); break;
+      case DxfFileToken.objectBlockMoveAction: template = this._readBlockMoveAction(); break;
+      case DxfFileToken.objectBlockLinearGrip: template = this._readSimpleBlockGrip(new BlockLinearGrip(), true); break;
+      case DxfFileToken.objectBlockXYGrip: template = this._readSimpleBlockGrip(new BlockXYGrip()); break;
+      case DxfFileToken.objectBlockScaleAction: template = this._readBlockScaleAction(); break;
+      case DxfFileToken.objectBlockStretchAction: template = this._readBlockStretchAction(); break;
+      case DxfFileToken.objectBlockLookupAction: template = this._readBlockLookupAction(); break;
+      case DxfFileToken.objectBlockLookupGrip: template = this._readSimpleBlockGrip(new BlockLookupGrip()); break;
+      case DxfFileToken.objectBlockAlignmentGrip: template = this._readSimpleBlockGrip(new BlockAlignmentGrip(), true); break;
+      case DxfFileToken.objectBlockAlignmentParameter: template = this._readBlockAlignmentParameter(); break;
+      case DxfFileToken.objectBlockPolarGrip: template = this._readSimpleBlockGrip(new BlockPolarGrip()); break;
+      case DxfFileToken.objectBlockPolarParameter: template = this._readBlockPolarParameter(); break;
+      case DxfFileToken.objectBlockPolarStretchAction: template = this._readBlockPolarStretchAction(); break;
+      case DxfFileToken.objectBlockXYParameter: template = this._readBlockXYParameter(); break;
+      case DxfFileToken.objectBlockArrayAction: template = this._readBlockArrayAction(); break;
+      case DxfFileToken.objectDynamicBlockPurgePreventer: template = this._readDynamicBlockPurgePreventer(); break;
       case 'BLOCKFLIPPARAMETER': template = this._readBlockFlipParameter(); break;
       case DxfFileToken.objectBlockRepresentationData: template = this._readBlockRepresentationData(); break;
       case DxfFileToken.objectBlockGripLocationComponent: template = this._readBlockGripLocationComponent(); break;
@@ -3746,18 +3792,259 @@ export class DwgObjectReader extends DwgSectionIO {
     return template;
   }
 
+  private _readBlockLookupParameter(): CadTemplate {
+    const value = new BlockLookupParameter();
+    const template = new CadBlock1PtParameterTemplate(value);
+    this._readBlock1PtParameter(template);
+    value.actionId = this._mergedReaders.readBitLong();
+    value.label = this._mergedReaders.readVariableText();
+    value.description = this._mergedReaders.readVariableText();
+    return template;
+  }
+
+  private _readBlockPointParameter(): CadTemplate {
+    const value = new BlockPointParameter();
+    const template = new CadBlock1PtParameterTemplate(value);
+    this._readBlock1PtParameter(template);
+    value.label = this._mergedReaders.readVariableText();
+    value.description = this._mergedReaders.readVariableText();
+    value.labelPosition = this._mergedReaders.read3BitDouble();
+    return template;
+  }
+
+  private _readBlockMoveAction(): CadTemplate {
+    const value = new BlockMoveAction();
+    const template = new CadBlockActionTemplate(value);
+    this._readBlockAction(template);
+    value.xDeltaConnection = this._readEvalConnection();
+    value.yDeltaConnection = this._readEvalConnection();
+    value.distanceMultiplier = this._mergedReaders.readBitDouble();
+    value.angleOffset = this._mergedReaders.readBitDouble();
+    value.unknownFlag = this._mergedReaders.readByte();
+    return template;
+  }
+
+  private _readSimpleBlockGrip(value: BlockGrip, hasVector: boolean = false): CadTemplate {
+    const template = new CadBlockGripTemplate(value);
+    this._readBlockGrip(template);
+    if (hasVector) {
+      const x = this._mergedReaders.readBitDouble();
+      const y = this._mergedReaders.readBitDouble();
+      const z = this._mergedReaders.readBitDouble();
+      if (value instanceof BlockLinearGrip) {
+        value.distanceX = x; value.distanceY = y; value.distanceZ = z;
+      } else if (value instanceof BlockAlignmentGrip) {
+        value.alignmentX = x; value.alignmentY = y; value.alignmentZ = z;
+      }
+    }
+    return template;
+  }
+
+  private _readBlockScaleAction(): CadTemplate {
+    const value = new BlockScaleAction();
+    const template = new CadBlockActionBasePtTemplate(value);
+    this._readBlockActionBasePt(template);
+    value.scaleConnection = this._readEvalConnection();
+    value.xScaleConnection = this._readEvalConnection();
+    value.yScaleConnection = this._readEvalConnection();
+    value.scaleType = this._mergedReaders.readByte();
+    return template;
+  }
+
+  private _readBlockStretchAction(): CadTemplate {
+    const value = new BlockStretchAction();
+    const template = new CadBlockActionTemplate(value);
+    this._readBlockAction(template);
+    value.endXDeltaConnection = this._readEvalConnection();
+    value.endYDeltaConnection = this._readEvalConnection();
+    this._readStretchData(value, false);
+    value.distanceMultiplier = this._mergedReaders.readBitDouble();
+    value.angleOffset = this._mergedReaders.readBitDouble();
+    value.unknownFlag = this._mergedReaders.readByte();
+    return template;
+  }
+
+  private _readStretchData(value: BlockStretchAction | BlockPolarStretchAction, hasSelection: boolean): void {
+    const pointCount = this._mergedReaders.readBitLong();
+    for (let i = 0; i < pointCount; i++) value.boundary.push(this._mergedReaders.read2RawDouble());
+    if (hasSelection) {
+      const selectionCount = this._mergedReaders.readBitLong();
+      for (let i = 0; i < selectionCount; i++) this._handleReference();
+    }
+    const bindingCount = this._mergedReaders.readBitLong();
+    for (let i = 0; i < bindingCount; i++) {
+      this._handleReference();
+      const indexes: number[] = [];
+      const indexCount = this._mergedReaders.readBitLong();
+      for (let j = 0; j < indexCount; j++) indexes.push(this._mergedReaders.readBitLong());
+      value.stretchBindings.push(new StretchEntityBind(null, indexes));
+    }
+    const nodeCount = this._mergedReaders.readBitLong();
+    for (let i = 0; i < nodeCount; i++) {
+      const id = this._mergedReaders.readBitLong();
+      const indexes: number[] = [];
+      const indexCount = this._mergedReaders.readBitLong();
+      for (let j = 0; j < indexCount; j++) indexes.push(this._mergedReaders.readBitLong());
+      value.stretchNodes.push(new StretchNode(id, indexes));
+    }
+  }
+
+  private _readBlockLookupAction(): CadTemplate {
+    const value = new BlockLookupAction();
+    const template = new CadBlockActionTemplate(value);
+    this._readBlockAction(template);
+    const rowCount = this._mergedReaders.readBitLong();
+    const columnCount = this._mergedReaders.readBitLong();
+    const rows: string[] = [];
+    for (let i = 0; i < rowCount * columnCount; i++) rows.push(this._mergedReaders.readVariableText());
+    for (let column = 0; column < columnCount; column++) {
+      const data = this._readLookupActionColumn();
+      for (let row = 0; row < rowCount; row++) data.rows.push(rows[row * columnCount + column] ?? '');
+      value.columns.push(data);
+    }
+    value.unknownFlag = this._mergedReaders.readBit();
+    return template;
+  }
+
+  private _readLookupActionColumn(): BlockLookupActionColumnData {
+    const column = new BlockLookupActionColumnData();
+    column.nodeId = this._mergedReaders.readBitLong();
+    column.valueType = this._mergedReaders.readBitLong();
+    column.type = this._mergedReaders.readBitLong();
+    column.isLookupProperty = this._mergedReaders.readBit();
+    column.unmatchedName = this._mergedReaders.readVariableText();
+    column.isReadOnly = !this._mergedReaders.readBit();
+    column.connectionName = this._mergedReaders.readVariableText();
+    return column;
+  }
+
+  private _readBlockAlignmentParameter(): CadTemplate {
+    const value = new BlockAlignmentParameter();
+    const template = new CadBlock2PtParameterTemplate(value);
+    this._readBlock2PtParameter(template);
+    value.isPerpendicular = this._mergedReaders.readBit();
+    return template;
+  }
+
+  private _readBlockPolarParameter(): CadTemplate {
+    const value = new BlockPolarParameter();
+    const template = new CadBlock2PtParameterTemplate(value);
+    this._readBlock2PtParameter(template);
+    value.label = this._mergedReaders.readVariableText();
+    value.description = this._mergedReaders.readVariableText();
+    value.angleName = this._mergedReaders.readVariableText();
+    value.angleDescription = this._mergedReaders.readVariableText();
+    value.labelOffset = this._mergedReaders.readBitDouble();
+    value.distanceValueSet = this._readParameterValueSet();
+    value.angleValueSet = this._readParameterValueSet();
+    return template;
+  }
+
+  private _readBlockPolarStretchAction(): CadTemplate {
+    const value = new BlockPolarStretchAction();
+    const template = new CadBlockActionTemplate(value);
+    this._readBlockAction(template);
+    value.baseXDeltaConnection = this._readEvalConnection();
+    value.baseYDeltaConnection = this._readEvalConnection();
+    value.baseConnection = this._readEvalConnection();
+    value.endConnection = this._readEvalConnection();
+    value.updatedBaseConnection = this._readEvalConnection();
+    value.updatedEndConnection = this._readEvalConnection();
+    this._readStretchData(value, true);
+    value.distanceMultiplier = this._mergedReaders.readBitDouble();
+    value.angleOffset = this._mergedReaders.readBitDouble();
+    const unknownCount = this._mergedReaders.readBitLong();
+    for (let i = 0; i < unknownCount; i++) this._mergedReaders.readBitLong();
+    return template;
+  }
+
+  private _readBlockXYParameter(): CadTemplate {
+    const value = new BlockXYParameter();
+    const template = new CadBlock2PtParameterTemplate(value);
+    this._readBlock2PtParameter(template);
+    value.labelY = this._mergedReaders.readVariableText();
+    value.labelX = this._mergedReaders.readVariableText();
+    value.descriptionY = this._mergedReaders.readVariableText();
+    value.descriptionX = this._mergedReaders.readVariableText();
+    value.labelOffsetX = this._mergedReaders.readBitDouble();
+    value.labelOffsetY = this._mergedReaders.readBitDouble();
+    value.valueSetX = this._readParameterValueSet();
+    value.valueSetY = this._readParameterValueSet();
+    return template;
+  }
+
+  private _readBlockArrayAction(): CadTemplate {
+    const value = new BlockArrayAction();
+    const template = new CadBlockActionTemplate(value);
+    this._readBlockAction(template);
+    value.baseConnection = this._readEvalConnection();
+    value.endConnection = this._readEvalConnection();
+    value.updatedBaseConnection = this._readEvalConnection();
+    value.updatedEndConnection = this._readEvalConnection();
+    value.rowOffset = this._mergedReaders.readBitDouble();
+    value.columnOffset = this._mergedReaders.readBitDouble();
+    return template;
+  }
+
+  private _readParameterValueSet(): ParameterValueSet {
+    const value = new ParameterValueSet();
+    value.type = this._mergedReaders.readBitLong() as ParameterValueSetType;
+    value.minimum = this._mergedReaders.readBitDouble();
+    value.maximum = this._mergedReaders.readBitDouble();
+    value.increment = this._mergedReaders.readBitDouble();
+    const count = this._mergedReaders.readBitShort();
+    for (let i = 0; i < count; i++) value.allowedValues.push(this._mergedReaders.readBitDouble());
+    return value;
+  }
+
+  private _readDynamicBlockPurgePreventer(): CadTemplate {
+    const value = new DynamicBlockPurgePreventer();
+    const template = new CadNonGraphicalObjectTemplate(value);
+    this._readCommonNonEntityData(template);
+    value.version = this._mergedReaders.readBitShort();
+    value.blockHandle = this._handleReference();
+    return template;
+  }
+
+  private _readBlockBasePointParameter(): CadTemplate {
+    const value = new BlockBasePointParameter();
+    const template = new CadBlock1PtParameterTemplate(value);
+    this._readBlock1PtParameter(template);
+    value.point1010 = this._mergedReaders.read3BitDouble();
+    value.point1012 = this._mergedReaders.read3BitDouble();
+    return template;
+  }
+
+  private _readBlockLinearParameter(): CadTemplate {
+    const value = new BlockLinearParameter();
+    const template = new CadBlock2PtParameterTemplate(value);
+    this._readBlock2PtParameter(template);
+    value.label = this._mergedReaders.readVariableText();
+    value.description = this._mergedReaders.readVariableText();
+    value.labelOffset = this._mergedReaders.readBitDouble();
+    value.valueSet = this._readParameterValueSet();
+    return template;
+  }
+
+  private _readBlockFlipGrip(): CadTemplate {
+    const value = new BlockFlipGrip();
+    const template = new CadBlockGripTemplate(value);
+    this._readBlockGrip(template);
+    value.directionX = this._mergedReaders.readBitDouble();
+    value.directionY = this._mergedReaders.readBitDouble();
+    value.directionZ = this._mergedReaders.readBitDouble();
+    value.flipExpressionId = this._mergedReaders.readBitLong();
+    return template;
+  }
+
   private _readBlockFlipAction(): CadTemplate {
     const blockFlipAction = new BlockFlipAction();
     const template = new CadBlockFlipActionTemplate(blockFlipAction);
     this._readBlockAction(template);
-    blockFlipAction.value92 = this._mergedReaders.readBitLong();
-    blockFlipAction.value93 = this._mergedReaders.readBitLong();
-    blockFlipAction.value94 = this._mergedReaders.readBitLong();
-    blockFlipAction.value95 = this._mergedReaders.readBitLong();
-    blockFlipAction.caption301 = this._mergedReaders.readVariableText();
-    blockFlipAction.caption302 = this._mergedReaders.readVariableText();
-    blockFlipAction.caption303 = this._mergedReaders.readVariableText();
-    blockFlipAction.caption304 = this._mergedReaders.readVariableText();
+    blockFlipAction.flipConnection = this._readEvalConnection();
+    blockFlipAction.updatedFlipConnection = this._readEvalConnection();
+    blockFlipAction.updatedBaseConnection = this._readEvalConnection();
+    blockFlipAction.updatedEndConnection = this._readEvalConnection();
     return template;
   }
 
@@ -3765,13 +4052,12 @@ export class DwgObjectReader extends DwgSectionIO {
     const blockFlipParameter = new BlockFlipParameter();
     const template = new CadBlockFlipParameterTemplate(blockFlipParameter);
     this._readBlock2PtParameter(template);
-    blockFlipParameter.caption = this._mergedReaders.readVariableText();
+    blockFlipParameter.label = this._mergedReaders.readVariableText();
     blockFlipParameter.description = this._mergedReaders.readVariableText();
     blockFlipParameter.baseStateName = this._mergedReaders.readVariableText();
     blockFlipParameter.flippedStateName = this._mergedReaders.readVariableText();
-    blockFlipParameter.captionLocation = this._mergedReaders.read3BitDouble();
-    blockFlipParameter.caption309 = this._mergedReaders.readVariableText();
-    blockFlipParameter.value96 = this._mergedReaders.readBitLong();
+    blockFlipParameter.labelPosition = this._mergedReaders.read3BitDouble();
+    blockFlipParameter.updatedFlipConnection = this._readEvalConnection();
     return template;
   }
 
@@ -3780,14 +4066,10 @@ export class DwgObjectReader extends DwgSectionIO {
     const template = new CadBlockRotationParameterTemplate(blockRotationParameter);
     this._readBlock2PtParameter(template);
     blockRotationParameter.point = this._mergedReaders.read3BitDouble();
-    blockRotationParameter.name = this._mergedReaders.readVariableText();
+    blockRotationParameter.label = this._mergedReaders.readVariableText();
     blockRotationParameter.description = this._mergedReaders.readVariableText();
-    blockRotationParameter.nameOffset = this._mergedReaders.readBitDouble();
-    blockRotationParameter.value96 = this._mergedReaders.readBitLong();
-    blockRotationParameter.value141 = this._mergedReaders.readBitDouble();
-    blockRotationParameter.value142 = this._mergedReaders.readBitDouble();
-    blockRotationParameter.value143 = this._mergedReaders.readBitDouble();
-    blockRotationParameter.value175 = this._mergedReaders.readBitLong();
+    blockRotationParameter.labelOffset = this._mergedReaders.readBitDouble();
+    blockRotationParameter.valueSet = this._readParameterValueSet();
     return template;
   }
 
@@ -3814,8 +4096,7 @@ export class DwgObjectReader extends DwgSectionIO {
     const rotationAction = new BlockRotationAction();
     const template = new CadBlockRotationActionTemplate(rotationAction);
     this._readBlockActionBasePt(template);
-    rotationAction.value94 = this._mergedReaders.readBitLong();
-    rotationAction.value303 = this._mergedReaders.readVariableText();
+    rotationAction.angleDeltaConnection = this._readEvalConnection();
     return template;
   }
 
@@ -4321,8 +4602,8 @@ export class DwgObjectReader extends DwgSectionIO {
   private _readBlock1PtParameter(template: CadBlock1PtParameterTemplate): void {
     this._readBlockParameter(template);
     template.block1PtParameter.location = this._mergedReaders.read3BitDouble();
-    template.block1PtParameter.value170 = this._mergedReaders.readBitShort();
-    template.block1PtParameter.value171 = this._mergedReaders.readBitShort();
+    template.block1PtParameter.displacementX = this._readEvalParameterProperty();
+    template.block1PtParameter.displacementY = this._readEvalParameterProperty();
     template.block1PtParameter.value93 = this._mergedReaders.readBitLong();
   }
 
@@ -4330,41 +4611,49 @@ export class DwgObjectReader extends DwgSectionIO {
     this._readBlockParameter(template);
     template.block2PtParameter.firstPoint = this._mergedReaders.read3BitDouble();
     template.block2PtParameter.secondPoint = this._mergedReaders.read3BitDouble();
-    for (let i = 0; i < 4; i++) {
-      const n = this._mergedReaders.readBitShort();
-      for (let j = 0; j < n; j++) {
-        const d = this._mergedReaders.readBitLong();
-        const e = this._mergedReaders.readVariableText();
-      }
-    }
-    for (let k = 0; k < 4; k++) {
-      const f = this._mergedReaders.readBitLong();
-    }
-    const value177 = this._mergedReaders.readBitShort();
+    const parameter = template.block2PtParameter;
+    parameter.firstPointDisplacementX = this._readEvalParameterProperty();
+    parameter.firstPointDisplacementY = this._readEvalParameterProperty();
+    parameter.secondPointDisplacementX = this._readEvalParameterProperty();
+    parameter.secondPointDisplacementY = this._readEvalParameterProperty();
+    parameter.gripIds = [];
+    for (let k = 0; k < 4; k++) parameter.gripIds.push(this._mergedReaders.readBitLong());
+    parameter.baseLocation = this._mergedReaders.readBitShort() as LinearParameterBaseLocation;
   }
 
   private _readBlockAction(template: CadBlockActionTemplate): void {
     this._readBlockElement(template);
     const blockAction = template.blockAction;
     blockAction.actionPoint = this._mergedReaders.read3BitDouble();
-    const entityCount = this._objectReader.readBitShort();
+    const entityCount = this._objectReader.readBitLong();
     for (let i = 0; i < entityCount; i++) {
       const entityHandle = this._handleReference();
       template.entityHandles.add(entityHandle);
     }
-    blockAction.value70 = this._mergedReaders.readBitShort();
+    const parameterCount = this._mergedReaders.readBitLong();
+    blockAction.parametersIds = [];
+    for (let i = 0; i < parameterCount; i++) blockAction.parametersIds.push(this._mergedReaders.readBitLong());
   }
 
   private _readBlockActionBasePt(template: CadBlockActionBasePtTemplate): void {
     this._readBlockAction(template);
     const blockActionBasePt = template.cadObject as BlockActionBasePt;
     blockActionBasePt.value1011 = this._mergedReaders.read3BitDouble();
-    blockActionBasePt.value92 = this._mergedReaders.readBitLong();
-    blockActionBasePt.value301 = this._mergedReaders.readVariableText();
-    blockActionBasePt.value93 = this._mergedReaders.readBitLong();
-    blockActionBasePt.value302 = this._mergedReaders.readVariableText();
+    blockActionBasePt.updateBaseXConnection = this._readEvalConnection();
+    blockActionBasePt.updateBaseYConnection = this._readEvalConnection();
     blockActionBasePt.value280 = this._mergedReaders.readBit();
     blockActionBasePt.value1012 = this._mergedReaders.read3BitDouble();
+  }
+
+  private _readEvalConnection(): EvalConnection {
+    return new EvalConnection(this._mergedReaders.readBitLong(), this._mergedReaders.readVariableText());
+  }
+
+  private _readEvalParameterProperty(): EvalParameterProperty {
+    const property = new EvalParameterProperty();
+    const count = this._mergedReaders.readBitShort();
+    for (let i = 0; i < count; i++) property.connections.push(this._readEvalConnection());
+    return property;
   }
 
   private _readEvaluationExpression(template: CadEvaluationExpressionTemplate): void {

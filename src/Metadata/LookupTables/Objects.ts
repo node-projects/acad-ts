@@ -62,23 +62,9 @@ export const metadataLookupObjects: readonly ClassMetadata[] = [
         "referenceType": 0
       },
       {
-        "propertyName": "value93",
+        "propertyName": "gripId",
         "valueCodes": [
           93
-        ],
-        "referenceType": 0
-      },
-      {
-        "propertyName": "value170",
-        "valueCodes": [
-          170
-        ],
-        "referenceType": 0
-      },
-      {
-        "propertyName": "value171",
-        "valueCodes": [
-          171
         ],
         "referenceType": 0
       }
@@ -109,72 +95,15 @@ export const metadataLookupObjects: readonly ClassMetadata[] = [
         "referenceType": 0
       },
       {
-        "propertyName": "value170",
-        "valueCodes": [
-          170
-        ],
-        "referenceType": 0
+        "propertyName": "gripIds",
+        "valueCodes": [170],
+        "referenceType": 4,
+        "collectionCodes": [91]
       },
       {
-        "propertyName": "value171",
-        "valueCodes": [
-          171
-        ],
-        "referenceType": 0
-      },
-      {
-        "propertyName": "value172",
-        "valueCodes": [
-          172
-        ],
-        "referenceType": 0
-      },
-      {
-        "propertyName": "value173",
-        "valueCodes": [
-          173
-        ],
-        "referenceType": 0
-      },
-      {
-        "propertyName": "value174",
-        "valueCodes": [
-          174
-        ],
-        "referenceType": 0
-      },
-      {
-        "propertyName": "value177",
+        "propertyName": "baseLocation",
         "valueCodes": [
           177
-        ],
-        "referenceType": 0
-      },
-      {
-        "propertyName": "value303",
-        "valueCodes": [
-          303
-        ],
-        "referenceType": 0
-      },
-      {
-        "propertyName": "value304",
-        "valueCodes": [
-          304
-        ],
-        "referenceType": 0
-      },
-      {
-        "propertyName": "value94",
-        "valueCodes": [
-          94
-        ],
-        "referenceType": 0
-      },
-      {
-        "propertyName": "value95",
-        "valueCodes": [
-          95
         ],
         "referenceType": 0
       }
@@ -187,7 +116,7 @@ export const metadataLookupObjects: readonly ClassMetadata[] = [
     "baseTypeName": "BlockElement",
     "properties": [
       {
-        "propertyName": "actionPoint",
+        "propertyName": "labelPosition",
         "valueCodes": [
           1010,
           1020,
@@ -206,11 +135,12 @@ export const metadataLookupObjects: readonly ClassMetadata[] = [
         ]
       },
       {
-        "propertyName": "value70",
+        "propertyName": "parametersIds",
         "valueCodes": [
           70
         ],
-        "referenceType": 0
+        "referenceType": 4,
+        "collectionCodes": [91]
       }
     ],
     "systemVariables": [],
@@ -221,7 +151,7 @@ export const metadataLookupObjects: readonly ClassMetadata[] = [
     "baseTypeName": "BlockAction",
     "properties": [
       {
-        "propertyName": "value1011",
+        "propertyName": "basePoint",
         "valueCodes": [
           1011,
           1021,
@@ -242,34 +172,6 @@ export const metadataLookupObjects: readonly ClassMetadata[] = [
         "propertyName": "value280",
         "valueCodes": [
           280
-        ],
-        "referenceType": 0
-      },
-      {
-        "propertyName": "value301",
-        "valueCodes": [
-          301
-        ],
-        "referenceType": 0
-      },
-      {
-        "propertyName": "value302",
-        "valueCodes": [
-          302
-        ],
-        "referenceType": 0
-      },
-      {
-        "propertyName": "value92",
-        "valueCodes": [
-          92
-        ],
-        "referenceType": 0
-      },
-      {
-        "propertyName": "value93",
-        "valueCodes": [
-          93
         ],
         "referenceType": 0
       }
@@ -328,64 +230,7 @@ export const metadataLookupObjects: readonly ClassMetadata[] = [
   {
     "typeName": "BlockFlipAction",
     "baseTypeName": "BlockAction",
-    "properties": [
-      {
-        "propertyName": "caption301",
-        "valueCodes": [
-          301
-        ],
-        "referenceType": 0
-      },
-      {
-        "propertyName": "caption302",
-        "valueCodes": [
-          302
-        ],
-        "referenceType": 0
-      },
-      {
-        "propertyName": "caption303",
-        "valueCodes": [
-          303
-        ],
-        "referenceType": 0
-      },
-      {
-        "propertyName": "caption304",
-        "valueCodes": [
-          304
-        ],
-        "referenceType": 0
-      },
-      {
-        "propertyName": "value92",
-        "valueCodes": [
-          92
-        ],
-        "referenceType": 0
-      },
-      {
-        "propertyName": "value93",
-        "valueCodes": [
-          93
-        ],
-        "referenceType": 0
-      },
-      {
-        "propertyName": "value94",
-        "valueCodes": [
-          94
-        ],
-        "referenceType": 0
-      },
-      {
-        "propertyName": "value95",
-        "valueCodes": [
-          95
-        ],
-        "referenceType": 0
-      }
-    ],
+    "properties": [],
     "systemVariables": [],
     "dxfName": "BLOCKFLIPACTION",
     "dxfSubClassName": "AcDbBlockFlipAction"
@@ -395,28 +240,28 @@ export const metadataLookupObjects: readonly ClassMetadata[] = [
     "baseTypeName": "BlockGrip",
     "properties": [
       {
-        "propertyName": "value140",
+        "propertyName": "directionX",
         "valueCodes": [
           140
         ],
         "referenceType": 0
       },
       {
-        "propertyName": "value141",
+        "propertyName": "directionY",
         "valueCodes": [
           141
         ],
         "referenceType": 0
       },
       {
-        "propertyName": "value142",
+        "propertyName": "directionZ",
         "valueCodes": [
           142
         ],
         "referenceType": 0
       },
       {
-        "propertyName": "value93N",
+        "propertyName": "flipExpressionId",
         "valueCodes": [
           93
         ],
@@ -429,7 +274,13 @@ export const metadataLookupObjects: readonly ClassMetadata[] = [
   {
     "typeName": "BlockFlipParameter",
     "baseTypeName": "Block2PtParameter",
-    "properties": [],
+    "properties": [
+      { "propertyName": "baseStateName", "valueCodes": [307], "referenceType": 0 },
+      { "propertyName": "description", "valueCodes": [306], "referenceType": 0 },
+      { "propertyName": "flippedStateName", "valueCodes": [308], "referenceType": 0 },
+      { "propertyName": "label", "valueCodes": [305], "referenceType": 0 },
+      { "propertyName": "labelPosition", "valueCodes": [1012, 1022, 1032], "referenceType": 0 }
+    ],
     "systemVariables": [],
     "dxfSubClassName": "AcDbBlockFlipParameter"
   },
@@ -447,21 +298,21 @@ export const metadataLookupObjects: readonly ClassMetadata[] = [
         "referenceType": 0
       },
       {
-        "propertyName": "value280",
+        "propertyName": "cycling",
         "valueCodes": [
           280
         ],
         "referenceType": 0
       },
       {
-        "propertyName": "value91",
+        "propertyName": "expressionId1",
         "valueCodes": [
           91
         ],
         "referenceType": 0
       },
       {
-        "propertyName": "value92",
+        "propertyName": "expressionId2",
         "valueCodes": [
           92
         ],
@@ -625,22 +476,7 @@ export const metadataLookupObjects: readonly ClassMetadata[] = [
   {
     "typeName": "BlockRotationAction",
     "baseTypeName": "BlockActionBasePt",
-    "properties": [
-      {
-        "propertyName": "value303",
-        "valueCodes": [
-          303
-        ],
-        "referenceType": 0
-      },
-      {
-        "propertyName": "value94",
-        "valueCodes": [
-          94
-        ],
-        "referenceType": 0
-      }
-    ],
+    "properties": [],
     "systemVariables": [],
     "dxfName": "BLOCKROTATEACTION",
     "dxfSubClassName": "AcDbBlockRotationAction"
@@ -665,14 +501,14 @@ export const metadataLookupObjects: readonly ClassMetadata[] = [
         "referenceType": 0
       },
       {
-        "propertyName": "name",
+        "propertyName": "label",
         "valueCodes": [
           305
         ],
         "referenceType": 0
       },
       {
-        "propertyName": "nameOffset",
+        "propertyName": "labelOffset",
         "valueCodes": [
           140
         ],
@@ -684,48 +520,6 @@ export const metadataLookupObjects: readonly ClassMetadata[] = [
           1011,
           1021,
           1031
-        ],
-        "referenceType": 0
-      },
-      {
-        "propertyName": "value141",
-        "valueCodes": [
-          141
-        ],
-        "referenceType": 0
-      },
-      {
-        "propertyName": "value142",
-        "valueCodes": [
-          142
-        ],
-        "referenceType": 0
-      },
-      {
-        "propertyName": "value143",
-        "valueCodes": [
-          143
-        ],
-        "referenceType": 0
-      },
-      {
-        "propertyName": "value175",
-        "valueCodes": [
-          175
-        ],
-        "referenceType": 0
-      },
-      {
-        "propertyName": "value307",
-        "valueCodes": [
-          307
-        ],
-        "referenceType": 0
-      },
-      {
-        "propertyName": "value96",
-        "valueCodes": [
-          96
         ],
         "referenceType": 0
       }
@@ -758,10 +552,11 @@ export const metadataLookupObjects: readonly ClassMetadata[] = [
         "valueCodes": [
           93
         ],
-        "referenceType": 4
+        "referenceType": 4,
+        "collectionCodes": [331]
       },
       {
-        "propertyName": "name",
+        "propertyName": "label",
         "valueCodes": [
           301
         ],
@@ -3536,6 +3331,120 @@ export const metadataLookupObjects: readonly ClassMetadata[] = [
     "systemVariables": [],
     "dxfName": "VISUALSTYLE",
     "dxfSubClassName": "AcDbVisualStyle"
+  },
+  {
+    "typeName": "BlockLookupParameter", "baseTypeName": "Block1PtParameter",
+    "properties": [
+      { "propertyName": "actionId", "valueCodes": [94], "referenceType": 0 },
+      { "propertyName": "description", "valueCodes": [304], "referenceType": 0 },
+      { "propertyName": "label", "valueCodes": [303], "referenceType": 0 }
+    ], "systemVariables": [], "dxfName": "BLOCKLOOKUPPARAMETER", "dxfSubClassName": "AcDbBlockLookUpParameter"
+  },
+  {
+    "typeName": "BlockPointParameter", "baseTypeName": "Block1PtParameter",
+    "properties": [
+      { "propertyName": "description", "valueCodes": [304], "referenceType": 0 },
+      { "propertyName": "label", "valueCodes": [303], "referenceType": 0 },
+      { "propertyName": "labelPosition", "valueCodes": [1011, 1021, 1031], "referenceType": 0 }
+    ], "systemVariables": [], "dxfName": "BLOCKPOINTPARAMETER", "dxfSubClassName": "AcDbBlockPointParameter"
+  },
+  {
+    "typeName": "BlockMoveAction", "baseTypeName": "BlockAction",
+    "properties": [
+      { "propertyName": "angleOffset", "valueCodes": [141], "referenceType": 0 },
+      { "propertyName": "distanceMultiplier", "valueCodes": [140], "referenceType": 0 },
+      { "propertyName": "unknownFlag", "valueCodes": [280], "referenceType": 0 }
+    ], "systemVariables": [], "dxfName": "BLOCKMOVEACTION", "dxfSubClassName": "AcDbBlockMoveAction"
+  },
+  {
+    "typeName": "BlockLinearGrip", "baseTypeName": "BlockGrip",
+    "properties": [
+      { "propertyName": "distanceX", "valueCodes": [140], "referenceType": 0 },
+      { "propertyName": "distanceY", "valueCodes": [141], "referenceType": 0 },
+      { "propertyName": "distanceZ", "valueCodes": [142], "referenceType": 0 }
+    ], "systemVariables": [], "dxfName": "BLOCKLINEARGRIP", "dxfSubClassName": "AcDbBlockLinearGrip"
+  },
+  {
+    "typeName": "BlockXYGrip", "baseTypeName": "BlockGrip", "properties": [], "systemVariables": [],
+    "dxfName": "BLOCKXYGRIP", "dxfSubClassName": "AcDbBlockXYGrip"
+  },
+  {
+    "typeName": "BlockAlignmentGrip", "baseTypeName": "BlockGrip",
+    "properties": [
+      { "propertyName": "alignmentX", "valueCodes": [140], "referenceType": 0 },
+      { "propertyName": "alignmentY", "valueCodes": [141], "referenceType": 0 },
+      { "propertyName": "alignmentZ", "valueCodes": [142], "referenceType": 0 }
+    ], "systemVariables": [], "dxfName": "BLOCKALIGNMENTGRIP", "dxfSubClassName": "AcDbBlockAlignmentGrip"
+  },
+  {
+    "typeName": "BlockAlignmentParameter", "baseTypeName": "Block2PtParameter",
+    "properties": [{ "propertyName": "isPerpendicular", "valueCodes": [280], "referenceType": 0 }],
+    "systemVariables": [], "dxfName": "BLOCKALIGNMENTPARAMETER", "dxfSubClassName": "AcDbBlockAlignmentParameter"
+  },
+  {
+    "typeName": "BlockLookupGrip", "baseTypeName": "BlockGrip", "properties": [], "systemVariables": [],
+    "dxfName": "BLOCKLOOKUPGRIP", "dxfSubClassName": "AcDbBlockLookUpGrip"
+  },
+  {
+    "typeName": "BlockPolarGrip", "baseTypeName": "BlockGrip", "properties": [], "systemVariables": [],
+    "dxfName": "BLOCKPOLARGRIP", "dxfSubClassName": "AcDbBlockPolarGrip"
+  },
+  {
+    "typeName": "BlockPolarParameter", "baseTypeName": "Block2PtParameter",
+    "properties": [
+      { "propertyName": "angleDescription", "valueCodes": [308], "referenceType": 0 },
+      { "propertyName": "angleName", "valueCodes": [307], "referenceType": 0 },
+      { "propertyName": "description", "valueCodes": [306], "referenceType": 0 },
+      { "propertyName": "label", "valueCodes": [305], "referenceType": 0 },
+      { "propertyName": "labelOffset", "valueCodes": [140], "referenceType": 0 }
+    ], "systemVariables": [], "dxfName": "BLOCKPOLARPARAMETER", "dxfSubClassName": "AcDbBlockPolarParameter"
+  },
+  {
+    "typeName": "BlockXYParameter", "baseTypeName": "Block2PtParameter",
+    "properties": [
+      { "propertyName": "descriptionX", "valueCodes": [308], "referenceType": 0 },
+      { "propertyName": "descriptionY", "valueCodes": [307], "referenceType": 0 },
+      { "propertyName": "labelOffsetX", "valueCodes": [141], "referenceType": 0 },
+      { "propertyName": "labelOffsetY", "valueCodes": [140], "referenceType": 0 },
+      { "propertyName": "labelX", "valueCodes": [306], "referenceType": 0 },
+      { "propertyName": "labelY", "valueCodes": [305], "referenceType": 0 }
+    ], "systemVariables": [], "dxfName": "BLOCKXYPARAMETER", "dxfSubClassName": "AcDbBlockXYParameter"
+  },
+  {
+    "typeName": "BlockArrayAction", "baseTypeName": "BlockAction",
+    "properties": [
+      { "propertyName": "columnOffset", "valueCodes": [141], "referenceType": 0 },
+      { "propertyName": "rowOffset", "valueCodes": [140], "referenceType": 0 }
+    ], "systemVariables": [], "dxfName": "BLOCKARRAYACTION", "dxfSubClassName": "AcDbBlockArrayAction"
+  },
+  {
+    "typeName": "BlockLookupAction", "baseTypeName": "BlockAction",
+    "properties": [{ "propertyName": "unknownFlag", "valueCodes": [280], "referenceType": 0 }],
+    "systemVariables": [], "dxfName": "BLOCKLOOKUPACTION", "dxfSubClassName": "AcDbBlockLookupAction"
+  },
+  {
+    "typeName": "BlockStretchAction", "baseTypeName": "BlockAction",
+    "properties": [
+      { "propertyName": "angleOffset", "valueCodes": [141], "referenceType": 0 },
+      { "propertyName": "distanceMultiplier", "valueCodes": [140], "referenceType": 0 },
+      { "propertyName": "unknownFlag", "valueCodes": [280], "referenceType": 0 }
+    ], "systemVariables": [], "dxfName": "BLOCKSTRETCHACTION", "dxfSubClassName": "AcDbBlockStretchAction"
+  },
+  {
+    "typeName": "BlockPolarStretchAction", "baseTypeName": "BlockAction",
+    "properties": [
+      { "propertyName": "angleOffset", "valueCodes": [140], "referenceType": 0 },
+      { "propertyName": "distanceMultiplier", "valueCodes": [141], "referenceType": 0 }
+    ], "systemVariables": [], "dxfName": "BLOCKPOLARSTRETCHACTION", "dxfSubClassName": "AcDbBlockPolarStretchAction"
+  },
+  {
+    "typeName": "BlockScaleAction", "baseTypeName": "BlockActionBasePt", "properties": [], "systemVariables": [],
+    "dxfName": "BLOCKSCALEACTION", "dxfSubClassName": "AcDbBlockScaleAction"
+  },
+  {
+    "typeName": "DynamicBlockPurgePreventer", "baseTypeName": "NonGraphicalObject",
+    "properties": [{ "propertyName": "version", "valueCodes": [70], "referenceType": 0 }],
+    "systemVariables": [], "dxfName": "ACDB_DYNAMICBLOCKPURGEPREVENTER_VERSION", "dxfSubClassName": "AcDbDynamicBlockPurgePreventer"
   },
   {
     "typeName": "XRecord",

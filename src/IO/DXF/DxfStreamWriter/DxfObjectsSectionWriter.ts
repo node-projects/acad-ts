@@ -7,6 +7,7 @@ import { DxfFileToken } from '../../../DxfFileToken.js';
 import { DxfCode } from '../../../DxfCode.js';
 import { DxfSubclassMarker } from '../../../DxfSubclassMarker.js';
 import { DxfClassMap } from '../../../DxfClassMap.js';
+import { DxfMap } from '../../../DxfMap.js';
 import { ACadVersion } from '../../../ACadVersion.js';
 import { CadObject } from '../../../CadObject.js';
 import { NonGraphicalObject } from '../../../Objects/NonGraphicalObject.js';
@@ -38,6 +39,8 @@ import { AecWallStyle } from '../../../Objects/AEC/AecWallStyle.js';
 import { AecCleanupGroup } from '../../../Objects/AEC/AecCleanupGroup.js';
 import { AecBinRecord } from '../../../Objects/AEC/AecBinRecord.js';
 import { EvaluationGraph } from '../../../Objects/Evaluations/EvaluationGraph.js';
+import { EvaluationExpression } from '../../../Objects/Evaluations/EvaluationExpression.js';
+import { DynamicBlockPurgePreventer } from '../../../Objects/DynamicBlockPurgePreventer.js';
 import { Material } from '../../../Objects/Material.js';
 import { MultiLeaderObjectContextData } from '../../../Objects/MultiLeaderObjectContextData.js';
 import { VisualStyle } from '../../../Objects/VisualStyle.js';
@@ -456,11 +459,33 @@ export class DxfObjectsSectionWriter extends DxfSectionWriterBase {
       this._writeTableStyle(co);
     } else if (co instanceof XRecord) {
       this.writeXRecord(co);
+    } else if (co instanceof EvaluationExpression || co instanceof DynamicBlockPurgePreventer) {
+      this._writeMappedObject(co);
     } else {
       throw new Error(`Object not implemented : ${co.constructor.name}`);
     }
 
     this.writeExtendedData(co.extendedData);
+  }
+
+  private _writeMappedObject(co: CadObject): void {
+    const map = DxfMap.create(co.constructor);
+    for (const [subclassName, subclass] of map.subClasses) {
+      if (subclassName) this._writer.write(DxfCode.Subclass, subclassName);
+      for (const [code, property] of subclass.dxfProperties) {
+        const value = property.getValue(co);
+        const collectionCodes = property.getCollectionCodes();
+        if (collectionCodes && Array.isArray(value)) {
+          this._writer.write(code, value.length, subclass);
+          for (const item of value) {
+            const written = item instanceof CadObject ? item.handle : item;
+            this._writer.write(collectionCodes[0], written);
+          }
+        } else {
+          this._writer.write(code, property.getRawValue(co), subclass);
+        }
+      }
+    }
   }
 
   protected writePdfUnderlayDefinition(definition: PdfUnderlayDefinition): void {

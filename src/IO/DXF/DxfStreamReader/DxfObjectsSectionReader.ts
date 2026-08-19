@@ -82,6 +82,23 @@ import { BlockVisibilityParameter , BlockVisibilityState} from '../../../Objects
 import { BlockRotationParameter } from '../../../Objects/Evaluations/BlockRotationParameter.js';
 import { BlockRotationGrip } from '../../../Objects/Evaluations/BlockRotationGrip.js';
 import { BlockRotationAction } from '../../../Objects/Evaluations/BlockRotationAction.js';
+import { BlockLookupParameter } from '../../../Objects/Evaluations/BlockLookupParameter.js';
+import { BlockPointParameter } from '../../../Objects/Evaluations/BlockPointParameter.js';
+import { BlockMoveAction } from '../../../Objects/Evaluations/BlockMoveAction.js';
+import { BlockLinearGrip } from '../../../Objects/Evaluations/BlockLinearGrip.js';
+import { BlockXYGrip } from '../../../Objects/Evaluations/BlockXYGrip.js';
+import { BlockScaleAction } from '../../../Objects/Evaluations/BlockScaleAction.js';
+import { BlockStretchAction } from '../../../Objects/Evaluations/BlockStretchAction.js';
+import { BlockLookupAction } from '../../../Objects/Evaluations/BlockLookupAction.js';
+import { BlockLookupGrip } from '../../../Objects/Evaluations/BlockLookupGrip.js';
+import { BlockAlignmentGrip } from '../../../Objects/Evaluations/BlockAlignmentGrip.js';
+import { BlockAlignmentParameter } from '../../../Objects/Evaluations/BlockAlignmentParameter.js';
+import { BlockPolarGrip } from '../../../Objects/Evaluations/BlockPolarGrip.js';
+import { BlockPolarParameter } from '../../../Objects/Evaluations/BlockPolarParameter.js';
+import { BlockPolarStretchAction } from '../../../Objects/Evaluations/BlockPolarStretchAction.js';
+import { BlockXYParameter } from '../../../Objects/Evaluations/BlockXYParameter.js';
+import { BlockArrayAction } from '../../../Objects/Evaluations/BlockArrayAction.js';
+import { DynamicBlockPurgePreventer } from '../../../Objects/DynamicBlockPurgePreventer.js';
 import { Field } from '../../../Objects/Field.js';
 import { FieldList } from '../../../Objects/FieldList.js';
 import { UnknownNonGraphicalObject } from '../../../Objects/UnknownNonGraphicalObject.js';
@@ -210,6 +227,40 @@ export class DxfObjectsSectionReader extends DxfSectionReaderBase {
         return this.readObjectCodes(new CadBlockRotationGripTemplate(), this._readBlockRotationGrip.bind(this), BlockRotationGrip);
       case DxfFileToken.objectBlockRotateAction:
         return this.readObjectCodes(new CadBlockRotationActionTemplate(), this._readBlockRotationAction.bind(this), BlockRotationAction);
+      case DxfFileToken.objectBlockLookupParameter:
+        return this._readMappedDynamicObject(new BlockLookupParameter(), this._readBlock1PtParameter.bind(this));
+      case DxfFileToken.objectBlockPointParameter:
+        return this._readMappedDynamicObject(new BlockPointParameter(), this._readBlock1PtParameter.bind(this));
+      case DxfFileToken.objectBlockMoveAction:
+        return this._readMappedDynamicObject(new BlockMoveAction(), this._readBlockAction.bind(this));
+      case DxfFileToken.objectBlockLinearGrip:
+        return this._readMappedDynamicObject(new BlockLinearGrip(), this._readBlockGrip.bind(this));
+      case DxfFileToken.objectBlockXYGrip:
+        return this._readMappedDynamicObject(new BlockXYGrip(), this._readBlockGrip.bind(this));
+      case DxfFileToken.objectBlockScaleAction:
+        return this._readMappedDynamicObject(new BlockScaleAction(), this._readBlockActionBasePt.bind(this));
+      case DxfFileToken.objectBlockStretchAction:
+        return this._readMappedDynamicObject(new BlockStretchAction(), this._readBlockAction.bind(this));
+      case DxfFileToken.objectBlockLookupAction:
+        return this._readMappedDynamicObject(new BlockLookupAction(), this._readBlockAction.bind(this));
+      case DxfFileToken.objectBlockLookupGrip:
+        return this._readMappedDynamicObject(new BlockLookupGrip(), this._readBlockGrip.bind(this));
+      case DxfFileToken.objectBlockAlignmentGrip:
+        return this._readMappedDynamicObject(new BlockAlignmentGrip(), this._readBlockGrip.bind(this));
+      case DxfFileToken.objectBlockAlignmentParameter:
+        return this._readMappedDynamicObject(new BlockAlignmentParameter(), this._readBlock2PtParameter.bind(this));
+      case DxfFileToken.objectBlockPolarGrip:
+        return this._readMappedDynamicObject(new BlockPolarGrip(), this._readBlockGrip.bind(this));
+      case DxfFileToken.objectBlockPolarParameter:
+        return this._readMappedDynamicObject(new BlockPolarParameter(), this._readBlock2PtParameter.bind(this));
+      case DxfFileToken.objectBlockPolarStretchAction:
+        return this._readMappedDynamicObject(new BlockPolarStretchAction(), this._readBlockAction.bind(this));
+      case DxfFileToken.objectBlockXYParameter:
+        return this._readMappedDynamicObject(new BlockXYParameter(), this._readBlock2PtParameter.bind(this));
+      case DxfFileToken.objectBlockArrayAction:
+        return this._readMappedDynamicObject(new BlockArrayAction(), this._readBlockAction.bind(this));
+      case DxfFileToken.objectDynamicBlockPurgePreventer:
+        return this.readObjectCodes(new CadNonGraphicalObjectTemplate(new DynamicBlockPurgePreventer()), this._readObjectSubclassMap.bind(this), DynamicBlockPurgePreventer);
       case DxfFileToken.objectField:
         return this.readObjectCodes(new CadFieldTemplate(new Field()), this._readField.bind(this), Field);
       case DxfFileToken.objectFieldList:
@@ -284,6 +335,10 @@ export class DxfObjectsSectionReader extends DxfSectionReaderBase {
     }
 
     return template;
+  }
+
+  private _readMappedDynamicObject(object: CadObject, reader: ReadObjectDelegate): CadTemplate {
+    return this.readObjectCodes(new CadNonGraphicalObjectTemplate(object as never), reader, object.constructor);
   }
 
   private _readFieldList(template: CadTemplate, map: DxfMap): boolean {
