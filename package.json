@@ -1,6 +1,6 @@
 {
   "name": "@node-projects/acad-ts",
-  "version": "2.4.2",
+  "version": "3.0.0",
   "description": "TypeScript library to read and write AutoCAD DWG and DXF files",
   "repository": {
     "type": "git",
@@ -48,11 +48,11 @@
     "bundle": "esbuild ./dist/index.js --format=esm --minify --platform=neutral --bundle --outfile=./dist/index-min.js"
   },
   "devDependencies": {
-    "@types/node": "^25.6.0",
-    "esbuild": "^0.28.0",
+    "@types/node": "^26.2.0",
+    "esbuild": "^0.28.2",
     "eslint": "^10.8.1",
-    "typescript": "^6.0.3",
+    "typescript": "^7.0.2",
     "typescript-eslint": "^8.67.0",
-    "vitest": "^4.1.5"
+    "vitest": "^4.1.11"
   }
 }
