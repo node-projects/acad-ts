@@ -55,6 +55,9 @@ export class Spline extends Entity {
 	}
 
 	get isPeriodic(): boolean {
+		if ((this._flags1 & SplineFlags1.MethodFitPoints) !== 0) {
+			return (this._flags1 & SplineFlags1.Closed) !== 0;
+		}
 		return (this._flags & SplineFlags.Periodic) !== 0;
 	}
 	set isPeriodic(value: boolean) {
