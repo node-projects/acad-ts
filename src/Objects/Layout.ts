@@ -69,6 +69,10 @@ export class Layout extends PlotSettings {
 		return this.associatedBlock?.viewports ?? null;
 	}
 
+	get paperViewport(): Viewport | null {
+		return this.viewports?.find((viewport) => viewport.representsPaper) ?? null;
+	}
+
 	xAxis: XYZ = new XYZ(1, 0, 0);
 	yAxis: XYZ = new XYZ(0, 1, 0);
 
@@ -105,14 +109,20 @@ export class Layout extends PlotSettings {
 			return;
 		}
 
-		const paperViewport = this.viewports?.find((viewport: Viewport) => viewport.representsPaper) ?? null;
+		const paperViewport = this.paperViewport;
 		if (paperViewport != null) {
 			this.lastActiveViewport ??= paperViewport;
+			paperViewport.height = this.paperHeight;
+			paperViewport.width = this.paperWidth;
+			paperViewport.center = new XYZ(paperViewport.width / 2, paperViewport.height / 2, 0);
 			return;
 		}
 
 		const viewport = new Viewport();
 		viewport.id = Viewport.paperViewId;
+		viewport.height = this.paperHeight;
+		viewport.width = this.paperWidth;
+		viewport.center = new XYZ(viewport.width / 2, viewport.height / 2, 0);
 		this.addViewport(viewport);
 		this.lastActiveViewport = viewport;
 	}
