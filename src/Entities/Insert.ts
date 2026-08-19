@@ -191,11 +191,19 @@ export class Insert extends Entity {
 	}
 
 	getTransform(): Transform {
-		return new Transform(
-			this.insertPoint,
+		const transform = new Transform(
+			undefined,
 			new XYZ(this.xScale, this.yScale, this.zScale),
 			new XYZ(0, 0, this.rotation),
 		);
+		const basePoint = this.block?.blockEntity?.basePoint ?? XYZ.zero;
+		const transformedBasePoint = transform.applyTransform(basePoint);
+		transform.translation = new XYZ(
+			this.insertPoint.x - transformedBasePoint.x,
+			this.insertPoint.y - transformedBasePoint.y,
+			this.insertPoint.z - transformedBasePoint.z,
+		);
+		return transform;
 	}
 
 	applyAttributeTransform(attribute: AttributeEntity): void {
