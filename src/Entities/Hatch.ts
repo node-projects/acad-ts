@@ -19,6 +19,8 @@ import { Vertex2D } from './Vertex2D.js';
 import { XYZ } from '../Math/XYZ.js';
 import { XY } from '../Math/XY.js';
 import { Transform } from '../Math/Transform.js';
+import { MathHelper } from '../Math/MathHelper.js';
+import { LineType } from '../Tables/LineType.js';
 
 function transformXYPoint(transform: Transform, point: XY): XY {
 	const transformed = transform.applyTransform(new XYZ(point.x, point.y, 0));
@@ -364,6 +366,63 @@ export class HatchBoundaryPath {
 		return pts;
 	}
 
+	findIntersections(origin: XY, direction: XY, precision: number = 256): XY[] {
+		const intersections: XY[] = [];
+		const addSegmentIntersection = (start: XY, end: XY): void => {
+			const segment = new XY(end.x - start.x, end.y - start.y);
+			const denominator = direction.cross(segment);
+			if (Math.abs(denominator) <= MathHelper.epsilon) {
+				return;
+			}
+
+			const fromOrigin = new XY(start.x - origin.x, start.y - origin.y);
+			const lineParameter = fromOrigin.cross(segment) / denominator;
+			const segmentParameter = fromOrigin.cross(direction) / denominator;
+			if (segmentParameter < -MathHelper.epsilon || segmentParameter > 1 + MathHelper.epsilon) {
+				return;
+			}
+
+			intersections.push(new XY(
+				origin.x + direction.x * lineParameter,
+				origin.y + direction.y * lineParameter,
+			));
+		};
+
+		for (const edge of this.edges) {
+			if (edge instanceof HatchBoundaryPathLine) {
+				addSegmentIntersection(edge.start, edge.end);
+				continue;
+			}
+
+			let points: XYZ[] = [];
+			let closed = false;
+			if (edge instanceof HatchBoundaryPathArc || edge instanceof HatchBoundaryPathEllipse) {
+				points = edge.polygonalVertexes(precision);
+			} else if (edge instanceof HatchBoundaryPathPolyline) {
+				points = (edge.toEntity() as Polyline2D).getPoints(precision);
+				closed = edge.isClosed;
+			} else if (edge instanceof HatchBoundaryPathSpline) {
+				points = edge.polygonalVertexes(precision);
+			}
+
+			for (let i = 0; i + 1 < points.length; i++) {
+				addSegmentIntersection(
+					new XY(points[i].x, points[i].y),
+					new XY(points[i + 1].x, points[i + 1].y),
+				);
+			}
+			if (closed && points.length > 2) {
+				const first = points[0];
+				const last = points[points.length - 1];
+				if (first.x !== last.x || first.y !== last.y) {
+					addSegmentIntersection(new XY(last.x, last.y), new XY(first.x, first.y));
+				}
+			}
+		}
+
+		return intersections;
+	}
+
 	updateEdges(): void {
 		if (this.entities.length === 0) return;
 		this.edges = [];
@@ -507,6 +566,77 @@ export class Hatch extends Entity {
 		}
 	}
 
+	explodePattern(): Entity[] {
+		const entities: Entity[] = [];
+		if (!this.pattern || this.pattern.lines.length === 0 || this.paths.length === 0) {
+			return entities;
+		}
+
+		const box = this.getBoundingBox();
+		if (box == null) {
+			return entities;
+		}
+
+		const corners = [
+			new XY(box.min.x, box.min.y),
+			new XY(box.min.x, box.max.y),
+			new XY(box.max.x, box.min.y),
+			new XY(box.max.x, box.max.y),
+		];
+
+		for (const patternLine of this.pattern.lines) {
+			const direction = patternLine.direction.normalize();
+			if (direction.getLength() <= MathHelper.epsilon) {
+				continue;
+			}
+
+			const normal = new XY(-direction.y, direction.x);
+			const projections = corners.map(corner => corner.dot(normal));
+			const minProjection = Math.min(...projections);
+			const maxProjection = Math.max(...projections);
+			const baseProjection = patternLine.basePoint.dot(normal);
+
+			let startIndex = 0;
+			let endIndex = 0;
+			if (Math.abs(patternLine.lineOffset) > MathHelper.epsilon) {
+				const first = (minProjection - baseProjection) / patternLine.lineOffset;
+				const last = (maxProjection - baseProjection) / patternLine.lineOffset;
+				startIndex = Math.floor(Math.min(first, last)) - 1;
+				endIndex = Math.ceil(Math.max(first, last)) + 1;
+			}
+
+			for (let lineIndex = startIndex; lineIndex <= endIndex; lineIndex++) {
+				const basePoint = new XY(
+					patternLine.basePoint.x + patternLine.offset.x * lineIndex,
+					patternLine.basePoint.y + patternLine.offset.y * lineIndex,
+				);
+				const hits: number[] = [];
+				for (const boundary of this.paths) {
+					for (const point of boundary.findIntersections(basePoint, direction)) {
+						hits.push(new XY(point.x - basePoint.x, point.y - basePoint.y).dot(direction));
+					}
+				}
+
+				const parameters = Hatch.mergeParameters(hits);
+				for (let i = 0; i + 1 < parameters.length; i++) {
+					const start = parameters[i];
+					const end = parameters[i + 1];
+					if (end - start <= MathHelper.epsilon) {
+						continue;
+					}
+
+					const midpoint = Hatch.pointOnLine(basePoint, direction, (start + end) * 0.5);
+					if (!this.isPointInsideByParity(midpoint)) {
+						continue;
+					}
+					entities.push(...this.emitDashedSegment(basePoint, direction, start, end, patternLine.dashLengths));
+				}
+			}
+		}
+
+		return entities;
+	}
+
 	override getBoundingBox(): BoundingBox | null {
 		const boxes = this.paths
 			.map((path) => path.getBoundingBox())
@@ -516,6 +646,112 @@ export class Hatch extends Entity {
 		}
 
 		return BoundingBox.fromPoints(boxes.flatMap((box) => [box.min, box.max]));
+	}
+
+	private static mergeParameters(values: number[], tolerance: number = MathHelper.epsilon): number[] {
+		const sorted = [...values].sort((a, b) => a - b);
+		const merged: number[] = [];
+		for (const value of sorted) {
+			if (merged.length === 0 || Math.abs(value - merged[merged.length - 1]) > tolerance) {
+				merged.push(value);
+			} else {
+				merged[merged.length - 1] = (merged[merged.length - 1] + value) * 0.5;
+			}
+		}
+		return merged;
+	}
+
+	private static pointOnLine(origin: XY, direction: XY, parameter: number): XYZ {
+		return new XYZ(
+			origin.x + direction.x * parameter,
+			origin.y + direction.y * parameter,
+			0,
+		);
+	}
+
+	private emitDashedSegment(
+		origin: XY,
+		direction: XY,
+		start: number,
+		end: number,
+		dashLengths: number[],
+	): Entity[] {
+		const createLine = (from: number, to: number, continuous: boolean = true): Line => {
+			const line = new Line(
+				Hatch.pointOnLine(origin, direction, from),
+				Hatch.pointOnLine(origin, direction, to),
+			);
+			line.matchProperties(this);
+			if (continuous) {
+				line.lineType = LineType.continuous;
+			}
+			return line;
+		};
+
+		if (dashLengths.length === 0) {
+			return [createLine(start, end)];
+		}
+
+		const cycle = dashLengths.reduce((sum, length) => sum + Math.abs(length), 0);
+		if (cycle <= MathHelper.epsilon) {
+			return [];
+		}
+
+		let position = start % cycle;
+		if (position < 0) position += cycle;
+		let index = 0;
+		let accumulated = 0;
+		while (index < dashLengths.length && accumulated + Math.abs(dashLengths[index]) <= position + MathHelper.epsilon) {
+			accumulated += Math.abs(dashLengths[index]);
+			index++;
+		}
+		if (index >= dashLengths.length) {
+			index = 0;
+			accumulated = 0;
+			position = 0;
+		}
+
+		const result: Entity[] = [];
+		let cursor = start;
+		let remaining = Math.abs(dashLengths[index]) - (position - accumulated);
+		while (cursor < end - MathHelper.epsilon) {
+			let guard = 0;
+			while (remaining <= MathHelper.epsilon && guard < dashLengths.length + 1) {
+				if (dashLengths[index] === 0) {
+					result.push(createLine(cursor, cursor + MathHelper.epsilon, false));
+				}
+				index = (index + 1) % dashLengths.length;
+				remaining = Math.abs(dashLengths[index]);
+				guard++;
+			}
+			if (remaining <= MathHelper.epsilon) break;
+
+			const step = Math.min(remaining, end - cursor);
+			if (dashLengths[index] > MathHelper.epsilon && step > MathHelper.epsilon) {
+				result.push(createLine(cursor, cursor + step));
+			}
+			cursor += step;
+			remaining -= step;
+			if (remaining <= MathHelper.epsilon) {
+				index = (index + 1) % dashLengths.length;
+				remaining = Math.abs(dashLengths[index]);
+			}
+		}
+
+		return result;
+	}
+
+	private isPointInsideByParity(point: XYZ, jitter: number = 1e-7): boolean {
+		const rayOrigin = new XY(point.x, point.y + jitter);
+		const hits: number[] = [];
+		for (const boundary of this.paths) {
+			for (const intersection of boundary.findIntersections(rayOrigin, XY.axisX)) {
+				if (intersection.x >= point.x - MathHelper.epsilon) {
+					hits.push(intersection.x);
+				}
+			}
+		}
+		return Hatch.mergeParameters(hits).length % 2 === 1;
 	}
 }
 

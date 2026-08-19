@@ -4,6 +4,10 @@ export class HatchPatternLine {
 	basePoint: XY = new XY(0, 0);
 	dashLengths: number[] = [];
 
+	get direction(): XY {
+		return new XY(Math.cos(this.angle), Math.sin(this.angle));
+	}
+
 	get lineOffset(): number {
 		const cos = Math.cos(-this.angle);
 		const sin = Math.sin(-this.angle);
