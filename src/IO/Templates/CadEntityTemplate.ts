@@ -5,6 +5,7 @@ import { LineType } from '../../Tables/LineType.js';
 import { CadDocumentBuilder } from '../CadDocumentBuilder.js';
 import { NotificationType } from '../NotificationEventHandler.js';
 import { CadTemplateT } from './CadTemplate[T].js';
+import { ProxyGeometryReader } from '../ProxyGeometryReader.js';
 
 export class CadEntityTemplate extends CadTemplateT<Entity> {
 	bookColorName: string | null = null;
@@ -28,6 +29,7 @@ export class CadEntityTemplate extends CadTemplateT<Entity> {
 	nextEntity: number | null = null;
 
 	prevEntity: number | null = null;
+	proxyGraphics: Uint8Array | null = null;
 
 	constructor(entity: Entity) {
 		super(entity);
@@ -78,6 +80,10 @@ export class CadEntityTemplate extends CadTemplateT<Entity> {
 			if (bookColor) {
 				this.cadObject.bookColor = bookColor;
 			}
+		}
+
+		if (this.proxyGraphics != null && !builder.ignoreProxyGraphics) {
+			this.cadObject.proxyGeometries.push(...ProxyGeometryReader.readGeometries(this.proxyGraphics));
 		}
 	}
 }

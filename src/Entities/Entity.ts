@@ -15,6 +15,7 @@ import type { Material } from '../Objects/Material.js';
 import { XYZ } from '../Math/XYZ.js';
 import { XY } from '../Math/XY.js';
 import { Transform } from '../Math/Transform.js';
+import type { IProxyGeometry } from './ProxyGraphics.js';
 
 function isBlockRecordOwner(value: unknown): value is BlockRecord {
 	return value != null && typeof value === 'object' && 'blockEntity' in value;
@@ -53,6 +54,8 @@ export abstract class Entity extends CadObject implements IEntity {
 
 	material: Material | null = null;
 
+	proxyGeometries: IProxyGeometry[] = [];
+
 	override get subclassMarker(): string {
 		return DxfSubclassMarker.entity;
 	}
@@ -87,6 +90,7 @@ export abstract class Entity extends CadObject implements IEntity {
 		clone._layer = this.layer.clone() as Layer;
 		clone._lineType = this.lineType.clone() as LineType;
 		clone.material = this.material?.clone?.() as Material | null ?? null;
+		clone.proxyGeometries = [...this.proxyGeometries];
 
 		return clone;
 	}

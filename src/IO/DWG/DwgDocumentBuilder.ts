@@ -19,6 +19,7 @@ export class DwgDocumentBuilder extends CadDocumentBuilder {
 
 	override get keepUnknownEntities(): boolean { return this.configuration.keepUnknownEntities; }
 	override get keepUnknownNonGraphicalObjects(): boolean { return this.configuration.keepUnknownNonGraphicalObjects; }
+	override get ignoreProxyGraphics(): boolean { return this.configuration.ignoreProxyGraphics; }
 
 	constructor(version: ACadVersion, document: CadDocument, configuration: DwgReaderConfiguration) {
 		super(version, document);

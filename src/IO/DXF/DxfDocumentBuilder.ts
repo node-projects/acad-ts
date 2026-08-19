@@ -16,8 +16,11 @@ import { DxfReaderConfiguration } from './DxfReaderConfiguration.js';
 import { CadDocumentBuilder } from '../CadDocumentBuilder.js';
 import { NotificationType } from '../NotificationEventHandler.js';
 import { ICadOwnerTemplate } from '../Templates/ICadOwnerTemplate.js';
+import { ModelerGeometry } from '../../Entities/ModelerGeometry.js';
 
 export class DxfDocumentBuilder extends CadDocumentBuilder {
+	public override get ignoreProxyGraphics(): boolean { return true; }
+	public acdsDataRecords: Map<number, Uint8Array> = new Map();
   public configuration: DxfReaderConfiguration;
 
   public override get keepUnknownEntities(): boolean {
@@ -64,6 +67,12 @@ export class DxfDocumentBuilder extends CadDocumentBuilder {
     }
 
     super.buildDocument();
+
+	for (const [handle, payload] of this.acdsDataRecords) {
+		const object = this.tryGetCadObject<ModelerGeometry>(handle);
+		if (object instanceof ModelerGeometry) object.acisData = payload;
+		else this.notify(`ACDSDATA record owner ${handle} is not a ModelerGeometry entity in the document`, NotificationType.Warning);
+	}
 
     if (this.configuration.createDefaults) {
       this.documentToBuild.createDefaults();
