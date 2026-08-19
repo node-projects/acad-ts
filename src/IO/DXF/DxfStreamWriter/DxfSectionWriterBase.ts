@@ -166,6 +166,8 @@ export abstract class DxfSectionWriterBase {
         this._writer.write(91, 0);
         break;
     }
+
+    this._writer.write(304, DxfFileToken.valueEnd);
   }
 
   protected writeCommonObjectData(cadObject: CadObject): void {
