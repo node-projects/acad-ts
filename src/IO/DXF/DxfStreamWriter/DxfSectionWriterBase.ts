@@ -8,6 +8,7 @@ import { DxfSubclassMarker } from '../../../DxfSubclassMarker.js';
 import { DxfClassMap } from '../../../DxfClassMap.js';
 import { DxfReferenceType } from '../../../Types/DxfReferenceType.js';
 import { ACadVersion } from '../../../ACadVersion.js';
+import { CadFileFormat } from '../../CadFileFormat.js';
 import { CadObject } from '../../../CadObject.js';
 import { CadValue } from '../../../CadValue.js';
 import { CadValueType } from '../../../CadValueType.js';
@@ -304,6 +305,11 @@ export abstract class DxfSectionWriterBase {
     if (!this._isEntitySupported(entity)) {
       return;
     }
+	const validationErrors = entity.validate(CadFileFormat.DXF, this.version);
+	if (validationErrors.length > 0) {
+	  this.notify(`Invalid entity ${entity.constructor.name}: ${validationErrors.join(' ')}`, NotificationType.Warning);
+	  return;
+	}
 
     this._writer.write(DxfCode.Start, entity.objectName);
 

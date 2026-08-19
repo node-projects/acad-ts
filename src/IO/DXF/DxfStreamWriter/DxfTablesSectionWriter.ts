@@ -22,6 +22,8 @@ import { View } from '../../../Tables/View.js';
 import { VPort } from '../../../Tables/VPort.js';
 import { ArcLengthSymbolPosition } from '../../../Tables/ArcLengthSymbolPosition.js';
 import { MathHelper } from '../../../Math/MathHelper.js';
+import { CadFileFormat } from '../../CadFileFormat.js';
+import { NotificationType } from '../../NotificationEventHandler.js';
 
 export class DxfTablesSectionWriter extends DxfSectionWriterBase {
   public get sectionName(): string {
@@ -46,10 +48,10 @@ export class DxfTablesSectionWriter extends DxfSectionWriterBase {
     this._writeTable(this._document.uCSs);
     this._writeTable(this._document.appIds);
     this._writeTable(this._document.dimensionStyles, DxfSubclassMarker.dimensionStyleTable);
-    this._writeTable(this._document.blockRecords);
+    this._writeTable(this._document.blockRecords, undefined, false);
   }
 
-  private _writeTable<T extends TableEntry>(table: Table<T>, subclass?: string): void {
+  private _writeTable<T extends TableEntry>(table: Table<T>, subclass?: string, writeFlags: boolean = true): void {
     this._writer.write(DxfCode.Start, DxfFileToken.tableEntry);
     this._writer.write(DxfCode.SymbolTableName, table.objectName);
 
@@ -64,13 +66,18 @@ export class DxfTablesSectionWriter extends DxfSectionWriterBase {
     }
 
     for (const entry of table) {
-      this._writeEntry(entry);
+      this._writeEntry(entry, writeFlags);
     }
 
     this._writer.write(DxfCode.Start, DxfFileToken.endTable);
   }
 
-  private _writeEntry<T extends TableEntry>(entry: T): void {
+  private _writeEntry<T extends TableEntry>(entry: T, writeFlags: boolean = true): void {
+	const validationErrors = entry.validate(CadFileFormat.DXF, this.version);
+	if (validationErrors.length > 0) {
+	  this.notify(`Invalid table entry ${entry.constructor.name}: ${validationErrors.join(' ')}`, NotificationType.Warning);
+	  return;
+	}
     const map = DxfMap.create(entry.constructor.name);
 
     this._writer.write(DxfCode.Start, entry.objectName);
@@ -86,7 +93,7 @@ export class DxfTablesSectionWriter extends DxfSectionWriterBase {
       this._writer.write(DxfCode.SymbolTableName, entry.name);
     }
 
-    this._writer.write(70, entry.flags);
+    if (writeFlags) this._writer.write(70, entry.flags);
 
     if (entry instanceof AppId) {
       // nothing
