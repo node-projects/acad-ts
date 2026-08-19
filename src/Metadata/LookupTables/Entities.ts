@@ -1275,6 +1275,52 @@ export const metadataLookupEntities: readonly ClassMetadata[] = [
     "dxfSubClassName": "AcDbLine"
   },
   {
+    "typeName": "LwPolyline",
+    "baseTypeName": "Entity",
+    "properties": [
+      {
+        "propertyName": "constantWidth",
+        "valueCodes": [
+          43
+        ],
+        "referenceType": 0
+      },
+      {
+        "propertyName": "elevation",
+        "valueCodes": [
+          38
+        ],
+        "referenceType": 0
+      },
+      {
+        "propertyName": "flags",
+        "valueCodes": [
+          70
+        ],
+        "referenceType": 0
+      },
+      {
+        "propertyName": "normal",
+        "valueCodes": [
+          210,
+          220,
+          230
+        ],
+        "referenceType": 0
+      },
+      {
+        "propertyName": "thickness",
+        "valueCodes": [
+          39
+        ],
+        "referenceType": 0
+      }
+    ],
+    "systemVariables": [],
+    "dxfName": "LWPOLYLINE",
+    "dxfSubClassName": "AcDbPolyline"
+  },
+  {
     "typeName": "Mesh",
     "baseTypeName": "Entity",
     "properties": [
