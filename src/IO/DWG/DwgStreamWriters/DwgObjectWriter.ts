@@ -1040,8 +1040,8 @@ export class DwgObjectWriter extends DwgSectionIO {
 
 		if (this.r2007Plus) {
 			this._writer.handleReferenceTyped(DwgReferenceType.SoftPointer, 0);
-			this._writer.handleReferenceTyped(DwgReferenceType.SoftPointer, 0);
-			this._writer.handleReferenceTyped(DwgReferenceType.SoftPointer, 0);
+			this._writer.handleReferenceTyped(DwgReferenceType.HardPointer, 0);
+			this._writer.handleReferenceTyped(DwgReferenceType.HardOwnership, 0);
 		}
 
 		if (this.r2000Plus) {
