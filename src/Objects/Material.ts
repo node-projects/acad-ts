@@ -10,6 +10,28 @@ import { MapSource } from './MapSource.js';
 import { ProjectionMethod } from './ProjectionMethod.js';
 import { TilingMethod } from './TilingMethod.js';
 
+export enum MaterialChannelFlags {
+	None = 0,
+	UseDiffuse = 0x01,
+	UseSpecular = 0x02,
+	UseReflection = 0x04,
+	UseOpacity = 0x08,
+	UseBump = 0x10,
+	UseRefraction = 0x20,
+	UseNormalMap = 0x40,
+	UseAll = 0x7f,
+}
+
+export enum MaterialIlluminationModel {
+	BlinnShader = 0,
+	MetalShader = 1,
+}
+
+export enum MaterialMode {
+	Realistic = 0,
+	Advanced = 1,
+}
+
 export class Material extends NonGraphicalObject {
 	ambientColor: Color = Color.byLayer;
 
@@ -30,7 +52,7 @@ export class Material extends NonGraphicalObject {
 	bumpProjectionMethod: ProjectionMethod = ProjectionMethod.Planar;
 	bumpTilingMethod: TilingMethod = TilingMethod.Tile;
 
-	channelFlags: number = 0;
+	channelFlags: MaterialChannelFlags = MaterialChannelFlags.UseDiffuse;
 	description: string = '';
 
 	diffuseAutoTransform: AutoTransformMethodFlags = AutoTransformMethodFlags.NoAutoTransform;
@@ -51,7 +73,8 @@ export class Material extends NonGraphicalObject {
 	diffuseProjectionMethod: ProjectionMethod = ProjectionMethod.Planar;
 	diffuseTilingMethod: TilingMethod = TilingMethod.Tile;
 
-	illuminationModel: number = 0;
+	illuminationModel: MaterialIlluminationModel = MaterialIlluminationModel.BlinnShader;
+	mode: MaterialMode = MaterialMode.Realistic;
 
 	override get objectName(): string { return DxfFileToken.objectMaterial; }
 	override get objectType(): ObjectType { return ObjectType.UNLISTED; }
