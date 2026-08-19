@@ -56,6 +56,8 @@ import { XY } from '../../../Math/XY.js';
 import { NotificationType } from '../../NotificationEventHandler.js';
 
 export class DxfObjectsSectionWriter extends DxfSectionWriterBase {
+	private readonly _writtenHandles = new Set<number>();
+
   public get sectionName(): string {
     return DxfFileToken.objectsSection;
   }
@@ -532,6 +534,8 @@ export class DxfObjectsSectionWriter extends DxfSectionWriterBase {
   protected writeSection(): void {
     while (this.holder.objects.length > 0) {
       const item: CadObject = this.holder.objects.shift()!;
+	  if (this._writtenHandles.has(item.handle)) continue;
+	  this._writtenHandles.add(item.handle);
       this.writeObject(item);
     }
   }
