@@ -1640,13 +1640,14 @@ export class DxfObjectsSectionReader extends DxfSectionReaderBase {
         return true;
       case 20: {
         const pt = filter.boundaryPoints[filter.boundaryPoints.length - 1];
-        filter.boundaryPoints.push(new XY(pt.x, this._reader.valueAsDouble));
+        filter.boundaryPoints[filter.boundaryPoints.length - 1] = new XY(pt.x, this._reader.valueAsDouble);
         return true;
       }
       case 40: {
         if (filter.clipFrontPlane && !tmp.hasFrontPlane) {
           filter.frontDistance = this._reader.valueAsDouble;
           tmp.hasFrontPlane = true;
+          return true;
         }
 
         const array: number[] = [
