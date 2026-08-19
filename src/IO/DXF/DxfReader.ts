@@ -159,7 +159,7 @@ export class DxfReader extends CadReaderBase<DxfReaderConfiguration> {
       for (let i = 0; i < data.dxfCodes.length; i++) {
         this._reader.readNext();
 
-        if (this._reader.dxfCode === DxfCode.CLShapeText) {
+        if (this._reader.dxfCode === DxfCode.CLShapeText || this._reader.dxfCode === DxfCode.Start) {
           const c = data.dxfCodes[i];
           const g = GroupCodeValue.transformValue(c);
           switch (g) {
@@ -202,7 +202,7 @@ export class DxfReader extends CadReaderBase<DxfReaderConfiguration> {
         );
       }
 
-      if (this._reader.dxfCode !== DxfCode.CLShapeText) {
+      if (this._reader.dxfCode !== DxfCode.CLShapeText && this._reader.dxfCode !== DxfCode.Start) {
         this._reader.readNext();
       }
     }
