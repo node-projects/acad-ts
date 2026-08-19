@@ -73,6 +73,9 @@ export class CadDictionary extends NonGraphicalObject implements Iterable<NonGra
 		if (!key) {
 			throw new Error('NonGraphicalObject must have a name');
 		}
+		if (!value.name) {
+			value.name = key;
+		}
 		this._entries.set(key.toLowerCase(), value);
 		value.owner = this;
 		this.onAdd?.call(this, this, new CollectionChangedEventArgs(value));
