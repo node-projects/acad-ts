@@ -2002,6 +2002,82 @@ export const metadataLookupEntities: readonly ClassMetadata[] = [
     "dxfSubClassName": "AcDbPolygonMeshVertex"
   },
   {
+    "typeName": "Polyline",
+    "baseTypeName": "Entity",
+    "properties": [
+      {
+        "propertyName": "elevation",
+        "valueCodes": [
+          30
+        ],
+        "referenceType": 0
+      },
+      {
+        "propertyName": "endWidth",
+        "valueCodes": [
+          41
+        ],
+        "referenceType": 0
+      },
+      {
+        "propertyName": "flags",
+        "valueCodes": [
+          70
+        ],
+        "referenceType": 0
+      },
+      {
+        "propertyName": "normal",
+        "valueCodes": [
+          210,
+          220,
+          230
+        ],
+        "referenceType": 0
+      },
+      {
+        "propertyName": "smoothSurface",
+        "valueCodes": [
+          75
+        ],
+        "referenceType": 0
+      },
+      {
+        "propertyName": "startWidth",
+        "valueCodes": [
+          40
+        ],
+        "referenceType": 0
+      },
+      {
+        "propertyName": "thickness",
+        "valueCodes": [
+          39
+        ],
+        "referenceType": 0
+      }
+    ],
+    "systemVariables": [],
+    "dxfName": "POLYLINE",
+    "dxfSubClassIsEmpty": true
+  },
+  {
+    "typeName": "Polyline2D",
+    "baseTypeName": "Polyline",
+    "properties": [],
+    "systemVariables": [],
+    "dxfName": "POLYLINE",
+    "dxfSubClassName": "AcDb2dPolyline"
+  },
+  {
+    "typeName": "Polyline3D",
+    "baseTypeName": "Polyline",
+    "properties": [],
+    "systemVariables": [],
+    "dxfName": "POLYLINE",
+    "dxfSubClassName": "AcDb3dPolyline"
+  },
+  {
     "typeName": "ProxyEntity",
     "baseTypeName": "Entity",
     "properties": [
