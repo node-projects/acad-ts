@@ -12,6 +12,7 @@ import { DimensionDiameter } from '../../../Entities/DimensionDiameter.js';
 import { DimensionAngular2Line } from '../../../Entities/DimensionAngular2Line.js';
 import { DimensionAngular3Pt } from '../../../Entities/DimensionAngular3Pt.js';
 import { DimensionArc } from '../../../Entities/DimensionArc.js';
+import { AcisTextCodec } from '../../AcisTextCodec.js';
 import { DimensionRadius } from '../../../Entities/DimensionRadius.js';
 import { DimensionOrdinate } from '../../../Entities/DimensionOrdinate.js';
 import { DimensionType } from '../../../Entities/DimensionType.js';
@@ -1559,10 +1560,22 @@ export abstract class DxfSectionReaderBase {
     const geometry = template.cadObject as ModelerGeometry;
 
     switch (this._reader.code as number) {
-      case 1:
-      case 3:
-        geometry.proprietaryData += this._reader.valueAsString + '\n';
+      case 1: {
+        const raw = this._reader.valueAsString;
+        geometry.proprietaryData += `${raw}\n`;
+        geometry.acisTextEncoded ??= AcisTextCodec.isEncoded(raw);
+        const decoded = geometry.acisTextEncoded ? AcisTextCodec.decode(raw) as string : raw;
+        const existing = geometry.getAcisText();
+        geometry.acisData = new TextEncoder().encode(existing ? `${existing}\n${decoded}` : decoded);
         return true;
+      }
+      case 3: {
+        const raw = this._reader.valueAsString;
+        geometry.proprietaryData += raw;
+        const decoded = geometry.acisTextEncoded ? AcisTextCodec.decode(raw) as string : raw;
+        geometry.acisData = new TextEncoder().encode(`${geometry.getAcisText() ?? ''}${decoded}`);
+        return true;
+      }
       case 2:
         geometry.guid = this._reader.valueAsString;
         return true;
