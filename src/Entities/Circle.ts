@@ -41,8 +41,10 @@ export class Circle extends Entity {
 
 	private _radius: number = 1.0;
 
-	constructor() {
+	constructor(center?: XYZ, radius?: number) {
 		super();
+		if (center) this.center = center;
+		if (radius !== undefined) this.radius = radius;
 	}
 
 	override applyTransform(transform: unknown): void {
