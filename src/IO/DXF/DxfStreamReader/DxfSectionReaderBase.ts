@@ -683,8 +683,14 @@ export abstract class DxfSectionReaderBase {
 		  value.setValue(v);
           break;
         }
+        case 90:
+          value.valueType = this._reader.valueAsInt as CadValueType;
+          break;
         case 91:
           value.setValue(this._reader.valueAsInt);
+          break;
+        case 93:
+          value.flags = this._reader.valueAsInt;
           break;
         case 140:
           value.setValue(this._reader.valueAsDouble);
