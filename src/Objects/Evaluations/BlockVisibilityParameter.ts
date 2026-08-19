@@ -23,6 +23,8 @@ export class BlockVisibilityParameter extends Block1PtParameter {
 	description: string = '';
 	entities: Entity[] = [];
 	name: string = '';
+	get label(): string { return this.name; }
+	set label(value: string) { this.name = value; }
 
 	override get objectName(): string { return DxfFileToken.objectBlockVisibilityParameter; }
 

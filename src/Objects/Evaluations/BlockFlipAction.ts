@@ -1,8 +1,13 @@
 import { BlockAction } from './BlockAction.js';
 import { DxfFileToken } from '../../DxfFileToken.js';
 import { DxfSubclassMarker } from '../../DxfSubclassMarker.js';
+import { EvalConnection } from './EvalConnection.js';
 
 export class BlockFlipAction extends BlockAction {
+	flipConnection: EvalConnection = new EvalConnection();
+	updatedFlipConnection: EvalConnection = new EvalConnection();
+	updatedBaseConnection: EvalConnection = new EvalConnection();
+	updatedEndConnection: EvalConnection = new EvalConnection();
 	caption301: string = '';
 	caption302: string = '';
 	caption303: string = '';

@@ -2,6 +2,7 @@ import { Block2PtParameter } from './Block2PtParameter.js';
 import { DxfFileToken } from '../../DxfFileToken.js';
 import { DxfSubclassMarker } from '../../DxfSubclassMarker.js';
 import { XYZ } from '../../Math/XYZ.js';
+import { ParameterValueSet } from './ParameterValueSet.js';
 
 export class BlockRotationParameter extends Block2PtParameter {
 	description: string = '';
@@ -20,4 +21,9 @@ export class BlockRotationParameter extends Block2PtParameter {
 	value175: number = 0;
 	value307: string = '';
 	value96: number = 0;
+	valueSet: ParameterValueSet = new ParameterValueSet();
+	get label(): string { return this.name; }
+	set label(value: string) { this.name = value; }
+	get labelOffset(): number { return this.nameOffset; }
+	set labelOffset(value: number) { this.nameOffset = value; }
 }

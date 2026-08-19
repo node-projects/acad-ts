@@ -1,6 +1,7 @@
 import { BlockAction } from './BlockAction.js';
 import { DxfSubclassMarker } from '../../DxfSubclassMarker.js';
 import { XYZ } from '../../Math/XYZ.js';
+import { EvalConnection } from './EvalConnection.js';
 
 export abstract class BlockActionBasePt extends BlockAction {
 	override get subclassMarker(): string { return DxfSubclassMarker.blockActionBasePt; }
@@ -12,4 +13,8 @@ export abstract class BlockActionBasePt extends BlockAction {
 	value302: string = '';
 	value92: number = 0;
 	value93: number = 0;
+	updateBaseXConnection: EvalConnection = new EvalConnection();
+	updateBaseYConnection: EvalConnection = new EvalConnection();
+	get basePoint(): XYZ { return this.value1011; }
+	set basePoint(value: XYZ) { this.value1011 = value; }
 }

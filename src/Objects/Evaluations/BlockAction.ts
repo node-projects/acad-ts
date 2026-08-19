@@ -6,6 +6,9 @@ import { Entity } from '../../Entities/Entity.js';
 export abstract class BlockAction extends BlockElement {
 	actionPoint: XYZ = new XYZ(0, 0, 0);
 	entities: Entity[] = [];
+	parametersIds: number[] = [];
+	get labelPosition(): XYZ { return this.actionPoint; }
+	set labelPosition(value: XYZ) { this.actionPoint = value; }
 
 	override get subclassMarker(): string { return DxfSubclassMarker.blockAction; }
 
