@@ -67,6 +67,7 @@ export class DwgReader extends CadReaderBase<DwgReaderConfiguration> {
 
 		this._builder = new DwgDocumentBuilder(this._fileHeader.acadVersion, this._document, this.configuration);
 		this._builder.onNotification = (sender, e) => this.onNotificationEvent(sender, e);
+		this._builder.onProgress = (sender, e) => this.onProgressEvent(sender, e);
 
 		this._document.summaryInfo = this.readSummaryInfo();
 		this._document.header = this.readHeader();
