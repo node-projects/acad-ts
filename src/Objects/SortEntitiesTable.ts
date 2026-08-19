@@ -66,6 +66,38 @@ export class SortEntitiesTable extends NonGraphicalObject implements Iterable<So
 		return entity.handle;
 	}
 
+	moveToBottom(entity: Entity): void {
+		const maxHandle = this._sorters.length > 0
+			? Math.max(...this._sorters.map(sorter => sorter.sortHandle))
+			: entity.handle;
+		this._setSorterHandle(entity, Math.min(Number.MAX_SAFE_INTEGER, maxHandle + 1));
+	}
+
+	moveToTop(entity: Entity): void {
+		const minHandle = this._sorters.length > 0
+			? Math.min(...this._sorters.map(sorter => sorter.sortHandle))
+			: entity.handle;
+		this._setSorterHandle(entity, Math.max(0, minHandle - 1));
+	}
+
+	oneStepUp(entity: Entity): void {
+		const sorted = [...this._sorters].sort((a, b) => a.compareTo(b));
+		const index = sorted.findIndex(sorter => sorter.entity === entity);
+		if (index <= 0) return;
+		const previous = sorted[index - 1];
+		const current = sorted[index];
+		[current.sortHandle, previous.sortHandle] = [previous.sortHandle, current.sortHandle];
+	}
+
+	oneStepDown(entity: Entity): void {
+		const sorted = [...this._sorters].sort((a, b) => a.compareTo(b));
+		const index = sorted.findIndex(sorter => sorter.entity === entity);
+		if (index < 0 || index >= sorted.length - 1) return;
+		const current = sorted[index];
+		const next = sorted[index + 1];
+		[current.sortHandle, next.sortHandle] = [next.sortHandle, current.sortHandle];
+	}
+
 	remove(entity: Entity): boolean {
 		const idx = this._sorters.findIndex(s => s.entity === entity);
 		if (idx < 0) return false;
@@ -76,5 +108,14 @@ export class SortEntitiesTable extends NonGraphicalObject implements Iterable<So
 	[Symbol.iterator](): Iterator<Sorter> {
 		const sorted = [...this._sorters].sort((a, b) => a.compareTo(b));
 		return sorted[Symbol.iterator]();
+	}
+
+	private _setSorterHandle(entity: Entity, handle: number): void {
+		const sorter = this._sorters.find(item => item.entity === entity);
+		if (sorter) {
+			sorter.sortHandle = handle;
+		} else {
+			this._sorters.push(new Sorter(entity, handle));
+		}
 	}
 }
