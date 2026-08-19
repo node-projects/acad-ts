@@ -3,9 +3,11 @@ import { ACadVersion } from '../src/ACadVersion.js';
 import { Hatch, HatchBoundaryPath, HatchBoundaryPathPolyline } from '../src/Entities/Hatch.js';
 import { HatchPattern, HatchPatternLine } from '../src/Entities/HatchPattern.js';
 import { Insert } from '../src/Entities/Insert.js';
+import { INamedCadObjectExtensions } from '../src/Extensions/INamedCadObjectExtensions.js';
 import { CadFileFormat } from '../src/IO/CadFileFormat.js';
 import { XY } from '../src/Math/XY.js';
 import { XYZ } from '../src/Math/XYZ.js';
+import { Layer } from '../src/Tables/Layer.js';
 
 describe('upstream synchronization features', () => {
 	it('explodes a clipped hatch line into continuous line entities', () => {
@@ -34,5 +36,10 @@ describe('upstream synchronization features', () => {
 		expect(insert.isValid(CadFileFormat.DXF, ACadVersion.AC1032)).toBe(false);
 		insert.normal = XYZ.zero;
 		expect(insert.validate(CadFileFormat.DWG, ACadVersion.AC1032)).toContain('normal vector cannot be zero.');
+	});
+
+	it('applies the AutoCAD leading-asterisk name rule', () => {
+		expect(INamedCadObjectExtensions.isValidDxfName(new Layer('*anonymous'))).toBe(true);
+		expect(INamedCadObjectExtensions.isValidDxfName(new Layer('bad*name'))).toBe(false);
 	});
 });
