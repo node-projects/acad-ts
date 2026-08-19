@@ -169,6 +169,8 @@ export { IOrientable, isOrientable } from './IOrientable.js';
 export * from './Entities/ProxyGraphics.js';
 export { ProxyGeometryReader } from './IO/ProxyGeometryReader.js';
 export { CadReaderConfiguration } from './IO/CadReaderConfiguration.js';
+export { CadObjectData, ProgressEventArgs, ReadStage } from './IO/ProgressEventHandler.js';
+export type { ProgressEventHandler } from './IO/ProgressEventHandler.js';
 export { CadWriterBase } from './IO/CadWriterBase.js';
 export { CadWriterConfiguration } from './IO/CadWriterConfiguration.js';
 export { BigEndianConverter } from './IO/Converters.js';
