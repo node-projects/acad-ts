@@ -39,7 +39,7 @@ describe('LegacyAc1014Roundtrip', () => {
 		const roundtrip = roundtripReader.read();
 
 		expect([...roundtrip.entities].length).toBe([...original.entities].length);
-		expect(roundtrip.blockRecords.get('MYBLOCK').entities.length).toBe(original.blockRecords.get('MYBLOCK').entities.length);
+		expect(roundtrip.blockRecords.get('MYBLOCK').entities.count).toBe(original.blockRecords.get('MYBLOCK').entities.count);
 		expect(collectEntityLinks(roundtripReader)).toEqual(collectEntityLinks(originalReader));
 
 		const originalShape = original.getCadObject(2185) as any;

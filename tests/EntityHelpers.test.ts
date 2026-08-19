@@ -65,7 +65,7 @@ describe('EntityHelpersTests', () => {
 		viewport.center = new XYZ(0, 0, 0);
 		viewport.width = 4;
 		viewport.height = 4;
-		viewport.viewCenter = new XYZ(2.5, 2.5, 0);
+		viewport.viewCenter = new XY(2.5, 2.5);
 		viewport.viewHeight = 5;
 
 		doc.entities?.add(inside);

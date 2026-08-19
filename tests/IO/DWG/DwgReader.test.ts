@@ -58,5 +58,16 @@ describe('DwgReaderTests', () => {
       const reader = new DwgReader(data);
       reader.readSummaryInfo();
     });
+
+    it('EntitiesHaveLayerReferences', () => {
+      const data = readFileAsArrayBuffer(test.path);
+      const doc = new DwgReader(data).read();
+
+      for (const entity of doc.entities) {
+        expect(entity.layer).toBeDefined();
+        expect(entity.layer).not.toBeNull();
+        expect(entity.layer?.name.length).toBeGreaterThan(0);
+      }
+    });
   });
 });

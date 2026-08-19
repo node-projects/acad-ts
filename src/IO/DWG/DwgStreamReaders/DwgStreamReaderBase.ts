@@ -117,6 +117,10 @@ export abstract class DwgStreamReaderBase implements IDwgStreamReader {
 	}
 
 	public setPositionByFlag(position: number): number {
+		// Reader instances may be repositioned and reused for multiple objects.
+		// A missing text stream in one object must not make later streams appear
+		// empty as well.
+		this.isEmpty = false;
 		this.setPositionInBits(position);
 
 		const flag: boolean = this.readBit();

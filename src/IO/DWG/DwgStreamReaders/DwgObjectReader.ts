@@ -297,6 +297,7 @@ export class DwgObjectReader extends DwgSectionIO {
   private readonly _crcReader: IDwgStreamReader;
   private readonly _map: Map<number, number>;
   private readonly _memoryStream: Uint8Array;
+  private readonly _queuedHandles: Set<number>;
   private readonly _readedObjects: Map<number, ObjectType> = new Map();
   private readonly _reader: IDwgStreamReader;
   private _builder: DwgDocumentBuilder;
@@ -322,6 +323,7 @@ export class DwgObjectReader extends DwgSectionIO {
     this._builder = builder;
     this._reader = reader;
     this._handles = [...handles];
+    this._queuedHandles = new Set(this._handles);
     this._map = new Map(handleMap);
     this._classes = new Map<number, DxfClass>();
     for (const c of classes) {
@@ -332,6 +334,9 @@ export class DwgObjectReader extends DwgSectionIO {
     // so they can safely share the decompressed object-section buffer.
     this._memoryStream = reader.stream;
     this._crcReader = DwgStreamReaderBase.getStreamHandler(this._version, this._memoryStream);
+    this._objectReader = DwgStreamReaderBase.getStreamHandler(this._version, this._memoryStream, this._reader.encoding);
+    this._handlesReader = DwgStreamReaderBase.getStreamHandler(this._version, this._memoryStream, this._reader.encoding);
+    this._textReader = DwgStreamReaderBase.getStreamHandler(this._version, this._memoryStream, this._reader.encoding);
   }
 
   public read(): void {
@@ -388,25 +393,22 @@ export class DwgObjectReader extends DwgSectionIO {
       const handleSectionOffset = this._crcReader.positionInBits() + sizeInBits - handleSize;
 			this._objectDataEndInBits = handleSectionOffset;
 
-      this._objectReader = DwgStreamReaderBase.getStreamHandler(this._version, this._memoryStream, this._reader.encoding);
       this._objectReader.setPositionInBits(this._crcReader.positionInBits());
 
       this._objectInitialPos = this._objectReader.positionInBits();
       type = this._objectReader.readObjectType();
 
-      this._handlesReader = DwgStreamReaderBase.getStreamHandler(this._version, this._memoryStream, this._reader.encoding);
       this._handlesReader.setPositionInBits(handleSectionOffset);
 
-      this._textReader = DwgStreamReaderBase.getStreamHandler(this._version, this._memoryStream, this._reader.encoding);
       this._textReader.setPositionByFlag(handleSectionOffset - 1);
 
       this._mergedReaders = new DwgMergedReader(this._objectReader, this._textReader, this._handlesReader);
     } else {
-      this._objectReader = DwgStreamReaderBase.getStreamHandler(this._version, this._memoryStream, this._reader.encoding);
       this._objectReader.setPositionInBits(this._crcReader.positionInBits());
 
-      this._handlesReader = DwgStreamReaderBase.getStreamHandler(this._version, this._memoryStream, this._reader.encoding);
-      this._textReader = this._objectReader;
+      if (this._version !== ACadVersion.AC1021) {
+        this._textReader = this._objectReader;
+      }
 
       this._objectInitialPos = this._objectReader.positionInBits();
       type = this._objectReader.readObjectType();
@@ -421,13 +423,22 @@ export class DwgObjectReader extends DwgSectionIO {
       ? this._handlesReader.handleReference()
       : this._handlesReader.handleReferenceWithRef(handle);
 
-    if (value !== 0 &&
-      this._builder.tryGetObjectTemplate(value) == null &&
-      !this._readedObjects.has(value)) {
-      this._handles.push(value);
-    }
+    this._enqueueHandle(value);
 
     return value;
+  }
+
+  private _enqueueHandle(value: number): void {
+    if (value === 0 ||
+      !this._map.has(value) ||
+      this._queuedHandles.has(value) ||
+      this._builder.tryGetObjectTemplate(value) != null ||
+      this._readedObjects.has(value)) {
+      return;
+    }
+
+    this._handles.push(value);
+    this._queuedHandles.add(value);
   }
 
   private _readCommonData(template: CadTemplate): void {
@@ -495,12 +506,8 @@ export class DwgObjectReader extends DwgSectionIO {
       template.prevEntity = this._handleReference(entity.handle);
       template.nextEntity = this._handleReference(entity.handle);
     } else if (!this.r2004Plus) {
-      if (!this._readedObjects.has(entity.handle - 1)) {
-        this._handles.push(entity.handle - 1);
-      }
-      if (!this._readedObjects.has(entity.handle + 1)) {
-        this._handles.push(entity.handle + 1);
-      }
+      this._enqueueHandle(entity.handle - 1);
+      this._enqueueHandle(entity.handle + 1);
     }
 
     const { color, transparency, flag: colorFlag } = this._objectReader.readEnColor();
@@ -679,7 +686,6 @@ export class DwgObjectReader extends DwgSectionIO {
     this._handlesReader.setPositionInBits(size + this._objectInitialPos);
 
     if (this._version === ACadVersion.AC1021) {
-      this._textReader = DwgStreamReaderBase.getStreamHandler(this._version, this._memoryStream, this._reader.encoding);
       this._textReader.setPositionByFlag(size + this._objectInitialPos - 1);
     }
 
@@ -1202,9 +1208,9 @@ export class DwgObjectReader extends DwgSectionIO {
       for (let i = this._objectReader.readByte(); i !== 0; i = this._objectReader.readByte()) ++insertCount;
       block.comments = this._textReader.readVariableText();
       const n = this._objectReader.readBitLong();
-      const data: number[] = [];
-      for (let i = 0; i < n; ++i) data.push(this._objectReader.readByte());
-      record.preview = new Uint8Array(data);
+      const data = new Uint8Array(n);
+      for (let i = 0; i < n; ++i) data[i] = this._objectReader.readByte();
+      record.preview = data;
     }
     if (this.r2007Plus) {
       record.units = this._objectReader.readBitShort() as UnitsType;
@@ -1923,10 +1929,10 @@ export class DwgObjectReader extends DwgSectionIO {
     let nfaces = this._objectReader.readBitLong();
     for (let i = 0; i < nfaces; i++) {
       const faceSize = this._objectReader.readBitLong();
-      const arr: number[] = [];
-      for (let j = 0; j < faceSize; j++) arr.push(this._objectReader.readBitLong());
+      const arr = new Array<number>(faceSize);
+      for (let j = 0; j < faceSize; j++) arr[j] = this._objectReader.readBitLong();
       i += faceSize;
-      mesh.faces.push([...arr]);
+      mesh.faces.push(arr);
     }
     const nedges = this._objectReader.readBitLong();
     for (let k = 0; k < nedges; k++) {
