@@ -544,7 +544,7 @@ export class DwgObjectWriter extends DwgSectionIO {
 
 		if (this.r13_14Only) {
 			this._writer.writeBit((layer.flags & LayerFlags.Frozen) !== 0);
-			this._writer.writeBit(layer.isOn);
+			this._writer.writeBit(!layer.isOn);
 			this._writer.writeBit((layer.flags & LayerFlags.FrozenNewViewports) !== 0);
 			this._writer.writeBit((layer.flags & LayerFlags.Locked) !== 0);
 		}
