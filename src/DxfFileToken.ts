@@ -144,4 +144,5 @@ export class DxfFileToken {
 	public static readonly tableUcs = "UCS";
 	public static readonly tableView = "VIEW";
 	public static readonly tableVport = "VPORT";
+	public static readonly valueEnd = "ACVALUE_END";
 }
