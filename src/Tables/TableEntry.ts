@@ -3,6 +3,9 @@ import { INamedCadObject } from '../INamedCadObject.js';
 import { DxfSubclassMarker } from '../DxfSubclassMarker.js';
 import { StandardFlags } from './StandardFlags.js';
 import { OnNameChangedArgs } from '../OnNameChangedArgs.js';
+import { ACadVersion } from '../ACadVersion.js';
+import { CadFileFormat } from '../IO/CadFileFormat.js';
+import { INamedCadObjectExtensions } from '../Extensions/INamedCadObjectExtensions.js';
 
 export abstract class TableEntry extends CadObject implements INamedCadObject {
 	public onNameChanged: ((sender: unknown, args: OnNameChangedArgs) => void) | null = null;
@@ -42,6 +45,14 @@ export abstract class TableEntry extends CadObject implements INamedCadObject {
 		const clone = super.clone() as TableEntry;
 		clone.onNameChanged = null;
 		return clone;
+	}
+
+	public override validate(format: CadFileFormat, version: ACadVersion): string[] {
+		const errors = super.validate(format, version);
+		if (format === CadFileFormat.DXF && !INamedCadObjectExtensions.isValidDxfName(this, version)) {
+			errors.push(`${this.constructor.name}: name is invalid for a DXF file.`);
+		}
+		return errors;
 	}
 
 	public override toString(): string {

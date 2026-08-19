@@ -12,6 +12,8 @@ import { CollectionChangedEventArgs } from '../CollectionChangedEventArgs.js';
 import { BoundingBox } from '../Math/BoundingBox.js';
 import { XYZ } from '../Math/XYZ.js';
 import { Transform } from '../Math/Transform.js';
+import { ACadVersion } from '../ACadVersion.js';
+import { CadFileFormat } from '../IO/CadFileFormat.js';
 
 export class Insert extends Entity {
 	attributes: SeqendCollection<AttributeEntity> = new SeqendCollection<AttributeEntity>();
@@ -204,6 +206,14 @@ export class Insert extends Entity {
 			this.insertPoint.z - transformedBasePoint.z,
 		);
 		return transform;
+	}
+
+	override validate(format: CadFileFormat, version: ACadVersion): string[] {
+		const errors = super.validate(format, version);
+		if (this.block == null) {
+			errors.push('Insert entity has no block reference.');
+		}
+		return errors;
 	}
 
 	applyAttributeTransform(attribute: AttributeEntity): void {

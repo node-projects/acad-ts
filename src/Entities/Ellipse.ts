@@ -5,6 +5,8 @@ import { DxfSubclassMarker } from '../DxfSubclassMarker.js';
 import { ObjectType } from '../Types/ObjectType.js';
 import { Transform } from '../Math/Transform.js';
 import { XYZ } from '../Math/XYZ.js';
+import { ACadVersion } from '../ACadVersion.js';
+import { CadFileFormat } from '../IO/CadFileFormat.js';
 
 export class Ellipse extends Entity {
 	center: XYZ = new XYZ(0, 0, 0);
@@ -123,6 +125,19 @@ export class Ellipse extends Entity {
 	override getBoundingBox(): BoundingBox | null {
 		const points = this.polygonalVertexes(64);
 		return points.length > 0 ? BoundingBox.fromPoints(points) : null;
+	}
+
+	override validate(format: CadFileFormat, version: ACadVersion): string[] {
+		const errors = super.validate(format, version);
+		const normalLength = this.normal.getLength();
+		const majorLength = this.majorAxisEndPoint.getLength();
+		if (normalLength > Number.EPSILON && majorLength > Number.EPSILON) {
+			const cosine = Math.abs(this.normal.dot(this.majorAxisEndPoint) / (normalLength * majorLength));
+			if (cosine > 1e-10) {
+				errors.push('normal and majorAxisEndPoint must be perpendicular.');
+			}
+		}
+		return errors;
 	}
 
 	getEndVertices(): { start: XYZ; end: XYZ } {

@@ -3,6 +3,9 @@ import { ObjectType } from './Types/ObjectType.js';
 import type { CadDocument } from './CadDocument.js';
 import type { CadDictionary } from './Objects/CadDictionary.js';
 import { ExtendedDataDictionary } from './XData/ExtendedDataDictionary.js';
+import { ACadVersion } from './ACadVersion.js';
+import { CadFileFormat } from './IO/CadFileFormat.js';
+import { isOrientable } from './IOrientable.js';
 
 interface CadObjectTable<T extends CadObject> {
 	tryAdd(entry: T): T;
@@ -84,6 +87,18 @@ export abstract class CadObject implements IHandledCadObject {
 			return true;
 		}
 		return false;
+	}
+
+	public isValid(format: CadFileFormat, version: ACadVersion): boolean {
+		return this.validate(format, version).length === 0;
+	}
+
+	public validate(_format: CadFileFormat, _version: ACadVersion): string[] {
+		const errors: string[] = [];
+		if (isOrientable(this) && this.normal.getLength() <= Number.EPSILON) {
+			errors.push('normal vector cannot be zero.');
+		}
+		return errors;
 	}
 
 	public toString(): string {
