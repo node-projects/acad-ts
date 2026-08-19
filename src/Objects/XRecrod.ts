@@ -69,4 +69,8 @@ export class XRecord extends NonGraphicalObject {
 	createEntry(code: number, value: unknown): void {
 		this._entries.push(new XRecordEntry(code, value, this));
 	}
+
+	clear(): void {
+		this._entries = [];
+	}
 }
