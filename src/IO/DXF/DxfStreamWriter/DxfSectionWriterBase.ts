@@ -560,6 +560,8 @@ export abstract class DxfSectionWriterBase {
     const subclass = map.subClasses.get(DxfSubclassMarker.hatch)!;
     this._writer.write(DxfCode.Subclass, DxfSubclassMarker.hatch);
 
+    this._writer.write(10, 0, subclass);
+    this._writer.write(20, 0, subclass);
     this._writer.write(30, hatch.elevation, subclass);
     this._writer.writeVector(210, hatch.normal, subclass);
 
@@ -595,7 +597,9 @@ export abstract class DxfSectionWriterBase {
       }
     }
 
-    this._writer.write(47, hatch.pixelSize, subclass);
+    if (hatch.pixelSize !== 0) {
+      this._writer.write(47, hatch.pixelSize, subclass);
+    }
 
     this._writer.write(98, hatch.seedPoints.length);
     for (const pt of hatch.seedPoints) {

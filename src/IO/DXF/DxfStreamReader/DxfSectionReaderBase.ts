@@ -941,20 +941,21 @@ export abstract class DxfSectionReaderBase {
     const tmp = template as CadHatchTemplate;
     const hatch = tmp.cadObject as Hatch;
 
-    let seedPoint = new XY();
-
     switch (this._reader.code as number) {
       case 2:
         hatch.pattern.name = this._reader.valueAsString;
         return true;
       case 10:
-        seedPoint.x = this._reader.valueAsDouble;
-        hatch.seedPoints.push(seedPoint);
+        if (tmp.seedPointCount !== null && hatch.seedPoints.length < tmp.seedPointCount) {
+          hatch.seedPoints.push(new XY(this._reader.valueAsDouble, 0));
+        }
         return true;
       case 20: {
-        seedPoint = hatch.seedPoints[hatch.seedPoints.length - 1];
-        seedPoint.y = this._reader.valueAsDouble;
-        hatch.seedPoints[hatch.seedPoints.length - 1] = seedPoint;
+        if (tmp.seedPointCount !== null && hatch.seedPoints.length > 0) {
+          const seedPoint = hatch.seedPoints[hatch.seedPoints.length - 1];
+          seedPoint.y = this._reader.valueAsDouble;
+          hatch.seedPoints[hatch.seedPoints.length - 1] = seedPoint;
+        }
         return true;
       }
       case 30:
@@ -976,6 +977,7 @@ export abstract class DxfSectionReaderBase {
         this.lockPointer = true;
         return true;
       case 98:
+        tmp.seedPointCount = Math.max(0, this._reader.valueAsInt);
         return true;
       case 450:
         hatch.gradientColor.enabled = this._reader.valueAsBool;

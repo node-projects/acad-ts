@@ -9,6 +9,8 @@ export class CadHatchTemplate extends CadEntityTemplateT<Hatch> {
 
 	pathTemplates: CadHatchTemplate.CadBoundaryPathTemplate[] = [];
 
+	seedPointCount: number | null = null;
+
 	constructor(hatch?: Hatch) {
 		super(hatch ?? new Hatch());
 	}
