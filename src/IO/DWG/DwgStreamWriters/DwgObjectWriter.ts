@@ -1,6 +1,7 @@
 import { CadDocument } from '../../../CadDocument.js';
 import { CadObject } from '../../../CadObject.js';
 import { ACadVersion } from '../../../ACadVersion.js';
+import { CadFileFormat } from '../../CadFileFormat.js';
 import { DwgSectionIO } from '../DwgSectionIO.js';
 import { DwgSectionDefinition } from '../FileHeaders/DwgSectionDefinition.js';
 import { DwgReferenceType } from '../../../Types/DwgReferenceType.js';
@@ -1414,6 +1415,11 @@ export class DwgObjectWriter extends DwgSectionIO {
 	// ==================== Entity Writers ====================
 
 	private _writeEntity(entity: Entity): void {
+		const validationErrors = entity.validate(CadFileFormat.DWG, this._version);
+		if (validationErrors.length > 0) {
+			this.notify(`Invalid entity ${entity.constructor.name}: ${validationErrors.join(' ')}`, NotificationType.Warning);
+			return;
+		}
 		if (entity instanceof Seqend) {
 			this._writeSeqend(entity);
 			return;
@@ -3146,6 +3152,11 @@ export class DwgObjectWriter extends DwgSectionIO {
 	}
 
 	private _writeObject(obj: NonGraphicalObject): void {
+		const validationErrors = obj.validate(CadFileFormat.DWG, this._version);
+		if (validationErrors.length > 0) {
+			this.notify(`Invalid object ${obj.constructor.name}: ${validationErrors.join(' ')}`, NotificationType.Warning);
+			return;
+		}
 		const { skip, notify: shouldNotify } = this._skipEntry(obj);
 		if (skip) {
 			if (shouldNotify) {
