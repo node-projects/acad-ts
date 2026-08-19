@@ -280,7 +280,8 @@ export abstract class DxfSectionWriterBase {
 
   protected abstract writeSection(): void;
 
-  protected writeLongTextValue(code: number, subcode: number, text: string): void {
+  protected writeLongTextValue(code: number, subcode: number, text: string | null | undefined): void {
+    text ??= '';
     while (text.length > 250) {
       this._writer.write(subcode, text.substring(0, 250));
       text = text.substring(250);
