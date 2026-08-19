@@ -1,6 +1,9 @@
 import { describe, expect, it } from 'vitest';
+import { ACadVersion } from '../src/ACadVersion.js';
 import { Hatch, HatchBoundaryPath, HatchBoundaryPathPolyline } from '../src/Entities/Hatch.js';
 import { HatchPattern, HatchPatternLine } from '../src/Entities/HatchPattern.js';
+import { Insert } from '../src/Entities/Insert.js';
+import { CadFileFormat } from '../src/IO/CadFileFormat.js';
 import { XY } from '../src/Math/XY.js';
 import { XYZ } from '../src/Math/XYZ.js';
 
@@ -24,5 +27,12 @@ describe('upstream synchronization features', () => {
 			min: { x: 0, y: 5, z: 0 },
 			max: { x: 10, y: 5, z: 0 },
 		});
+	});
+
+	it('validates objects for the selected CAD format and version', () => {
+		const insert = new Insert();
+		expect(insert.isValid(CadFileFormat.DXF, ACadVersion.AC1032)).toBe(false);
+		insert.normal = XYZ.zero;
+		expect(insert.validate(CadFileFormat.DWG, ACadVersion.AC1032)).toContain('normal vector cannot be zero.');
 	});
 });
