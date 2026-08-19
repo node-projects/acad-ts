@@ -1,4 +1,7 @@
 export class DxfFileToken {
+	public static readonly acdsDataSection = "ACDSDATA";
+	public static readonly acdsRecord = "ACDSRECORD";
+	public static readonly acdsSchema = "ACDSSCHEMA";
 	public static readonly beginSection = "SECTION";
 	public static readonly blkRefObjectContextData = "ACDB_BLKREFOBJECTCONTEXTDATA_CLASS";
 	public static readonly blkRefToken = "{BLKREFS";
