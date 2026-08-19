@@ -21,6 +21,7 @@ export class AttributeEntity extends AttributeBase {
 		super();
 		if (definition) {
 			this.matchAttributeProperties(definition);
+			this.mText = definition.mText?.clone() as typeof definition.mText ?? null;
 		}
 	}
 }
