@@ -164,6 +164,8 @@ export { INamedCadObject } from './INamedCadObject.js';
 export { CadDocumentBuilder } from './IO/CadDocumentBuilder.js';
 export { AcisTextCodec } from './IO/AcisTextCodec.js';
 export { CadReaderBase } from './IO/CadReaderBase.js';
+export { CadFileFormat, CadReader } from './IO/CadReader.js';
+export { IOrientable, isOrientable } from './IOrientable.js';
 export { CadReaderConfiguration } from './IO/CadReaderConfiguration.js';
 export { CadWriterBase } from './IO/CadWriterBase.js';
 export { CadWriterConfiguration } from './IO/CadWriterConfiguration.js';
