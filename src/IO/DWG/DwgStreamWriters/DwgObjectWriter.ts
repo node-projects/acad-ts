@@ -226,9 +226,25 @@ export class DwgObjectWriter extends DwgSectionIO {
 	private _streamPos: number = 0;
 
 	private _document: CadDocument;
+	private _insertsByBlockName: Map<string, Insert[]> | null = null;
 
 	private _prev: Entity | null = null;
 	private _next: Entity | null = null;
+
+	private get insertsByBlockName(): Map<string, Insert[]> {
+		if (this._insertsByBlockName == null) {
+			this._insertsByBlockName = new Map<string, Insert[]>();
+			for (const entity of this._document.entities ?? []) {
+				if (!(entity instanceof Insert) || entity.block == null) {
+					continue;
+				}
+				const inserts = this._insertsByBlockName.get(entity.block.name) ?? [];
+				inserts.push(entity);
+				this._insertsByBlockName.set(entity.block.name, inserts);
+			}
+		}
+		return this._insertsByBlockName;
+	}
 
 	constructor(
 		stream: Uint8Array,
@@ -447,8 +463,7 @@ export class DwgObjectWriter extends DwgSectionIO {
 			}
 		}
 		const flags = record.combinedFlags;
-		const inserts = Array.from(this._document.entities)
-			.filter((item): item is Insert => item instanceof Insert && item.block?.name === record.name);
+		const inserts = this.insertsByBlockName.get(record.name) ?? [];
 		const insertHandles = inserts.map((insert) => insert.handle);
 		if (record.name.toUpperCase().startsWith('*T')) {
 			for (const handle of record.insertHandles) {
