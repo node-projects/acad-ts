@@ -317,6 +317,52 @@ define({
 	proxyFlags: ProxyFlags.CloningAllowed | ProxyFlags.DisablesProxyWarningDialog,
 });
 
+const dynamicBlockProxyFlags = ProxyFlags.EraseAllowed |
+	ProxyFlags.CloningAllowed |
+	ProxyFlags.DisablesProxyWarningDialog;
+
+function defineDynamicBlockClass(cppClassName: string, dxfName: string, maintenanceVersion: number = 55): void {
+	define({
+		cppClassName,
+		dwgVersion: ACadVersion.AC1018,
+		dxfName,
+		itemClassId: 499,
+		maintenanceVersion,
+		proxyFlags: dynamicBlockProxyFlags,
+	});
+}
+
+defineDynamicBlockClass(DxfSubclassMarker.blockRepresentationData, DxfFileToken.objectBlockRepresentationData, 58);
+defineDynamicBlockClass(DxfSubclassMarker.dynamicBlockPurgePreventer, DxfFileToken.objectDynamicBlockPurgePreventer, 61);
+defineDynamicBlockClass(DxfSubclassMarker.blockAlignmentGrip, DxfFileToken.objectBlockAlignmentGrip);
+defineDynamicBlockClass(DxfSubclassMarker.blockAlignmentParameter, DxfFileToken.objectBlockAlignmentParameter);
+defineDynamicBlockClass(DxfSubclassMarker.blockArrayAction, DxfFileToken.objectBlockArrayAction);
+defineDynamicBlockClass(DxfSubclassMarker.blockBasePointParameter, DxfFileToken.objectBlockBasePointParameter);
+defineDynamicBlockClass(DxfSubclassMarker.blockFlipAction, DxfFileToken.objectBlockFlipAction);
+defineDynamicBlockClass(DxfSubclassMarker.blockFlipGrip, DxfFileToken.objectBlockFlipGrip);
+defineDynamicBlockClass(DxfSubclassMarker.blockFlipParameter, DxfFileToken.objectBlockFlipParameter);
+defineDynamicBlockClass(DxfSubclassMarker.blockGripExpression, DxfFileToken.objectBlockGripLocationComponent, 20);
+defineDynamicBlockClass(DxfSubclassMarker.blockLinearGrip, DxfFileToken.objectBlockLinearGrip);
+defineDynamicBlockClass(DxfSubclassMarker.blockLinearParameter, DxfFileToken.objectBlockLinearParameter);
+defineDynamicBlockClass(DxfSubclassMarker.blockLookupAction, DxfFileToken.objectBlockLookupAction);
+defineDynamicBlockClass(DxfSubclassMarker.blockLookupGrip, DxfFileToken.objectBlockLookupGrip);
+defineDynamicBlockClass(DxfSubclassMarker.blockLookupParameter, DxfFileToken.objectBlockLookupParameter);
+defineDynamicBlockClass(DxfSubclassMarker.blockMoveAction, DxfFileToken.objectBlockMoveAction);
+defineDynamicBlockClass(DxfSubclassMarker.blockPointParameter, DxfFileToken.objectBlockPointParameter);
+defineDynamicBlockClass(DxfSubclassMarker.blockPolarGrip, DxfFileToken.objectBlockPolarGrip);
+defineDynamicBlockClass(DxfSubclassMarker.blockPolarParameter, DxfFileToken.objectBlockPolarParameter);
+defineDynamicBlockClass(DxfSubclassMarker.blockPolarStretchAction, DxfFileToken.objectBlockPolarStretchAction);
+defineDynamicBlockClass(DxfSubclassMarker.blockRotationAction, DxfFileToken.objectBlockRotateAction);
+defineDynamicBlockClass(DxfSubclassMarker.blockRotationGrip, DxfFileToken.objectBlockRotationGrip);
+defineDynamicBlockClass(DxfSubclassMarker.blockRotationParameter, DxfFileToken.objectBlockRotationParameter);
+defineDynamicBlockClass(DxfSubclassMarker.blockScaleAction, DxfFileToken.objectBlockScaleAction);
+defineDynamicBlockClass(DxfSubclassMarker.blockStretchAction, DxfFileToken.objectBlockStretchAction);
+defineDynamicBlockClass(DxfSubclassMarker.blockVisibilityGrip, DxfFileToken.objectBlockVisibilityGrip);
+defineDynamicBlockClass(DxfSubclassMarker.blockVisibilityParameter, DxfFileToken.objectBlockVisibilityParameter);
+defineDynamicBlockClass(DxfSubclassMarker.blockXYGrip, DxfFileToken.objectBlockXYGrip);
+defineDynamicBlockClass(DxfSubclassMarker.blockXYParameter, DxfFileToken.objectBlockXYParameter);
+defineDynamicBlockClass(DxfSubclassMarker.evalGraph, DxfFileToken.objectEvalGraph);
+
 /** Returns a fresh class object so instance counts and class numbers remain document-local. */
 export function createDxfClassDefinition(dxfName: string): DxfClass | null {
 	const definition = definitions.get(dxfName.toUpperCase());

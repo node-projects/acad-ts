@@ -847,7 +847,10 @@ export class DwgObjectReader extends DwgSectionIO {
 
   private _readUnlistedType(classNumber: number): CadTemplate | null {
     const c = this._classes.get(classNumber);
-    if (!c) return null;
+    if (!c) {
+      this._builder.notify(`Class number ${classNumber} not found in classes dictionary.`, NotificationType.Warning);
+      return null;
+    }
 
     let template: CadTemplate | null = null;
 
@@ -945,6 +948,10 @@ export class DwgObjectReader extends DwgSectionIO {
     } else if (template == null && !c.isAnEntity) {
       template = this._readUnknownNonGraphicalObject(c);
       this._builder.notify(`Unlisted object with DXF name ${c.dxfName} has been read as an UnknownNonGraphicalObject`, NotificationType.Warning);
+    }
+
+    if (template != null) {
+      template.dxfClass = c;
     }
 
     return template;

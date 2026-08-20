@@ -9,9 +9,16 @@ import { CadDocumentBuilder } from '../CadDocumentBuilder.js';
 import { NotificationType } from '../NotificationEventHandler.js';
 import { ICadObjectTemplate } from './ICadObjectTemplate.js';
 import { ReadStage } from '../ProgressEventHandler.js';
+import type { DxfClass } from '../../Classes/DxfClass.js';
+import { ProxyEntity } from '../../Entities/ProxyEntity.js';
+import { UnknownEntity } from '../../Entities/UnknownEntity.js';
+import { ProxyObject } from '../../Objects/ProxyObject.js';
+import { UnknownNonGraphicalObject } from '../../Objects/UnknownNonGraphicalObject.js';
 
 export abstract class CadTemplate<T extends CadObject = CadObject> implements ICadObjectTemplate {
 	cadObject: CadObject;
+
+	dxfClass: DxfClass | null = null;
 
 	eDataTemplate: Map<number, ExtendedDataRecord[]> = new Map();
 
@@ -37,6 +44,17 @@ export abstract class CadTemplate<T extends CadObject = CadObject> implements IC
 		}
 
 		this._build(builder);
+
+		if (
+			this.dxfClass != null &&
+			this.cadObject.getDxfClass() == null &&
+			!(this.cadObject instanceof ProxyEntity) &&
+			!(this.cadObject instanceof ProxyObject) &&
+			!(this.cadObject instanceof UnknownEntity) &&
+			!(this.cadObject instanceof UnknownNonGraphicalObject)
+		) {
+			builder.notify(`${this.cadObject.constructor.name} does not provide DXF class metadata`, NotificationType.Warning);
+		}
 		builder.notifyProgress(ReadStage.Build, this.cadObject);
 	}
 

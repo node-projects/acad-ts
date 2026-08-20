@@ -3,6 +3,8 @@ import { CadDocument } from '../../src/CadDocument.js';
 import { DxfFileToken } from '../../src/DxfFileToken.js';
 import { CadDictionary } from '../../src/Objects/CadDictionary.js';
 import { Material } from '../../src/Objects/Material.js';
+import { BlockXYParameter } from '../../src/Objects/Evaluations/BlockXYParameter.js';
+import { EvaluationGraph } from '../../src/Objects/Evaluations/EvaluationGraph.js';
 
 describe('DxfClassCollection', () => {
 	it('collects class metadata from document objects and resets class numbers', () => {
@@ -29,5 +31,14 @@ describe('DxfClassCollection', () => {
 		expect(document.classes!.tryAdd(first)).toBe(true);
 		expect(document.classes!.tryAdd(duplicate)).toBe(false);
 		expect(document.classes!.getByName(first.dxfName)).toBe(first);
+	});
+
+	it('provides class metadata for dynamic block and evaluation graph objects', () => {
+		const parameterClass = new BlockXYParameter().getDxfClass();
+		const graphClass = new EvaluationGraph().getDxfClass();
+
+		expect(parameterClass?.dxfName).toBe(DxfFileToken.objectBlockXYParameter);
+		expect(parameterClass?.maintenanceVersion).toBe(55);
+		expect(graphClass?.dxfName).toBe(DxfFileToken.objectEvalGraph);
 	});
 });
