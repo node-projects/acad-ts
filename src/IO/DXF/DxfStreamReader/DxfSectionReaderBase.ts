@@ -1516,6 +1516,8 @@ export abstract class DxfSectionReaderBase {
     const wipeout = tmp.cadObject as CadWipeoutBase;
 
     switch (this._reader.code as number) {
+      case 71:
+        return true;
       case 91: {
         const nvertices = this._reader.valueAsInt;
         for (let i = 0; i < nvertices; i++) {
