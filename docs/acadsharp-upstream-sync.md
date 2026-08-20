@@ -1,13 +1,15 @@
 # ACadSharp upstream synchronization
 
 - Original port baseline: [3010994939c1bc21df0c9e2931e9baee4564815a](https://github.com/DomCR/ACadSharp/commit/3010994939c1bc21df0c9e2931e9baee4564815a)
-- Last commit reviewed: [8a5278267f107270ffbf0d0e3a967feae09df995](https://github.com/DomCR/ACadSharp/commit/8a5278267f107270ffbf0d0e3a967feae09df995)
-- Review order: chronological/topological, 446 commits, inclusive of all commits after the original baseline.
-- Review date: 2026-08-19
+- Last commit reviewed: [0e947316afb8bd12a3d538a075e518b324da7273](https://github.com/DomCR/ACadSharp/commit/0e947316afb8bd12a3d538a075e518b324da7273)
+- Review order: chronological/topological, 461 commits, inclusive of all commits after the original baseline.
+- Review date: 2026-08-20
 
 ## Result
 
 The applicable upstream behavior has been compared commit by commit. Functional batches converted here include progress reporting, DXF/DWG correctness fixes, materials and mesh UVs, table styles, hatch-pattern explosion, dynamic blocks/evaluation graphs, DimensionArc, object validation, DXF ACDSDATA/ACIS text, and opt-in proxy-graphics decoding.
+
+The 2026-08-20 review additionally converted object-provided DXF class definitions, safer class collection/counting behavior, a wipeout DXF reader fix, and indexed DWG insert lookup during block writing.
 
 Two upstream areas remain explicitly partial: native AutoCAD Mechanical/BOM entity models, and the external DWG Prototype1b ACIS section. Proxy payloads are retained even when a record is not typed, and inline/DXF ACIS data is supported.
 
@@ -461,3 +463,18 @@ Two upstream areas remain explicitly partial: native AutoCAD Mechanical/BOM enti
 | 444 | [eebabea1](https://github.com/DomCR/ACadSharp/commit/eebabea10d70a840bb0760b3b4b8496255eedddc) | 2026-08-18 | Refactor DXF writer/reader, add decimal precision support | Reviewed — behavior was already represented or converted in this synchronization. |
 | 445 | [71bcb1c7](https://github.com/DomCR/ACadSharp/commit/71bcb1c75007cdadb67eb1683f5b21698ac08352) | 2026-08-18 | Update project version to 3.7.2 | Reviewed — integration/release/docs/tests only; no independent TypeScript feature. |
 | 446 | [8a527826](https://github.com/DomCR/ACadSharp/commit/8a5278267f107270ffbf0d0e3a967feae09df995) | 2026-08-18 | Merge pull request #1186 from DomCR/issue/1179_dxfwriter-ascii-double-format-config | Reviewed — integration/release/docs/tests only; no independent TypeScript feature. |
+| 447 | [eda4a8e9](https://github.com/DomCR/ACadSharp/commit/eda4a8e93b82ece6ed94381516ef893356a08e6e) | 2026-07-23 | init proposal | Converted — added object-provided DXF class definitions and default class numbering. |
+| 448 | [de686a8c](https://github.com/DomCR/ACadSharp/commit/de686a8c3b2411ac695efddd120f88de8af44b93) | 2026-07-31 | merge | Reviewed — integration/release/docs/tests only; no independent TypeScript feature. |
+| 449 | [18cd2d7d](https://github.com/DomCR/ACadSharp/commit/18cd2d7d3699eb44b5bd022d35b4ba883f4b0445) | 2026-07-31 | Implement IDxfClassDefined for DXF entities/objects | Converted — expanded object-provided class metadata to supported custom entities and objects. |
+| 450 | [aa6fad03](https://github.com/DomCR/ACadSharp/commit/aa6fad0335cce69c9215a1e52a0405b0d30e900b) | 2026-07-31 | Refactor DxfClass collection management and utilities | Converted — added safe insertion, instance counting, class-number reset, and document-driven class discovery. |
+| 451 | [77fb9075](https://github.com/DomCR/ACadSharp/commit/77fb907594e8c8cd898eec92723a0a62bf291dae) | 2026-08-18 | master merge | Reviewed — integration/release/docs/tests only; no independent TypeScript feature. |
+| 452 | [ab2cdb17](https://github.com/DomCR/ACadSharp/commit/ab2cdb17bfb86a9e97bae711f5c7d463acf2c95d) | 2026-08-18 | dxf read fix | Converted — accept wipeout class-version group code 71 during DXF reading. |
+| 453 | [d2f82caa](https://github.com/DomCR/ACadSharp/commit/d2f82caaf5d2c4cb6f7f6561cca642a27b32e130) | 2026-08-19 | Add IDxfClassDefined and improve DXF class handling | Converted — added dynamic-block/evaluation class metadata and retained class context on DWG templates. |
+| 454 | [d9ee6b81](https://github.com/DomCR/ACadSharp/commit/d9ee6b8151ecbad0ae5a5e94a36a19b104cca06b) | 2026-08-19 | Refactor DxfClassCollection and RasterVariables handling | Converted — RasterVariables now provides its DXF class definition. |
+| 455 | [54560ca2](https://github.com/DomCR/ACadSharp/commit/54560ca209f97d787a77f1b47ac48cedcbacba67) | 2026-07-30 | Index inserts by block name in writeBlockHeader | Converted — DWG block writing indexes inserts once by block name. |
+| 456 | [032cc6f6](https://github.com/DomCR/ACadSharp/commit/032cc6f66e936d3edf81c6ff92c38d181fb44599) | 2026-08-19 | Merge pull request #1168 from phamhongphuc1403/perf/writeblockheader-index-inserts | Reviewed — merge of the behavior converted from 54560ca2; no additional TypeScript change. |
+| 457 | [61af94f1](https://github.com/DomCR/ACadSharp/commit/61af94f18729e20477ee649d0a64ca60dc5e14a2) | 2026-08-19 | #PR1168 v3.7.3 | Reviewed — C# package version only; no TypeScript package-version change. |
+| 458 | [2ba76c0b](https://github.com/DomCR/ACadSharp/commit/2ba76c0b7143fd207a6c7d624d62facb2619feaa) | 2026-08-19 | Merge remote-tracking branch 'origin/master' into optimize-dxfclasscollection | Reviewed — integration/release/docs/tests only; no independent TypeScript feature. |
+| 459 | [c7e3f621](https://github.com/DomCR/ACadSharp/commit/c7e3f621eaf27dff3a35eb998732cca288070fe7) | 2026-08-19 | Update project version to 3.7.4 | Reviewed — C# package version only; no TypeScript package-version change. |
+| 460 | [0925dd37](https://github.com/DomCR/ACadSharp/commit/0925dd3736fd460092a23418381f0454454932f6) | 2026-08-19 | Merge pull request #1193 from DomCR/optimize-dxfclasscollection | Reviewed — merge of the preceding class-management changes; no additional TypeScript change. |
+| 461 | [0e947316](https://github.com/DomCR/ACadSharp/commit/0e947316afb8bd12a3d538a075e518b324da7273) | 2026-08-19 | docs | Reviewed — interface documentation only; reflected in the TypeScript API comments. |
