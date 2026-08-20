@@ -82,7 +82,7 @@ export class DwgClassesReader extends DwgSectionIO {
 				this._sreader.readBitLong();
 			}
 
-			classes.addOrUpdate(dxfClass);
+			classes.tryAdd(dxfClass);
 		}
 
 		if (this.r2007Plus) {

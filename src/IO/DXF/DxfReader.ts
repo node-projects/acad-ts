@@ -281,7 +281,7 @@ export class DxfReader extends CadReaderBase<DxfReaderConfiguration> {
           dxfClass.classNumber = 500 + classes.count;
         }
 
-        classes.addOrUpdate(dxfClass);
+        classes.tryAdd(dxfClass);
       } else {
         this._reader.readNext();
       }

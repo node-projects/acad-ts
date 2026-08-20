@@ -533,6 +533,25 @@ export class DxfClassCollection implements Iterable<DxfClass> {
 		this._entries.set(item.dxfName.toUpperCase(), item);
 	}
 
+	public tryAdd(item: DxfClass): boolean {
+		const key = item.dxfName.toUpperCase();
+		if (this._entries.has(key)) {
+			return false;
+		}
+		this._entries.set(key, item);
+		return true;
+	}
+
+	public increaseInstanceCount(dxfClass: DxfClass): void {
+		const existing = this._entries.get(dxfClass.dxfName.toUpperCase());
+		if (existing) {
+			existing.instanceCount++;
+		} else {
+			dxfClass.instanceCount = 1;
+			this.add(dxfClass);
+		}
+	}
+
 	public addOrUpdate(item: DxfClass): void {
 		const key = item.dxfName.toUpperCase();
 		const existing = this._entries.get(key);
@@ -582,6 +601,13 @@ export class DxfClassCollection implements Iterable<DxfClass> {
 
 	public remove(item: DxfClass): boolean {
 		return this._entries.delete(item.dxfName.toUpperCase());
+	}
+
+	public resetClassNumbers(): void {
+		let classNumber = 500;
+		for (const item of this._entries.values()) {
+			item.classNumber = classNumber++;
+		}
 	}
 
 	public tryGetByClassNumber(id: number): { result: DxfClass | null; found: boolean } {

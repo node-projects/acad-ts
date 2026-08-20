@@ -126,8 +126,6 @@ export class CadDocument implements IHandledCadObject {
 			this.classes = new DxfClassCollection();
 		}
 
-		DxfClassCollection.updateDxfClasses(this);
-
 		if (this.rootDictionary == null) {
 			this.rootDictionary = CadDictionary.createRoot();
 		}
@@ -251,17 +249,26 @@ export class CadDocument implements IHandledCadObject {
 	}
 
 	public updateDxfClasses(reset: boolean): void {
-		if (reset && this.classes) {
+		this.classes ??= new DxfClassCollection();
+		if (reset) {
 			this.classes.clear();
+		} else {
+			for (const item of this.classes) {
+				item.instanceCount = 0;
+			}
 		}
-		DxfClassCollection.updateDxfClasses(this);
 
-		for (const item of this.classes ?? []) {
-			item.instanceCount = Array.from(this._cadObjects.values())
-				.filter((cadObject): cadObject is CadObject => cadObject instanceof CadObject)
-				.filter((cadObject) => cadObject.objectName === item.dxfName)
-				.length;
+		for (const cadObject of this._cadObjects.values()) {
+			if (!(cadObject instanceof CadObject)) {
+				continue;
+			}
+			const dxfClass = cadObject.getDxfClass();
+			if (dxfClass != null) {
+				this.classes.increaseInstanceCount(dxfClass);
+			}
 		}
+
+		this.classes.resetClassNumbers();
 	}
 
 	public updateImageReactors(): void {

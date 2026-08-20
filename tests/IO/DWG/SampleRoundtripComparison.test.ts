@@ -151,7 +151,15 @@ describe.skipIf(!canRunCSharpRoundtrip)('SampleRoundtripComparison', () => {
 			expect(fs.existsSync(tsPath)).toBe(true);
 			expect(fs.existsSync(csPath)).toBe(true);
 
-			expect(summarizeDoc(tsPath)).toEqual(summarizeDoc(csPath));
+			const tsSummary = summarizeDoc(tsPath);
+			const csharpSummary = summarizeDoc(csPath);
+			const { classes: tsClasses, ...tsComparable } = tsSummary;
+			const { classes: _csharpClasses, ...csharpComparable } = csharpSummary;
+
+			// The C# reference is pinned before object-provided class discovery and adds
+			// seven unused built-in classes. Current ACadSharp preserves the source list.
+			expect(tsComparable).toEqual(csharpComparable);
+			expect(tsClasses).toBe(collectionCount(original.classes));
 
 			const tsHatches = summarizeHatches(tsPath);
 			const csHatches = summarizeHatches(csPath);
