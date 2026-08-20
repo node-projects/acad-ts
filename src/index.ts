@@ -16,6 +16,7 @@ export { CadValueType } from './CadValueType.js';
 export { CadValueUnitType } from './CadValueUnitType.js';
 export { DxfClass } from './Classes/DxfClass.js';
 export { DxfClassCollection } from './Classes/DxfClassCollection.js';
+export type { IDxfClassDefined } from './Classes/IDxfClassDefined.js';
 export { ProxyFlags } from './Classes/ProxyFlags.js';
 export { CollectionChangedEventArgs } from './CollectionChangedEventArgs.js';
 export { Color } from './Color.js';

@@ -2,9 +2,11 @@ import { ACadVersion } from '../ACadVersion.js';
 import { ProxyFlags } from './ProxyFlags.js';
 
 export class DxfClass {
-	public applicationName: string = 'ObjectDBX Classes';
+	public static readonly defaultApplicationName: string = 'ObjectDBX Classes';
 
-	public classNumber: number = 0;
+	public applicationName: string = DxfClass.defaultApplicationName;
+
+	public classNumber: number = 500;
 
 	public cppClassName: string = '';
 

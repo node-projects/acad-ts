@@ -6,12 +6,15 @@ import { ExtendedDataDictionary } from './XData/ExtendedDataDictionary.js';
 import { ACadVersion } from './ACadVersion.js';
 import { CadFileFormat } from './IO/CadFileFormat.js';
 import { isOrientable } from './IOrientable.js';
+import type { IDxfClassDefined } from './Classes/IDxfClassDefined.js';
+import type { DxfClass } from './Classes/DxfClass.js';
+import { createDxfClassDefinition } from './Classes/DxfClassDefinitionRegistry.js';
 
 interface CadObjectTable<T extends CadObject> {
 	tryAdd(entry: T): T;
 }
 
-export abstract class CadObject implements IHandledCadObject {
+export abstract class CadObject implements IHandledCadObject, IDxfClassDefined {
 	public document: CadDocument | null = null;
 	public extendedData!: ExtendedDataDictionary;
 	public handle: number = 0;
@@ -87,6 +90,10 @@ export abstract class CadObject implements IHandledCadObject {
 			return true;
 		}
 		return false;
+	}
+
+	public getDxfClass(): DxfClass | null {
+		return createDxfClassDefinition(this.objectName);
 	}
 
 	public isValid(format: CadFileFormat, version: ACadVersion): boolean {
