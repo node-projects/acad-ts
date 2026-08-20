@@ -1,10 +1,12 @@
 import { describe, expect, it } from 'vitest';
 import { CadDocument } from '../../src/CadDocument.js';
+import { DxfClassCollection } from '../../src/Classes/DxfClassCollection.js';
 import { DxfFileToken } from '../../src/DxfFileToken.js';
 import { CadDictionary } from '../../src/Objects/CadDictionary.js';
 import { Material } from '../../src/Objects/Material.js';
 import { BlockXYParameter } from '../../src/Objects/Evaluations/BlockXYParameter.js';
 import { EvaluationGraph } from '../../src/Objects/Evaluations/EvaluationGraph.js';
+import { RasterVariables } from '../../src/Objects/RasterVariables.js';
 
 describe('DxfClassCollection', () => {
 	it('collects class metadata from document objects and resets class numbers', () => {
@@ -40,5 +42,22 @@ describe('DxfClassCollection', () => {
 		expect(parameterClass?.dxfName).toBe(DxfFileToken.objectBlockXYParameter);
 		expect(parameterClass?.maintenanceVersion).toBe(55);
 		expect(graphClass?.dxfName).toBe(DxfFileToken.objectEvalGraph);
+	});
+
+	it('provides class metadata from raster variables', () => {
+		const dxfClass = new RasterVariables().getDxfClass();
+
+		expect(dxfClass?.applicationName).toBe('ISM');
+		expect(dxfClass?.dxfName).toBe(DxfFileToken.objectRasterVariables);
+	});
+
+	it('keeps implemented classes out of the legacy placeholder list', () => {
+		const document = new CadDocument();
+
+		DxfClassCollection.updateDxfClasses(document);
+
+		expect(document.classes!.getByName(DxfFileToken.objectCellStyleMap)).not.toBeNull();
+		expect(document.classes!.getByName(DxfFileToken.objectRasterVariables)).toBeNull();
+		expect(document.classes!.getByName(DxfFileToken.objectMaterial)).toBeNull();
 	});
 });

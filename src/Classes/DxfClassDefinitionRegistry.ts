@@ -317,6 +317,16 @@ define({
 	proxyFlags: ProxyFlags.CloningAllowed | ProxyFlags.DisablesProxyWarningDialog,
 });
 
+define({
+	applicationName: 'ISM',
+	cppClassName: DxfSubclassMarker.rasterVariables,
+	dwgVersion: 20 as ACadVersion,
+	dxfName: DxfFileToken.objectRasterVariables,
+	itemClassId: 499,
+	maintenanceVersion: 0,
+	proxyFlags: ProxyFlags.None,
+});
+
 const dynamicBlockProxyFlags = ProxyFlags.EraseAllowed |
 	ProxyFlags.CloningAllowed |
 	ProxyFlags.DisablesProxyWarningDialog;
