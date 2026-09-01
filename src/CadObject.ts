@@ -9,6 +9,8 @@ import { isOrientable } from './IOrientable.js';
 import type { IDxfClassDefined } from './Classes/IDxfClassDefined.js';
 import type { DxfClass } from './Classes/DxfClass.js';
 import { createDxfClassDefinition } from './Classes/DxfClassDefinitionRegistry.js';
+import type { TableEntry } from './Tables/TableEntry.js';
+import type { Table } from './Tables/Collections/Table.js';
 
 interface CadObjectTable<T extends CadObject> {
 	tryAdd(entry: T): T;
@@ -155,5 +157,10 @@ export abstract class CadObject implements IHandledCadObject, IDxfClassDefined {
 
 	protected updateCollection<T extends CadObject>(entry: T | null, table: CadObjectTable<T> | null): T | null {
 		return CadObject.updateCollection(entry, table);
+	}
+
+	protected updateTableEntry<T extends TableEntry>(entry: T, assignValue: (entry: T) => void, table: Table<T> | null): T {
+		if (table == null || entry == null) return entry;
+		return table.updateReference(this, entry, assignValue);
 	}
 }
