@@ -3279,8 +3279,6 @@ export class DwgObjectWriter extends DwgSectionIO {
 		} else if (obj instanceof MultiLeaderStyle) {
 			this._writeMultiLeaderStyle(obj);
 		} else if (obj instanceof MultiLeaderObjectContextData) {
-			this._writeObjectContextData(obj);
-			this._writeAnnotScaleObjectContextData(obj);
 			this._writeMultiLeaderAnnotContext(obj);
 		} else if (obj instanceof PdfUnderlayDefinition) {
 			this._writePdfDefinition(obj);
@@ -3346,12 +3344,12 @@ export class DwgObjectWriter extends DwgSectionIO {
 	}
 
 	private _writeAnnotScaleObjectContextData(annotScaleObjectContextData: AnnotScaleObjectContextData): void {
+		this._writeObjectContextData(annotScaleObjectContextData);
 		this._writer.handleReferenceTyped(DwgReferenceType.HardPointer, annotScaleObjectContextData.scale);
 	}
 
 	private _writeObjectContextData(objectContextData: ObjectContextData): void {
 		this._writer.writeBitShort(objectContextData.version);
-		this._writer.writeBit(objectContextData.hasFileToExtensionDictionary);
 		this._writer.writeBit(objectContextData.default);
 	}
 
@@ -3451,7 +3449,6 @@ export class DwgObjectWriter extends DwgSectionIO {
 	}
 
 	private _writeBlockReferenceObjectContextData(contextData: BlockReferenceObjectContextData): void {
-		this._writeObjectContextData(contextData);
 		this._writeAnnotScaleObjectContextData(contextData);
 		this._writer.writeBitDouble(contextData.rotation);
 		this._writer.write3BitDouble(contextData.insertionPoint);
@@ -4375,6 +4372,7 @@ export class DwgObjectWriter extends DwgSectionIO {
 	}
 
 	private _writeMultiLeaderAnnotContext(multiLeaderAnnotContext: MultiLeaderObjectContextData): void {
+		this._writeAnnotScaleObjectContextData(multiLeaderAnnotContext);
 		this._writeMultiLeaderAnnotContextSubObject(false, multiLeaderAnnotContext);
 	}
 
