@@ -16,6 +16,7 @@ import { DimensionStyle } from '../../../Tables/DimensionStyle.js';
 import { Layer } from '../../../Tables/Layer.js';
 import { LineType } from '../../../Tables/LineType.js';
 import { LineTypeShapeFlags } from '../../../Tables/LinetypeShapeFlags.js';
+import { getTextStyleExtendedDataForWrite } from '../../TextStyleExtendedData.js';
 import { TextStyle } from '../../../Tables/TextStyle.js';
 import { UCS } from '../../../Tables/UCS.js';
 import { View } from '../../../Tables/View.js';
@@ -115,7 +116,10 @@ export class DxfTablesSectionWriter extends DxfSectionWriterBase {
       this._writeVPort(entry, map.subClasses.get(entry.subclassMarker)!);
     }
 
-    this.writeExtendedData(entry.extendedData);
+    const extendedData = entry instanceof TextStyle
+      ? getTextStyleExtendedDataForWrite(entry)
+      : entry.extendedData;
+    this.writeExtendedData(extendedData);
   }
 
   private _writeBlockRecord(block: BlockRecord, map: DxfClassMap): void {

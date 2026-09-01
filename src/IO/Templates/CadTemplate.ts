@@ -14,6 +14,8 @@ import { ProxyEntity } from '../../Entities/ProxyEntity.js';
 import { UnknownEntity } from '../../Entities/UnknownEntity.js';
 import { ProxyObject } from '../../Objects/ProxyObject.js';
 import { UnknownNonGraphicalObject } from '../../Objects/UnknownNonGraphicalObject.js';
+import { applyTextStyleTrueTypeFromExtendedData } from '../TextStyleExtendedData.js';
+import { TextStyle } from '../../Tables/TextStyle.js';
 
 export abstract class CadTemplate<T extends CadObject = CadObject> implements ICadObjectTemplate {
 	cadObject: CadObject;
@@ -93,6 +95,11 @@ export abstract class CadTemplate<T extends CadObject = CadObject> implements IC
 			} else {
 				builder.notify(`AppId in extended data with handle ${key} not found`, NotificationType.Warning);
 			}
+		}
+
+		const cadObject = this.cadObject;
+		if (cadObject instanceof TextStyle) {
+			applyTextStyleTrueTypeFromExtendedData(cadObject);
 		}
 	}
 

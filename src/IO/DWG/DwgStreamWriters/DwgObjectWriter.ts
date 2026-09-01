@@ -141,7 +141,8 @@ import { ExtendedDataDisplacement } from '../../../XData/ExtendedDataDisplacemen
 import { ExtendedDataCoordinate } from '../../../XData/ExtendedDataCoordinate.js';
 import { ExtendedDataWorldCoordinate } from '../../../XData/ExtendedDataWorldCoordinate.js';
 import { ExtendedDataString } from '../../../XData/ExtendedDataString.js';
-import { IExtendedDataHandleReference } from '../../../XData/IExtendedDataHandleReference.js';
+import type { IExtendedDataHandleReference } from '../../../XData/IExtendedDataHandleReference.js';
+import { getTextStyleExtendedDataForWrite } from '../../TextStyleExtendedData.js';
 
 // Aec/Proxy objects
 import { AecWallStyle } from '../../../Objects/AEC/AecWallStyle.js';
@@ -1232,7 +1233,10 @@ export class DwgObjectWriter extends DwgSectionIO {
 		}
 
 		this._writer.main.handleReference(cadObject);
-		this._writeExtendedData(cadObject.extendedData);
+		const extendedData = cadObject instanceof TextStyle
+			? getTextStyleExtendedDataForWrite(cadObject)
+			: cadObject.extendedData;
+		this._writeExtendedData(extendedData);
 	}
 
 	private _writeCommonNonEntityData(cadObject: CadObject): void {
