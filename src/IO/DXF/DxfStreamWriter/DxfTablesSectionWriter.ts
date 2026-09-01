@@ -60,7 +60,7 @@ export class DxfTablesSectionWriter extends DxfSectionWriterBase {
 
     this._writer.write(DxfCode.Subclass, DxfSubclassMarker.table);
 
-    this._writer.write(70, table.count);
+    this._writer.write(70, table.count > 0x7FFF ? 0 : table.count);
 
     if (subclass) {
       this._writer.write(DxfCode.Subclass, subclass);
