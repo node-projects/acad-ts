@@ -22,6 +22,7 @@ import { TextMovement } from './TextMovement.js';
 import { TextStyle } from './TextStyle.js';
 import { ToleranceAlignment } from './ToleranceAlignment.js';
 import { ZeroHandling, AngularZeroHandling } from './ZeroHandling.js';
+import type { CadDocument } from '../CadDocument.js';
 
 export class DimensionStyle extends TableEntry {
 	public static get default(): DimensionStyle {
@@ -46,7 +47,7 @@ export class DimensionStyle extends TableEntry {
 		return this._dimArrowBlock;
 	}
 	public set arrowBlock(value: BlockRecord | null) {
-		this._dimArrowBlock = value;
+		this._dimArrowBlock = this.updateTableEntry(value, () => this._dimArrowBlock = null, this.document?.blockRecords ?? null);
 	}
 
 	public get arrowSize(): number {
@@ -68,14 +69,14 @@ export class DimensionStyle extends TableEntry {
 		return this._dimArrow1;
 	}
 	public set dimArrow1(value: BlockRecord | null) {
-		this._dimArrow1 = value;
+		this._dimArrow1 = this.updateTableEntry(value, () => this._dimArrow1 = null, this.document?.blockRecords ?? null);
 	}
 
 	public get dimArrow2(): BlockRecord | null {
 		return this._dimArrow2;
 	}
 	public set dimArrow2(value: BlockRecord | null) {
-		this._dimArrow2 = value;
+		this._dimArrow2 = this.updateTableEntry(value, () => this._dimArrow2 = null, this.document?.blockRecords ?? null);
 	}
 
 	public dimensionFit: number = 0;
@@ -112,7 +113,7 @@ export class DimensionStyle extends TableEntry {
 		return this._leaderArrow;
 	}
 	public set leaderArrow(value: BlockRecord | null) {
-		this._leaderArrow = value;
+		this._leaderArrow = this.updateTableEntry(value, () => this._leaderArrow = null, this.document?.blockRecords ?? null);
 	}
 
 	public limitsGeneration: boolean = false;
@@ -123,21 +124,21 @@ export class DimensionStyle extends TableEntry {
 		return this._lineType;
 	}
 	public set lineType(value: LineType | null) {
-		this._lineType = value;
+		this._lineType = this.updateTableEntry(value, () => this._lineType = null, this.document?.lineTypes ?? null);
 	}
 
 	public get lineTypeExt1(): LineType | null {
 		return this._lineTypeExt1;
 	}
 	public set lineTypeExt1(value: LineType | null) {
-		this._lineTypeExt1 = value;
+		this._lineTypeExt1 = this.updateTableEntry(value, () => this._lineTypeExt1 = null, this.document?.lineTypes ?? null);
 	}
 
 	public get lineTypeExt2(): LineType | null {
 		return this._lineTypeExt2;
 	}
 	public set lineTypeExt2(value: LineType | null) {
-		this._lineTypeExt2 = value;
+		this._lineTypeExt2 = this.updateTableEntry(value, () => this._lineTypeExt2 = null, this.document?.lineTypes ?? null);
 	}
 
 	public minusTolerance: number = 0.0;
@@ -183,7 +184,7 @@ export class DimensionStyle extends TableEntry {
 		if (value == null) {
 			throw new Error('Style cannot be null.');
 		}
-		this._style = value;
+		this._style = this.updateTableEntry(value, style => this._style = style, this.document?.textStyles ?? null);
 	}
 
 	public override get subclassMarker(): string {
@@ -265,16 +266,50 @@ export class DimensionStyle extends TableEntry {
 	public override clone(): CadObject {
 		const clone = super.clone() as DimensionStyle;
 
-		clone.style = this.style?.clone() as TextStyle;
-		clone.leaderArrow = this.leaderArrow?.clone() as BlockRecord ?? null;
-		clone.arrowBlock = this.arrowBlock?.clone() as BlockRecord ?? null;
-		clone.dimArrow1 = this.dimArrow1?.clone() as BlockRecord ?? null;
-		clone.dimArrow2 = this.dimArrow2?.clone() as BlockRecord ?? null;
-		clone.lineType = this.lineType?.clone() as LineType ?? null;
-		clone.lineTypeExt1 = this.lineTypeExt1?.clone() as LineType ?? null;
-		clone.lineTypeExt2 = this.lineTypeExt2?.clone() as LineType ?? null;
+		clone._style = this.style?.clone() as TextStyle;
+		clone._leaderArrow = this.leaderArrow?.clone() as BlockRecord ?? null;
+		clone._dimArrowBlock = this.arrowBlock?.clone() as BlockRecord ?? null;
+		clone._dimArrow1 = this.dimArrow1?.clone() as BlockRecord ?? null;
+		clone._dimArrow2 = this.dimArrow2?.clone() as BlockRecord ?? null;
+		clone._lineType = this.lineType?.clone() as LineType ?? null;
+		clone._lineTypeExt1 = this.lineTypeExt1?.clone() as LineType ?? null;
+		clone._lineTypeExt2 = this.lineTypeExt2?.clone() as LineType ?? null;
 
 		return clone;
+	}
+
+	/** @internal */
+	assignDocument(doc: CadDocument): void {
+		super.assignDocument(doc);
+		this._style = this.updateTableEntry(this._style, style => this._style = style, doc.textStyles);
+		this._lineType = this.updateTableEntry(this._lineType, () => this._lineType = null, doc.lineTypes);
+		this._lineTypeExt1 = this.updateTableEntry(this._lineTypeExt1, () => this._lineTypeExt1 = null, doc.lineTypes);
+		this._lineTypeExt2 = this.updateTableEntry(this._lineTypeExt2, () => this._lineTypeExt2 = null, doc.lineTypes);
+		this._leaderArrow = this.updateTableEntry(this._leaderArrow, () => this._leaderArrow = null, doc.blockRecords);
+		this._dimArrow1 = this.updateTableEntry(this._dimArrow1, () => this._dimArrow1 = null, doc.blockRecords);
+		this._dimArrow2 = this.updateTableEntry(this._dimArrow2, () => this._dimArrow2 = null, doc.blockRecords);
+		this._dimArrowBlock = this.updateTableEntry(this._dimArrowBlock, () => this._dimArrowBlock = null, doc.blockRecords);
+	}
+
+	/** @internal */
+	unassignDocument(): void {
+		this.document?.textStyles?.removeReference(this._style.name, this);
+		this.document?.lineTypes?.removeReference(this._lineType?.name, this);
+		this.document?.lineTypes?.removeReference(this._lineTypeExt1?.name, this);
+		this.document?.lineTypes?.removeReference(this._lineTypeExt2?.name, this);
+		this.document?.blockRecords?.removeReference(this._leaderArrow?.name, this);
+		this.document?.blockRecords?.removeReference(this._dimArrow1?.name, this);
+		this.document?.blockRecords?.removeReference(this._dimArrow2?.name, this);
+		this.document?.blockRecords?.removeReference(this._dimArrowBlock?.name, this);
+		super.unassignDocument();
+		this._style = this._style.clone() as TextStyle;
+		this._lineType = this._lineType?.clone() as LineType ?? null;
+		this._lineTypeExt1 = this._lineTypeExt1?.clone() as LineType ?? null;
+		this._lineTypeExt2 = this._lineTypeExt2?.clone() as LineType ?? null;
+		this._leaderArrow = this._leaderArrow?.clone() as BlockRecord ?? null;
+		this._dimArrow1 = this._dimArrow1?.clone() as BlockRecord ?? null;
+		this._dimArrow2 = this._dimArrow2?.clone() as BlockRecord ?? null;
+		this._dimArrowBlock = this._dimArrowBlock?.clone() as BlockRecord ?? null;
 	}
 
 	public getAlternateUnitStyleFormat(): UnitStyleFormat {
