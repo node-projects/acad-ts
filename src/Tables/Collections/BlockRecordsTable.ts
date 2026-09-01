@@ -4,6 +4,7 @@ import { BlockRecord } from '../BlockRecord.js';
 import { Table } from './Table.js';
 
 export class BlockRecordsTable extends Table<BlockRecord> {
+	public override getDefaultEntry(): BlockRecord | null { return null; }
 	public override get objectType(): ObjectType {
 		return ObjectType.BLOCK_CONTROL_OBJ;
 	}

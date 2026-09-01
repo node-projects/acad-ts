@@ -157,12 +157,13 @@ export abstract class Table<T extends TableEntry> extends CadObject implements I
 		this._referenceHandler.changeKey(e.oldName.toUpperCase(), e.newName.toUpperCase());
 	}
 
-	protected getDefaultEntry(): T {
-		return this.get(this.defaultEntries[0]);
+	public getDefaultEntry(): T | null {
+		if (this.defaultEntries.length === 0) return null;
+		return this.tryGetValue(this.defaultEntries[0]) ?? null;
 	}
 
 	private assignToDefault(name: string): void {
-		this._referenceHandler.assignAndRemove(name.toUpperCase(), this.getDefaultEntry());
+		this._referenceHandler.assignAndRemove(name.toUpperCase(), this.getDefaultEntry() as T);
 	}
 
 	public get(name: string): T {
