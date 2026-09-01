@@ -111,6 +111,7 @@ import { MultiLeaderStyle } from '../../../Objects/MultiLeaderStyle.js';
 import { PdfUnderlayDefinition } from '../../../Objects/PdfUnderlayDefinition.js';
 import { PlotSettings } from '../../../Objects/PlotSettings.js';
 import { RasterVariables } from '../../../Objects/RasterVariables.js';
+import { WipeoutVariables } from '../../../Objects/WipeoutVariables.js';
 import { Scale } from '../../../Objects/Scale.js';
 import { SortEntitiesTable } from '../../../Objects/SortEntitiesTable.js';
 import { SpatialFilter } from '../../../Objects/SpatialFilter.js';
@@ -3286,6 +3287,8 @@ export class DwgObjectWriter extends DwgSectionIO {
 			this._writePlotSettings(obj);
 		} else if (obj instanceof RasterVariables) {
 			this._writeRasterVariables(obj);
+		} else if (obj instanceof WipeoutVariables) {
+			this._writeWipeoutVariables(obj);
 		} else if (obj instanceof Scale) {
 			this._writeScale(obj);
 		} else if (obj instanceof SortEntitiesTable) {
@@ -4490,6 +4493,10 @@ export class DwgObjectWriter extends DwgSectionIO {
 		this._writer.writeBitShort(vars.isDisplayFrameShown ? 1 : 0);
 		this._writer.writeBitShort(vars.displayQuality);
 		this._writer.writeBitShort(vars.units);
+	}
+
+	private _writeWipeoutVariables(variables: WipeoutVariables): void {
+		this._writer.writeBitShort(variables.displayImageFrame ? 1 : 0);
 	}
 
 	private _writeScale(scale: Scale): void {

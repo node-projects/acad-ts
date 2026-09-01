@@ -183,6 +183,7 @@ import { MultiLeaderStyle, MultiLeaderDrawOrderType, LeaderDrawOrderType } from 
 import { Material, ColorMethod, ProjectionMethod, TilingMethod, AutoTransformMethodFlags, MapSource, MaterialChannelFlags, MaterialIlluminationModel, MaterialMode } from '../../../Objects/Material.js';
 import { PlotSettings, PlotFlags, PlotPaperUnits, PlotRotation, PlotType, ScaledType, ShadePlotMode, ShadePlotResolutionMode, PaperMargin } from '../../../Objects/PlotSettings.js';
 import { RasterVariables, ImageDisplayQuality } from '../../../Objects/RasterVariables.js';
+import { WipeoutVariables } from '../../../Objects/WipeoutVariables.js';
 import { Scale } from '../../../Objects/Scale.js';
 import { SortEntitiesTable } from '../../../Objects/SortEntitiesTable.js';
 import { TableStyle, TableFlowDirectionType } from '../../../Objects/TableStyle.js';
@@ -888,6 +889,7 @@ export class DwgObjectReader extends DwgSectionIO {
       case 'SCALE': template = this._readScale(); break;
       case 'SORTENTSTABLE': template = this._readSortentsTable(); break;
       case 'RASTERVARIABLES': template = this._readRasterVariables(); break;
+      case DxfFileToken.objectWipeoutVariables: template = this._readWipeoutVariables(); break;
       case 'WIPEOUT': template = this._readCadImage(new Wipeout()); break;
       case 'XRECORD': template = this._readXRecord(); break;
       case DxfFileToken.objectEvalGraph: template = this._readEvaluationGraph(); break;
@@ -3805,6 +3807,14 @@ export class DwgObjectReader extends DwgSectionIO {
     template.objectHandle = this._handleReference();
     return template;
   }
+
+	private _readWipeoutVariables(): CadTemplate {
+		const variables = new WipeoutVariables();
+		const template = new CadNonGraphicalObjectTemplate(variables);
+		this._readCommonNonEntityData(template);
+		variables.displayImageFrame = this._mergedReaders.readBitShort() !== 0;
+		return template;
+	}
 
   private _readBlockLookupParameter(): CadTemplate {
     const value = new BlockLookupParameter();

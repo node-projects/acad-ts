@@ -61,6 +61,7 @@ import { SortEntitiesTable } from '../../../Objects/SortEntitiesTable.js';
 import { ImageDefinitionReactor } from '../../../Objects/ImageDefinitionReactor.js';
 import { ProxyObject } from '../../../Objects/ProxyObject.js';
 import { RasterVariables } from '../../../Objects/RasterVariables.js';
+import { WipeoutVariables } from '../../../Objects/WipeoutVariables.js';
 import { Group } from '../../../Objects/Group.js';
 import { GeoData , GeoMeshPoint, GeoMeshFace} from '../../../Objects/GeoData.js';
 import { GeoDataVersion } from '../../../Objects/GeoDataVersion.js';
@@ -191,6 +192,8 @@ export class DxfObjectsSectionReader extends DxfSectionReaderBase {
         return this.readObjectCodes(new CadProxyObjectTemplate(), this._readProxyObject.bind(this), ProxyObject);
       case DxfFileToken.objectRasterVariables:
         return this.readObjectCodes(new CadNonGraphicalObjectTemplate(new RasterVariables()), this._readObjectSubclassMap.bind(this), RasterVariables);
+      case DxfFileToken.objectWipeoutVariables:
+        return this.readObjectCodes(new CadNonGraphicalObjectTemplate(new WipeoutVariables()), this._readObjectSubclassMap.bind(this), WipeoutVariables);
       case DxfFileToken.objectGroup:
         return this.readObjectCodes(new CadGroupTemplate(), this._readGroup.bind(this), Group);
       case DxfFileToken.objectGeoData:

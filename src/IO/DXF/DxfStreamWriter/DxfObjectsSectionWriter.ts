@@ -30,6 +30,7 @@ import { MultiLeaderStyle } from '../../../Objects/MultiLeaderStyle.js';
 import { PlotSettings } from '../../../Objects/PlotSettings.js';
 import { PdfUnderlayDefinition } from '../../../Objects/PdfUnderlayDefinition.js';
 import { RasterVariables } from '../../../Objects/RasterVariables.js';
+import { WipeoutVariables } from '../../../Objects/WipeoutVariables.js';
 import { Scale } from '../../../Objects/Scale.js';
 import { SortEntitiesTable } from '../../../Objects/SortEntitiesTable.js';
 import { SpatialFilter } from '../../../Objects/SpatialFilter.js';
@@ -461,6 +462,8 @@ export class DxfObjectsSectionWriter extends DxfSectionWriterBase {
       this._writeSortentsTable(co);
     } else if (co instanceof TableStyle) {
       this._writeTableStyle(co);
+    } else if (co instanceof WipeoutVariables) {
+      this._writeWipeoutVariables(co);
     } else if (co instanceof XRecord) {
       this.writeXRecord(co);
     } else if (co instanceof EvaluationExpression || co instanceof DynamicBlockPurgePreventer) {
@@ -555,6 +558,12 @@ export class DxfObjectsSectionWriter extends DxfSectionWriterBase {
     this._writer.write(71, variables.displayQuality, map);
     this._writer.write(72, variables.displayQuality, map);
   }
+
+	private _writeWipeoutVariables(variables: WipeoutVariables): void {
+		const map = DxfClassMap.create(WipeoutVariables);
+		this._writer.write(DxfCode.Subclass, DxfSubclassMarker.wipeoutVariables);
+		this._writer.write(70, variables.displayImageFrame ? 1 : 0, map);
+	}
 
   protected writeScale(scale: Scale): void {
     this._writer.write(100, DxfSubclassMarker.scale);

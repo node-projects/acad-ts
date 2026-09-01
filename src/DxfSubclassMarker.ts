@@ -149,6 +149,7 @@ export class DxfSubclassMarker {
 	public static readonly visualStyle = "AcDbVisualStyle";
 	public static readonly vPort = "AcDbViewportTableRecord";
 	public static readonly wipeout = "AcDbWipeout";
+	public static readonly wipeoutVariables = "AcDbWipeoutVariables";
 	public static readonly xLine = "AcDbXline";
 	public static readonly xRecord = "AcDbXrecord";
 }

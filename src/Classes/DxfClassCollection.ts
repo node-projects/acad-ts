@@ -89,14 +89,6 @@ export class DxfClassCollection implements Iterable<DxfClass> {
 				proxyFlags: ProxyFlags.EraseAllowed | ProxyFlags.CloningAllowed | ProxyFlags.DisablesProxyWarningDialog,
 			},
 			{
-				applicationName: 'WipeOut',
-				cppClassName: 'AcDbWipeoutVariables',
-				dwgVersion: ACadVersion.AC1015,
-				dxfName: 'WIPEOUTVARIABLES',
-				itemClassId: 499,
-				proxyFlags: ProxyFlags.R13FormatProxy,
-			},
-			{
 				cppClassName: 'AcDbTableGeometry',
 				dwgVersion: 0 as ACadVersion,
 				dxfName: 'TABLEGEOMETRY',

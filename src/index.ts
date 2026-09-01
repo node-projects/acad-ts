@@ -487,6 +487,7 @@ export { PlotType, ScaledType, PlotSettings } from './Objects/PlotSettings.js';
 export { ProjectionMethod } from './Objects/ProjectionMethod.js';
 export { ProxyObject } from './Objects/ProxyObject.js';
 export { RasterVariables } from './Objects/RasterVariables.js';
+export { WipeoutVariables } from './Objects/WipeoutVariables.js';
 export { ResolutionUnit } from './Objects/ResolutionUnit.js';
 export { RotatedDimensionType } from './Objects/RotatedDimensionType.js';
 export { Scale } from './Objects/Scale.js';

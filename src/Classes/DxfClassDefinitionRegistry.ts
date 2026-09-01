@@ -207,6 +207,16 @@ define({
 });
 
 define({
+	applicationName: '"WipeOut|Product Desc:     WipeOut Dbx Application|Company:          Autodesk, Inc.|WEB Address:      www.autodesk.com"',
+	cppClassName: DxfSubclassMarker.wipeoutVariables,
+	dwgVersion: ACadVersion.AC1018,
+	dxfName: DxfFileToken.objectWipeoutVariables,
+	itemClassId: 499,
+	maintenanceVersion: 0,
+	proxyFlags: ProxyFlags.None,
+});
+
+define({
 	applicationName: 'AcDbDimAssoc',
 	cppClassName: DxfSubclassMarker.dimensionAssociation,
 	dwgVersion: 0 as ACadVersion,

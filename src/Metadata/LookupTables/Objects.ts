@@ -2893,6 +2893,22 @@ export const metadataLookupObjects: readonly ClassMetadata[] = [
     "dxfSubClassName": "AcDbRasterVariables"
   },
   {
+    "typeName": "WipeoutVariables",
+    "baseTypeName": "NonGraphicalObject",
+    "properties": [
+      {
+        "propertyName": "displayImageFrame",
+        "valueCodes": [
+          70
+        ],
+        "referenceType": 0
+      }
+    ],
+    "systemVariables": [],
+    "dxfName": "WIPEOUTVARIABLES",
+    "dxfSubClassName": "AcDbWipeoutVariables"
+  },
+  {
     "typeName": "Scale",
     "baseTypeName": "NonGraphicalObject",
     "properties": [

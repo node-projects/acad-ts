@@ -147,6 +147,7 @@ export class DxfFileToken {
 	public static readonly objectTableRowEnd = "TABLEROW_END";
 	public static readonly objectTableStyle = "TABLESTYLE";
 	public static readonly objectVisualStyle = "VISUALSTYLE";
+	public static readonly objectWipeoutVariables = "WIPEOUTVARIABLES";
 	public static readonly objectXRecord = "XRECORD";
 	public static readonly reactorsToken = "{ACAD_REACTORS";
 	public static readonly tableAppId = "APPID";
