@@ -24,7 +24,7 @@ function isBlockRecordOwner(value: unknown): value is BlockRecord {
 export abstract class Entity extends CadObject implements IEntity {
 	get bookColor(): BookColor | null { return this._bookColor; }
 	set bookColor(value: BookColor | null) {
-		this._bookColor = this.updateCollectionEntry(this._bookColor, color => this._bookColor = color, this.document?.colors ?? null);
+		this._bookColor = this.updateCollectionEntry(value, color => this._bookColor = color, this.document?.colors ?? null);
 	}
 
 	color: Color = Color.byLayer;
