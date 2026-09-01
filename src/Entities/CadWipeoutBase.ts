@@ -46,11 +46,7 @@ export abstract class CadWipeoutBase extends Entity {
 		return this._definition;
 	}
 	set definition(value: ImageDefinition | null) {
-		if (this.document != null) {
-			this._definition = CadObject.updateCollection(value, this.document.imageDefinitions);
-		} else {
-			this._definition = value;
-		}
+		this._definition = this.updateCollectionEntry(value, definition => this._definition = definition, this.document?.imageDefinitions ?? null);
 	}
 
 	get fade(): number {
@@ -127,11 +123,12 @@ export abstract class CadWipeoutBase extends Entity {
 	/** @internal */
 	assignDocument(doc: CadDocument): void {
 		super.assignDocument(doc);
-		this._definition = CadObject.updateCollection(this._definition, doc.imageDefinitions);
+		this._definition = this.updateCollectionEntry(this._definition, definition => this._definition = definition, doc.imageDefinitions);
 	}
 
 	/** @internal */
 	unassignDocument(): void {
+		this.document?.imageDefinitions?.removeReference(this._definition?.name, this);
 		super.unassignDocument();
 		this._definition = this._definition?.clone() as ImageDefinition | null ?? null;
 	}

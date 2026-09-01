@@ -14,7 +14,11 @@ export class MLineStyleElement {
 	private _lineType: LineType | null = null;
 	get lineType(): LineType | null { return this._lineType; }
 	set lineType(value: LineType | null) {
-		this._lineType = CadObject.updateCollectionStatic(value, this.owner?.document?.lineTypes);
+		if (this.owner?.document?.lineTypes) {
+			this._lineType = this.owner.updateElementLineType(value, lineType => this._lineType = lineType);
+		} else {
+			this._lineType = value;
+		}
 	}
 
 	offset: number = 0;
@@ -30,10 +34,11 @@ export class MLineStyleElement {
 	}
 
 	assignDocument(doc: CadDocument): void {
-		this._lineType = CadObject.updateCollectionStatic(this._lineType, doc.lineTypes);
+		if (this.owner) this._lineType = this.owner.updateElementLineType(this._lineType, lineType => this._lineType = lineType);
 	}
 
 	unassignDocument(): void {
+		this.owner?.document?.lineTypes?.removeReference(this._lineType?.name, this.owner);
 		this._lineType = this._lineType?.clone() as LineType | null ?? null;
 	}
 }
@@ -81,9 +86,23 @@ export class MLineStyle extends NonGraphicalObject {
 		if (element.owner != null) {
 			throw new Error(`Element already assigned to a MLineStyle: ${element.owner.name}`);
 		}
-		element.lineType = CadObject.updateCollection(element.lineType, this.document?.lineTypes);
 		element.owner = this;
+		element.lineType = element.lineType;
 		this._elements.push(element);
+	}
+
+	updateElementLineType(value: LineType | null, assign: (lineType: LineType) => void): LineType | null {
+		return this.updateTableEntry(value, assign, this.document?.lineTypes ?? null);
+	}
+
+	override assignDocument(doc: CadDocument): void {
+		super.assignDocument(doc);
+		for (const element of this._elements) element.assignDocument(doc);
+	}
+
+	override unassignDocument(): void {
+		for (const element of this._elements) element.unassignDocument();
+		super.unassignDocument();
 	}
 
 	override clone(): CadObject {

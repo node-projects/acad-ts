@@ -116,7 +116,7 @@ export class MultiLeaderObjectContextData extends AnnotScaleObjectContextData {
 	private _blockContent: BlockRecord | null = null;
 	get blockContent(): BlockRecord | null { return this._blockContent; }
 	set blockContent(value: BlockRecord | null) {
-		this._blockContent = CadObject.updateCollectionStatic(value, this.document?.blockRecords ?? null);
+		this._blockContent = this.updateTableEntry(value, block => this._blockContent = block, this.document?.blockRecords ?? null);
 	}
 
 	blockContentColor: Color = Color.byLayer;
@@ -167,7 +167,7 @@ export class MultiLeaderObjectContextData extends AnnotScaleObjectContextData {
 	get textStyle(): TextStyle | null { return this._textStyle; }
 	set textStyle(value: TextStyle | null) {
 		if (value == null) throw new Error('value cannot be null');
-		this._textStyle = CadObject.updateCollectionStatic(value, this.document?.textStyles ?? null);
+		this._textStyle = this.updateTableEntry(value, style => this._textStyle = style, this.document?.textStyles ?? null);
 	}
 
 	textTopAttachment: number = 0;
@@ -184,8 +184,8 @@ export class MultiLeaderObjectContextData extends AnnotScaleObjectContextData {
 
 	override assignDocument(doc: CadDocument): void {
 		super.assignDocument(doc);
-		this._blockContent = CadObject.updateCollectionStatic(this._blockContent, doc.blockRecords);
-		this._textStyle = CadObject.updateCollectionStatic(this._textStyle, doc.textStyles);
+		this._blockContent = this.updateTableEntry(this._blockContent, block => this._blockContent = block, doc.blockRecords);
+		this._textStyle = this.updateTableEntry(this._textStyle, style => this._textStyle = style, doc.textStyles);
 		for (const root of this.leaderRoots) {
 			for (const line of root.lines) {
 				line.assignDocument(doc);
@@ -194,6 +194,8 @@ export class MultiLeaderObjectContextData extends AnnotScaleObjectContextData {
 	}
 
 	override unassignDocument(): void {
+		this.document?.blockRecords?.removeReference(this._blockContent?.name, this);
+		this.document?.textStyles?.removeReference(this._textStyle?.name, this);
 		super.unassignDocument();
 		this._blockContent = this._blockContent?.clone() as BlockRecord | null ?? null;
 		this._textStyle = this._textStyle?.clone() as TextStyle | null ?? null;
