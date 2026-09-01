@@ -43,4 +43,8 @@ export class LineTypesTable extends Table<LineType> {
 			this.add(LineType.continuous);
 		}
 	}
+
+	protected override getDefaultEntry(): LineType {
+		return this.continuous;
+	}
 }

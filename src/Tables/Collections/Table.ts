@@ -25,6 +25,7 @@ export abstract class Table<T extends TableEntry> extends CadObject implements I
 	protected abstract get defaultEntries(): string[];
 
 	protected entries: Map<string, T> = new Map<string, T>();
+	private readonly _references = new Map<string, Map<CadObject, (entry: T) => void>>();
 
 	protected constructor() {
 		super();
@@ -68,6 +69,10 @@ export abstract class Table<T extends TableEntry> extends CadObject implements I
 		return this.entries.values()[Symbol.iterator]();
 	}
 
+	public getReferences(name: string): Iterable<CadObject> {
+		return this._references.get(name.toUpperCase())?.keys() ?? [];
+	}
+
 	public remove(key: string): T | null {
 		if (this.defaultEntries.some(d => d.toUpperCase() === key.toUpperCase())) {
 			return null;
@@ -80,6 +85,7 @@ export abstract class Table<T extends TableEntry> extends CadObject implements I
 			item.owner = null;
 			this.onRemove?.(this, new CollectionChangedEventArgs(item));
 			item.onNameChanged = null;
+			this.assignToDefault(item.name);
 			return item;
 		}
 
@@ -88,6 +94,31 @@ export abstract class Table<T extends TableEntry> extends CadObject implements I
 
 	public tryGetValue(key: string): T | undefined {
 		return this.entries.get(key.toUpperCase());
+	}
+
+	public removeReference(name: string, owner: CadObject): void {
+		const key = name.toUpperCase();
+		const holders = this._references.get(key);
+		if (!holders) return;
+		holders.delete(owner);
+		if (holders.size === 0) this._references.delete(key);
+	}
+
+	public updateReference(owner: CadObject, entry: T, assignValue: (entry: T) => void): T {
+		if (owner.document !== this.document) {
+			throw new Error('The reference must belong to the same document as the table.');
+		}
+		const existing = this.tryAdd(entry);
+		for (const [key, holders] of this._references) {
+			holders.delete(owner);
+			if (holders.size === 0) this._references.delete(key);
+		}
+		const key = existing.name.toUpperCase();
+		const holders = this._references.get(key) ?? new Map<CadObject, (entry: T) => void>();
+		holders.set(owner, assignValue);
+		this._references.set(key, holders);
+		assignValue(existing);
+		return existing;
 	}
 
 	protected addEntry(key: string, item: T): void {
@@ -131,6 +162,24 @@ export abstract class Table<T extends TableEntry> extends CadObject implements I
 			this.entries.set(e.newName.toUpperCase(), entry);
 			this.entries.delete(e.oldName.toUpperCase());
 		}
+		const references = this._references.get(e.oldName.toUpperCase());
+		if (references) {
+			this._references.delete(e.oldName.toUpperCase());
+			this._references.set(e.newName.toUpperCase(), references);
+		}
+	}
+
+	protected getDefaultEntry(): T {
+		return this.get(this.defaultEntries[0]);
+	}
+
+	private assignToDefault(name: string): void {
+		const key = name.toUpperCase();
+		const holders = this._references.get(key);
+		if (!holders) return;
+		this._references.delete(key);
+		const defaultEntry = this.getDefaultEntry();
+		for (const assign of holders.values()) assign(defaultEntry);
 	}
 
 	public get(name: string): T {

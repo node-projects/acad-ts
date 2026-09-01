@@ -35,7 +35,11 @@ export abstract class Entity extends CadObject implements IEntity {
 		if (value == null) {
 			throw new Error('value cannot be null');
 		}
-		this._layer = CadObject.updateCollection(value, this.document?.layers ?? null);
+		if (this.document?.layers) {
+			this.document.layers.updateReference(this, value, layer => this._layer = layer);
+		} else {
+			this._layer = value;
+		}
 	}
 
 	get lineType(): LineType {
@@ -162,15 +166,15 @@ export abstract class Entity extends CadObject implements IEntity {
 	assignDocument(doc: CadDocument): void {
 		super.assignDocument(doc);
 
-		this._layer = CadObject.updateCollection(this.layer, doc.layers);
+		doc.layers.updateReference(this, this.layer, layer => this._layer = layer);
 		this._lineType = CadObject.updateCollection(this.lineType, doc.lineTypes);
 
-		doc.layers.onRemove = this._tableOnRemove.bind(this);
 		doc.lineTypes.onRemove = this._tableOnRemove.bind(this);
 	}
 
 	/** @internal */
 	unassignDocument(): void {
+		this.document?.layers?.removeReference(this.layer.name, this);
 		super.unassignDocument();
 
 		this._layer = this.layer.clone() as Layer;
