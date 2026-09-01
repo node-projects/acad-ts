@@ -67,15 +67,7 @@ export class MText extends Entity implements IText {
 		return this._columnData != null && this._columnData.columnType !== ColumnType.NoColumns;
 	}
 
-	get height(): number {
-		return this._height;
-	}
-	set height(value: number) {
-		if (value <= 0) {
-			throw new Error('The text height must be greater than zero.');
-		}
-		this._height = value;
-	}
+	height: number = 1.0;
 
 	horizontalWidth: number = 0.9;
 
@@ -139,13 +131,13 @@ export class MText extends Entity implements IText {
 
 	verticalHeight: number = 0.2;
 
-	private _height: number = 1.0;
 	private _style: TextStyle = TextStyle.default;
 	private _value: string = '';
 	private _columnData: TextColumnData | null = new TextColumnData();
 
-	constructor() {
+	constructor(value: string = '') {
 		super();
+		this.value = value;
 	}
 
 	override applyTransform(transform: unknown): void {

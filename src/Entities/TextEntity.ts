@@ -17,15 +17,7 @@ import { Transform } from '../Math/Transform.js';
 export class TextEntity extends Entity implements IText {
 	alignmentPoint: XYZ = new XYZ(0, 0, 0);
 
-	get height(): number {
-		return this._height;
-	}
-	set height(value: number) {
-		if (value <= 0) {
-			throw new Error('The Text height must be greater than zero.');
-		}
-		this._height = value;
-	}
+	height: number = 1.0;
 
 	horizontalAlignment: TextHorizontalAlignment = TextHorizontalAlignment.Left;
 
@@ -83,13 +75,13 @@ export class TextEntity extends Entity implements IText {
 
 	widthFactor: number = 1.0;
 
-	private _height: number = 1.0;
 	private _mirror: TextMirrorFlag = TextMirrorFlag.None;
 	private _style: TextStyle = TextStyle.default;
 	private _value: string = '';
 
-	constructor() {
+	constructor(value: string = '') {
 		super();
+		this.value = value;
 	}
 
 	override applyTransform(transform: unknown): void {
