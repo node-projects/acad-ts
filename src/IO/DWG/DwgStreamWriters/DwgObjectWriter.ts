@@ -256,7 +256,7 @@ export class DwgObjectWriter extends DwgSectionIO {
 		writeXRecords: boolean = true,
 		writeXData: boolean = true,
 		writeShapes: boolean = true,
-		writeDynamicBlockData: boolean = true
+		writeDynamicBlockData: boolean = false
 	) {
 		super(document.header.version);
 
