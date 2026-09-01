@@ -64,7 +64,8 @@ export class DxfBlocksSectionWriter extends DxfSectionWriterBase {
   }
 
   private _processEntities(b: BlockRecord): void {
-    if (b.name === BlockRecord.modelSpaceName || b.name === BlockRecord.paperSpaceName) {
+    const name = b.name.toUpperCase();
+    if (name === BlockRecord.modelSpaceName.toUpperCase() || name === BlockRecord.paperSpaceName.toUpperCase()) {
       for (const e of b.entities) {
         if (e instanceof Seqend) {
           // skip
