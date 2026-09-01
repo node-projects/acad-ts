@@ -415,7 +415,8 @@ export class DxfObjectsSectionWriter extends DxfSectionWriterBase {
       return;
     } else if (co instanceof BlockReferenceObjectContextData) {
       this._writeBlockReferenceObjectContextData(co);
-      return;
+    } else if (co instanceof MTextAttributeObjectContextData) {
+      this._writeMTextAttributeObjectContextData(co);
     } else if (co instanceof BookColor) {
       this.writeBookColor(co);
       return;
@@ -619,8 +620,7 @@ export class DxfObjectsSectionWriter extends DxfSectionWriterBase {
       co instanceof MultiLeaderObjectContextData ||
       co instanceof VisualStyle ||
       co instanceof ProxyObject ||
-      co instanceof BlockRepresentationData ||
-      co instanceof MTextAttributeObjectContextData
+      co instanceof BlockRepresentationData
     ) {
       this.notify(`Object not implemented : ${co.constructor.name}`, NotificationType.NotImplemented);
       return false;
@@ -645,6 +645,16 @@ export class DxfObjectsSectionWriter extends DxfSectionWriterBase {
 		this._writer.write(41, contextData.xScale, map);
 		this._writer.write(42, contextData.yScale, map);
 		this._writer.write(43, contextData.zScale, map);
+	}
+
+	private _writeMTextAttributeObjectContextData(contextData: MTextAttributeObjectContextData): void {
+		const map = DxfClassMap.create(MTextAttributeObjectContextData);
+		this._writeAnnotScaleObjectContextData(contextData);
+		this._writer.write(70, contextData.attachmentPoint, map);
+		this._writer.write(50, contextData.rotation, map);
+		this._writer.writeVector(10, contextData.alignmentPoint, map);
+		this._writer.writeVector(11, contextData.insertPoint, map);
+		this._writer.write(290, contextData.value290, map);
 	}
 
 	private _writeTableStyle(style: TableStyle): void {
