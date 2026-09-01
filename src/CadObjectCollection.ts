@@ -55,6 +55,12 @@ export class CadObjectCollection<T extends CadObject> implements Iterable<T> {
 		return item;
 	}
 
+	public removeRange(items: Iterable<T>): void {
+		for (const item of items) {
+			this.remove(item);
+		}
+	}
+
 	[Symbol.iterator](): Iterator<T> {
 		return this._entries[Symbol.iterator]();
 	}
