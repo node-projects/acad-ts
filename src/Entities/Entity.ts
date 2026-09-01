@@ -45,7 +45,7 @@ export abstract class Entity extends CadObject implements IEntity {
 		if (value == null) {
 			throw new Error('value cannot be null');
 		}
-		this._lineType = CadObject.updateCollection(value, this.document?.lineTypes ?? null);
+		this._lineType = this.updateTableEntry(value, lineType => this._lineType = lineType, this.document?.lineTypes ?? null);
 	}
 
 	lineTypeScale: number = 1.0;
@@ -163,14 +163,13 @@ export abstract class Entity extends CadObject implements IEntity {
 		super.assignDocument(doc);
 
 		this._layer = this.updateTableEntry(this.layer, layer => this._layer = layer, doc.layers);
-		this._lineType = CadObject.updateCollection(this.lineType, doc.lineTypes);
-
-		doc.lineTypes.onRemove = this._tableOnRemove.bind(this);
+		this._lineType = this.updateTableEntry(this.lineType, lineType => this._lineType = lineType, doc.lineTypes);
 	}
 
 	/** @internal */
 	unassignDocument(): void {
 		this.document?.layers?.removeReference(this.layer.name, this);
+		this.document?.lineTypes?.removeReference(this.lineType.name, this);
 		super.unassignDocument();
 
 		this._layer = this.layer.clone() as Layer;

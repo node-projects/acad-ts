@@ -159,7 +159,9 @@ export abstract class CadObject implements IHandledCadObject, IDxfClassDefined {
 		return CadObject.updateCollection(entry, table);
 	}
 
-	protected updateTableEntry<T extends TableEntry>(entry: T, assignValue: (entry: T) => void, table: Table<T> | null): T {
+	protected updateTableEntry<T extends TableEntry>(entry: T, assignValue: (entry: T) => void, table: Table<T> | null): T;
+	protected updateTableEntry<T extends TableEntry>(entry: T | null, assignValue: (entry: T) => void, table: Table<T> | null): T | null;
+	protected updateTableEntry<T extends TableEntry>(entry: T | null, assignValue: (entry: T) => void, table: Table<T> | null): T | null {
 		if (table == null || entry == null) return entry;
 		return table.updateReference(this, entry, assignValue);
 	}

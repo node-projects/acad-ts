@@ -20,6 +20,7 @@ import { BlockRecord } from '../Tables/BlockRecord.js';
 import { LineType } from '../Tables/LineType.js';
 import { TextStyle } from '../Tables/TextStyle.js';
 import { Transform } from '../Math/Transform.js';
+import { CadDocument } from '../CadDocument.js';
 
 export class MultiLeaderBlockAttribute {
 	attributeDefinition: AttributeDefinition | null = null;
@@ -38,7 +39,10 @@ export class MultiLeaderBlockAttribute {
 }
 
 export class MultiLeader extends Entity {
-	arrowhead: BlockRecord | null = null;
+	get arrowhead(): BlockRecord | null { return this._arrowhead; }
+	set arrowhead(value: BlockRecord | null) {
+		this._arrowhead = this.updateTableEntry(value, block => this._arrowhead = block, this.document?.blockRecords ?? null);
+	}
 
 	arrowheadSize: number = 0;
 
@@ -48,7 +52,10 @@ export class MultiLeader extends Entity {
 
 	blockContentConnection: number = 0;
 
-	blockContentId: BlockRecord | null = null;
+	get blockContentId(): BlockRecord | null { return this._blockContentId; }
+	set blockContentId(value: BlockRecord | null) {
+		this._blockContentId = this.updateTableEntry(value, block => this._blockContentId = block, this.document?.blockRecords ?? null);
+	}
 
 	blockContentRotation: number = 0;
 
@@ -68,7 +75,10 @@ export class MultiLeader extends Entity {
 
 	landingDistance: number = 0;
 
-	leaderLineType: LineType | null = null;
+	get leaderLineType(): LineType | null { return this._leaderLineType; }
+	set leaderLineType(value: LineType | null) {
+		this._leaderLineType = this.updateTableEntry(value, lineType => this._leaderLineType = lineType, this.document?.lineTypes ?? null);
+	}
 
 	leaderLineWeight: number = 0;
 
@@ -112,13 +122,21 @@ export class MultiLeader extends Entity {
 
 	textRightAttachment: TextAttachmentType = TextAttachmentType.MiddleOfTopLine;
 
-	textStyle: TextStyle | null = null;
+	get textStyle(): TextStyle | null { return this._textStyle; }
+	set textStyle(value: TextStyle | null) {
+		this._textStyle = this.updateTableEntry(value, style => this._textStyle = style, this.document?.textStyles ?? null);
+	}
 
 	textTopAttachment: TextAttachmentType = TextAttachmentType.CenterOfText;
 
 	textDirectionNegative: boolean = false;
 
 	textAligninIPE: boolean = false;
+
+	private _arrowhead: BlockRecord | null = null;
+	private _blockContentId: BlockRecord | null = null;
+	private _leaderLineType: LineType | null = null;
+	private _textStyle: TextStyle | null = null;
 
 	override applyTransform(transform: unknown): void {
 		const axisScale = this.getTransformAxisScale(transform);
@@ -194,10 +212,10 @@ export class MultiLeader extends Entity {
 
 	override clone(): CadObject {
 		const clone = super.clone() as MultiLeader;
-		clone.arrowhead = this.arrowhead?.clone() as BlockRecord | null ?? null;
-		clone.blockContentId = this.blockContentId?.clone() as BlockRecord | null ?? null;
+		clone._arrowhead = this.arrowhead?.clone() as BlockRecord | null ?? null;
+		clone._blockContentId = this.blockContentId?.clone() as BlockRecord | null ?? null;
 		clone.style = this.style?.clone() as MultiLeaderStyle | null ?? null;
-		clone.textStyle = this.textStyle?.clone() as TextStyle | null ?? null;
+		clone._textStyle = this.textStyle?.clone() as TextStyle | null ?? null;
 		clone.contextData = this.contextData.clone() as MultiLeaderObjectContextData;
 		clone.blockAttributes = this.blockAttributes.map(a => a.clone());
 		return clone;
@@ -233,6 +251,30 @@ export class MultiLeader extends Entity {
 		}
 
 		return points.length > 0 ? BoundingBox.fromPoints(points) : null;
+	}
+
+	/** @internal */
+	assignDocument(doc: CadDocument): void {
+		super.assignDocument(doc);
+		this._textStyle = this.updateTableEntry(this._textStyle, style => this._textStyle = style, doc.textStyles);
+		this._leaderLineType = this.updateTableEntry(this._leaderLineType, lineType => this._leaderLineType = lineType, doc.lineTypes);
+		this._arrowhead = this.updateTableEntry(this._arrowhead, block => this._arrowhead = block, doc.blockRecords);
+		this._blockContentId = this.updateTableEntry(this._blockContentId, block => this._blockContentId = block, doc.blockRecords);
+		this.contextData.assignDocument(doc);
+	}
+
+	/** @internal */
+	unassignDocument(): void {
+		this.document?.textStyles?.removeReference(this._textStyle?.name, this);
+		this.document?.lineTypes?.removeReference(this._leaderLineType?.name, this);
+		this.document?.blockRecords?.removeReference(this._arrowhead?.name, this);
+		this.document?.blockRecords?.removeReference(this._blockContentId?.name, this);
+		this.contextData.unassignDocument();
+		super.unassignDocument();
+		this._textStyle = this._textStyle?.clone() as TextStyle | null ?? null;
+		this._leaderLineType = this._leaderLineType?.clone() as LineType | null ?? null;
+		this._arrowhead = this._arrowhead?.clone() as BlockRecord | null ?? null;
+		this._blockContentId = this._blockContentId?.clone() as BlockRecord | null ?? null;
 	}
 }
 

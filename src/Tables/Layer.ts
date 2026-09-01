@@ -42,7 +42,10 @@ export class Layer extends TableEntry {
 
 	public isOn: boolean = true;
 
-	public lineType: LineType | null = null;
+	public get lineType(): LineType | null { return this._lineType; }
+	public set lineType(value: LineType | null) {
+		this._lineType = this.updateTableEntry(value, lineType => this._lineType = lineType, this.document?.lineTypes ?? null);
+	}
 
 	public lineWeight: LineWeightType = LineWeightType.Default;
 
@@ -76,6 +79,7 @@ export class Layer extends TableEntry {
 	public static readonly defpointsName: string = 'defpoints';
 
 	private _color: Color = new Color(7);
+	private _lineType: LineType | null = null;
 	private _plotFlag: boolean = true;
 
 	public constructor(name?: string) {
@@ -84,7 +88,7 @@ export class Layer extends TableEntry {
 
 	public override clone(): CadObject {
 		const clone = super.clone() as Layer;
-		clone.lineType = this.lineType?.clone() as LineType | null ?? null;
+		clone._lineType = this.lineType?.clone() as LineType | null ?? null;
 		clone.material = this.material?.clone() as Material | null ?? null;
 		return clone;
 	}
@@ -92,14 +96,15 @@ export class Layer extends TableEntry {
 	/** @internal */
 	assignDocument(doc: CadDocument): void {
 		super.assignDocument(doc);
-		this.lineType = CadObject.updateCollection(this.lineType ?? LineType.continuous, doc.lineTypes);
+		this._lineType = this.updateTableEntry(this.lineType ?? LineType.continuous, lineType => this._lineType = lineType, doc.lineTypes);
 		this.material = CadObject.updateCollection(this.material, doc.materials);
 	}
 
 	/** @internal */
 	unassignDocument(): void {
+		this.document?.lineTypes?.removeReference(this.lineType?.name, this);
 		super.unassignDocument();
-		this.lineType = this.lineType?.clone() as LineType | null ?? LineType.continuous;
+		this._lineType = this.lineType?.clone() as LineType | null ?? LineType.continuous;
 		this.material = this.material?.clone() as Material | null ?? null;
 	}
 }

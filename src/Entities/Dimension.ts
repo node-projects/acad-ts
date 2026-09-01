@@ -28,11 +28,7 @@ export abstract class Dimension extends Entity {
 		return this._block;
 	}
 	set block(value: BlockRecord | null) {
-		if (this.document != null) {
-			this._block = CadObject.updateCollection(value!, this.document.blockRecords);
-		} else {
-			this._block = value;
-		}
+		this._block = this.updateTableEntry(value, block => this._block = block, this.document?.blockRecords ?? null);
 	}
 
 	definitionPoint: XYZ = new XYZ(0, 0, 0);
@@ -92,11 +88,7 @@ export abstract class Dimension extends Entity {
 		if (value == null) {
 			throw new Error('value cannot be null');
 		}
-		if (this.document != null) {
-			this._style = CadObject.updateCollection(value, this.document.dimensionStyles);
-		} else {
-			this._style = value;
-		}
+		this._style = this.updateTableEntry(value, style => this._style = style, this.document?.dimensionStyles ?? null);
 	}
 
 	override get subclassMarker(): string {
@@ -261,18 +253,20 @@ export abstract class Dimension extends Entity {
 	/** @internal */
 	assignDocument(doc: CadDocument): void {
 		super.assignDocument(doc);
-		this._style = CadObject.updateCollection(this._style, doc.dimensionStyles);
-		this._block = CadObject.updateCollection(this._block!, doc.blockRecords);
+		this._style = this.updateTableEntry(this._style, style => this._style = style, doc.dimensionStyles);
+		this._block = this.updateTableEntry(this._block, block => this._block = block, doc.blockRecords);
 
 		if (this._block != null) {
 			this._block.name = this._generateBlockName();
 		}
 
-		this._block = CadObject.updateCollection(this._block!, doc.blockRecords);
+		this._block = this.updateTableEntry(this._block, block => this._block = block, doc.blockRecords);
 	}
 
 	/** @internal */
 	unassignDocument(): void {
+		this.document?.dimensionStyles?.removeReference(this._style.name, this);
+		this.document?.blockRecords?.removeReference(this._block?.name, this);
 		super.unassignDocument();
 		this._style = this._style?.clone() as DimensionStyle;
 		this._block = this._block?.clone() as BlockRecord ?? null;
@@ -285,7 +279,7 @@ export abstract class Dimension extends Entity {
 		}
 
 		if (this.document != null) {
-			this._block = CadObject.updateCollection(this._block, this.document.blockRecords);
+			this._block = this.updateTableEntry(this._block, block => this._block = block, this.document.blockRecords);
 		}
 
 		this._block.entities.clear();

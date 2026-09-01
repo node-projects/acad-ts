@@ -51,11 +51,7 @@ export class TextEntity extends Entity implements IText {
 		if (value == null) {
 			throw new Error('value cannot be null');
 		}
-		if (this.document != null) {
-			this._style = CadObject.updateCollection(value, this.document.textStyles);
-		} else {
-			this._style = value;
-		}
+		this._style = this.updateTableEntry(value, style => this._style = style, this.document?.textStyles ?? null);
 	}
 
 	override get subclassMarker(): string {
@@ -114,11 +110,12 @@ export class TextEntity extends Entity implements IText {
 	/** @internal */
 	assignDocument(doc: CadDocument): void {
 		super.assignDocument(doc);
-		this._style = CadObject.updateCollection(this._style, doc.textStyles);
+		this._style = this.updateTableEntry(this._style, style => this._style = style, doc.textStyles);
 	}
 
 	/** @internal */
 	unassignDocument(): void {
+		this.document?.textStyles?.removeReference(this._style.name, this);
 		super.unassignDocument();
 		this._style = this._style.clone() as TextStyle;
 	}

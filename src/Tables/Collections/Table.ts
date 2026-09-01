@@ -97,7 +97,8 @@ export abstract class Table<T extends TableEntry> extends CadObject implements I
 		return this.entries.get(key.toUpperCase());
 	}
 
-	public removeReference(name: string, owner: CadObject): void {
+	public removeReference(name: string | null | undefined, owner: CadObject): void {
+		if (!name) return;
 		this._referenceHandler.removeReference(name.toUpperCase(), owner);
 	}
 

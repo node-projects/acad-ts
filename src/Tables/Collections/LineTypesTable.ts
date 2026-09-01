@@ -45,6 +45,6 @@ export class LineTypesTable extends Table<LineType> {
 	}
 
 	protected override getDefaultEntry(): LineType {
-		return this.continuous;
+		return this.byLayer;
 	}
 }
