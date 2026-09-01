@@ -413,6 +413,9 @@ export class DxfObjectsSectionWriter extends DxfSectionWriterBase {
     if (co instanceof AcdbPlaceHolder) {
       this._writeAcdbPlaceHolder(co);
       return;
+    } else if (co instanceof BlockReferenceObjectContextData) {
+      this._writeBlockReferenceObjectContextData(co);
+      return;
     } else if (co instanceof BookColor) {
       this.writeBookColor(co);
       return;
@@ -617,8 +620,7 @@ export class DxfObjectsSectionWriter extends DxfSectionWriterBase {
       co instanceof VisualStyle ||
       co instanceof ProxyObject ||
       co instanceof BlockRepresentationData ||
-      co instanceof MTextAttributeObjectContextData ||
-      co instanceof BlockReferenceObjectContextData
+      co instanceof MTextAttributeObjectContextData
     ) {
       this.notify(`Object not implemented : ${co.constructor.name}`, NotificationType.NotImplemented);
       return false;
@@ -629,6 +631,21 @@ export class DxfObjectsSectionWriter extends DxfSectionWriterBase {
   private _writeAcdbPlaceHolder(acdbPlaceHolder: AcdbPlaceHolder): void {
     // empty
   }
+
+	private _writeAnnotScaleObjectContextData(contextData: import('../../../Objects/AnnotScaleObjectContextData.js').AnnotScaleObjectContextData): void {
+		this._writer.write(DxfCode.Subclass, DxfSubclassMarker.annotScaleObjectContextData);
+		this._writer.writeHandle(340, contextData.scale);
+	}
+
+	private _writeBlockReferenceObjectContextData(contextData: BlockReferenceObjectContextData): void {
+		const map = DxfClassMap.create(BlockReferenceObjectContextData);
+		this._writeAnnotScaleObjectContextData(contextData);
+		this._writer.write(50, contextData.rotation, map);
+		this._writer.writeVector(10, contextData.insertionPoint, map);
+		this._writer.write(41, contextData.xScale, map);
+		this._writer.write(42, contextData.yScale, map);
+		this._writer.write(43, contextData.zScale, map);
+	}
 
 	private _writeTableStyle(style: TableStyle): void {
 		const map = DxfClassMap.create(TableStyle);
