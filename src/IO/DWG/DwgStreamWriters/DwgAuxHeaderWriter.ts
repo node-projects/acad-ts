@@ -1,4 +1,5 @@
 import { CadHeader } from '../../../Header/CadHeader.js';
+import { ACadVersion } from '../../../ACadVersion.js';
 import { DwgSectionIO } from '../DwgSectionIO.js';
 import { DwgSectionDefinition } from '../FileHeaders/DwgSectionDefinition.js';
 import { DwgStreamWriterBase } from './DwgStreamWriterBase.js';
@@ -35,7 +36,7 @@ export class DwgAuxHeaderWriter extends DwgSectionIO {
 		this._writer.writeRawShort(this._version as number);
 
 		//RS: Maintenance version
-		this._writer.writeRawShort(this._header.maintenanceVersion);
+		this._writeMaintenanceVersion();
 
 		//RL: Number of saves (starts at 1)
 		this._writer.writeRawLong(1);
@@ -52,11 +53,11 @@ export class DwgAuxHeaderWriter extends DwgSectionIO {
 		//RS: DWG version string
 		this._writer.writeRawShort(this._version as number);
 		//RS : Maintenance version
-		this._writer.writeRawShort(this._header.maintenanceVersion);
+		this._writeMaintenanceVersion();
 		//RS: DWG version string
 		this._writer.writeRawShort(this._version as number);
 		//RS : Maintenance version
-		this._writer.writeRawShort(this._header.maintenanceVersion);
+		this._writeMaintenanceVersion();
 
 		//RS: 0x0005
 		this._writer.writeRawShort(0x5);
@@ -126,6 +127,14 @@ export class DwgAuxHeaderWriter extends DwgSectionIO {
 			this._writer.writeRawShort(0);
 			//RS : 0
 			this._writer.writeRawShort(0);
+		}
+	}
+
+	private _writeMaintenanceVersion(): void {
+		if (this._version > ACadVersion.AC1027) {
+			this._writer.writeRawLong(this._header.maintenanceVersion);
+		} else {
+			this._writer.writeRawShort(this._header.maintenanceVersion);
 		}
 	}
 }
