@@ -22,7 +22,7 @@ export class CadLeaderTemplate extends CadEntityTemplateT<Leader> {
 
 		const leader = this.cadObject as Leader;
 
-		const style = this.getTableReference<DimensionStyle>(builder, this.dimstyleHandle, this.dimstyleName);
+		const style = this.getTableReference(builder, this.dimstyleHandle, this.dimstyleName, DimensionStyle);
 		if (style) {
 			leader.style = style;
 		}

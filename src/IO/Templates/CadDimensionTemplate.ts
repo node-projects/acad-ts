@@ -26,12 +26,12 @@ export class CadDimensionTemplate extends CadEntityTemplate {
 
 		const dimension = this.cadObject as Dimension;
 
-		const style = this.getTableReference<DimensionStyle>(builder, this.styleHandle, this.styleName ?? '');
+		const style = this.getTableReference(builder, this.styleHandle, this.styleName ?? '', DimensionStyle);
 		if (style) {
 			dimension.style = style;
 		}
 
-		const block = this.getTableReference<BlockRecord>(builder, this.blockHandle, this.blockName ?? '');
+		const block = this.getTableReference(builder, this.blockHandle, this.blockName ?? '', BlockRecord);
 		if (block) {
 			dimension.block = block;
 		}

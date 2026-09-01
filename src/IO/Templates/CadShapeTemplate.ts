@@ -20,7 +20,7 @@ export class CadShapeTemplate extends CadEntityTemplate {
 
 		const shape = this.cadObject as Shape;
 
-		const text = this.getTableReference<TextStyle>(builder, this.shapeFileHandle, this.shapeFileName ?? '');
+		const text = this.getTableReference(builder, this.shapeFileHandle, this.shapeFileName ?? '', TextStyle);
 		if (text) {
 			if (text.isShapeFile) {
 				shape.shapeStyle = text;

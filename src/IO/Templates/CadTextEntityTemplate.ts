@@ -18,7 +18,7 @@ export class CadTextEntityTemplate extends CadEntityTemplate {
 
 		const text = this.cadObject as unknown as IText;
 
-		const style = this.getTableReference<TextStyle>(builder, this.styleHandle, this.styleName ?? '');
+		const style = this.getTableReference(builder, this.styleHandle, this.styleName ?? '', TextStyle);
 		if (style) {
 			text.style = style;
 		}

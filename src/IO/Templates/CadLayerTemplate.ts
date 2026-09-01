@@ -27,7 +27,7 @@ export class CadLayerTemplate extends CadTableEntryTemplate<Layer> {
 
 		const material = builder.tryGetCadObject<Material>(this.materialHandle);
 
-		const lineType = this.getTableReference<LineType>(builder, this.lineTypeHandle, this.lineTypeName ?? '');
+		const lineType = this.getTableReference(builder, this.lineTypeHandle, this.lineTypeName ?? '', LineType);
 		if (lineType) {
 			this.cadObject.lineType = lineType;
 		} else {

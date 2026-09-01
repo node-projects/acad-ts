@@ -41,41 +41,41 @@ export class CadDimensionStyleTemplate extends CadTableEntryTemplate<DimensionSt
 	protected override _build(builder: CadDocumentBuilder): void {
 		super._build(builder);
 
-		const style = this.getTableReference<TextStyle>(builder, this.textStyleHandle, this.textStyle_Name ?? '');
+		const style = this.getTableReference(builder, this.textStyleHandle, this.textStyle_Name ?? '', TextStyle);
 		if (style) {
 			this.cadObject.style = style;
 		}
 
-		const linetType = this.getTableReference<LineType>(builder, this.dimltype, '');
+		const linetType = this.getTableReference(builder, this.dimltype, '', LineType);
 		if (linetType) {
 			this.cadObject.lineType = linetType;
 		}
 
-		const linetTypeEx1 = this.getTableReference<LineType>(builder, this.dimltex1, '');
+		const linetTypeEx1 = this.getTableReference(builder, this.dimltex1, '', LineType);
 		if (linetTypeEx1) {
 			this.cadObject.lineTypeExt1 = linetTypeEx1;
 		}
 
-		const linetTypeEx2 = this.getTableReference<LineType>(builder, this.dimltex2, '');
+		const linetTypeEx2 = this.getTableReference(builder, this.dimltex2, '', LineType);
 		if (linetTypeEx2) {
 			this.cadObject.lineTypeExt2 = linetTypeEx2;
 		}
 
-		const leaderArrow = this.getTableReference<BlockRecord>(builder, this.dimldrblk, this.dimbL_Name ?? '');
+		const leaderArrow = this.getTableReference(builder, this.dimldrblk, this.dimbL_Name ?? '', BlockRecord);
 		if (leaderArrow) {
 			this.cadObject.leaderArrow = leaderArrow;
 		}
 
-		const dimArrow1 = this.getTableReference<BlockRecord>(builder, this.dimblk1, this.dimblK1_Name ?? '');
+		const dimArrow1 = this.getTableReference(builder, this.dimblk1, this.dimblK1_Name ?? '', BlockRecord);
 		if (dimArrow1) {
 			this.cadObject.dimArrow1 = dimArrow1;
 		}
 
-		const dimArrow2 = this.getTableReference<BlockRecord>(builder, this.dimblk2, this.dimblK2_Name ?? '');
+		const dimArrow2 = this.getTableReference(builder, this.dimblk2, this.dimblK2_Name ?? '', BlockRecord);
 		if (dimArrow2) {
 			this.cadObject.dimArrow2 = dimArrow2;
 		}
 
-		const external = this.getTableReference<BlockRecord>(builder, this.blockHandle, '');
+		const external = this.getTableReference(builder, this.blockHandle, '', BlockRecord);
 	}
 }

@@ -13,7 +13,7 @@ export class CadBlockRepresentationDataTemplate extends CadTemplateT<BlockRepres
 	protected override _build(builder: CadDocumentBuilder): void {
 		super._build(builder);
 
-		const record = this.getTableReference<BlockRecord>(builder, this.blockHandle, '');
+		const record = this.getTableReference(builder, this.blockHandle, '', BlockRecord);
 		if (record) {
 			this.cadObject.block = record;
 		}

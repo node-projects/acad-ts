@@ -141,15 +141,15 @@ export abstract class CadTemplate<T extends CadObject = CadObject> implements IC
 		}
 	}
 
-	protected getTableReference<T extends TableEntry = TableEntry>(builder: CadDocumentBuilder, handle: number | null, name: string): T | null {
+	protected getTableReference<T extends TableEntry>(builder: CadDocumentBuilder, handle: number | null, name: string, entryType: abstract new (...args: any[]) => T): T | null {
 		const byHandleCandidate = builder.tryGetCadObject<CadObject>(handle);
-		const byHandle = byHandleCandidate instanceof TableEntry ? byHandleCandidate as T : null;
+		const byHandle = byHandleCandidate instanceof entryType ? byHandleCandidate : null;
 		if (byHandle) {
 			return byHandle;
 		}
 
-		const byName = builder.tryGetTableEntry<T>(name);
-		if (byName) {
+		const byName = builder.tryGetTableEntry<TableEntry>(name);
+		if (byName instanceof entryType) {
 			return byName;
 		}
 

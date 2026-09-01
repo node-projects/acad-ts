@@ -15,7 +15,7 @@ export class CadToleranceTemplate extends CadEntityTemplate {
 	protected override _build(builder: CadDocumentBuilder): void {
 		super._build(builder);
 
-		const style = this.getTableReference<DimensionStyle>(builder, this.dimensionStyleHandle, this.dimensionStyleName);
+		const style = this.getTableReference(builder, this.dimensionStyleHandle, this.dimensionStyleName, DimensionStyle);
 		if (style) {
 			(this.cadObject as Tolerance).style = style;
 		}

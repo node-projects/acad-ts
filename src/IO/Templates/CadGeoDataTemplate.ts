@@ -13,7 +13,7 @@ export class CadGeoDataTemplate extends CadTemplateT<GeoData> {
 	protected override _build(builder: CadDocumentBuilder): void {
 		super._build(builder);
 
-		const host = this.getTableReference<BlockRecord>(builder, this.hostBlockHandle, '');
+		const host = this.getTableReference(builder, this.hostBlockHandle, '', BlockRecord);
 		if (host) {
 			this.cadObject.hostBlock = host;
 		}

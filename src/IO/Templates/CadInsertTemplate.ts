@@ -34,7 +34,7 @@ export class CadInsertTemplate extends CadEntityTemplate implements ICadOwnerTem
 		const insert = this.cadObject as Insert;
 		if (!(insert instanceof Insert)) return;
 
-		const block = this.getTableReference<BlockRecord>(builder, this.blockHeaderHandle, this.blockName ?? '');
+		const block = this.getTableReference(builder, this.blockHeaderHandle, this.blockName ?? '', BlockRecord);
 		if (block) {
 			insert.block = block;
 		} else {
