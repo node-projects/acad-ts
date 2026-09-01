@@ -228,6 +228,7 @@ describe('Roundtrip Tests', () => {
 
       const buffer = new ArrayBuffer(16 * 1024 * 1024);
       const writer = new DwgWriter(buffer, doc);
+      writer.configuration.writeDynamicBlockData = true;
       writer.write();
 
       const outPath = path.join(roundtripOutDir, 'rt_sample_AC1018_object-links.dwg');
@@ -276,6 +277,7 @@ describe('Roundtrip Tests', () => {
 
       const buffer = new ArrayBuffer(16 * 1024 * 1024);
       const writer = new DwgWriter(buffer, doc);
+      writer.configuration.writeDynamicBlockData = true;
       writer.write();
 
       const outPath = path.join(roundtripOutDir, 'rt_sample_AC1018_evaluation-graphs.dwg');
