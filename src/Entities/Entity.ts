@@ -57,7 +57,7 @@ export abstract class Entity extends CadObject implements IEntity {
 
 	get material(): Material | null { return this._material; }
 	set material(value: Material | null) {
-		this._material = this.updateCollectionEntry(this._material, material => this._material = material, this.document?.materials ?? null);
+		this._material = this.updateCollectionEntry(value, material => this._material = material, this.document?.materials ?? null);
 	}
 
 	proxyGeometries: IProxyGeometry[] = [];
