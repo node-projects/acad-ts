@@ -33,6 +33,7 @@ import { DwgHeaderReader } from './DwgStreamReaders/DwgHeaderReader.js';
 import { DwgObjectReader } from './DwgStreamReaders/DwgObjectReader.js';
 import { DwgPreviewReader } from './DwgStreamReaders/DwgPreviewReader.js';
 import { DwgSummaryInfoReader } from './DwgStreamReaders/DwgSummaryInfoReader.js';
+import { DwgAuxHeaderReader } from './DwgStreamReaders/DwgAuxHeaderReader.js';
 import { DwgLZ77AC18Decompressor } from './DwgStreamReaders/DwgLZ77AC18Decompressor.js';
 import { DwgLZ77AC21Decompressor } from './DwgStreamReaders/DwgLZ77AC21Decompressor.js';
 
@@ -77,6 +78,7 @@ export class DwgReader extends CadReaderBase<DwgReaderConfiguration> {
 		this._document.classes = this._readClasses();
 
 		this._readObjects();
+		this._readAuxHeader();
 
 		this._builder.buildDocument();
 
@@ -244,6 +246,15 @@ export class DwgReader extends CadReaderBase<DwgReaderConfiguration> {
 		);
 
 		sectionReader.read();
+	}
+
+	private _readAuxHeader(): void {
+		const stream = this._getSectionStream(DwgSectionDefinition.auxHeader);
+		if (!stream) return;
+
+		const reader = new DwgAuxHeaderReader(this._fileHeader.acadVersion, stream);
+		reader.onNotification = (sender, e) => this.onNotificationEvent(sender, e);
+		reader.read();
 	}
 
 	private _getSectionStream(sectionName: string): IDwgStreamReader | null {

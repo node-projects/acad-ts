@@ -124,6 +124,8 @@ export class DwgAuxHeaderWriter extends DwgSectionIO {
 			this._writer.writeRawShort(0);
 			//RS : 0
 			this._writer.writeRawShort(0);
+			//RS : 0
+			this._writer.writeRawShort(0);
 		}
 	}
 }
