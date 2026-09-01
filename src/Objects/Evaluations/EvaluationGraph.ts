@@ -6,6 +6,20 @@ import { ObjectType } from '../../Types/ObjectType.js';
 import { EvaluationExpression } from './EvaluationExpression.js';
 
 export class EvaluationGraphEdge {
+	index: number = 0;
+	flags: number = 0;
+	trackedCount: number = 0;
+	fromNodeIndex: number = 0;
+	toNodeIndex: number = 0;
+	data1: number = 0;
+	data2: number = 0;
+	data3: number = 0;
+	data4: number = 0;
+	data5: number = 0;
+
+	clone(): EvaluationGraphEdge {
+		return Object.assign(new EvaluationGraphEdge(), this);
+	}
 }
 
 export class EvaluationGraphNode {
@@ -50,6 +64,7 @@ export class EvaluationGraph extends NonGraphicalObject {
 	override clone(): CadObject {
 		const clone = super.clone() as EvaluationGraph;
 		clone.nodes = this.nodes.map(n => n.clone());
+		clone.edges = this.edges.map(e => e.clone());
 		return clone;
 	}
 }

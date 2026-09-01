@@ -6,4 +6,5 @@ export class CadWriterConfiguration {
 	writeXData: boolean = true;
 	writeXRecords: boolean = true;
 	writeShapes: boolean = true;
+	writeDynamicBlockData: boolean = true;
 }

@@ -198,7 +198,7 @@ import { ProxyObject } from '../../../Objects/ProxyObject.js';
 import { IProxy } from '../../../IProxy.js';
 import { SpatialFilter } from '../../../Objects/SpatialFilter.js';
 import { DimensionAssociation, AssociativityFlags, RotatedDimensionType, ObjectOsnapType , OsnapPointRef} from '../../../Objects/DimensionAssociation.js';
-import { EvaluationGraph , EvaluationGraphNode} from '../../../Objects/Evaluations/EvaluationGraph.js';
+import { EvaluationGraph, EvaluationGraphEdge } from '../../../Objects/Evaluations/EvaluationGraph.js';
 import { BlockFlipAction } from '../../../Objects/Evaluations/BlockFlipAction.js';
 import { BlockFlipParameter } from '../../../Objects/Evaluations/BlockFlipParameter.js';
 import { BlockRotationParameter } from '../../../Objects/Evaluations/BlockRotationParameter.js';
@@ -3725,7 +3725,7 @@ export class DwgObjectReader extends DwgSectionIO {
     const nodeCount = this._objectReader.readBitLong();
     for (let i = 0; i < nodeCount; i++) {
       const nodeTemplate = new CadEvaluationGraphTemplate.GraphNodeTemplate();
-      const node = new EvaluationGraphNode();
+	  const node = nodeTemplate.node;
       template.nodeTemplates.push(nodeTemplate);
       node.index = this._objectReader.readBitLong();
       node.flags = this._objectReader.readBitLong();
@@ -3738,16 +3738,18 @@ export class DwgObjectReader extends DwgSectionIO {
     }
     const edgeCount = this._objectReader.readBitLong();
     for (let i = 0; i < edgeCount; i++) {
-      this._objectReader.readBitLong();
-      this._objectReader.readBitLong();
-      this._objectReader.readBitLong();
-      this._objectReader.readBitLong();
-      this._objectReader.readBitLong();
-      this._objectReader.readBitLong();
-      this._objectReader.readBitLong();
-      this._objectReader.readBitLong();
-      this._objectReader.readBitLong();
-      this._objectReader.readBitLong();
+	  const edge = new EvaluationGraphEdge();
+	  edge.index = this._objectReader.readBitLong();
+	  edge.flags = this._objectReader.readBitLong();
+	  edge.trackedCount = this._objectReader.readBitLong();
+	  edge.fromNodeIndex = this._objectReader.readBitLong();
+	  edge.toNodeIndex = this._objectReader.readBitLong();
+	  edge.data1 = this._objectReader.readBitLong();
+	  edge.data2 = this._objectReader.readBitLong();
+	  edge.data3 = this._objectReader.readBitLong();
+	  edge.data4 = this._objectReader.readBitLong();
+	  edge.data5 = this._objectReader.readBitLong();
+	  evaluationGraph.edges.push(edge);
     }
     return template;
   }

@@ -468,6 +468,10 @@ export class DxfObjectsSectionWriter extends DxfSectionWriterBase {
       this.writeXRecord(co);
     } else if (co instanceof EvaluationExpression || co instanceof DynamicBlockPurgePreventer) {
       this._writeMappedObject(co);
+    } else if (co instanceof EvaluationGraph) {
+      this._writeEvaluationGraph(co);
+    } else if (co instanceof BlockRepresentationData) {
+      this._writeBlockRepresentationData(co);
     } else {
       throw new Error(`Object not implemented : ${co.constructor.name}`);
     }
@@ -494,6 +498,45 @@ export class DxfObjectsSectionWriter extends DxfSectionWriterBase {
       }
     }
   }
+
+	private _writeBlockRepresentationData(data: BlockRepresentationData): void {
+		const map = DxfClassMap.create(BlockRepresentationData);
+		this._writer.write(DxfCode.Subclass, DxfSubclassMarker.blockRepresentationData);
+		this._writer.write(70, data.value70, map);
+		this._writer.writeHandle(340, data.block, map);
+	}
+
+	private _writeEvaluationGraph(graph: EvaluationGraph): void {
+		const map = DxfClassMap.create(EvaluationGraph);
+		this._writer.write(DxfCode.Subclass, DxfSubclassMarker.evalGraph);
+		this._writer.write(96, graph.value96, map);
+		this._writer.write(97, graph.value97, map);
+		for (let i = 0; i < graph.nodes.length; i++) {
+			const node = graph.nodes[i];
+			this._writer.write(91, i);
+			this._writer.write(93, node.flags);
+			this._writer.write(95, node.nextNodeIndex);
+			this._writer.writeHandle(360, node.expression);
+			this._writer.write(92, node.data1);
+			this._writer.write(92, node.data2);
+			this._writer.write(92, node.data3);
+			this._writer.write(92, node.data4);
+			if (node.expression) this.holder.objects.push(node.expression);
+		}
+		for (let i = 0; i < graph.edges.length; i++) {
+			const edge = graph.edges[i];
+			this._writer.write(92, i);
+			this._writer.write(93, edge.flags);
+			this._writer.write(94, edge.trackedCount);
+			this._writer.write(91, edge.fromNodeIndex);
+			this._writer.write(91, edge.toNodeIndex);
+			this._writer.write(92, edge.data1);
+			this._writer.write(92, edge.data2);
+			this._writer.write(92, edge.data3);
+			this._writer.write(92, edge.data4);
+			this._writer.write(92, edge.data5);
+		}
+	}
 
   protected writePdfUnderlayDefinition(definition: PdfUnderlayDefinition): void {
     const map = DxfClassMap.create(PlotSettings);
@@ -619,17 +662,20 @@ export class DxfObjectsSectionWriter extends DxfSectionWriterBase {
     if (co instanceof UnknownNonGraphicalObject) {
       return false;
     }
+	if (!this.configuration.writeDynamicBlockData && (
+		co instanceof EvaluationGraph ||
+		co instanceof BlockRepresentationData ||
+		co instanceof DynamicBlockPurgePreventer
+	)) return false;
     if (
       co instanceof AecWallStyle ||
       co instanceof AecCleanupGroup ||
       co instanceof AecBinRecord ||
       co instanceof DimensionAssociation ||
-      co instanceof EvaluationGraph ||
       co instanceof Material ||
       co instanceof MultiLeaderObjectContextData ||
       co instanceof VisualStyle ||
-      co instanceof ProxyObject ||
-      co instanceof BlockRepresentationData
+      co instanceof ProxyObject
     ) {
       this.notify(`Object not implemented : ${co.constructor.name}`, NotificationType.NotImplemented);
       return false;

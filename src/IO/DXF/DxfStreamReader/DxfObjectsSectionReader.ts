@@ -53,7 +53,7 @@ import { DictionaryCloningFlags } from '../../../Objects/DictionaryCloningFlags.
 import { CadDictionaryWithDefault } from '../../../Objects/CadDictionaryWithDefault.js';
 import { Layout } from '../../../Objects/Layout.js';
 import { PlotSettings } from '../../../Objects/PlotSettings.js';
-import { EvaluationGraph } from '../../../Objects/Evaluations/EvaluationGraph.js';
+import { EvaluationGraph, EvaluationGraphEdge } from '../../../Objects/Evaluations/EvaluationGraph.js';
 import { ImageDefinition } from '../../../Objects/ImageDefinition.js';
 import { DictionaryVariable } from '../../../Objects/DictionaryVariable.js';
 import { PdfUnderlayDefinition } from '../../../Objects/PdfUnderlayDefinition.js';
@@ -525,15 +525,27 @@ export class DxfObjectsSectionReader extends DxfSectionReaderBase {
         return true;
       case 92:
         while (this._reader.code === 92) {
+		  const edge = new EvaluationGraphEdge();
+		  edge.index = this._reader.valueAsInt;
           this._reader.expectedCode(93);
+		  edge.flags = this._reader.valueAsInt;
           this._reader.expectedCode(94);
+		  edge.trackedCount = this._reader.valueAsInt;
           this._reader.expectedCode(91);
+		  edge.fromNodeIndex = this._reader.valueAsInt;
           this._reader.expectedCode(91);
+		  edge.toNodeIndex = this._reader.valueAsInt;
           this._reader.expectedCode(92);
+		  edge.data1 = this._reader.valueAsInt;
           this._reader.expectedCode(92);
+		  edge.data2 = this._reader.valueAsInt;
           this._reader.expectedCode(92);
+		  edge.data3 = this._reader.valueAsInt;
           this._reader.expectedCode(92);
+		  edge.data4 = this._reader.valueAsInt;
           this._reader.expectedCode(92);
+		  edge.data5 = this._reader.valueAsInt;
+		  evGraph.edges.push(edge);
 
           this._reader.readNext();
         }

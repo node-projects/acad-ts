@@ -235,6 +235,7 @@ export class DwgWriter extends CadWriterBase<DwgWriterConfiguration> {
 			this.configuration.writeXRecords,
 			this.configuration.writeXData,
 			this.configuration.writeShapes,
+			this.configuration.writeDynamicBlockData,
 		);
 		writer.onNotification = (sender, e) => this.triggerNotification(sender, e);
 		writer.write();

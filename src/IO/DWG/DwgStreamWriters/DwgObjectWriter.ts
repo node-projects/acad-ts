@@ -215,6 +215,7 @@ export class DwgObjectWriter extends DwgSectionIO {
 	writeXRecords: boolean;
 	writeXData: boolean;
 	writeShapes: boolean = true;
+	writeDynamicBlockData: boolean;
 
 	private _dictionaries: Map<number, CadDictionary> = new Map();
 	private _objects: NonGraphicalObject[] = [];
@@ -254,7 +255,8 @@ export class DwgObjectWriter extends DwgSectionIO {
 		encoding: string,
 		writeXRecords: boolean = true,
 		writeXData: boolean = true,
-		writeShapes: boolean = true
+		writeShapes: boolean = true,
+		writeDynamicBlockData: boolean = true
 	) {
 		super(document.header.version);
 
@@ -267,6 +269,7 @@ export class DwgObjectWriter extends DwgSectionIO {
 		this.writeXRecords = writeXRecords;
 		this.writeXData = writeXData;
 		this.writeShapes = writeShapes;
+		this.writeDynamicBlockData = writeDynamicBlockData;
 	}
 
 	get bytesWritten(): number { return this._streamPos; }
@@ -3188,6 +3191,11 @@ export class DwgObjectWriter extends DwgSectionIO {
 
 	private _skipEntry(entry: NonGraphicalObject): { skip: boolean; notify: boolean } {
 		if (entry instanceof XRecord && !this.writeXRecords) return { skip: true, notify: false };
+		if (!this.writeDynamicBlockData && (
+			entry instanceof EvaluationGraph ||
+			entry instanceof BlockRepresentationData ||
+			entry instanceof DynamicBlockPurgePreventer
+		)) return { skip: true, notify: false };
 		if (entry instanceof UnknownNonGraphicalObject
 		) {
 			return { skip: true, notify: true };
@@ -3480,6 +3488,18 @@ export class DwgObjectWriter extends DwgSectionIO {
 			this._writer.writeBitLong(node.data4);
 		}
 		this._writer.writeBitLong(evaluationGraph.edges.length);
+		for (const edge of evaluationGraph.edges) {
+			this._writer.writeBitLong(edge.index);
+			this._writer.writeBitLong(edge.flags);
+			this._writer.writeBitLong(edge.trackedCount);
+			this._writer.writeBitLong(edge.fromNodeIndex);
+			this._writer.writeBitLong(edge.toNodeIndex);
+			this._writer.writeBitLong(edge.data1);
+			this._writer.writeBitLong(edge.data2);
+			this._writer.writeBitLong(edge.data3);
+			this._writer.writeBitLong(edge.data4);
+			this._writer.writeBitLong(edge.data5);
+		}
 	}
 
 	private _writeVisualStyle(visualStyle: VisualStyle): void {
