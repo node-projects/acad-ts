@@ -37,4 +37,8 @@ export class ScaleCollection extends ObjectDictionaryCollection<Scale> {
 			this._dictionary.tryAdd(scale);
 		}
 	}
+
+	protected override getDefaultEntry(): Scale {
+		return this.get(Scale.default.name)!;
+	}
 }

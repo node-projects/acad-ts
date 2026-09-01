@@ -6,6 +6,7 @@ import { BoundingBox } from '../Math/BoundingBox.js';
 import { ObjectType } from '../Types/ObjectType.js';
 import { DimensionStyle } from '../Tables/DimensionStyle.js';
 import { XYZ } from '../Math/XYZ.js';
+import { CadDocument } from '../CadDocument.js';
 
 export class Tolerance extends Entity {
 	direction: XYZ = new XYZ(0, 0, 0);
@@ -29,11 +30,7 @@ export class Tolerance extends Entity {
 		if (value == null) {
 			throw new Error('value cannot be null');
 		}
-		if (this.document != null) {
-			this._style = CadObject.updateCollection(value, this.document.dimensionStyles);
-		} else {
-			this._style = value;
-		}
+		this._style = this.updateTableEntry(value, style => this._style = style, this.document?.dimensionStyles ?? null);
 	}
 
 	override get subclassMarker(): string {
@@ -84,5 +81,18 @@ export class Tolerance extends Entity {
 		];
 
 		return BoundingBox.fromPoints(corners);
+	}
+
+	/** @internal */
+	assignDocument(doc: CadDocument): void {
+		super.assignDocument(doc);
+		this._style = this.updateTableEntry(this._style, style => this._style = style, doc.dimensionStyles);
+	}
+
+	/** @internal */
+	unassignDocument(): void {
+		this.document?.dimensionStyles?.removeReference(this._style.name, this);
+		super.unassignDocument();
+		this._style = this._style.clone() as DimensionStyle;
 	}
 }

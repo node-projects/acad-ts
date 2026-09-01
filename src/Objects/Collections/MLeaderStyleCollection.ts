@@ -10,4 +10,8 @@ export class MLeaderStyleCollection extends ObjectDictionaryCollection<MultiLead
 	createDefaults(): void {
 		this._dictionary.tryAdd(MultiLeaderStyle.default_);
 	}
+
+	protected override getDefaultEntry(): MultiLeaderStyle {
+		return this.get(MultiLeaderStyle.default_.name)!;
+	}
 }

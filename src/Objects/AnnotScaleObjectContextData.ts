@@ -2,6 +2,7 @@ import { ObjectContextData } from './ObjectContextData.js';
 import { Scale } from './Scale.js';
 import { CadObject } from '../CadObject.js';
 import { DxfSubclassMarker } from '../DxfSubclassMarker.js';
+import { CadDocument } from '../CadDocument.js';
 
 export abstract class AnnotScaleObjectContextData extends ObjectContextData {
 	get scale(): Scale { return this._scale; }
@@ -9,11 +10,7 @@ export abstract class AnnotScaleObjectContextData extends ObjectContextData {
 		if (!value) {
 			throw new Error('value cannot be null');
 		}
-		if (this.document != null) {
-			this._scale = CadObject.updateCollection(value, this.document.scales);
-		} else {
-			this._scale = value;
-		}
+		this._scale = this.updateCollectionEntry(value, scale => this._scale = scale, this.document?.scales ?? null);
 	}
 
 	override get subclassMarker(): string {
@@ -26,5 +23,18 @@ export abstract class AnnotScaleObjectContextData extends ObjectContextData {
 		const clone = super.clone() as AnnotScaleObjectContextData;
 		clone._scale = this._scale?.clone() as Scale;
 		return clone;
+	}
+
+	/** @internal */
+	assignDocument(doc: CadDocument): void {
+		super.assignDocument(doc);
+		this._scale = this.updateCollectionEntry(this._scale, scale => this._scale = scale, doc.scales);
+	}
+
+	/** @internal */
+	unassignDocument(): void {
+		this.document?.scales?.removeReference(this._scale.name, this);
+		super.unassignDocument();
+		this._scale = this._scale.clone() as Scale;
 	}
 }

@@ -21,7 +21,7 @@ export class MultiLeaderStyle extends NonGraphicalObject {
 	private _arrowhead: BlockRecord | null = null;
 	get arrowhead(): BlockRecord | null { return this._arrowhead; }
 	set arrowhead(value: BlockRecord | null) {
-		this._arrowhead = CadObject.updateCollectionStatic(value, this.document?.blockRecords ?? null);
+		this._arrowhead = this.updateTableEntry(value, block => this._arrowhead = block, this.document?.blockRecords ?? null);
 	}
 
 	arrowheadSize: number = 0.18;
@@ -29,7 +29,7 @@ export class MultiLeaderStyle extends NonGraphicalObject {
 	private _blockContent: BlockRecord | null = null;
 	get blockContent(): BlockRecord | null { return this._blockContent; }
 	set blockContent(value: BlockRecord | null) {
-		this._blockContent = CadObject.updateCollectionStatic(value, this.document?.blockRecords ?? null);
+		this._blockContent = this.updateTableEntry(value, block => this._blockContent = block, this.document?.blockRecords ?? null);
 	}
 
 	blockContentColor: Color = Color.byBlock;
@@ -67,7 +67,7 @@ export class MultiLeaderStyle extends NonGraphicalObject {
 	get leaderLineType(): LineType | null { return this._leaderLineType; }
 	set leaderLineType(value: LineType | null) {
 		if (value == null) throw new Error('value cannot be null');
-		this._leaderLineType = CadObject.updateCollectionStatic(value, this.document?.lineTypes ?? null);
+		this._leaderLineType = this.updateTableEntry(value, lineType => this._leaderLineType = lineType, this.document?.lineTypes ?? null);
 	}
 
 	leaderLineWeight: number = 0;
@@ -100,7 +100,7 @@ export class MultiLeaderStyle extends NonGraphicalObject {
 	get textStyle(): TextStyle | null { return this._textStyle; }
 	set textStyle(value: TextStyle | null) {
 		if (value == null) throw new Error('value cannot be null');
-		this._textStyle = CadObject.updateCollectionStatic(value, this.document?.textStyles ?? null);
+		this._textStyle = this.updateTableEntry(value, style => this._textStyle = style, this.document?.textStyles ?? null);
 	}
 
 	textTopAttachment: number = 0;
@@ -123,13 +123,17 @@ export class MultiLeaderStyle extends NonGraphicalObject {
 
 	override assignDocument(doc: CadDocument): void {
 		super.assignDocument(doc);
-		this._arrowhead = CadObject.updateCollectionStatic(this._arrowhead, doc.blockRecords);
-		this._blockContent = CadObject.updateCollectionStatic(this._blockContent, doc.blockRecords);
-		this._leaderLineType = CadObject.updateCollectionStatic(this._leaderLineType, doc.lineTypes);
-		this._textStyle = CadObject.updateCollectionStatic(this._textStyle, doc.textStyles);
+		this._arrowhead = this.updateTableEntry(this._arrowhead, block => this._arrowhead = block, doc.blockRecords);
+		this._blockContent = this.updateTableEntry(this._blockContent, block => this._blockContent = block, doc.blockRecords);
+		this._leaderLineType = this.updateTableEntry(this._leaderLineType, lineType => this._leaderLineType = lineType, doc.lineTypes);
+		this._textStyle = this.updateTableEntry(this._textStyle, style => this._textStyle = style, doc.textStyles);
 	}
 
 	override unassignDocument(): void {
+		this.document?.blockRecords?.removeReference(this._arrowhead?.name, this);
+		this.document?.blockRecords?.removeReference(this._blockContent?.name, this);
+		this.document?.lineTypes?.removeReference(this._leaderLineType?.name, this);
+		this.document?.textStyles?.removeReference(this._textStyle?.name, this);
 		super.unassignDocument();
 		this._arrowhead = this._arrowhead?.clone() as BlockRecord | null ?? null;
 		this._blockContent = this._blockContent?.clone() as BlockRecord | null ?? null;

@@ -8,6 +8,7 @@ import { Transform } from '../Math/Transform.js';
 import { XY } from '../Math/XY.js';
 import { TextStyle } from '../Tables/TextStyle.js';
 import { XYZ } from '../Math/XYZ.js';
+import { CadDocument } from '../CadDocument.js';
 
 export class Shape extends Entity {
 	override get objectType(): ObjectType {
@@ -36,11 +37,7 @@ export class Shape extends Entity {
 			throw new Error('value cannot be null and must be a shape file');
 		}
 
-		if (this.document != null) {
-			this._style = CadObject.updateCollection(value, this.document.textStyles);
-		} else {
-			this._style = value;
-		}
+		this._style = this.updateTableEntry(value, style => this._style = style, this.document?.textStyles ?? null);
 	}
 
 	rotation: number = 0;
@@ -99,5 +96,18 @@ export class Shape extends Entity {
 		this.rotation += transform.eulerRotation.z;
 		this.size *= safeY;
 		this.relativeXScale *= safeX / safeY;
+	}
+
+	/** @internal */
+	assignDocument(doc: CadDocument): void {
+		super.assignDocument(doc);
+		this._style = this.updateTableEntry(this._style, style => this._style = style, doc.textStyles);
+	}
+
+	/** @internal */
+	unassignDocument(): void {
+		this.document?.textStyles?.removeReference(this._style?.name, this);
+		super.unassignDocument();
+		this._style = this._style?.clone() as TextStyle;
 	}
 }

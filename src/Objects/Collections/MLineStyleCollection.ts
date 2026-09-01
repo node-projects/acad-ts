@@ -10,4 +10,8 @@ export class MLineStyleCollection extends ObjectDictionaryCollection<MLineStyle>
 	createDefaults(): void {
 		this._dictionary.tryAdd(MLineStyle.default_);
 	}
+
+	protected override getDefaultEntry(): MLineStyle {
+		return this.get(MLineStyle.defaultName)!;
+	}
 }

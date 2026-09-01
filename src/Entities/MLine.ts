@@ -106,7 +106,7 @@ export class MLine extends Entity {
 	get style(): MLineStyle | null { return this._style; }
 	set style(value: MLineStyle | null) {
 		if (!value) throw new Error('MLine style cannot be null');
-		this._style = CadObject.updateCollection(value, this.document?.mLineStyles ?? null);
+		this._style = this.updateCollectionEntry(value, style => this._style = style, this.document?.mLineStyles ?? null);
 	}
 
 	override get subclassMarker(): string {
@@ -144,11 +144,12 @@ export class MLine extends Entity {
 	/** @internal */
 	assignDocument(doc: CadDocument): void {
 		super.assignDocument(doc);
-		this._style = CadObject.updateCollection(this._style, doc.mLineStyles);
+		this._style = this.updateCollectionEntry(this._style, style => this._style = style, doc.mLineStyles);
 	}
 
 	/** @internal */
 	unassignDocument(): void {
+		this.document?.mLineStyles?.removeReference(this._style?.name, this);
 		super.unassignDocument();
 		this._style = this._style?.clone() as MLineStyle | null ?? null;
 	}

@@ -98,7 +98,10 @@ export class MultiLeader extends Entity {
 
 	scaleFactor: number = 1.0;
 
-	style: MultiLeaderStyle | null = null;
+	get style(): MultiLeaderStyle | null { return this._style; }
+	set style(value: MultiLeaderStyle | null) {
+		this._style = this.updateCollectionEntry(value, style => this._style = style, this.document?.mLeaderStyles ?? null);
+	}
 
 	override get subclassMarker(): string {
 		return DxfSubclassMarker.multiLeader;
@@ -136,6 +139,7 @@ export class MultiLeader extends Entity {
 	private _arrowhead: BlockRecord | null = null;
 	private _blockContentId: BlockRecord | null = null;
 	private _leaderLineType: LineType | null = null;
+	private _style: MultiLeaderStyle | null = null;
 	private _textStyle: TextStyle | null = null;
 
 	override applyTransform(transform: unknown): void {
@@ -214,7 +218,7 @@ export class MultiLeader extends Entity {
 		const clone = super.clone() as MultiLeader;
 		clone._arrowhead = this.arrowhead?.clone() as BlockRecord | null ?? null;
 		clone._blockContentId = this.blockContentId?.clone() as BlockRecord | null ?? null;
-		clone.style = this.style?.clone() as MultiLeaderStyle | null ?? null;
+		clone._style = this.style?.clone() as MultiLeaderStyle | null ?? null;
 		clone._textStyle = this.textStyle?.clone() as TextStyle | null ?? null;
 		clone.contextData = this.contextData.clone() as MultiLeaderObjectContextData;
 		clone.blockAttributes = this.blockAttributes.map(a => a.clone());
@@ -257,6 +261,7 @@ export class MultiLeader extends Entity {
 	assignDocument(doc: CadDocument): void {
 		super.assignDocument(doc);
 		this._textStyle = this.updateTableEntry(this._textStyle, style => this._textStyle = style, doc.textStyles);
+		this._style = this.updateCollectionEntry(this._style, style => this._style = style, doc.mLeaderStyles);
 		this._leaderLineType = this.updateTableEntry(this._leaderLineType, lineType => this._leaderLineType = lineType, doc.lineTypes);
 		this._arrowhead = this.updateTableEntry(this._arrowhead, block => this._arrowhead = block, doc.blockRecords);
 		this._blockContentId = this.updateTableEntry(this._blockContentId, block => this._blockContentId = block, doc.blockRecords);
@@ -265,6 +270,7 @@ export class MultiLeader extends Entity {
 
 	/** @internal */
 	unassignDocument(): void {
+		this.document?.mLeaderStyles?.removeReference(this._style?.name, this);
 		this.document?.textStyles?.removeReference(this._textStyle?.name, this);
 		this.document?.lineTypes?.removeReference(this._leaderLineType?.name, this);
 		this.document?.blockRecords?.removeReference(this._arrowhead?.name, this);
@@ -272,6 +278,7 @@ export class MultiLeader extends Entity {
 		this.contextData.unassignDocument();
 		super.unassignDocument();
 		this._textStyle = this._textStyle?.clone() as TextStyle | null ?? null;
+		this._style = this._style?.clone() as MultiLeaderStyle | null ?? null;
 		this._leaderLineType = this._leaderLineType?.clone() as LineType | null ?? null;
 		this._arrowhead = this._arrowhead?.clone() as BlockRecord | null ?? null;
 		this._blockContentId = this._blockContentId?.clone() as BlockRecord | null ?? null;

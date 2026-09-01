@@ -8,6 +8,7 @@ import { ScaleEstimationType } from './ScaleEstimationType.js';
 import { XYZ } from '../Math/XYZ.js';
 import { XY } from '../Math/XY.js';
 import { BlockRecord } from '../Tables/BlockRecord.js';
+import { CadDocument } from '../CadDocument.js';
 
 export class GeoMeshFace {
 	index1: number = 0;
@@ -31,7 +32,11 @@ export class GeoData extends NonGraphicalObject {
 
 	version: GeoDataVersion = GeoDataVersion.R2013;
 	coordinatesType: DesignCoordinatesType = DesignCoordinatesType.LocalGrid;
-	hostBlock: BlockRecord | null = null;
+	get hostBlock(): BlockRecord | null { return this._hostBlock; }
+	set hostBlock(value: BlockRecord | null) {
+		this._hostBlock = this.updateTableEntry(value, block => this._hostBlock = block, this.document?.blockRecords ?? null);
+	}
+	private _hostBlock: BlockRecord | null = null;
 	designPoint: XYZ = new XYZ(0, 0, 0);
 	referencePoint: XYZ = new XYZ(0, 0, 0);
 	northDirection: XY = new XY(0, 1);
@@ -52,6 +57,19 @@ export class GeoData extends NonGraphicalObject {
 	observationCoverageTag: string = '';
 	points: GeoMeshPoint[] = [];
 	faces: GeoMeshFace[] = [];
+
+	/** @internal */
+	assignDocument(doc: CadDocument): void {
+		super.assignDocument(doc);
+		this._hostBlock = this.updateTableEntry(this._hostBlock, block => this._hostBlock = block, doc.blockRecords);
+	}
+
+	/** @internal */
+	unassignDocument(): void {
+		this.document?.blockRecords?.removeReference(this._hostBlock?.name, this);
+		super.unassignDocument();
+		this._hostBlock = this._hostBlock?.clone() as BlockRecord | null ?? null;
+	}
 }
 
 export { GeoDataVersion } from './GeoDataVersion.js';

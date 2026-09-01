@@ -22,7 +22,10 @@ function isBlockRecordOwner(value: unknown): value is BlockRecord {
 }
 
 export abstract class Entity extends CadObject implements IEntity {
-	bookColor: BookColor | null = null;
+	get bookColor(): BookColor | null { return this._bookColor; }
+	set bookColor(value: BookColor | null) {
+		this._bookColor = this.updateCollectionEntry(this._bookColor, color => this._bookColor = color, this.document?.colors ?? null);
+	}
 
 	color: Color = Color.byLayer;
 
@@ -52,7 +55,10 @@ export abstract class Entity extends CadObject implements IEntity {
 
 	lineWeight: LineWeightType = LineWeightType.ByLayer;
 
-	material: Material | null = null;
+	get material(): Material | null { return this._material; }
+	set material(value: Material | null) {
+		this._material = this.updateCollectionEntry(this._material, material => this._material = material, this.document?.materials ?? null);
+	}
 
 	proxyGeometries: IProxyGeometry[] = [];
 
@@ -65,6 +71,7 @@ export abstract class Entity extends CadObject implements IEntity {
 	private _bookColor: BookColor | null = null;
 	private _layer: Layer = Layer.default;
 	private _lineType: LineType = LineType.byLayer;
+	private _material: Material | null = null;
 
 	constructor() {
 		super();
@@ -164,16 +171,22 @@ export abstract class Entity extends CadObject implements IEntity {
 
 		this._layer = this.updateTableEntry(this.layer, layer => this._layer = layer, doc.layers);
 		this._lineType = this.updateTableEntry(this.lineType, lineType => this._lineType = lineType, doc.lineTypes);
+		this._bookColor = this.updateCollectionEntry(this._bookColor, color => this._bookColor = color, doc.colors);
+		this._material = this.updateCollectionEntry(this._material, material => this._material = material, doc.materials);
 	}
 
 	/** @internal */
 	unassignDocument(): void {
+		this.document?.colors?.removeReference(this._bookColor?.name, this);
+		this.document?.materials?.removeReference(this._material?.name, this);
 		this.document?.layers?.removeReference(this.layer.name, this);
 		this.document?.lineTypes?.removeReference(this.lineType.name, this);
 		super.unassignDocument();
 
 		this._layer = this.layer.clone() as Layer;
 		this._lineType = this.lineType.clone() as LineType;
+		this._bookColor = this._bookColor?.clone() as BookColor | null ?? null;
+		this._material = this._material?.clone() as Material | null ?? null;
 	}
 
 	protected applyRotationToPoints(points: XY[], rotation: number): XY[] {

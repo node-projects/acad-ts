@@ -11,6 +11,8 @@ import type { DxfClass } from './Classes/DxfClass.js';
 import { createDxfClassDefinition } from './Classes/DxfClassDefinitionRegistry.js';
 import type { TableEntry } from './Tables/TableEntry.js';
 import type { Table } from './Tables/Collections/Table.js';
+import type { NonGraphicalObject } from './Objects/NonGraphicalObject.js';
+import type { ObjectDictionaryCollection } from './Objects/Collections/ObjectDictionaryCollection.js';
 
 interface CadObjectTable<T extends CadObject> {
 	tryAdd(entry: T): T;
@@ -164,5 +166,12 @@ export abstract class CadObject implements IHandledCadObject, IDxfClassDefined {
 	protected updateTableEntry<T extends TableEntry>(entry: T | null, assignValue: (entry: T) => void, table: Table<T> | null): T | null {
 		if (table == null || entry == null) return entry;
 		return table.updateReference(this, entry, assignValue);
+	}
+
+	protected updateCollectionEntry<T extends NonGraphicalObject>(entry: T, assignValue: (entry: T) => void, collection: ObjectDictionaryCollection<T> | null): T;
+	protected updateCollectionEntry<T extends NonGraphicalObject>(entry: T | null, assignValue: (entry: T) => void, collection: ObjectDictionaryCollection<T> | null): T | null;
+	protected updateCollectionEntry<T extends NonGraphicalObject>(entry: T | null, assignValue: (entry: T) => void, collection: ObjectDictionaryCollection<T> | null): T | null {
+		if (collection == null || entry == null) return entry;
+		return collection.updateReference(this, entry, assignValue);
 	}
 }
