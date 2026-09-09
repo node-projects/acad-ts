@@ -436,6 +436,7 @@ export abstract class DxfSectionWriterBase {
     this._writer.write(2, dim.block?.name ?? '', dimMap);
     this._writer.writeVector(10, dim.definitionPoint, dimMap);
     this._writer.writeVector(11, dim.textMiddlePoint, dimMap);
+    this._writer.writeVector(12, dim.insertionPoint, dimMap);
     this._writer.write(70, dim.flags, dimMap);
     this._writer.write(71, dim.attachmentPoint, dimMap);
     this._writer.write(72, dim.lineSpacingStyle, dimMap);
