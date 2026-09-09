@@ -1,9 +1,9 @@
 # ACadSharp upstream synchronization
 
 - Original port baseline: [3010994939c1bc21df0c9e2931e9baee4564815a](https://github.com/DomCR/ACadSharp/commit/3010994939c1bc21df0c9e2931e9baee4564815a)
-- Last commit reviewed: [91ae384a4fad23c5a282a47c79c99bdebd4a6b97](https://github.com/DomCR/ACadSharp/commit/91ae384a4fad23c5a282a47c79c99bdebd4a6b97)
-- Review order: chronological/topological, 515 commits, inclusive of all commits after the original baseline.
-- Review date: 2026-09-01
+- Last commit reviewed: [43f62ade317e5e11e4b71c92560be0b11b388cd8](https://github.com/DomCR/ACadSharp/commit/43f62ade317e5e11e4b71c92560be0b11b388cd8)
+- Review order: chronological/topological, 531 commits, inclusive of all commits after the original baseline.
+- Review date: 2026-09-09
 
 ## Result
 
@@ -12,6 +12,8 @@ The applicable upstream behavior has been compared commit by commit. Functional 
 The 2026-08-20 review additionally converted object-provided DXF class definitions, safer class collection/counting behavior, a wipeout DXF reader fix, and indexed DWG insert lookup during block writing.
 
 The 2026-09-01 review additionally converted block-reference and MText-attribute context-data writing, large DXF table counts, zero text heights, WIPEOUTVARIABLES, DWG auxiliary-header reading, case-insensitive model-space handling, opt-in dynamic-block writing, and unified table/dictionary reference management.
+
+The 2026-09-09 review additionally converted DXF dimension insertion-point writing. The proxy-shell iteration fix, single-pass block bounding-box calculation, and near-zero comparisons were already represented by the TypeScript implementation.
 
 Two upstream areas remain explicitly partial: native AutoCAD Mechanical/BOM entity models, and the external DWG Prototype1b ACIS section. Proxy payloads are retained even when a record is not typed, and inline/DXF ACIS data is supported.
 
@@ -534,3 +536,19 @@ Two upstream areas remain explicitly partial: native AutoCAD Mechanical/BOM enti
 | 513 | [d282f25f](https://github.com/DomCR/ACadSharp/commit/d282f25f60e94b4b09a61e87302506cd66faa08e) | 2026-08-31 | layout rollback | Reviewed — the transient layout change was not ported, preserving the final upstream behavior. |
 | 514 | [0c8b9d9b](https://github.com/DomCR/ACadSharp/commit/0c8b9d9b6c7f9146f0ce4ccc6d42356953fbb003) | 2026-08-31 | test | Reviewed — tests only; no independent TypeScript feature. |
 | 515 | [91ae384a](https://github.com/DomCR/ACadSharp/commit/91ae384a4fad23c5a282a47c79c99bdebd4a6b97) | 2026-08-31 | Merge pull request #1222 from DomCR/refactor/1200_performance-improvement | Reviewed — integration/release/docs/tests only; no independent TypeScript feature. |
+| 516 | [f39b7f90](https://github.com/DomCR/ACadSharp/commit/f39b7f90452e607128e349e54a08db55e233b6eb) | 2026-09-02 | fix: write dimension insertion point to DXF | Converted — DXF dimension output now writes the insertion point using group codes 12/22/32. |
+| 517 | [20280d27](https://github.com/DomCR/ACadSharp/commit/20280d2795b6ea7fd72ecfad3081d09f1aae96bc) | 2026-09-02 | fix: remove dimension writer test per review | Reviewed — test removal only; no independent TypeScript feature. |
+| 518 | [4d923050](https://github.com/DomCR/ACadSharp/commit/4d923050897f45495064916707f25e324c27a417) | 2026-09-03 | Merge pull request #1236 from mediummandoo/fix/dxf-dimension-insertion-point | Reviewed — integration/release/docs/tests only; no independent TypeScript feature. |
+| 519 | [a51b2108](https://github.com/DomCR/ACadSharp/commit/a51b210865236e48342435bd194576f4e0fc74f2) | 2026-09-03 | #PR1236 v3.7.11 | Reviewed — C# package version only; no TypeScript package-version change. |
+| 520 | [9db45916](https://github.com/DomCR/ACadSharp/commit/9db4591698dbae448aa54c5a9097d07971b348cc) | 2026-09-03 | fix: avoid iterate i second time | Reviewed — the TypeScript proxy-shell parser already advances by stream position and does not double-increment a face index. |
+| 521 | [05d72af9](https://github.com/DomCR/ACadSharp/commit/05d72af9cc330d14265ca992e39e1908c9d2451f) | 2026-09-04 | Merge pull request #1241 from lchojnack/fix/proxy-shell-stream-desync | Reviewed — integration/release/docs/tests only; no independent TypeScript feature. |
+| 522 | [4553726a](https://github.com/DomCR/ACadSharp/commit/4553726a965b8a4e6c81bf551402332727cd8417) | 2026-09-04 | #PR1241 v3.7.12 | Reviewed — C# package version only; no TypeScript package-version change. |
+| 523 | [2e0b8c75](https://github.com/DomCR/ACadSharp/commit/2e0b8c75eda2b385543f12b581b531d58d746fcf) | 2026-08-30 | perf: a block measured every child's bounding box twice | Reviewed — BlockRecord already stores each child bounding box once before merging it. |
+| 524 | [965dfe17](https://github.com/DomCR/ACadSharp/commit/965dfe179e009b689c903725dbe7cb86c4b753c2) | 2026-09-05 | review: remove the comment from the bounding box loop | Reviewed — comment-only cleanup; no independent TypeScript feature. |
+| 525 | [2c726cb3](https://github.com/DomCR/ACadSharp/commit/2c726cb3c752223bb42b04960150ed2c67f6ac11) | 2026-09-08 | Merge pull request #1232 from redbluevn/moredwg/pr80-block-box-once | Reviewed — integration/release/docs/tests only; no independent TypeScript feature. |
+| 526 | [80d78ff1](https://github.com/DomCR/ACadSharp/commit/80d78ff1295f6fd522c3db1a7b4d4ecb1eb86c3a) | 2026-09-08 | #PR1232 v3.7.13 | Reviewed — C# package version only; no TypeScript package-version change. |
+| 527 | [59edc0f6](https://github.com/DomCR/ACadSharp/commit/59edc0f643604ca2ef04fadbc9017edff39b7e8d) | 2026-09-09 | Refactor: use CSMath.Extensions IsZero() throughout codebase | Reviewed — C# extension-method migration; the equivalent TypeScript near-zero helper is already used where behavior requires it. |
+| 528 | [d69d24f1](https://github.com/DomCR/ACadSharp/commit/d69d24f128547359f1c33c501c59900407ec817e) | 2026-09-09 | tests fix | Reviewed — tests only; no independent TypeScript feature. |
+| 529 | [0b297be2](https://github.com/DomCR/ACadSharp/commit/0b297be26c9923f10b39f6740565eb6fbd402e5d) | 2026-09-09 | submodule | Reviewed — C# helper-submodule revision only; no TypeScript dependency change required. |
+| 530 | [58494088](https://github.com/DomCR/ACadSharp/commit/584940886ec2b96431bcc63b2bb8b30d9c04790c) | 2026-09-09 | Update project version to 3.7.14 | Reviewed — C# package version only; no TypeScript package-version change. |
+| 531 | [43f62ade](https://github.com/DomCR/ACadSharp/commit/43f62ade317e5e11e4b71c92560be0b11b388cd8) | 2026-09-09 | Merge pull request #1252 from DomCR/csutilities-update | Reviewed — integration/release/docs/tests only; no independent TypeScript feature. |
