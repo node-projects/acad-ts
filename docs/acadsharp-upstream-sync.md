@@ -1,9 +1,9 @@
 # ACadSharp upstream synchronization
 
 - Original port baseline: [3010994939c1bc21df0c9e2931e9baee4564815a](https://github.com/DomCR/ACadSharp/commit/3010994939c1bc21df0c9e2931e9baee4564815a)
-- Last commit reviewed: [43f62ade317e5e11e4b71c92560be0b11b388cd8](https://github.com/DomCR/ACadSharp/commit/43f62ade317e5e11e4b71c92560be0b11b388cd8)
-- Review order: chronological/topological, 531 commits, inclusive of all commits after the original baseline.
-- Review date: 2026-09-09
+- Last commit reviewed: [3feabba4b2cbcb226f10b288aaee32442b03af6f](https://github.com/DomCR/ACadSharp/commit/3feabba4b2cbcb226f10b288aaee32442b03af6f)
+- Review order: chronological/topological, 542 commits, inclusive of all commits after the original baseline.
+- Review date: 2026-09-19
 
 ## Result
 
@@ -14,6 +14,8 @@ The 2026-08-20 review additionally converted object-provided DXF class definitio
 The 2026-09-01 review additionally converted block-reference and MText-attribute context-data writing, large DXF table counts, zero text heights, WIPEOUTVARIABLES, DWG auxiliary-header reading, case-insensitive model-space handling, opt-in dynamic-block writing, and unified table/dictionary reference management.
 
 The 2026-09-09 review additionally converted DXF dimension insertion-point writing. The proxy-shell iteration fix, single-pass block bounding-box calculation, and near-zero comparisons were already represented by the TypeScript implementation.
+
+The 2026-09-19 review additionally converted signed, full-sweep hatch boundary angle serialization and creation of layers referenced by DXF entities but omitted from the LAYER table. Raster-image reactor rebuilding already incorporated the accompanying upstream safety fixes.
 
 Two upstream areas remain explicitly partial: native AutoCAD Mechanical/BOM entity models, and the external DWG Prototype1b ACIS section. Proxy payloads are retained even when a record is not typed, and inline/DXF ACIS data is supported.
 
@@ -552,3 +554,14 @@ Two upstream areas remain explicitly partial: native AutoCAD Mechanical/BOM enti
 | 529 | [0b297be2](https://github.com/DomCR/ACadSharp/commit/0b297be26c9923f10b39f6740565eb6fbd402e5d) | 2026-09-09 | submodule | Reviewed — C# helper-submodule revision only; no TypeScript dependency change required. |
 | 530 | [58494088](https://github.com/DomCR/ACadSharp/commit/584940886ec2b96431bcc63b2bb8b30d9c04790c) | 2026-09-09 | Update project version to 3.7.14 | Reviewed — C# package version only; no TypeScript package-version change. |
 | 531 | [43f62ade](https://github.com/DomCR/ACadSharp/commit/43f62ade317e5e11e4b71c92560be0b11b388cd8) | 2026-09-09 | Merge pull request #1252 from DomCR/csutilities-update | Reviewed — integration/release/docs/tests only; no independent TypeScript feature. |
+| 532 | [cb1ebedd](https://github.com/DomCR/ACadSharp/commit/cb1ebedd0aad3dcd66c177b0204588a8c084d769) | 2026-09-02 | fix: preserve full-sweep hatch boundary angles | Reviewed — TypeScript angle conversion was already non-normalizing; the final upstream refinement is converted at f0bc83aa. |
+| 533 | [45f40bf5](https://github.com/DomCR/ACadSharp/commit/45f40bf5d69ad27df4c152fd94e7dcf048309a26) | 2026-09-10 | Merge remote-tracking branch 'upstream/master' into fix/dxf-hatch-full-sweep | Reviewed — integration/release/docs/tests only; no independent TypeScript feature. |
+| 534 | [34bd66b1](https://github.com/DomCR/ACadSharp/commit/34bd66b11d232e540f7c7624f98821aa6a2dab9e) | 2026-09-10 | fix: use non-normalizing hatch conversion and shared writer fixtures | Reviewed — TypeScript `radToDeg` already performs the same non-normalizing conversion. |
+| 535 | [f0bc83aa](https://github.com/DomCR/ACadSharp/commit/f0bc83aa2ea3bb8868bc711296139314f414cf4f) | 2026-09-10 | fix: normalize hatch angles within signed bounds | Converted — hatch arc and ellipse angles are normalized within ±360° while full clockwise and counter-clockwise sweeps remain distinct. |
+| 536 | [53bb4958](https://github.com/DomCR/ACadSharp/commit/53bb495824b897068202721199a03bfceae5e3db) | 2026-09-10 | Merge pull request #1237 from mediummandoo/fix/dxf-hatch-full-sweep | Reviewed — integration/release/docs/tests only; no independent TypeScript feature. |
+| 537 | [33595837](https://github.com/DomCR/ACadSharp/commit/33595837ed99b5726a162114e689fd90161a8063) | 2026-09-10 | #PR1237 v3.7.15 | Reviewed — C# package version only; no TypeScript package-version change. |
+| 538 | [9c4a31d4](https://github.com/DomCR/ACadSharp/commit/9c4a31d48c4176cb8c5f6edff46c421e0f1de149) | 2026-09-10 | quick fix | Reviewed — image-reactor rebuilding already skips raster images without definitions. |
+| 539 | [f6a7f1e7](https://github.com/DomCR/ACadSharp/commit/f6a7f1e7e502c6fe9d1e840e576b6124ec0ded11) | 2026-09-10 | fix | Reviewed — image-reactor rebuilding already snapshots the raster-image collection before adding reactors. |
+| 540 | [4587eb52](https://github.com/DomCR/ACadSharp/commit/4587eb529f3463d1e6a433417f463b97f8eb1bc4) | 2026-09-04 | Create layers referenced by DXF entities but missing from the LAYER table | Converted — missing named layers are created, assigned to their entities, and reported as warnings. |
+| 541 | [75fee8ac](https://github.com/DomCR/ACadSharp/commit/75fee8ac1c3b8158cbb2f031a23a4dd1b18f89d5) | 2026-09-15 | Merge pull request #1245 from FriendsOfCADability/feature/1244-create-missing-layers | Reviewed — integration/release/docs/tests only; no independent TypeScript feature. |
+| 542 | [3feabba4](https://github.com/DomCR/ACadSharp/commit/3feabba4b2cbcb226f10b288aaee32442b03af6f) | 2026-09-15 | #PR1245 v3.7.16 | Reviewed — C# package version only; no TypeScript package-version change. |
