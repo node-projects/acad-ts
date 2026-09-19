@@ -1,11 +1,12 @@
 import { describe, expect, it } from 'vitest';
 import { CadDocument } from '../../../src/CadDocument.js';
 import { BoundaryPathFlags } from '../../../src/Entities/BoundaryPathFlags.js';
-import { Hatch, HatchBoundaryPath, HatchBoundaryPathPolyline } from '../../../src/Entities/Hatch.js';
+import { Hatch, HatchBoundaryPath, HatchBoundaryPathArc, HatchBoundaryPathEllipse, HatchBoundaryPathPolyline } from '../../../src/Entities/Hatch.js';
 import { DxfReader } from '../../../src/IO/DXF/DxfReader.js';
 import { DxfWriter } from '../../../src/IO/DXF/DxfWriter.js';
 import { XY } from '../../../src/Math/XY.js';
 import { XYZ } from '../../../src/Math/XYZ.js';
+import { MathHelper } from '../../../src/Math/MathHelper.js';
 
 interface DxfPair {
   code: number;
@@ -90,5 +91,53 @@ describe('DXF HATCH writer', () => {
 
     expect(hatch.elevation).toBe(4);
     expect(hatch.seedPoints).toEqual([new XY(2, 3), new XY(4, 5)]);
+  });
+
+  it.each([
+    [-90, 270, -90, 270],
+    [180, 540, -180, 180],
+    [-540, -180, -180, 180],
+    [540, 180, 180, -180],
+    [-180, -540, 180, -180],
+    [0, 360, 0, 360],
+    [0, -360, 0, -360],
+    [360, 720, 0, 360],
+    [90, 90, 90, 90],
+    [450, 540, 90, 180],
+    [-540, -450, -180, -90],
+  ])('normalizes boundary angles %d°..%d° to %d°..%d°', (startDegrees, endDegrees, expectedStart, expectedEnd) => {
+    const arc = new HatchBoundaryPathArc();
+    arc.radius = 2;
+    arc.startAngle = MathHelper.degToRad(startDegrees);
+    arc.endAngle = MathHelper.degToRad(endDegrees);
+    arc.counterClockWise = true;
+
+    const ellipse = new HatchBoundaryPathEllipse();
+    ellipse.majorAxisEndPoint = new XY(2, 0);
+    ellipse.minorToMajorRatio = 0.5;
+    ellipse.startAngle = arc.startAngle;
+    ellipse.endAngle = arc.endAngle;
+    ellipse.counterClockWise = false;
+
+    const hatch = new Hatch();
+    hatch.isSolid = true;
+    hatch.paths = [new HatchBoundaryPath([arc]), new HatchBoundaryPath([ellipse])];
+
+    const document = new CadDocument();
+    document.entities.add(hatch);
+
+    const output = new InMemoryAsciiStream();
+    new DxfWriter(output, document, false).write();
+    const reread = new DxfReader(new TextEncoder().encode(output.toString())).read();
+    const writtenHatch = [...reread.entities].find(entity => entity instanceof Hatch) as Hatch;
+    const writtenArc = writtenHatch.paths.flatMap(path => path.edges).find(edge => edge instanceof HatchBoundaryPathArc) as HatchBoundaryPathArc;
+    const writtenEllipse = writtenHatch.paths.flatMap(path => path.edges).find(edge => edge instanceof HatchBoundaryPathEllipse) as HatchBoundaryPathEllipse;
+
+    expect(MathHelper.radToDeg(writtenArc.startAngle)).toBeCloseTo(expectedStart, 10);
+    expect(MathHelper.radToDeg(writtenArc.endAngle)).toBeCloseTo(expectedEnd, 10);
+    expect(MathHelper.radToDeg(writtenEllipse.startAngle)).toBeCloseTo(expectedStart, 10);
+    expect(MathHelper.radToDeg(writtenEllipse.endAngle)).toBeCloseTo(expectedEnd, 10);
+    expect(writtenArc.counterClockWise).toBe(true);
+    expect(writtenEllipse.counterClockWise).toBe(false);
   });
 });

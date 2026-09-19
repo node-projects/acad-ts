@@ -667,6 +667,27 @@ export abstract class DxfSectionWriterBase {
     }
   }
 
+  private _writeHatchBoundaryAngles(startAngle: number, endAngle: number): void {
+    const normalizeDegrees = (angle: number): number => {
+      const normalized = MathHelper.radToDeg(angle) % 360;
+      return Object.is(normalized, -0) ? 0 : normalized;
+    };
+
+    let start = normalizeDegrees(startAngle);
+    let end = normalizeDegrees(endAngle);
+
+    if (Math.abs(Math.abs(endAngle - startAngle) - MathHelper.twoPI) < MathHelper.epsilon) {
+      const sweep = endAngle > startAngle ? 360 : -360;
+      if (Math.abs(start + sweep) > 360) {
+        start -= sweep;
+      }
+      end = start + sweep;
+    }
+
+    this._writer.write(50, start);
+    this._writer.write(51, end);
+  }
+
   private _writeBoundaryEdge(edge: HatchBoundaryPathEdge): void {
     if (edge instanceof HatchBoundaryPathLine) {
       this._writer.write(72, 1);
@@ -679,8 +700,7 @@ export abstract class DxfSectionWriterBase {
       this._writer.write(10, edge.center.x);
       this._writer.write(20, edge.center.y);
       this._writer.write(40, edge.radius);
-      this._writer.write(50, MathHelper.radToDeg(edge.startAngle));
-      this._writer.write(51, MathHelper.radToDeg(edge.endAngle));
+      this._writeHatchBoundaryAngles(edge.startAngle, edge.endAngle);
       this._writer.write(73, edge.counterClockWise ? 1 : 0);
     } else if (edge instanceof HatchBoundaryPathEllipse) {
       this._writer.write(72, 3);
@@ -689,8 +709,7 @@ export abstract class DxfSectionWriterBase {
       this._writer.write(11, edge.majorAxisEndPoint.x);
       this._writer.write(21, edge.majorAxisEndPoint.y);
       this._writer.write(40, edge.minorToMajorRatio);
-      this._writer.write(50, MathHelper.radToDeg(edge.startAngle));
-      this._writer.write(51, MathHelper.radToDeg(edge.endAngle));
+      this._writeHatchBoundaryAngles(edge.startAngle, edge.endAngle);
       this._writer.write(73, edge.counterClockWise ? 1 : 0);
     } else if (edge instanceof HatchBoundaryPathSpline) {
       this._writer.write(72, 4);
