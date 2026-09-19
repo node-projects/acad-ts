@@ -51,6 +51,12 @@ export class CadEntityTemplate extends CadTemplateT<Entity> {
 		const layer = this.getTableReference(builder, this.layerHandle, this.layerName ?? '', Layer);
 		if (layer) {
 			this.cadObject.layer = layer;
+		} else if (this.layerName && this.layerName.length > 0) {
+			builder.notify(
+				`Layer ${this.layerName} not found in the LAYER table, created for ${this.cadObject.constructor.name} with handle ${this.cadObject.handle}`,
+				NotificationType.Warning,
+			);
+			this.cadObject.layer = builder.layers.tryAdd(new Layer(this.layerName));
 		}
 
 		switch (this.ltypeFlags) {

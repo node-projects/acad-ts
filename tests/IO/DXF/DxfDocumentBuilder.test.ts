@@ -27,4 +27,24 @@ describe('DxfDocumentBuilder', () => {
 
     expect(owner.ownedObjectsHandlers).toContain(child.cadObject.handle);
   });
+
+  it('creates layers referenced by entities when the layer table omits them', () => {
+    const builder = new DxfDocumentBuilder(
+      ACadVersion.AC1027,
+      new CadDocument(ACadVersion.AC1027, false),
+      new DxfReaderConfiguration(),
+    );
+    const entity = new Line();
+    const template = new CadEntityTemplate(entity);
+    const notifications: string[] = [];
+    entity.handle = 42;
+    template.layerName = 'MISSING_LAYER';
+    builder.onNotification = (_sender, event) => notifications.push(event.message);
+
+    template.build(builder);
+
+    expect(builder.layers.tryGetValue('MISSING_LAYER')).toBe(entity.layer);
+    expect(entity.layer.name).toBe('MISSING_LAYER');
+    expect(notifications).toContainEqual(expect.stringContaining('Layer MISSING_LAYER not found'));
+  });
 });
