@@ -139,7 +139,6 @@ export class DxfSubclassMarker {
 	public static readonly text = "AcDbText";
 	public static readonly textStyle = "AcDbTextStyleTableRecord";
 	public static readonly tolerance = "AcDbFcf";
-	public static readonly trace = "AcDbTrace";
 	public static readonly ucs = "AcDbUCSTableRecord";
 	public static readonly underlay = "AcDbUnderlayReference";
 	public static readonly underlayDefinition = "AcDbUnderlayDefinition";
