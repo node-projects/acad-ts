@@ -566,8 +566,8 @@ export class Hatch extends Entity {
 		}
 	}
 
-	explodePattern(): Entity[] {
-		const entities: Entity[] = [];
+	explodePattern(): Line[] {
+		const entities: Line[] = [];
 		if (!this.pattern || this.pattern.lines.length === 0 || this.paths.length === 0) {
 			return entities;
 		}
@@ -675,7 +675,7 @@ export class Hatch extends Entity {
 		start: number,
 		end: number,
 		dashLengths: number[],
-	): Entity[] {
+	): Line[] {
 		const createLine = (from: number, to: number, continuous: boolean = true): Line => {
 			const line = new Line(
 				Hatch.pointOnLine(origin, direction, from),
@@ -711,7 +711,7 @@ export class Hatch extends Entity {
 			position = 0;
 		}
 
-		const result: Entity[] = [];
+		const result: Line[] = [];
 		let cursor = start;
 		let remaining = Math.abs(dashLengths[index]) - (position - accumulated);
 		while (cursor < end - MathHelper.epsilon) {
