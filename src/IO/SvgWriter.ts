@@ -6,6 +6,11 @@ import { SvgXmlWriter } from './SVG/SvgXmlWriter.js';
 import { CadWriterBase } from './CadWriterBase.js';
 import { CadWriterConfiguration } from './CadWriterConfiguration.js';
 
+/**
+ * Writes a block record or layout as SVG.
+ *
+ * @deprecated Upstream plans to migrate this feature to its formats package.
+ */
 export class SvgWriter extends CadWriterBase<SvgConfiguration> {
 	private _writer!: SvgXmlWriter;
 
