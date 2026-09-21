@@ -3478,7 +3478,7 @@ export class DwgObjectReader extends DwgSectionIO {
     mline.justification = this._objectReader.readByte() as MLineJustification;
     mline.startPoint = this._objectReader.read3BitDouble();
     mline.normal = this._objectReader.read3BitDouble();
-    mline.flags |= this._objectReader.readBitShort() === 3 ? MLineFlags.Closed : MLineFlags.Has;
+    mline.flags |= this._objectReader.readBitShort() === 3 ? MLineFlags.Closed : MLineFlags.HasVertices;
     const nlines = this._objectReader.readByte();
     const nverts = this._objectReader.readBitShort();
     for (let i = 0; i < nverts; i++) {

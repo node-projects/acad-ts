@@ -85,7 +85,7 @@ export class MLineVertex {
 }
 
 export class MLine extends Entity {
-	flags: MLineFlags = MLineFlags.Has;
+	flags: MLineFlags = MLineFlags.HasVertices;
 
 	justification: MLineJustification = MLineJustification.Zero;
 
