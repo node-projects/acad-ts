@@ -1,4 +1,4 @@
-import { Wall } from '../../Entities/AecObjects/Wall.js';
+import { Wall } from '../../Entities/AecEntities/Wall.js';
 import { AecBinRecord } from '../../Objects/AEC/AecBinRecord.js';
 import { AecWallStyle } from '../../Objects/AEC/AecWallStyle.js';
 import { AecCleanupGroup } from '../../Objects/AEC/AecCleanupGroup.js';

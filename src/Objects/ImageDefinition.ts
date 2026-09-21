@@ -6,6 +6,10 @@ import { ResolutionUnit } from './ResolutionUnit.js';
 import { XY } from '../Math/XY.js';
 
 export class ImageDefinition extends NonGraphicalObject {
+	constructor(name?: string) {
+		super(name);
+	}
+
 	override get objectType(): ObjectType {
 		return ObjectType.UNLISTED;
 	}

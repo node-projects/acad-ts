@@ -72,7 +72,7 @@ import { Block } from '../../../Blocks/Block.js';
 import { BlockEnd } from '../../../Blocks/BlockEnd.js';
 import { BlockRecord, BlockTypeFlags } from '../../../Tables/BlockRecord.js';
 import { UnknownEntity } from '../../../Entities/UnknownEntity.js';
-import { Wall } from '../../../Entities/AecObjects/Wall.js';
+import { Wall } from '../../../Entities/AecEntities/Wall.js';
 import { ProxyEntity } from '../../../Entities/ProxyEntity.js';
 import { TableEntity, TableEntityCell, CellType, CellBorder, CellStyle, CellEdgeFlags, ContentFormat, MarginFlags } from '../../../Entities/TableEntity.js';
 import { CadBody } from '../../../Entities/CadBody.js';

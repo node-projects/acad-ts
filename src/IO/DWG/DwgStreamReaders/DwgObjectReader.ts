@@ -245,7 +245,7 @@ import { CadValueUnitType } from '../../../CadValueUnitType.js';
 import { AecCleanupGroup } from '../../../Objects/AEC/AecCleanupGroup.js';
 import { AecWallStyle } from '../../../Objects/AEC/AecWallStyle.js';
 import { AecBinRecord } from '../../../Objects/AEC/AecBinRecord.js';
-import { Wall } from '../../../Entities/AecObjects/Wall.js';
+import { Wall } from '../../../Entities/AecEntities/Wall.js';
 import { UnknownNonGraphicalObject } from '../../../Objects/UnknownNonGraphicalObject.js';
 import { Color } from '../../../Color.js';
 import { Transparency } from '../../../Transparency.js';

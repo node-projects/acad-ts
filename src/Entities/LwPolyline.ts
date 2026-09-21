@@ -9,6 +9,7 @@ import { BoundingBox } from '../Math/BoundingBox.js';
 import { XYZ } from '../Math/XYZ.js';
 import { XY } from '../Math/XY.js';
 import { PolylineExtensions } from '../Extensions/PolylineExtensions.js';
+import { IVector } from '../Math/IVector.js';
 
 export class LwPolylineVertex {
 	location: XY = new XY(0, 0);
@@ -69,13 +70,14 @@ export class LwPolyline extends Entity {
 
 	private _flags: LwPolylineFlags = LwPolylineFlags.Default;
 
-	constructor(vertices?: LwPolylineVertex[] | XY[]) {
+	constructor(vertices?: LwPolylineVertex[] | IVector[]) {
 		super();
 		if (vertices && vertices.length > 0) {
 			if ('location' in vertices[0]) {
 				this.vertices = vertices as LwPolylineVertex[];
 			} else {
-				this.vertices = (vertices as XY[]).map(xy => new LwPolylineVertex(xy));
+				this.vertices = (vertices as IVector[])
+					.map(vector => new LwPolylineVertex(new XY(vector[0], vector[1])));
 			}
 		}
 	}

@@ -10,6 +10,10 @@ import { FaceLightingQualityType } from './FaceLightingQualityType.js';
 import { FaceModifierType } from './FaceModifierType.js';
 
 export class VisualStyle extends NonGraphicalObject {
+	constructor(name?: string) {
+		super(name);
+	}
+
 	brightness: number = 0;
 	color: Color = Color.byLayer;
 	description: string = '';
