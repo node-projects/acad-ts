@@ -1322,7 +1322,7 @@ export class DwgObjectReader extends DwgSectionIO {
       layer.lineWeight = CadUtils.toValue(lineweight);
     }
     const color = this._mergedReaders.readCmColor();
-    layer.color = color.isByBlock || color.isByLayer ? new Color(30) : color;
+    layer.color = color.isByBlock || color.isByLayer ? Color.default : color;
     template.layerControlHandle = this._handleReference();
     if (this.r2000Plus) template.plotStyleHandle = this._handleReference();
     if (this.r2007Plus) template.materialHandle = this._handleReference();
