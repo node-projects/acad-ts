@@ -1,9 +1,9 @@
 # ACadSharp upstream synchronization
 
 - Original port baseline: [3010994939c1bc21df0c9e2931e9baee4564815a](https://github.com/DomCR/ACadSharp/commit/3010994939c1bc21df0c9e2931e9baee4564815a)
-- Last commit reviewed: [3feabba4b2cbcb226f10b288aaee32442b03af6f](https://github.com/DomCR/ACadSharp/commit/3feabba4b2cbcb226f10b288aaee32442b03af6f)
-- Review order: chronological/topological, 542 commits, inclusive of all commits after the original baseline.
-- Review date: 2026-09-19
+- Last commit reviewed: [41d901bb595b34234b3ee41c1400cb73e64f9b5b](https://github.com/DomCR/ACadSharp/commit/41d901bb595b34234b3ee41c1400cb73e64f9b5b)
+- Review order: chronological/topological, 560 commits, inclusive of all commits after the original baseline.
+- Review date: 2026-09-21
 
 ## Result
 
@@ -16,6 +16,8 @@ The 2026-09-01 review additionally converted block-reference and MText-attribute
 The 2026-09-09 review additionally converted DXF dimension insertion-point writing. The proxy-shell iteration fix, single-pass block bounding-box calculation, and near-zero comparisons were already represented by the TypeScript implementation.
 
 The 2026-09-19 review additionally converted signed, full-sweep hatch boundary angle serialization and creation of layers referenced by DXF entities but omitted from the LAYER table. Raster-image reactor rebuilding already incorporated the accompanying upstream safety fixes.
+
+The 2026-09-21 review additionally converted default DWG layer-color fallback handling, the AEC wall namespace and base class, generic-vector lightweight-polyline construction, named image-definition and visual-style construction, hatch-pattern line return types, the SVG writer deprecation, and clearer multiline flags. The TypeScript header model was already flat, and hatch style already defaulted to normal.
 
 Two upstream areas remain explicitly partial: native AutoCAD Mechanical/BOM entity models, and the external DWG Prototype1b ACIS section. Proxy payloads are retained even when a record is not typed, and inline/DXF ACIS data is supported.
 
@@ -565,3 +567,21 @@ Two upstream areas remain explicitly partial: native AutoCAD Mechanical/BOM enti
 | 540 | [4587eb52](https://github.com/DomCR/ACadSharp/commit/4587eb529f3463d1e6a433417f463b97f8eb1bc4) | 2026-09-04 | Create layers referenced by DXF entities but missing from the LAYER table | Converted — missing named layers are created, assigned to their entities, and reported as warnings. |
 | 541 | [75fee8ac](https://github.com/DomCR/ACadSharp/commit/75fee8ac1c3b8158cbb2f031a23a4dd1b18f89d5) | 2026-09-15 | Merge pull request #1245 from FriendsOfCADability/feature/1244-create-missing-layers | Reviewed — integration/release/docs/tests only; no independent TypeScript feature. |
 | 542 | [3feabba4](https://github.com/DomCR/ACadSharp/commit/3feabba4b2cbcb226f10b288aaee32442b03af6f) | 2026-09-15 | #PR1245 v3.7.16 | Reviewed — C# package version only; no TypeScript package-version change. |
+| 543 | [3f33ac9b](https://github.com/DomCR/ACadSharp/commit/3f33ac9b8b51e8d7ecb72ab4b1b4385669ffc988) | 2026-07-05 | Add InternalsVisibleTo for ACadSharp.Formats assembly | Reviewed — C# assembly visibility only; no TypeScript equivalent required. |
+| 544 | [c3ccfb21](https://github.com/DomCR/ACadSharp/commit/c3ccfb21e36a8fbafb133dea6d62c1bca867dd8d) | 2026-07-06 | Add InternalsVisibleTo for Formats.Tests, refactor UnitExtensions | Reviewed — C# assembly visibility, namespace, and documentation refactor only; conversion behavior is unchanged. |
+| 545 | [bf0b449c](https://github.com/DomCR/ACadSharp/commit/bf0b449c60b69bd02d17576e3981c5a50b5e6513) | 2026-09-17 | quick fix | Converted — DWG layers with invalid ByBlock/ByLayer color references now fall back to the default color. |
+| 546 | [ab527ba6](https://github.com/DomCR/ACadSharp/commit/ab527ba69e36eb8547958b8204165e8d599cd39e) | 2026-09-15 | Merge remote-tracking branch 'origin/master' into internal-visible-ACadSharp.Formats | Reviewed — integration only; no independent TypeScript feature. |
+| 547 | [3ddb4455](https://github.com/DomCR/ACadSharp/commit/3ddb4455a17850028327968cfb6319aba9321715) | 2026-09-15 | Refactor AEC wall entities and flatten CadHeader | Converted — added the AEC entity base and canonical wall namespace, generic-vector lightweight-polyline construction, and named image-definition/visual-style constructors. The TypeScript header model was already flat and already accepts native dates. |
+| 548 | [3cad186f](https://github.com/DomCR/ACadSharp/commit/3cad186f487235a3398c8d1e9a00cf70e8bb7e42) | 2026-09-17 | Merge branch 'internal-visible-ACadSharp.Formats' of https://github.com/DomCR/ACadSharp into internal-visible-ACadSharp.Formats | Reviewed — integration only; no independent TypeScript feature. |
+| 549 | [cb19facf](https://github.com/DomCR/ACadSharp/commit/cb19facff70819562af00b8c34206d7d9a921d57) | 2026-09-17 | Update project version to 3.8.0 | Reviewed — C# package version only; no TypeScript package-version change. |
+| 550 | [dd060e75](https://github.com/DomCR/ACadSharp/commit/dd060e758e26286e21b5aaf5a5ea36ceeb2f463c) | 2026-09-21 | Remove Trace constant from DxfSubclassMarker | Converted — removed the duplicate trace subclass marker; solid remains the canonical `AcDbTrace` marker. |
+| 551 | [10b8a4fb](https://github.com/DomCR/ACadSharp/commit/10b8a4fb5e8c8220dd4926ad6e8458a177d19996) | 2026-09-21 | Change Hatch.ExplodePattern to return only Line entities | Converted — hatch-pattern explosion and dashed-segment helpers now expose `Line[]`. |
+| 552 | [a1f6841a](https://github.com/DomCR/ACadSharp/commit/a1f6841ab9cbfacfe6d901ceeba3d84e24e7ebec) | 2026-09-17 | Update using directives in AecWallsTest.cs | Reviewed — C# test imports only; no TypeScript feature. |
+| 553 | [270e4f6a](https://github.com/DomCR/ACadSharp/commit/270e4f6a3240bb2ab004b895f7a788e676ed00ee) | 2026-09-18 | stress test only in local | Reviewed — C# stress-test configuration only; no TypeScript feature. |
+| 554 | [aec847eb](https://github.com/DomCR/ACadSharp/commit/aec847eba3d79f1057a3617ff35efd848df75f7b) | 2026-09-18 | Mark SvgWriter as obsolete and improve doc comments | Converted — marked `SvgWriter` deprecated in the TypeScript declarations; the upstream C# package recommendation does not map to an npm package. |
+| 555 | [46277a1b](https://github.com/DomCR/ACadSharp/commit/46277a1b43323bde79cda5f865630b6138602962) | 2026-09-21 | Merge branch 'internal-visible-ACadSharp.Formats' of https://github.com/DomCR/ACadSharp into internal-visible-ACadSharp.Formats | Reviewed — integration only; no independent TypeScript feature. |
+| 556 | [7a50ef55](https://github.com/DomCR/ACadSharp/commit/7a50ef5509d642f2f66822098df07bb6f8bc808c) | 2026-09-21 | Set default Hatch style and remove obsolete comments | Reviewed — `Hatch.style` already defaults to `HatchStyleType.Normal`; remaining changes are comments. |
+| 557 | [3a1c66b9](https://github.com/DomCR/ACadSharp/commit/3a1c66b9932f9e2dbfbbf3f03660c97d52e49b02) | 2026-09-21 | Merge pull request #1132 from DomCR/internal-visible-ACadSharp.Formats | Reviewed — integration only; no independent TypeScript feature. |
+| 558 | [92492f56](https://github.com/DomCR/ACadSharp/commit/92492f56e970ef96c4d9af7e612fc30671a4038b) | 2026-09-21 | Refactor MLineFlags enum and update usage | Converted — added `None`, renamed `Has` to `HasVertices`, and updated entity and DWG-reader usage. |
+| 559 | [f5b2225e](https://github.com/DomCR/ACadSharp/commit/f5b2225e5b5a19a3a560e6dffa7e96c84b89ca87) | 2026-09-21 | Update project version to 3.8.1 | Reviewed — C# package version only; no TypeScript package-version change. |
+| 560 | [41d901bb](https://github.com/DomCR/ACadSharp/commit/41d901bb595b34234b3ee41c1400cb73e64f9b5b) | 2026-09-21 | Merge pull request #1257 from DomCR/issue/1255_mline-flags | Reviewed — integration only; no independent TypeScript feature. |
