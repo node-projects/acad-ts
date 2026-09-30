@@ -200,6 +200,7 @@ import { MTextAttributeObjectContextData } from '../../../Objects/MTextAttribute
 import { LeaderLine, LeaderRoot, MultiLeaderObjectContextData } from '../../../Objects/MultiLeaderObjectContextData.js';
 import { GradientColor } from '../../../Entities/GradientColor.js';
 import { PolylineFlags } from '../../../Entities/PolylineFlags.js';
+import { SmoothSurfaceType } from '../../../Entities/SmoothSurfaceType.js';
 import { AttributeType } from '../../../Entities/AttributeBase.js';
 import { OrthographicType } from '../../../Types/OrthographicType.js';
 import { GroupCodeValueType } from '../../../GroupCodeValueType.js';
@@ -2541,7 +2542,13 @@ export class DwgObjectWriter extends DwgSectionIO {
 	}
 
 	private _writePolyline3D(pline: Polyline3D): void {
-		this._writer.writeByte(0);
+		let smoothSurface = 0;
+		if (pline.smoothSurface === SmoothSurfaceType.Quadratic) {
+			smoothSurface = 0b1;
+		} else if (pline.smoothSurface === SmoothSurfaceType.Cubic) {
+			smoothSurface = 0b10;
+		}
+		this._writer.writeByte(smoothSurface);
 		this._writer.writeByte((pline.flags & PolylineFlags.ClosedPolylineOrClosedPolygonMeshInM) !== 0 ? 1 : 0);
 
 		if (this.r2004Plus) {

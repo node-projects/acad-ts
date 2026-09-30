@@ -1776,6 +1776,11 @@ export class DwgObjectReader extends DwgSectionIO {
     const flags = this._objectReader.readByte();
     const splined = (flags & 0b1) > 0;
     const splined1 = (flags & 0b10) > 0;
+    if (splined) {
+      pline.smoothSurface = SmoothSurfaceType.Quadratic;
+    } else if (splined1) {
+      pline.smoothSurface = SmoothSurfaceType.Cubic;
+    }
     if (splined || splined1) pline.flags |= PolylineFlags.SplineFit;
     pline.flags |= PolylineFlags.Polyline3D;
     if ((this._objectReader.readByte() & 1) > 0) pline.flags |= PolylineFlags.ClosedPolylineOrClosedPolygonMeshInM;
