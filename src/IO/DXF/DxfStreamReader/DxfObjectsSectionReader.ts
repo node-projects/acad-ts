@@ -2130,6 +2130,11 @@ export class DxfObjectsSectionReader extends DxfSectionReaderBase {
     const xRecord = template.cadObject as XRecord;
     this._reader.readNext();
 
+    if (this._reader.code === 280) {
+      xRecord.cloningFlags = this._reader.valueAsShort as DictionaryCloningFlags;
+      this._reader.readNext();
+    }
+
     while (this._reader.dxfCode !== DxfCode.Start) {
       switch (this._reader.groupCodeValue) {
         case GroupCodeValueType.Point3D: {
