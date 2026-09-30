@@ -90,16 +90,19 @@ export class DxfObjectsSectionWriter extends DxfSectionWriterBase {
     this._writer.write(280, dict.hardOwnerFlag);
     this._writer.write(281, dict.clonningFlags as number);
 
-    for (const item of dict) {
-	  if (item.name === CadDictionary.acadMaterial || !this._isObjectSupported(item)) {
+	for (let i = 0; i < dict.entryHandles.length; i++) {
+	  const handle = dict.entryHandles[i];
+	  const entryName = dict.entryNames[i];
+	  const item = dict.getEntry<NonGraphicalObject>(entryName);
+	  if (item == null || entryName === CadDictionary.acadMaterial || !this._isObjectSupported(item)) {
 		continue;
 	  }
       if (item instanceof XRecord && !this.configuration.writeXRecords) {
         continue;
       }
 
-      this._writer.write(3, item.name);
-      this._writer.write(350, item.handle);
+	  this._writer.write(3, entryName);
+	  this._writer.write(dict.hardOwnerFlag ? 360 : 350, handle);
 
       this.holder.objects.push(item);
     }

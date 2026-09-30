@@ -13,7 +13,7 @@ export class CadDictionary extends NonGraphicalObject implements Iterable<NonGra
 	clonningFlags: DictionaryCloningFlags = DictionaryCloningFlags.NotApplicable;
 
 	get entryHandles(): number[] { return [...this._entries.values()].map(c => c.handle); }
-	get entryNames(): string[] { return [...this._entries.keys()]; }
+	get entryNames(): string[] { return [...this._entries.keys()].map(key => this._entryNames.get(key) ?? key); }
 
 	hardOwnerFlag: boolean = false;
 
@@ -41,6 +41,7 @@ export class CadDictionary extends NonGraphicalObject implements Iterable<NonGra
 	static readonly variableDictionary = 'AcDbVariableDictionary';
 
 	private _entries: Map<string, NonGraphicalObject> = new Map();
+	private _entryNames: Map<string, string> = new Map();
 
 	constructor(name?: string) {
 		super(name);
@@ -76,7 +77,9 @@ export class CadDictionary extends NonGraphicalObject implements Iterable<NonGra
 		if (!value.name) {
 			value.name = key;
 		}
-		this._entries.set(key.toLowerCase(), value);
+		const normalizedKey = key.toLowerCase();
+		this._entries.set(normalizedKey, value);
+		this._entryNames.set(normalizedKey, key);
 		value.owner = this;
 		this.onAdd?.call(this, this, new CollectionChangedEventArgs(value));
 	}
@@ -96,8 +99,9 @@ export class CadDictionary extends NonGraphicalObject implements Iterable<NonGra
 		clone.onAdd = null;
 		clone.onRemove = null;
 		clone._entries = new Map();
-		for (const item of this._entries.values()) {
-			clone.add(item.clone() as NonGraphicalObject);
+		clone._entryNames = new Map();
+		for (const [key, item] of this._entries) {
+			clone.addByKey(this._entryNames.get(key) ?? item.name, item.clone() as NonGraphicalObject);
 		}
 		return clone;
 	}
@@ -115,6 +119,7 @@ export class CadDictionary extends NonGraphicalObject implements Iterable<NonGra
 		const item = this._entries.get(key.toLowerCase());
 		if (item) {
 			this._entries.delete(key.toLowerCase());
+			this._entryNames.delete(key.toLowerCase());
 			item.owner = null;
 			this.onRemove?.call(this, this, new CollectionChangedEventArgs(item));
 			return true;
