@@ -1,5 +1,5 @@
-import { Schema } from './Schema.js';
+import { AcdsSchema } from './AcdsSchema.js';
 
 export class CadFileDataStorage {
-	schemes: Schema[] = [];
+	schemes: AcdsSchema[] = [];
 }

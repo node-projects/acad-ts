@@ -4,10 +4,10 @@ import { DxfDocumentBuilder } from '../DxfDocumentBuilder.js';
 import { DxfCode } from '../../../DxfCode.js';
 import { DxfFileToken } from '../../../DxfFileToken.js';
 import { CadFileDataStorage } from '../../../DataStorage/CadFileDataStorage.js';
-import { Schema } from '../../../DataStorage/Schema.js';
-import { SchemaProperty } from '../../../DataStorage/SchemaProperty.js';
-import { SchemaPropertyFlags } from '../../../DataStorage/SchemaPropertyFlags.js';
-import { AcdsRecord } from '../../../DataStorage/AcdsRecord.js';
+import { AcdsSchema } from '../../../DataStorage/AcdsSchema.js';
+import { AcdsSchemaProperty } from '../../../DataStorage/AcdsSchemaProperty.js';
+import { AcdsSchemaPropertyFlags } from '../../../DataStorage/AcdsSchemaPropertyFlags.js';
+import { AcdsSchemaRecord } from '../../../DataStorage/AcdsSchemaRecord.js';
 
 export class DxfAcdsDataSectionReader extends DxfSectionReaderBase {
 	constructor(reader: IDxfStreamReader, builder: DxfDocumentBuilder) {
@@ -60,8 +60,8 @@ export class DxfAcdsDataSectionReader extends DxfSectionReaderBase {
 		(this._builder as DxfDocumentBuilder).acdsDataRecords.set(handle, payload);
 	}
 
-	private _readSchema(): Schema {
-		const schema = new Schema();
+	private _readSchema(): AcdsSchema {
+		const schema = new AcdsSchema();
 		this._reader.readNext();
 
 		while (this._reader.dxfCode !== DxfCode.Start) {
@@ -89,8 +89,8 @@ export class DxfAcdsDataSectionReader extends DxfSectionReaderBase {
 		return schema;
 	}
 
-	private _readProperty(): SchemaProperty {
-		const property = new SchemaProperty();
+	private _readProperty(): AcdsSchemaProperty {
+		const property = new AcdsSchemaProperty();
 		property.name = this._reader.valueAsString;
 
 		while (this._reader.dxfCode !== DxfCode.Start && this._reader.dxfCode !== DxfCode.EmbeddedObjectStart) {
@@ -99,7 +99,7 @@ export class DxfAcdsDataSectionReader extends DxfSectionReaderBase {
 					property.type = this._reader.valueAsShort;
 					break;
 				case 280:
-					property.propertyFlags = this._reader.valueAsShort as SchemaPropertyFlags;
+					property.propertyFlags = this._reader.valueAsShort as AcdsSchemaPropertyFlags;
 					break;
 			}
 			this._reader.readNext();
@@ -108,8 +108,8 @@ export class DxfAcdsDataSectionReader extends DxfSectionReaderBase {
 		return property;
 	}
 
-	private _readEmbeddedRecord(): AcdsRecord {
-		const record = new AcdsRecord();
+	private _readEmbeddedRecord(): AcdsSchemaRecord {
+		const record = new AcdsSchemaRecord();
 		this._reader.readNext();
 
 		while (this._reader.dxfCode !== DxfCode.Start && this._reader.dxfCode !== DxfCode.EmbeddedObjectStart) {

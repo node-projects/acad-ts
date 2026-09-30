@@ -1,4 +1,4 @@
-export enum SchemaPropertyFlags {
+export enum AcdsSchemaPropertyFlags {
 	None = 0,
 	Unknown1 = 1,
 	NoType = 2,

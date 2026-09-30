@@ -1,11 +1,11 @@
-import { SchemaPropertyFlags } from './SchemaPropertyFlags.js';
+import { AcdsSchemaPropertyFlags } from './AcdsSchemaPropertyFlags.js';
 
-export class SchemaProperty {
+export class AcdsSchemaProperty {
 	static readonly typeSizes = [0, 0, 2, 1, 2, 4, 8, 1, 2, 4, 8, 4, 8, 0, 0, 0];
 
 	name: string = '';
 	nameIndex: number = 0;
-	propertyFlags: SchemaPropertyFlags = SchemaPropertyFlags.None;
+	propertyFlags: AcdsSchemaPropertyFlags = AcdsSchemaPropertyFlags.None;
 	propertyValueCount: number = 0;
 	type: number | null = null;
 	typeSize: number = 0;
