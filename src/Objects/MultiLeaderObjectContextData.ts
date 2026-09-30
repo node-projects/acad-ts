@@ -31,6 +31,13 @@ export class StartEndPointPair {
 export class BreakInfo {
 	segmentIndex: number = 0;
 	startEndPoints: StartEndPointPair[] = [];
+
+	clone(): BreakInfo {
+		const clone = new BreakInfo();
+		clone.segmentIndex = this.segmentIndex;
+		clone.startEndPoints = this.startEndPoints.map(pair => pair.clone());
+		return clone;
+	}
 }
 
 export class LeaderLine {
@@ -59,7 +66,7 @@ export class LeaderLine {
 	clone(): LeaderLine {
 		const clone = new LeaderLine();
 		clone.arrowheadSize = this.arrowheadSize;
-		clone.breakInfoEntries = [...this.breakInfoEntries];
+		clone.breakInfoEntries = this.breakInfoEntries.map(info => info.clone());
 		clone.index = this.index;
 		clone.lineColor = this.lineColor;
 		clone.lineWeight = this.lineWeight;
