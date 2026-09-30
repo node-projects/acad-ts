@@ -30,6 +30,7 @@ import { ICadDictionaryTemplate } from './Templates/ICadDictionaryTemplate.js';
 import { ICadTableEntryTemplate } from './Templates/ICadTableEntryTemplate.js';
 import { ICadTableTemplate } from './Templates/ICadTableTemplate.js';
 import { CadTemplate } from './Templates/CadTemplate.js';
+import { CadFileDataStorage } from '../DataStorage/CadFileDataStorage.js';
 import { CadObjectData, ProgressEventArgs, ProgressEventHandler, ReadStage } from './ProgressEventHandler.js';
 
 export abstract class CadDocumentBuilder {
@@ -38,6 +39,7 @@ export abstract class CadDocumentBuilder {
 
 	appIds: AppIdsTable = new AppIdsTable();
 	blockRecords: BlockRecordsTable = new BlockRecordsTable();
+	dataStorage: CadFileDataStorage | null = null;
 	dimensionStyles: DimensionStylesTable = new DimensionStylesTable();
 	documentToBuild: CadDocument;
 	initialHandSeed: number = 0;
