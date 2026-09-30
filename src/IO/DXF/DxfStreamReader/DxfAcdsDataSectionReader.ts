@@ -9,6 +9,7 @@ import { AcdsSchemaProperty } from '../../../DataStorage/AcdsSchemaProperty.js';
 import { AcdsSchemaPropertyFlags } from '../../../DataStorage/AcdsSchemaPropertyFlags.js';
 import { AcdsSchemaRecord } from '../../../DataStorage/AcdsSchemaRecord.js';
 import { AcdsRecord } from '../../../DataStorage/AcdsRecord.js';
+import { AcdsRecordColumn } from '../../../DataStorage/AcdsRecordColumn.js';
 
 export class DxfAcdsDataSectionReader extends DxfSectionReaderBase {
 	constructor(reader: IDxfStreamReader, builder: DxfDocumentBuilder) {
@@ -45,8 +46,14 @@ export class DxfAcdsDataSectionReader extends DxfSectionReaderBase {
 		const chunks: Uint8Array[] = [];
 		this._reader.readNext();
 
-		while (this._reader.dxfCode !== DxfCode.Start) {
-			if (this._reader.code === 90) record.index = this._reader.valueAsInt;
+		while (this._reader.dxfCode !== DxfCode.Start && this._reader.dxfCode !== DxfCode.EmbeddedObjectStart) {
+			if (this._reader.code === 2) {
+				const column = this._readAcdsRecordColumn();
+				record.columns.push(column);
+				if (column.code === 320 && typeof column.value === 'number') handle = column.value;
+				else if (column.code === 310 && column.value instanceof Uint8Array) chunks.push(column.value);
+				continue;
+			} else if (this._reader.code === 90) record.index = this._reader.valueAsInt;
 			else if (this._reader.code === 320) handle = this._reader.valueAsHandle;
 			else if (this._reader.code === 310) chunks.push(this._reader.valueAsBinaryChunk);
 			this._reader.readNext();
@@ -64,6 +71,28 @@ export class DxfAcdsDataSectionReader extends DxfSectionReaderBase {
 		}
 
 		return record;
+	}
+
+	private _readAcdsRecordColumn(): AcdsRecordColumn {
+		const column = new AcdsRecordColumn();
+		column.name = this._reader.valueAsString;
+		this._reader.readNext();
+
+		while (
+			this._reader.dxfCode !== DxfCode.Start
+			&& this._reader.dxfCode !== DxfCode.ShapeName
+			&& this._reader.dxfCode !== DxfCode.EmbeddedObjectStart
+		) {
+			if (this._reader.code === 280) {
+				column.dataType = this._reader.valueAsShort;
+			} else {
+				column.code = this._reader.code;
+				column.value = this._reader.value;
+			}
+			this._reader.readNext();
+		}
+
+		return column;
 	}
 
 	private _readSchema(): AcdsSchema {
