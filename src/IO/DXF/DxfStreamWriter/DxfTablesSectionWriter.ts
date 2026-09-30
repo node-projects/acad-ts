@@ -216,6 +216,9 @@ export class DxfTablesSectionWriter extends DxfSectionWriterBase {
     this._writer.writeHandle(342, style.arrowBlock, map);
     this._writer.writeHandle(343, style.dimArrow1, map);
     this._writer.writeHandle(344, style.dimArrow2, map);
+    this._writer.writeHandle(345, style.lineType, map);
+    this._writer.writeHandle(346, style.lineTypeExt1, map);
+    this._writer.writeHandle(347, style.lineTypeExt2, map);
 
     this._writer.write(371, style.dimensionLineWeight);
     this._writer.write(372, style.extensionLineWeight);
