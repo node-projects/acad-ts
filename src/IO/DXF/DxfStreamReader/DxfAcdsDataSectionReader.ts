@@ -7,6 +7,7 @@ import { CadFileDataStorage } from '../../../DataStorage/CadFileDataStorage.js';
 import { Schema } from '../../../DataStorage/Schema.js';
 import { SchemaProperty } from '../../../DataStorage/SchemaProperty.js';
 import { SchemaPropertyFlags } from '../../../DataStorage/SchemaPropertyFlags.js';
+import { AcdsRecord } from '../../../DataStorage/AcdsRecord.js';
 
 export class DxfAcdsDataSectionReader extends DxfSectionReaderBase {
 	constructor(reader: IDxfStreamReader, builder: DxfDocumentBuilder) {
@@ -75,7 +76,11 @@ export class DxfAcdsDataSectionReader extends DxfSectionReaderBase {
 					schema.index = this._reader.valueAsInt;
 					break;
 				case DxfCode.EmbeddedObjectStart:
-					this._skipEmbeddedObject();
+					if (this._reader.valueAsString === DxfFileToken.acdsRecord) {
+						schema.embeddedRecords.push(this._readEmbeddedRecord());
+					} else {
+						this._skipEmbeddedObject();
+					}
 					continue;
 			}
 			this._reader.readNext();
@@ -101,6 +106,34 @@ export class DxfAcdsDataSectionReader extends DxfSectionReaderBase {
 		}
 
 		return property;
+	}
+
+	private _readEmbeddedRecord(): AcdsRecord {
+		const record = new AcdsRecord();
+		this._reader.readNext();
+
+		while (this._reader.dxfCode !== DxfCode.Start && this._reader.dxfCode !== DxfCode.EmbeddedObjectStart) {
+			switch (this._reader.code) {
+				case 2:
+					record.name = this._reader.valueAsString;
+					break;
+				case 90:
+					record.index = this._reader.valueAsInt;
+					break;
+				case 95:
+					record.id = this._reader.valueAsShort;
+					break;
+				case 280:
+					record.value280 = this._reader.valueAsShort;
+					break;
+				case 291:
+					record.value291 = this._reader.valueAsShort;
+					break;
+			}
+			this._reader.readNext();
+		}
+
+		return record;
 	}
 
 	private _skipEmbeddedObject(): void {
