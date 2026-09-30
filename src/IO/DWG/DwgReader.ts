@@ -75,6 +75,7 @@ export class DwgReader extends CadReaderBase<DwgReaderConfiguration> {
 		this._document.summaryInfo = this.readSummaryInfo();
 		this._document.header = this.readHeader();
 		this._document.header.document = this._document;
+		this._readTemplate();
 		this._document.classes = this._readClasses();
 
 		this._readObjects();
@@ -197,6 +198,19 @@ export class DwgReader extends CadReaderBase<DwgReaderConfiguration> {
 		reader.onNotification = (sender, e) => this.onNotificationEvent(sender, e);
 
 		return reader.read();
+	}
+
+	private _readTemplate(): void {
+		if (this._fileHeader.acadVersion < ACadVersion.AC1018) return;
+
+		const reader = this._getSectionStream(DwgSectionDefinition.template);
+		if (!reader || reader.stream.length - reader.position < 4) return;
+
+		const descriptionLength = reader.readShort();
+		if (descriptionLength < 0 || reader.stream.length - reader.position < descriptionLength + 2) return;
+
+		if (descriptionLength > 0) reader.readBytes(descriptionLength);
+		this._document.header.measurementUnits = reader.readShort();
 	}
 
 	private _readHandles(): Map<number, number> {
