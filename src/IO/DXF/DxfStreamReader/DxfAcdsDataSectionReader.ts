@@ -8,6 +8,7 @@ import { AcdsSchema } from '../../../DataStorage/AcdsSchema.js';
 import { AcdsSchemaProperty } from '../../../DataStorage/AcdsSchemaProperty.js';
 import { AcdsSchemaPropertyFlags } from '../../../DataStorage/AcdsSchemaPropertyFlags.js';
 import { AcdsSchemaRecord } from '../../../DataStorage/AcdsSchemaRecord.js';
+import { AcdsRecord } from '../../../DataStorage/AcdsRecord.js';
 
 export class DxfAcdsDataSectionReader extends DxfSectionReaderBase {
 	constructor(reader: IDxfStreamReader, builder: DxfDocumentBuilder) {
@@ -29,7 +30,7 @@ export class DxfAcdsDataSectionReader extends DxfSectionReaderBase {
 					this._builder.dataStorage.schemes.push(this._readSchema());
 					continue;
 				case DxfFileToken.acdsRecord:
-					this._readRawRecord();
+					this._readAcdsRecord();
 					continue;
 				default:
 					this._reader.readNext();
@@ -38,26 +39,31 @@ export class DxfAcdsDataSectionReader extends DxfSectionReaderBase {
 		}
 	}
 
-	private _readRawRecord(): void {
+	private _readAcdsRecord(): AcdsRecord {
+		const record = new AcdsRecord();
 		let handle = 0;
 		const chunks: Uint8Array[] = [];
 		this._reader.readNext();
 
 		while (this._reader.dxfCode !== DxfCode.Start) {
-			if (this._reader.code === 320) handle = this._reader.valueAsHandle;
+			if (this._reader.code === 90) record.index = this._reader.valueAsInt;
+			else if (this._reader.code === 320) handle = this._reader.valueAsHandle;
 			else if (this._reader.code === 310) chunks.push(this._reader.valueAsBinaryChunk);
 			this._reader.readNext();
 		}
 
-		if (!handle || chunks.length === 0) return;
-		const length = chunks.reduce((sum, chunk) => sum + chunk.length, 0);
-		const payload = new Uint8Array(length);
-		let offset = 0;
-		for (const chunk of chunks) {
-			payload.set(chunk, offset);
-			offset += chunk.length;
+		if (handle && chunks.length > 0) {
+			const length = chunks.reduce((sum, chunk) => sum + chunk.length, 0);
+			const payload = new Uint8Array(length);
+			let offset = 0;
+			for (const chunk of chunks) {
+				payload.set(chunk, offset);
+				offset += chunk.length;
+			}
+			(this._builder as DxfDocumentBuilder).acdsDataRecords.set(handle, payload);
 		}
-		(this._builder as DxfDocumentBuilder).acdsDataRecords.set(handle, payload);
+
+		return record;
 	}
 
 	private _readSchema(): AcdsSchema {
