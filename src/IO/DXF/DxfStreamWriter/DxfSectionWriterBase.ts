@@ -1000,7 +1000,7 @@ export abstract class DxfSectionWriterBase {
     for (const pt of line.points) {
       this._writer.writeVector(10, pt);
     }
-    this._writer.write(91, line.breakInfoCount);
+    this._writer.write(91, line.breakInfoEntries.length);
   }
 
   private _writeOle2Frame(ole: Ole2Frame, map: DxfMap): void {

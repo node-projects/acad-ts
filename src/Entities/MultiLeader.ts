@@ -209,7 +209,9 @@ export class MultiLeader extends Entity {
 			for (const line of root.lines) {
 				line.points = line.points.map(point);
 				line.arrowheadSize *= planarScale;
-				for (const pair of line.startEndPoints) transformPair(pair);
+				for (const info of line.breakInfoEntries) {
+					for (const pair of info.startEndPoints) transformPair(pair);
+				}
 			}
 		}
 	}
@@ -232,8 +234,8 @@ export class MultiLeader extends Entity {
 		};
 		const pushLeaderLine = (line: LeaderLine): void => {
 			points.push(...line.points);
-			for (const pair of line.startEndPoints) {
-				pushPair(pair);
+			for (const info of line.breakInfoEntries) {
+				for (const pair of info.startEndPoints) pushPair(pair);
 			}
 		};
 		const pushLeaderRoot = (root: LeaderRoot): void => {

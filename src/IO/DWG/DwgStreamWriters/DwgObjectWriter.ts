@@ -2428,11 +2428,11 @@ export class DwgObjectWriter extends DwgSectionIO {
 			this._writer.write3BitDouble(point);
 		}
 
-		this._writer.writeBitLong(leaderLine.breakInfoCount);
-		if (leaderLine.breakInfoCount > 0) {
-			this._writer.writeBitLong(leaderLine.segmentIndex);
-			this._writer.writeBitLong(leaderLine.startEndPoints.length);
-			for (const sep of leaderLine.startEndPoints) {
+		this._writer.writeBitLong(leaderLine.breakInfoEntries.length);
+		for (const breakInfo of leaderLine.breakInfoEntries) {
+			this._writer.writeBitLong(breakInfo.segmentIndex);
+			this._writer.writeBitLong(breakInfo.startEndPoints.length);
+			for (const sep of breakInfo.startEndPoints) {
 				this._writer.write3BitDouble(sep.startPoint);
 				this._writer.write3BitDouble(sep.endPoint);
 			}

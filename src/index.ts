@@ -475,7 +475,7 @@ export { MLineStyleElement, MLineStyle } from './Objects/MLineStyle.js';
 export { MLineStyleFlags } from './Objects/MLineStyleFlags.js';
 export { MTextAttributeObjectContextData } from './Objects/MTextAttributeObjectContextData.js';
 export { MultiLeaderDrawOrderType } from './Objects/MultiLeaderDrawOrderType.js';
-export { StartEndPointPair, LeaderLine, LeaderRoot, MultiLeaderObjectContextData } from './Objects/MultiLeaderObjectContextData.js';
+export { BreakInfo, StartEndPointPair, LeaderLine, LeaderRoot, MultiLeaderObjectContextData } from './Objects/MultiLeaderObjectContextData.js';
 export { MultiLeaderStyle } from './Objects/MultiLeaderStyle.js';
 export { NonGraphicalObject } from './Objects/NonGraphicalObject.js';
 export { ObjectContextData } from './Objects/ObjectContextData.js';

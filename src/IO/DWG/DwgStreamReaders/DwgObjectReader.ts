@@ -106,7 +106,7 @@ import { AttributeBase, AttributeFlags, AttributeType } from '../../../Entities/
 import { Insert } from '../../../Entities/Insert.js';
 import { Leader, LeaderCreationType, LeaderPathType, HookLineDirection } from '../../../Entities/Leader.js';
 import { MultiLeader, MultiLeaderPropertyOverrideFlags, MultiLeaderPathType, LeaderContentType, TextAttachmentType, TextAlignmentType, TextAttachmentPointType, TextAttachmentDirectionType, MultiLeaderBlockAttribute } from '../../../Entities/MultiLeader.js';
-import { MultiLeaderObjectContextData, LeaderRoot, LeaderLine, StartEndPointPair } from '../../../Objects/MultiLeaderObjectContextData.js';
+import { BreakInfo, MultiLeaderObjectContextData, LeaderRoot, LeaderLine, StartEndPointPair } from '../../../Objects/MultiLeaderObjectContextData.js';
 import { Hatch, HatchPattern, HatchStyleType, HatchPatternType, BoundaryPathFlags, HatchBoundaryPathLine, HatchBoundaryPathArc, HatchBoundaryPathEllipse, HatchBoundaryPathSpline, HatchBoundaryPathPolyline } from '../../../Entities/Hatch.js';
 import { LwPolyline, LwPolylineFlags } from '../../../Entities/LwPolyline.js';
 import { IPolyline } from '../../../Entities/IPolyline.js';
@@ -4564,15 +4564,17 @@ export class DwgObjectReader extends DwgSectionIO {
     for (let p = 0; p < pointCount; p++) {
       leaderLine.points.push(this._objectReader.read3BitDouble());
     }
-    leaderLine.breakInfoCount = this._objectReader.readBitLong();
-    if (leaderLine.breakInfoCount > 0) {
-      leaderLine.segmentIndex = this._objectReader.readBitLong();
+    const breakInfoCount = this._objectReader.readBitLong();
+    for (let i = 0; i < breakInfoCount; i++) {
+      const breakInfo = new BreakInfo();
+      breakInfo.segmentIndex = this._objectReader.readBitLong();
       const startEndPointCount = this._objectReader.readBitLong();
       for (let sep = 0; sep < startEndPointCount; sep++) {
-        leaderLine.startEndPoints.push(new StartEndPointPair(
+        breakInfo.startEndPoints.push(new StartEndPointPair(
           this._objectReader.read3BitDouble(),
           this._objectReader.read3BitDouble()));
       }
+      leaderLine.breakInfoEntries.push(breakInfo);
     }
     leaderLine.index = this._objectReader.readBitLong();
     if (this.r2010Plus) {

@@ -10,7 +10,7 @@ import { XY } from '../src/Math/XY.js';
 import { BlockRecord } from '../src/Tables/BlockRecord.js';
 import { Wall } from '../src/Entities/AecObjects/Wall.js';
 import { MultiLeader } from '../src/Entities/MultiLeader.js';
-import { LeaderLine, LeaderRoot, StartEndPointPair } from '../src/Objects/MultiLeaderObjectContextData.js';
+import { BreakInfo, LeaderLine, LeaderRoot, StartEndPointPair } from '../src/Objects/MultiLeaderObjectContextData.js';
 
 describe('EntityTransformTests', () => {
 	it('TransformsWallGeometryAndDimensions', () => {
@@ -45,7 +45,9 @@ describe('EntityTransformTests', () => {
 		root.connectionPoint = new XYZ(2, 1, 0);
 		root.direction = new XYZ(1, 1, 0);
 		line.points = [new XYZ(0, 0, 0), new XYZ(4, 2, 0)];
-		line.startEndPoints = [new StartEndPointPair(new XYZ(1, 0, 0), new XYZ(2, 0, 0))];
+		const breakInfo = new BreakInfo();
+		breakInfo.startEndPoints = [new StartEndPointPair(new XYZ(1, 0, 0), new XYZ(2, 0, 0))];
+		line.breakInfoEntries = [breakInfo];
 		root.lines.push(line);
 		multiLeader.contextData.leaderRoots.push(root);
 
@@ -56,7 +58,7 @@ describe('EntityTransformTests', () => {
 		expect(multiLeader.contextData.textLocation).toEqual(new XYZ(11, 11, 0));
 		expect(root.connectionPoint).toEqual(new XYZ(9, 2, 0));
 		expect(line.points).toEqual([new XYZ(5, -1, 0), new XYZ(13, 5, 0)]);
-		expect(line.startEndPoints[0].startPoint).toEqual(new XYZ(7, -1, 0));
+		expect(line.breakInfoEntries[0].startEndPoints[0].startPoint).toEqual(new XYZ(7, -1, 0));
 		expect(root.direction.x).toBeCloseTo(new XYZ(2, 3, 0).normalize().x);
 		expect(root.direction.y).toBeCloseTo(new XYZ(2, 3, 0).normalize().y);
 		expect(multiLeader.arrowheadSize).toBeCloseTo(5);

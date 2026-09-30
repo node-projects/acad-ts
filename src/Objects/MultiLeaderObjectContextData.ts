@@ -28,10 +28,15 @@ export class StartEndPointPair {
 	}
 }
 
+export class BreakInfo {
+	segmentIndex: number = 0;
+	startEndPoints: StartEndPointPair[] = [];
+}
+
 export class LeaderLine {
 	arrowhead: BlockRecord | null = null;
 	arrowheadSize: number = 0;
-	breakInfoCount: number = 0;
+	breakInfoEntries: BreakInfo[] = [];
 	index: number = 0;
 	lineColor: Color = Color.byLayer;
 
@@ -43,8 +48,6 @@ export class LeaderLine {
 	overrideFlags: number = 0;
 	pathType: number = 0;
 	points: XYZ[] = [];
-	segmentIndex: number = 0;
-	startEndPoints: StartEndPointPair[] = [];
 
 	document: CadDocument | null = null;
 
@@ -56,17 +59,15 @@ export class LeaderLine {
 	clone(): LeaderLine {
 		const clone = new LeaderLine();
 		clone.arrowheadSize = this.arrowheadSize;
-		clone.breakInfoCount = this.breakInfoCount;
+		clone.breakInfoEntries = [...this.breakInfoEntries];
 		clone.index = this.index;
 		clone.lineColor = this.lineColor;
 		clone.lineWeight = this.lineWeight;
 		clone.overrideFlags = this.overrideFlags;
 		clone.pathType = this.pathType;
-		clone.segmentIndex = this.segmentIndex;
 		clone.arrowhead = this.arrowhead?.clone() as BlockRecord | null ?? null;
 		clone._lineType = this._lineType?.clone() as LineType | null ?? null;
 		clone.points = this.points.map(p => new XYZ(p.x, p.y, p.z));
-		clone.startEndPoints = this.startEndPoints.map(s => s.clone());
 		return clone;
 	}
 
