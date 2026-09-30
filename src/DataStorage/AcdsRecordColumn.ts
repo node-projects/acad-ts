@@ -3,4 +3,8 @@ export class AcdsRecordColumn {
 	name: string = '';
 	code: number = 0;
 	value: unknown = null;
+
+	toString(): string {
+		return `${this.name} : ${this.dataType} : ${this.code}=${String(this.value)}`;
+	}
 }

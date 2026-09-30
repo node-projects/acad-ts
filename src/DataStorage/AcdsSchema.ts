@@ -7,4 +7,8 @@ export class AcdsSchema {
 	indexes: number[] = [];
 	name: string = '';
 	properties: AcdsSchemaProperty[] = [];
+
+	toString(): string {
+		return `${this.index} : ${this.name}`;
+	}
 }

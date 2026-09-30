@@ -32,6 +32,7 @@ import { ICadTableTemplate } from './Templates/ICadTableTemplate.js';
 import { CadTemplate } from './Templates/CadTemplate.js';
 import { CadFileDataStorage } from '../DataStorage/CadFileDataStorage.js';
 import { CadObjectData, ProgressEventArgs, ProgressEventHandler, ReadStage } from './ProgressEventHandler.js';
+import { ModelerGeometry } from '../Entities/ModelerGeometry.js';
 
 export abstract class CadDocumentBuilder {
 	onNotification: NotificationEventHandler | null = null;
@@ -95,6 +96,27 @@ export abstract class CadDocumentBuilder {
 
 		for (const template of this.cadObjectsTemplates.values()) {
 			(template as CadTemplate).build(this);
+		}
+	}
+
+	buildDataStorage(): void {
+		if (this.dataStorage === null) return;
+
+		for (const record of this.dataStorage.records) {
+			const idColumn = record.columns.get(CadFileDataStorage.id);
+			const dataColumn = record.columns.get(CadFileDataStorage.asmData);
+			if (!idColumn || !dataColumn) continue;
+
+			const handle = idColumn.value;
+			const data = dataColumn.value;
+			if (typeof handle !== 'number' || !(data instanceof Uint8Array)) continue;
+
+			const geometry = this.tryGetCadObject<ModelerGeometry>(handle);
+			if (geometry instanceof ModelerGeometry) {
+				geometry.acisData = data;
+			} else {
+				this.notify(`ModelerGeometry with handle ${handle} not found in the document`, NotificationType.Warning);
+			}
 		}
 	}
 

@@ -141,6 +141,7 @@ export class DxfReader extends CadReaderBase<DxfReaderConfiguration> {
     }
 
     this._builder.buildDocument();
+		this._builder.buildDataStorage();
 
     return this._document;
   }

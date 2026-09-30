@@ -660,7 +660,7 @@ export class DwgObjectReader extends DwgSectionIO {
     }
 
     if (this.r2013Plus) {
-      this._objectReader.readBit();
+			template.hasDsBinaryData = this._objectReader.readBit();
     }
   }
 

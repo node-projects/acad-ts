@@ -10,6 +10,7 @@ import { AcdsSchemaPropertyFlags } from '../../../DataStorage/AcdsSchemaProperty
 import { AcdsSchemaRecord } from '../../../DataStorage/AcdsSchemaRecord.js';
 import { AcdsRecord } from '../../../DataStorage/AcdsRecord.js';
 import { AcdsRecordColumn } from '../../../DataStorage/AcdsRecordColumn.js';
+import { NotificationType } from '../../NotificationEventHandler.js';
 
 export class DxfAcdsDataSectionReader extends DxfSectionReaderBase {
 	constructor(reader: IDxfStreamReader, builder: DxfDocumentBuilder) {
@@ -42,32 +43,37 @@ export class DxfAcdsDataSectionReader extends DxfSectionReaderBase {
 
 	private _readAcdsRecord(): AcdsRecord {
 		const record = new AcdsRecord();
-		let handle = 0;
-		const chunks: Uint8Array[] = [];
+		let directHandle = 0;
+		const directChunks: Uint8Array[] = [];
 		this._reader.readNext();
 
 		while (this._reader.dxfCode !== DxfCode.Start && this._reader.dxfCode !== DxfCode.EmbeddedObjectStart) {
 			if (this._reader.code === 2) {
 				const column = this._readAcdsRecordColumn();
-				record.columns.push(column);
-				if (column.code === 320 && typeof column.value === 'number') handle = column.value;
-				else if (column.code === 310 && column.value instanceof Uint8Array) chunks.push(column.value);
+				if (record.columns.has(column.name)) {
+					this._builder.notify(`Duplicate column name '${column.name}' found in ACDS record.`, NotificationType.Warning);
+				} else {
+					record.columns.set(column.name, column);
+				}
 				continue;
 			} else if (this._reader.code === 90) record.index = this._reader.valueAsInt;
-			else if (this._reader.code === 320) handle = this._reader.valueAsHandle;
-			else if (this._reader.code === 310) chunks.push(this._reader.valueAsBinaryChunk);
+			else if (this._reader.code === 320) directHandle = this._reader.valueAsHandle;
+			else if (this._reader.code === 310) directChunks.push(this._reader.valueAsBinaryChunk);
 			this._reader.readNext();
 		}
 
-		if (handle && chunks.length > 0) {
-			const length = chunks.reduce((sum, chunk) => sum + chunk.length, 0);
-			const payload = new Uint8Array(length);
-			let offset = 0;
-			for (const chunk of chunks) {
-				payload.set(chunk, offset);
-				offset += chunk.length;
-			}
-			(this._builder as DxfDocumentBuilder).acdsDataRecords.set(handle, payload);
+		if (directHandle && directChunks.length > 0) {
+			const idColumn = new AcdsRecordColumn();
+			idColumn.name = CadFileDataStorage.id;
+			idColumn.code = 320;
+			idColumn.value = directHandle;
+			record.columns.set(idColumn.name, idColumn);
+
+			const dataColumn = new AcdsRecordColumn();
+			dataColumn.name = CadFileDataStorage.asmData;
+			dataColumn.code = 310;
+			dataColumn.value = this._combineChunks(directChunks);
+			record.columns.set(dataColumn.name, dataColumn);
 		}
 
 		return record;
@@ -85,6 +91,8 @@ export class DxfAcdsDataSectionReader extends DxfSectionReaderBase {
 		) {
 			if (this._reader.code === 280) {
 				column.dataType = this._reader.valueAsShort;
+			} else if (this._reader.code === 310 && column.code === 310 && column.value instanceof Uint8Array) {
+				column.value = this._combineChunks([column.value, this._reader.valueAsBinaryChunk]);
 			} else {
 				column.code = this._reader.code;
 				column.value = this._reader.value;
@@ -93,6 +101,16 @@ export class DxfAcdsDataSectionReader extends DxfSectionReaderBase {
 		}
 
 		return column;
+	}
+
+	private _combineChunks(chunks: Uint8Array[]): Uint8Array {
+		const payload = new Uint8Array(chunks.reduce((sum, chunk) => sum + chunk.length, 0));
+		let offset = 0;
+		for (const chunk of chunks) {
+			payload.set(chunk, offset);
+			offset += chunk.length;
+		}
+		return payload;
 	}
 
 	private _readSchema(): AcdsSchema {

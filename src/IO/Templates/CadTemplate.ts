@@ -28,6 +28,8 @@ export abstract class CadTemplate<T extends CadObject = CadObject> implements IC
 
 	hasBeenBuilt: boolean = false;
 
+	hasDsBinaryData: boolean = false;
+
 	ownerHandle: number | null = null;
 
 	reactorsHandles: Set<number> = new Set();
