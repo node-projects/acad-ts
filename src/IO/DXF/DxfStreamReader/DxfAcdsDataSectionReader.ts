@@ -31,7 +31,7 @@ export class DxfAcdsDataSectionReader extends DxfSectionReaderBase {
 					this._builder.dataStorage.schemes.push(this._readSchema());
 					continue;
 				case DxfFileToken.acdsRecord:
-					this._readAcdsRecord();
+					this._builder.dataStorage.records.push(this._readAcdsRecord());
 					continue;
 				default:
 					this._reader.readNext();
