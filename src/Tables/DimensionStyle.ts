@@ -29,7 +29,7 @@ export class DimensionStyle extends TableEntry {
 		return new DimensionStyle(DimensionStyle.defaultName);
 	}
 
-	public alternateDimensioningSuffix: string = '[]';
+	public alternateDimensioningSuffix: string = '';
 	public alternateUnitDecimalPlaces: number = 3;
 	public alternateUnitDimensioning: boolean = false;
 	public alternateUnitFormat: LinearUnitFormat = LinearUnitFormat.Decimal;
@@ -152,7 +152,7 @@ export class DimensionStyle extends TableEntry {
 	}
 
 	public plusTolerance: number = 0.0;
-	public postFix: string = '<>';
+	public postFix: string = '';
 
 	public get prefix(): string {
 		const { prefix } = this._getDimStylePrefixAndSuffix(this.postFix, '<', '>');
@@ -160,7 +160,7 @@ export class DimensionStyle extends TableEntry {
 	}
 	public set prefix(value: string) {
 		const { suffix } = this._getDimStylePrefixAndSuffix(this.postFix, '<', '>');
-		this.postFix = `${value}${this.postFix}${suffix}`;
+		this.postFix = value.length === 0 && suffix.length === 0 ? '' : `${value}<>${suffix}`;
 	}
 
 	public rounding: number = 0.0;
@@ -197,7 +197,7 @@ export class DimensionStyle extends TableEntry {
 	}
 	public set suffix(value: string) {
 		const { prefix } = this._getDimStylePrefixAndSuffix(this.postFix, '<', '>');
-		this.postFix = `${prefix}${this.postFix}${value}`;
+		this.postFix = prefix.length === 0 && value.length === 0 ? '' : `${prefix}<>${value}`;
 	}
 
 	public suppressFirstDimensionLine: boolean = false;

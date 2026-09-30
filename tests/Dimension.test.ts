@@ -182,4 +182,21 @@ describe('DimensionTests', () => {
 			expect(entities.some((entity) => entity instanceof Point)).toBe(true);
 		}
 	});
+
+	it('Uses empty dimension postfix defaults and rebuilds prefix and suffix', () => {
+		const style = new DimensionStyle();
+
+		expect(style.postFix).toBe('');
+		expect(style.alternateDimensioningSuffix).toBe('');
+
+		style.prefix = 'R';
+		expect(style.postFix).toBe('R<>');
+		style.suffix = ' mm';
+		expect(style.postFix).toBe('R<> mm');
+
+		style.prefix = '';
+		expect(style.postFix).toBe('<> mm');
+		style.suffix = '';
+		expect(style.postFix).toBe('');
+	});
 });
