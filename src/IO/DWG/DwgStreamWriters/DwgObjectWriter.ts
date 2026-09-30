@@ -3383,9 +3383,15 @@ export class DwgObjectWriter extends DwgSectionIO {
 
 	private _writeDictionary(dictionary: CadDictionary): void {
 		const entries: NonGraphicalObject[] = [];
-		for (const item of dictionary) {
+		const handleNamePairs: Array<{ handle: number; name: string }> = [];
+		for (let i = 0; i < dictionary.entryHandles.length; i++) {
+			const handle = dictionary.entryHandles[i];
+			const name = dictionary.entryNames[i];
+			const item = dictionary.getEntry<NonGraphicalObject>(name);
+			if (item == null) continue;
 			if (this._skipEntry(item).skip) continue;
 			entries.push(item);
+			handleNamePairs.push({ handle, name });
 		}
 
 		this._writer.writeBitLong(entries.length);
@@ -3399,8 +3405,7 @@ export class DwgObjectWriter extends DwgSectionIO {
 			this._writer.writeByte(dictionary.hardOwnerFlag ? 1 : 0);
 		}
 
-		for (const item of entries) {
-			if (this._skipEntry(item).skip) continue;
+		for (const item of handleNamePairs) {
 			this._writer.writeVariableText(item.name);
 			this._writer.handleReferenceTyped(DwgReferenceType.SoftOwnership, item.handle);
 		}
