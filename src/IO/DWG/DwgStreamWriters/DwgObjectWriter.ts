@@ -2225,7 +2225,7 @@ export class DwgObjectWriter extends DwgSectionIO {
 			this._writer.writeBitShort(2);
 		}
 
-		this._writeMultiLeaderAnnotContextSubObject(true, multiLeader.contextData);
+		this._writeMultiLeaderAnnotContextSubObject(multiLeader.contextData);
 
 		this._writer.handleReferenceTyped(DwgReferenceType.HardPointer, multiLeader.style);
 		this._writer.writeBitLong(multiLeader.propertyOverrideFlags);
@@ -2300,20 +2300,9 @@ export class DwgObjectWriter extends DwgSectionIO {
 		}
 	}
 
-	private _writeMultiLeaderAnnotContextSubObject(writeLeaderRootsCount: boolean, annotContext: MultiLeaderObjectContextData): void {
+	private _writeMultiLeaderAnnotContextSubObject(annotContext: MultiLeaderObjectContextData): void {
 		const leaderRootCount = annotContext.leaderRoots.length;
-		if (writeLeaderRootsCount) {
-			this._writer.writeBitLong(leaderRootCount);
-		} else {
-			this._writer.writeBitLong(0);
-			this._writer.writeBit(false);
-			this._writer.writeBit(false);
-			this._writer.writeBit(false);
-			this._writer.writeBit(false);
-			this._writer.writeBit(false);
-			this._writer.writeBit(leaderRootCount === 2);
-			this._writer.writeBit(leaderRootCount === 1);
-		}
+		this._writer.writeBitLong(leaderRootCount);
 
 		for (let i = 0; i < leaderRootCount; i++) {
 			this._writeLeaderRoot(annotContext.leaderRoots[i]);
@@ -2399,7 +2388,7 @@ export class DwgObjectWriter extends DwgSectionIO {
 
 	private _writeLeaderRoot(leaderRoot: LeaderRoot): void {
 		this._writer.writeBit(leaderRoot.contentValid);
-		this._writer.writeBit(true);
+		this._writer.writeBit(leaderRoot.unknown);
 		this._writer.write3BitDouble(leaderRoot.connectionPoint);
 		this._writer.write3BitDouble(leaderRoot.direction);
 
@@ -4396,7 +4385,7 @@ export class DwgObjectWriter extends DwgSectionIO {
 
 	private _writeMultiLeaderAnnotContext(multiLeaderAnnotContext: MultiLeaderObjectContextData): void {
 		this._writeAnnotScaleObjectContextData(multiLeaderAnnotContext);
-		this._writeMultiLeaderAnnotContextSubObject(false, multiLeaderAnnotContext);
+		this._writeMultiLeaderAnnotContextSubObject(multiLeaderAnnotContext);
 	}
 
 	private _writeMultiLeaderStyle(mLeaderStyle: MultiLeaderStyle): void {

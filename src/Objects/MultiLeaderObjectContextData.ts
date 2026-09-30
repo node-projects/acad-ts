@@ -35,7 +35,7 @@ export class BreakInfo {
 
 export class LeaderLine {
 	arrowhead: BlockRecord | null = null;
-	arrowheadSize: number = 0;
+	arrowheadSize: number = 0.18;
 	breakInfoEntries: BreakInfo[] = [];
 	index: number = 0;
 	lineColor: Color = Color.byLayer;
@@ -110,9 +110,9 @@ export class MultiLeaderObjectContextData extends AnnotScaleObjectContextData {
 	backgroundMaskFillOn: boolean = false;
 	backgroundScaleFactor: number = 0;
 	backgroundTransparency: number = 0;
-	baseDirection: XYZ = new XYZ(0, 0, 0);
+	baseDirection: XYZ = new XYZ(1, 0, 0);
 	basePoint: XYZ = new XYZ(0, 0, 0);
-	baseVertical: XYZ = new XYZ(0, 0, 0);
+	baseVertical: XYZ = new XYZ(0, 1, 0);
 
 	private _blockContent: BlockRecord | null = null;
 	get blockContent(): BlockRecord | null { return this._blockContent; }

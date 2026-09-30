@@ -3234,10 +3234,10 @@ export class DwgObjectReader extends DwgSectionIO {
       annotContext.boundaryHeight = this._objectReader.readBitDouble();
       annotContext.lineSpacingFactor = this._objectReader.readBitDouble();
       annotContext.lineSpacing = this._objectReader.readBitShort() as LineSpacingStyle;
-      annotContext.textColor = this._objectReader.readCmColor();
+      annotContext.textColor = this._mergedReaders.readCmColor();
       annotContext.textAttachmentPoint = this._objectReader.readBitShort() as TextAttachmentPointType;
       annotContext.flowDirection = this._objectReader.readBitShort() as FlowDirectionType;
-      annotContext.backgroundFillColor = this._objectReader.readCmColor();
+      annotContext.backgroundFillColor = this._mergedReaders.readCmColor();
       annotContext.backgroundScaleFactor = this._objectReader.readBitDouble();
       annotContext.backgroundTransparency = this._objectReader.readBitLong();
       annotContext.backgroundFillEnabled = this._objectReader.readBit();
@@ -3259,7 +3259,7 @@ export class DwgObjectReader extends DwgSectionIO {
       annotContext.blockContentLocation = this._objectReader.read3BitDouble();
       annotContext.blockContentScale = this._objectReader.read3BitDouble();
       annotContext.blockContentRotation = this._objectReader.readBitDouble();
-      annotContext.blockContentColor = this._objectReader.readCmColor();
+      annotContext.blockContentColor = this._mergedReaders.readCmColor();
       const m00 = this._objectReader.readBitDouble();
       const m10 = this._objectReader.readBitDouble();
       const m20 = this._objectReader.readBitDouble();
@@ -4579,7 +4579,7 @@ export class DwgObjectReader extends DwgSectionIO {
     leaderLine.index = this._objectReader.readBitLong();
     if (this.r2010Plus) {
       leaderLine.pathType = this._objectReader.readBitShort() as MultiLeaderPathType;
-      leaderLine.lineColor = this._objectReader.readCmColor();
+      leaderLine.lineColor = this._mergedReaders.readCmColor();
       leaderLineSubTemplate.lineTypeHandle = this._handleReference();
       leaderLine.lineWeight = this._objectReader.readBitLong() as LineWeightType;
       leaderLine.arrowheadSize = this._objectReader.readBitDouble();

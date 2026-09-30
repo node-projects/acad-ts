@@ -21,6 +21,8 @@ import { LineType } from '../Tables/LineType.js';
 import { TextStyle } from '../Tables/TextStyle.js';
 import { Transform } from '../Math/Transform.js';
 import { CadDocument } from '../CadDocument.js';
+import { LineWeightType } from '../Types/LineWeightType.js';
+import { TextAngleType } from '../TextAngleType.js';
 
 export class MultiLeaderBlockAttribute {
 	attributeDefinition: AttributeDefinition | null = null;
@@ -61,7 +63,7 @@ export class MultiLeader extends Entity {
 
 	blockContentScale: XYZ = new XYZ(1, 1, 1);
 
-	contentType: LeaderContentType = LeaderContentType.MText;
+	contentType: LeaderContentType = LeaderContentType.None;
 
 	contextData: MultiLeaderObjectContextData = new MultiLeaderObjectContextData();
 
@@ -80,9 +82,9 @@ export class MultiLeader extends Entity {
 		this._leaderLineType = this.updateTableEntry(value, lineType => this._leaderLineType = lineType, this.document?.lineTypes ?? null);
 	}
 
-	leaderLineWeight: number = 0;
+	leaderLineWeight: LineWeightType = LineWeightType.ByLayer;
 
-	lineColor: Color = Color.byBlock;
+	lineColor: Color = Color.byLayer;
 
 	override get objectName(): string {
 		return DxfFileToken.entityMultiLeader;
@@ -109,7 +111,7 @@ export class MultiLeader extends Entity {
 
 	textAlignment: TextAlignmentType = TextAlignmentType.Left;
 
-	textAngle: number = 0;
+	textAngle: TextAngleType = TextAngleType.Horizontal;
 
 	textAttachmentDirection: TextAttachmentDirectionType = TextAttachmentDirectionType.Horizontal;
 
