@@ -23,8 +23,29 @@ export class TextProcessor {
 						index += 2;
 						break;
 					case 'A':
+					case 'Q':
+					case 'T':
+					case 'W':
 						index = TextProcessor._jump(text, index);
 						break;
+					case 'L':
+					case 'l':
+					case 'O':
+					case 'o':
+					case 'K':
+					case 'k':
+						index += 2;
+						break;
+					case '~':
+						sb += ' ';
+						index += 2;
+						break;
+					case 'S': {
+						const stacked = TextProcessor._processStacking(text, index);
+						sb += stacked.value;
+						index = stacked.end;
+						break;
+					}
 					case 'c':
 					case 'C':
 						index = TextProcessor._processColor(text, index);
@@ -42,6 +63,7 @@ export class TextProcessor {
 						break;
 					case 'P':
 					case 'n':
+					case 'N':
 						sb += '\n';
 						index += 2;
 						break;
@@ -144,9 +166,40 @@ export class TextProcessor {
 	}
 
 	private static _jump(text: string, start: number): number {
-		let end = text.indexOf(';', start);
-		end += 1;
-		return end;
+		const end = text.indexOf(';', start);
+		return end < 0 ? text.length : end + 1;
+	}
+
+	// \Snum^den;  \Snum/den;  \Snum#den;  ->  num/den
+	private static _processStacking(text: string, start: number): { value: string; end: number } {
+		let index = start + 2;
+		let numerator = '';
+		let denominator = '';
+		let separated = false;
+
+		while (index < text.length && text[index] !== ';') {
+			let ch = text[index];
+			if (ch === '\\' && index + 1 < text.length) {
+				index++;
+				ch = text[index];
+			} else if (!separated && (ch === '^' || ch === '/' || ch === '#')) {
+				separated = true;
+				index++;
+				continue;
+			}
+
+			if (separated) {
+				denominator += ch;
+			} else {
+				numerator += ch;
+			}
+			index++;
+		}
+
+		return {
+			value: separated ? `${numerator}/${denominator}` : numerator,
+			end: index + 1,
+		};
 	}
 
 	private static _processColor(text: string, start: number): number {
