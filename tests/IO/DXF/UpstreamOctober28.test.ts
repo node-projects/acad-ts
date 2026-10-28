@@ -98,3 +98,11 @@ it('writes disabled gradient metadata and a zero pixel size for derived boundari
   expect(pairs).toContainEqual([450, 0]);
   expect(pairs).toContainEqual([47, 0]);
 });
+
+it('writes an empty hatch gradient name when input metadata has no name', () => {
+  const document = new CadDocument(ACadVersion.AC1018);
+  const hatch = new Hatch();
+  Object.assign(hatch.gradientColor, { name: null });
+  document.entities.add(hatch);
+  expect(entityPairs(write(document), 'HATCH')).toContainEqual([470, '']);
+});

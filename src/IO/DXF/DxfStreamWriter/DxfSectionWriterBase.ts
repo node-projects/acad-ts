@@ -701,7 +701,7 @@ export abstract class DxfSectionWriterBase {
         this._writer.write(63, gc.color.getApproxIndex());
         if (gc.color.isTrueColor) this._writer.writeTrueColor(421, gc.color);
       }
-      this._writer.write(470, hatch.gradientColor.name);
+      this._writer.write(470, hatch.gradientColor.name ?? '');
     }
   }
 
