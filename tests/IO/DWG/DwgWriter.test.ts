@@ -23,6 +23,7 @@ import { DwgOutputBufferTooSmallError } from '../../../src/Exceptions/DwgOutputB
 import { XYZ } from '../../../src/Math/XYZ.js';
 import { Region } from '../../../src/Entities/Region.js';
 import { Solid3D } from '../../../src/Entities/Solid3D.js';
+import { BlockRecord } from '../../../src/Tables/BlockRecord.js';
 
 const versions = [
   ACadVersion.AC1012,
@@ -40,6 +41,18 @@ function isSupportedVersion(version: ACadVersion): boolean {
 }
 
 describe('DwgWriterTests', () => {
+  it.each(['顶', '*'])('writes an anonymous block with a one-character name %s', name => {
+    const document = new CadDocument(ACadVersion.AC1032);
+    const block = new BlockRecord(name);
+    block.isAnonymous = true;
+    block.entities.add(new Line(new XYZ(1, 2, 3), new XYZ(4, 5, 6)));
+    document.blockRecords.add(block);
+    const output = DwgWriter.writeToBuffer(document);
+    const restored = new DwgReader(output.buffer.slice(output.byteOffset, output.byteOffset + output.byteLength)).read();
+    const restoredBlock = restored.blockRecords.tryGetValue(name);
+    expect(restoredBlock).not.toBeNull();
+    expect([...restoredBlock!.entities]).toHaveLength(1);
+  });
   it.each([ACadVersion.AC1021, ACadVersion.AC1027])('writes Solid3D geometry with a null history owner in %s', version => {
     const doc = new CadDocument(version);
     doc.entities.add(new Solid3D());
