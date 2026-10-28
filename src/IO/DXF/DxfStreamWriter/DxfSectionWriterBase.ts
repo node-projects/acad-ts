@@ -666,7 +666,7 @@ export abstract class DxfSectionWriterBase {
 
       this._writer.write(78, hatch.pattern.lines.length);
       for (const line of hatch.pattern.lines) {
-        this._writer.write(53, line.angle);
+        this._writer.write(53, MathHelper.radToDeg(line.angle));
         this._writer.write(43, line.basePoint.x);
         this._writer.write(44, line.basePoint.y);
         this._writer.write(45, line.offset.x);

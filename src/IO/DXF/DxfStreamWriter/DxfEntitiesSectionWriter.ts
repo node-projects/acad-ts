@@ -21,9 +21,10 @@ export class DxfEntitiesSectionWriter extends DxfSectionWriterBase {
   }
 
   protected writeSection(): void {
-    while (this.holder.entities.length > 0) {
-      const item: Entity = this.holder.entities.shift()!;
+    for (let index = 0; index < this.holder.entities.length; index++) {
+      const item: Entity = this.holder.entities[index];
       this.writeEntity(item);
     }
+    this.holder.entities.length = 0;
   }
 }

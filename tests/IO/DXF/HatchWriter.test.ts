@@ -4,6 +4,7 @@ import { BoundaryPathFlags } from '../../../src/Entities/BoundaryPathFlags.js';
 import { Hatch, HatchBoundaryPath, HatchBoundaryPathArc, HatchBoundaryPathEllipse, HatchBoundaryPathPolyline } from '../../../src/Entities/Hatch.js';
 import { DxfReader } from '../../../src/IO/DXF/DxfReader.js';
 import { DxfWriter } from '../../../src/IO/DXF/DxfWriter.js';
+import { HatchPattern, HatchPatternLine } from '../../../src/Entities/HatchPattern.js';
 import { XY } from '../../../src/Math/XY.js';
 import { XYZ } from '../../../src/Math/XYZ.js';
 import { MathHelper } from '../../../src/Math/MathHelper.js';
@@ -140,4 +141,18 @@ describe('DXF HATCH writer', () => {
     expect(writtenArc.counterClockWise).toBe(true);
     expect(writtenEllipse.counterClockWise).toBe(false);
   });
+});
+
+it('writes pattern line angles in degrees', () => {
+  const hatch = new Hatch();
+  hatch.isSolid = false;
+  hatch.pattern = new HatchPattern('TEST');
+  const line = new HatchPatternLine();
+  line.angle = Math.PI / 4;
+  hatch.pattern.lines.push(line);
+  const document = new CadDocument();
+  document.entities.add(hatch);
+  const output = new InMemoryAsciiStream();
+  new DxfWriter(output, document, false).write();
+  expect(output.toString()).toMatch(/53\r?\n45(?:\.0*)?\r?\n/);
 });

@@ -623,12 +623,13 @@ export class DxfObjectsSectionWriter extends DxfSectionWriterBase {
   }
 
   protected writeSection(): void {
-    while (this.holder.objects.length > 0) {
-      const item: CadObject = this.holder.objects.shift()!;
+    for (let index = 0; index < this.holder.objects.length; index++) {
+      const item: CadObject = this.holder.objects[index];
 	  if (this._writtenHandles.has(item.handle)) continue;
 	  this._writtenHandles.add(item.handle);
       this.writeObject(item);
     }
+    this.holder.objects.length = 0;
   }
 
   protected writeXRecord(record: XRecord): void {
@@ -795,7 +796,9 @@ export class DxfObjectsSectionWriter extends DxfSectionWriterBase {
 
     this._writer.write(90, field.children.length);
     for (const item of field.children) {
+      item.owner ??= field;
       this._writer.writeHandle(360, item);
+      this.holder.objects.push(item);
     }
 
     this._writer.write(97, field.cadObjects.length);
@@ -828,6 +831,7 @@ export class DxfObjectsSectionWriter extends DxfSectionWriterBase {
 
     this._writer.write(90, fieldList.fields.length);
     for (const field of fieldList.fields) {
+      field.owner ??= fieldList;
       this._writer.writeHandle(330, field);
       this.holder.objects.push(field);
     }

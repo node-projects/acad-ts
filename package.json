@@ -45,7 +45,7 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "prepublishOnly": "npm run build && npm run bundle",
-    "bundle": "esbuild ./dist/index.js --format=esm --minify --platform=neutral --bundle --outfile=./dist/index-min.js"
+    "bundle": "esbuild ./dist/index.js --format=esm --minify --keep-names --platform=neutral --bundle --outfile=./dist/index-min.js"
   },
   "devDependencies": {
     "@types/node": "^26.2.0",
