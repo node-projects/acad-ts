@@ -646,7 +646,7 @@ export abstract class DxfSectionWriterBase {
     this._writer.write(30, hatch.elevation, subclass);
     this._writer.writeVector(210, hatch.normal, subclass);
 
-    this._writer.write(2, hatch.pattern.name, subclass);
+    this._writer.write(2, hatch.pattern?.name, subclass);
     this._writer.write(70, hatch.isSolid ? 1 : 0, subclass);
     this._writer.write(71, hatch.isAssociative ? 1 : 0, subclass);
 
@@ -659,7 +659,7 @@ export abstract class DxfSectionWriterBase {
     this._writer.write(75, hatch.style, subclass);
     this._writer.write(76, hatch.patternType, subclass);
 
-    if (!hatch.isSolid) {
+    if (!hatch.isSolid && hatch.pattern?.lines.length > 0) {
       this._writer.write(52, hatch.patternAngle, subclass);
       this._writer.write(41, hatch.patternScale, subclass);
       this._writer.write(77, hatch.isDouble ? 1 : 0, subclass);
@@ -678,7 +678,7 @@ export abstract class DxfSectionWriterBase {
       }
     }
 
-    if (hatch.pixelSize !== 0) {
+    if (hatch.pixelSize !== 0 || hatch.paths.some(path => (path.flags & BoundaryPathFlags.Derived) !== 0)) {
       this._writer.write(47, hatch.pixelSize, subclass);
     }
 
@@ -688,19 +688,19 @@ export abstract class DxfSectionWriterBase {
       this._writer.write(20, pt.y);
     }
 
-    if (hatch.gradientColor.enabled) {
+    if (this.version > ACadVersion.AC1015 && hatch.gradientColor && !hatch.pattern?.lines.length) {
       this._writer.write(450, hatch.gradientColor.enabled ? 1 : 0);
       this._writer.write(451, hatch.gradientColor.reserved);
+      this._writer.write(460, hatch.gradientColor.angle);
+      this._writer.write(461, hatch.gradientColor.shift);
       this._writer.write(452, hatch.gradientColor.isSingleColorGradient ? 1 : 0);
+      this._writer.write(462, hatch.gradientColor.colorTint);
       this._writer.write(453, hatch.gradientColor.colors.length);
       for (const gc of hatch.gradientColor.colors) {
         this._writer.write(463, gc.value);
-        this._writer.write(63, gc.color.index);
-        this._writer.write(421, gc.color.trueColor);
+        this._writer.write(63, gc.color.getApproxIndex());
+        if (gc.color.isTrueColor) this._writer.writeTrueColor(421, gc.color);
       }
-      this._writer.write(460, hatch.gradientColor.angle);
-      this._writer.write(461, hatch.gradientColor.shift);
-      this._writer.write(462, hatch.gradientColor.colorTint);
       this._writer.write(470, hatch.gradientColor.name);
     }
   }
