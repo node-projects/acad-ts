@@ -101,6 +101,7 @@ import { MathHelper } from '../../../Math/MathHelper.js';
 import { XYZ } from '../../../Math/XYZ.js';
 import { XY } from '../../../Math/XY.js';
 import { AcisTextCodec } from '../../AcisTextCodec.js';
+import { LineWeightType } from '../../../Types/LineWeightType.js';
 
 export abstract class DxfSectionWriterBase {
   public onNotification: NotificationEventHandler | null = null;
@@ -262,8 +263,10 @@ export abstract class DxfSectionWriterBase {
 
     this._writer.write(DxfCode.Subclass, DxfSubclassMarker.entity);
 
-    this._writer.write(8, entity.layer?.name ?? '0');
-    this._writer.write(6, entity.lineType?.name ?? 'ByLayer');
+    // Keep the explicit R12 layer vocabulary used by the native legacy writer.
+    if (this.version <= ACadVersion.AC1009) this._writer.write(8, entity.layer?.name ?? '0');
+    else this._writer.writeIfNotDefault(8, entity.layer?.name ?? '0', '0');
+    this._writer.writeIfNotDefault(6, entity.lineType?.name ?? 'ByLayer', 'ByLayer');
 
     if (entity.bookColor !== null) {
       this._writer.write(62, entity.bookColor.color.getApproxIndex());
@@ -280,8 +283,8 @@ export abstract class DxfSectionWriterBase {
       this._writer.write(440, Transparency.toAlphaValue(entity.transparency));
     }
 
-    this._writer.write(48, entity.lineTypeScale, map);
-    this._writer.write(60, entity.isInvisible ? 1 : 0, map);
+    this._writer.writeIfNotDefault(48, entity.lineTypeScale, 1, map);
+    this._writer.writeIfNotDefault(60, entity.isInvisible ? 1 : 0, 0, map);
 
     if (entity.owner instanceof BlockRecord) {
       const record = entity.owner as BlockRecord;
@@ -290,7 +293,9 @@ export abstract class DxfSectionWriterBase {
       }
     }
 
-    this._writer.write(370, entity.lineWeight);
+    if (this.version >= ACadVersion.AC1015) {
+      this._writer.writeIfNotDefault(370, entity.lineWeight, LineWeightType.ByLayer, map);
+    }
   }
 
   protected abstract writeSection(): void;

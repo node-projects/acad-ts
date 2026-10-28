@@ -12,6 +12,53 @@ import { DxfTextReader } from '../../../src/IO/DXF/DxfStreamReader/DxfTextReader
 import { Region } from '../../../src/Entities/Region.js';
 import { Solid } from '../../../src/Entities/Solid.js';
 import { XYZ } from '../../../src/Math/XYZ.js';
+import { Line } from '../../../src/Entities/Line.js';
+import { Layer } from '../../../src/Tables/Layer.js';
+import { LineType } from '../../../src/Tables/LineType.js';
+import { LineWeightType } from '../../../src/Types/LineWeightType.js';
+
+it.each([false, true])('omits default common entity properties without changing round-trip defaults (binary=%s)', binary => {
+  const document = new CadDocument(ACadVersion.AC1032);
+  document.entities.add(new Line());
+  const bytes = write(document, binary);
+  if (!binary) {
+    const codes = entityPairs(bytes, 'LINE').map(([code]) => code);
+    for (const omitted of [8, 6, 48, 60, 370]) expect(codes).not.toContain(omitted);
+  }
+  const restored = [...DxfReader.readFromStream(bytes).entities][0] as Line;
+  expect(restored.layer.name).toBe('0');
+  expect(restored.lineType.name).toBe('ByLayer');
+  expect(restored.lineTypeScale).toBe(1);
+  expect(restored.isInvisible).toBe(false);
+  expect(restored.lineWeight).toBe(LineWeightType.ByLayer);
+});
+
+it.each([false, true])('retains non-default common entity properties (binary=%s)', binary => {
+  const document = new CadDocument(ACadVersion.AC1032);
+  const line = new Line();
+  line.layer = new Layer('custom');
+  line.lineType = LineType.byBlock;
+  line.lineTypeScale = 2.5;
+  line.isInvisible = true;
+  line.lineWeight = LineWeightType.W50;
+  document.entities.add(line);
+  const restored = [...DxfReader.readFromStream(write(document, binary)).entities][0] as Line;
+  expect(restored.layer.name).toBe('custom');
+  expect(restored.lineType.name).toBe('ByBlock');
+  expect(restored.lineTypeScale).toBe(2.5);
+  expect(restored.isInvisible).toBe(true);
+  expect(restored.lineWeight).toBe(LineWeightType.W50);
+});
+
+it.each([ACadVersion.AC1009, ACadVersion.AC1014, ACadVersion.AC1015])('filters lineweight by DXF version %s while keeping R12 layers explicit', version => {
+  const document = new CadDocument(version);
+  const line = new Line();
+  line.lineWeight = LineWeightType.W50;
+  document.entities.add(line);
+  const pairs = entityPairs(write(document), 'LINE');
+  expect(pairs.some(([code]) => code === 370)).toBe(version >= ACadVersion.AC1015);
+  if (version === ACadVersion.AC1009) expect(pairs).toContainEqual([8, '0']);
+});
 
 it.each([false, true])('reads planar SOLID geometry through its own subclass (binary=%s)', binary => {
   const document = new CadDocument(ACadVersion.AC1032);
