@@ -9,6 +9,17 @@ import { GradientColor } from '../../../src/Entities/GradientColor.js';
 import { DxfWriter } from '../../../src/IO/DXF/DxfWriter.js';
 import { DxfReader } from '../../../src/IO/DXF/DxfReader.js';
 import { DxfTextReader } from '../../../src/IO/DXF/DxfStreamReader/DxfTextReader.js';
+import { Region } from '../../../src/Entities/Region.js';
+
+it('warns and writes safely when pre-R2013 modeler SAT is absent', () => {
+  const document = new CadDocument(ACadVersion.AC1024);
+  document.entities.add(new Region());
+  const notifications: string[] = [];
+  const writer = new DxfWriter({ write(_value: string) {} }, document);
+  writer.onNotification = (_sender, event) => notifications.push(event.message);
+  expect(() => writer.write()).not.toThrow();
+  expect(notifications.some(message => message.startsWith('Encrypted SAT not found for REGION:'))).toBe(true);
+});
 
 function write(document: CadDocument, binary = false): Uint8Array {
   const chunks: Uint8Array[] = [];

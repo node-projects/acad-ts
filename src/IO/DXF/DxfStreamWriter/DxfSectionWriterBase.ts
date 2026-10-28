@@ -1232,6 +1232,8 @@ export abstract class DxfSectionWriterBase {
           `Binary ACIS payload for ${geometry.constructor.name} requires DXF R2013 or newer`,
           NotificationType.Warning,
         );
+      } else {
+        this.notify(`Encrypted SAT not found for ${geometry.objectName}: ${geometry.handle}.`, NotificationType.Warning);
       }
     }
 

@@ -41,6 +41,19 @@ function isSupportedVersion(version: ACadVersion): boolean {
 }
 
 describe('DwgWriterTests', () => {
+  it.each([ACadVersion.AC1021, ACadVersion.AC1027])('retains nonempty modeler material mappings and following entities in %s', version => {
+    const document = new CadDocument(version);
+    const solid = new Solid3D();
+    solid.acisData = new TextEncoder().encode('ACIS BinaryFile material fixture End-of-ACIS-data');
+    solid.materialMappings.push({ arrayIndex: 7, absoluteReference: 11, materialHandle: 0 });
+    document.entities.add(solid);
+    document.entities.add(new Line(new XYZ(9, 8, 7), new XYZ(6, 5, 4)));
+    const output = DwgWriter.writeToBuffer(document);
+    const restored = new DwgReader(output.buffer.slice(output.byteOffset, output.byteOffset + output.byteLength)).read();
+    const entities = [...restored.entities];
+    expect((entities[0] as Solid3D).materialMappings).toEqual(solid.materialMappings);
+    expect((entities[1] as Line).startPoint).toEqual(new XYZ(9, 8, 7));
+  });
   it.each(['顶', '*'])('writes an anonymous block with a one-character name %s', name => {
     const document = new CadDocument(ACadVersion.AC1032);
     const block = new BlockRecord(name);
