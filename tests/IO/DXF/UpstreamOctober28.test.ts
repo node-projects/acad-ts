@@ -10,6 +10,19 @@ import { DxfWriter } from '../../../src/IO/DXF/DxfWriter.js';
 import { DxfReader } from '../../../src/IO/DXF/DxfReader.js';
 import { DxfTextReader } from '../../../src/IO/DXF/DxfStreamReader/DxfTextReader.js';
 import { Region } from '../../../src/Entities/Region.js';
+import { Solid } from '../../../src/Entities/Solid.js';
+import { XYZ } from '../../../src/Math/XYZ.js';
+
+it.each([false, true])('reads planar SOLID geometry through its own subclass (binary=%s)', binary => {
+  const document = new CadDocument(ACadVersion.AC1032);
+  const solid = new Solid(new XYZ(1, 2, 3), new XYZ(4, 5, 6), new XYZ(7, 8, 9), new XYZ(10, 11, 12));
+  solid.thickness = 2;
+  document.entities.add(solid);
+  const restored = [...DxfReader.readFromStream(write(document, binary)).entities][0] as Solid;
+  expect(restored.firstCorner).toEqual(solid.firstCorner);
+  expect(restored.fourthCorner).toEqual(solid.fourthCorner);
+  expect(restored.thickness).toBe(2);
+});
 
 it('warns and writes safely when pre-R2013 modeler SAT is absent', () => {
   const document = new CadDocument(ACadVersion.AC1024);

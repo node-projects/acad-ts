@@ -334,7 +334,7 @@ export abstract class DxfSectionReaderBase {
         return this.readEntityCodes(new CadEntityTemplate(new Seqend()), this._readEntitySubclassMap.bind(this), Seqend);
       case DxfFileToken.entityTrace:
       case DxfFileToken.entitySolid:
-        return this.readEntityCodes(new CadEntityTemplate(new Solid()), this._readModelerGeometry.bind(this), Solid);
+        return this.readEntityCodes(new CadEntityTemplate(new Solid()), this._readEntitySubclassMap.bind(this), Solid);
       case DxfFileToken.entityTable:
         return this.readEntityCodes(new CadTableEntityTemplate(), this._readTableEntity.bind(this), TableEntity);
       case DxfFileToken.entityText:
