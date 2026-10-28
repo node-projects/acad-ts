@@ -796,7 +796,6 @@ export class DxfObjectsSectionWriter extends DxfSectionWriterBase {
 
     this._writer.write(90, field.children.length);
     for (const item of field.children) {
-      item.owner ??= field;
       this._writer.writeHandle(360, item);
       this.holder.objects.push(item);
     }
@@ -831,7 +830,6 @@ export class DxfObjectsSectionWriter extends DxfSectionWriterBase {
 
     this._writer.write(90, fieldList.fields.length);
     for (const field of fieldList.fields) {
-      field.owner ??= fieldList;
       this._writer.writeHandle(330, field);
       this.holder.objects.push(field);
     }

@@ -179,6 +179,13 @@ export class CadDocument implements IHandledCadObject {
 		}
 	}
 
+	/** @internal Enumerate registered objects without exposing the handle map. */
+	public *getCadObjects(): IterableIterator<CadObject> {
+		for (const item of this._cadObjects.values()) {
+			if (item instanceof CadObject) yield item;
+		}
+	}
+
 	public getCadObject(handle: number): CadObject | null {
 		const obj = this._cadObjects.get(handle);
 		return (obj as CadObject) ?? null;

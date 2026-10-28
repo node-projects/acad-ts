@@ -22,6 +22,10 @@ import { Insert } from '../../Entities/Insert.js';
 import { Polyline } from '../../Entities/Polyline.js';
 import { PolyfaceMesh } from '../../Entities/PolyfaceMesh.js';
 import { Seqend } from '../../Entities/Seqend.js';
+import { CadObject } from '../../CadObject.js';
+import { CadDictionary } from '../../Objects/CadDictionary.js';
+import { Field } from '../../Objects/Field.js';
+import { FieldList } from '../../Objects/FieldList.js';
 
 type DxfTextOutput = {
   write(value: string): void;
@@ -124,6 +128,8 @@ export class DxfWriter extends CadWriterBase<DxfWriterConfiguration, DxfWriteTar
       }
     }
 
+    this._prepareFields();
+
     this._createStreamWriter();
 
     this._objectHolder.objects.push(this._document.rootDictionary);
@@ -171,6 +177,44 @@ export class DxfWriter extends CadWriterBase<DxfWriterConfiguration, DxfWriteTar
     writer.onNotification = notification ?? null;
     writer.write();
     writer.dispose();
+  }
+
+  private _prepareFields(): void {
+    const objects = [...this._document.getCadObjects()];
+    const visited = new Set<CadObject>();
+    const fields: Field[] = [];
+    const lists: FieldList[] = [];
+    for (let index = 0; index < objects.length; index++) {
+      const item = objects[index];
+      if (visited.has(item)) continue;
+      visited.add(item);
+      if (item.xDictionary) objects.push(item.xDictionary);
+      if (item instanceof CadDictionary) {
+        for (const entry of item) objects.push(entry);
+      }
+      if (item instanceof FieldList) {
+        lists.push(item);
+        for (const field of item.fields) objects.push(field);
+      } else if (item instanceof Field) {
+        fields.push(item);
+        for (const child of item.children) {
+          child.owner ??= item;
+          objects.push(child);
+        }
+      }
+    }
+
+    // Hard child links take precedence over the FIELDLIST's soft references.
+    // Delay fallback owners until every parent has been visited.
+    for (const list of lists) {
+      for (const field of list.fields) field.owner ??= list;
+    }
+    let registeredFields = false;
+    for (const field of fields) {
+      if (field.document == null) registeredFields = true;
+      this._document.registerCollection(field);
+    }
+    if (registeredFields) this._document.updateDxfClasses(this.configuration.resetDxfClasses);
   }
 
   private _createStreamWriter(): void {
