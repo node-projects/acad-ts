@@ -11,6 +11,7 @@ import { DxfMap } from '../../../DxfMap.js';
 import { ACadVersion } from '../../../ACadVersion.js';
 import { CadObject } from '../../../CadObject.js';
 import { NonGraphicalObject } from '../../../Objects/NonGraphicalObject.js';
+import { CellStyleMap } from '../../../Objects/CellStyleMap.js';
 import { AcdbPlaceHolder } from '../../../Objects/AcdbPlaceHolder.js';
 import { BookColor } from '../../../Objects/BookColor.js';
 import { CadDictionary } from '../../../Objects/CadDictionary.js';
@@ -466,7 +467,9 @@ export class DxfObjectsSectionWriter extends DxfSectionWriterBase {
       this._writeSortentsTable(co);
     } else if (co instanceof TableStyle) {
       this._writeTableStyle(co);
-    } else if (co instanceof WipeoutVariables) {
+      } else if (co instanceof CellStyleMap) {
+        this._writeCellStyleMap(co);
+      } else if (co instanceof WipeoutVariables) {
       this._writeWipeoutVariables(co);
     } else if (co instanceof XRecord) {
       this.writeXRecord(co);
@@ -718,6 +721,40 @@ export class DxfObjectsSectionWriter extends DxfSectionWriterBase {
 		this._writer.write(290, contextData.value290, map);
 	}
 
+  private _writeCellStyleMap(map: CellStyleMap): void {
+    this._writer.write(100, map.subclassMarker);
+    this._writer.write(90, map.cellStyles.length);
+    for (const style of map.cellStyles) {
+      this._writer.write(300, 'CELLSTYLE');
+      this._writer.write(1, 'TABLEFORMAT_BEGIN');
+      this._writer.write(90, style.cellStyleType);
+      this._writer.write(170, style.cellAlignment);
+      this._writer.write(91, style.styleClass);
+      this._writer.write(92, style.tableCellStylePropertyFlags);
+      this._writer.write(62, style.textColor.index);
+      this._writer.write(300, 'CONTENTFORMAT');
+      this._writer.write(1, 'CONTENTFORMAT_BEGIN');
+      this._writer.write(90, style.propertyFlags);
+      this._writer.write(91, style.propertyOverrideFlags);
+      this._writer.write(92, style.valueDataType);
+      this._writer.write(93, style.valueUnitType);
+      this._writer.write(300, style.valueFormatString);
+      this._writer.write(40, MathHelper.radToDeg(style.rotation));
+      this._writer.write(140, style.textHeight);
+      this._writer.write(94, style.alignment);
+      this._writer.write(62, style.color.index);
+      if (style.textStyle) this._writer.write(340, style.textStyle.handle);
+      this._writer.write(144, style.scale);
+      this._writer.write(309, 'CONTENTFORMAT_END');
+      this._writer.write(171, style.marginOverrideFlags);
+      this._writer.write(309, 'TABLEFORMAT_END');
+      this._writer.write(1, 'CELLSTYLE_BEGIN');
+      this._writer.write(90, style.id);
+      this._writer.write(91, style.styleClass);
+      this._writer.write(300, style.name);
+      this._writer.write(309, 'CELLSTYLE_END');
+    }
+  }
 	private _writeTableStyle(style: TableStyle): void {
 		const map = DxfClassMap.create(TableStyle);
 		this._writer.write(DxfCode.Subclass, DxfSubclassMarker.tableStyle);

@@ -2,6 +2,15 @@
 
 acad-ts is a TypeScript library to read and write AutoCAD DWG and DXF files. It provides full access to the CAD document model including entities, tables, dictionaries, and headers.
 
+DXF metadata includes viewport height, polyface vertex counts, inherited modeler
+geometry fields, material/scale names and attribute definitions. Table-style
+extension dictionaries expose typed `CellStyleMap` objects with named cell styles,
+content formatting and resolved text-style references; DXF writing preserves
+those styles. SVG output supports straight and spline leader paths with arrowheads.
+
+Unresolved reactor warnings identify handles referenced by the input without a
+corresponding object. They remain diagnostics rather than fabricated CAD objects.
+
 ## Quick Start
 
 ### Reading a file

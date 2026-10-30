@@ -67,6 +67,8 @@ import { GeoData , GeoMeshPoint, GeoMeshFace} from '../../../Objects/GeoData.js'
 import { GeoDataVersion } from '../../../Objects/GeoDataVersion.js';
 import { Material } from '../../../Objects/Material.js';
 import { Scale } from '../../../Objects/Scale.js';
+import { CellStyleMap } from '../../../Objects/CellStyleMap.js';
+import { CadCellStyleMapTemplate } from '../../Templates/CadCellStyleMapTemplate.js';
 import { TableContent } from '../../../Objects/TableContent.js';
 import { LinkedData } from '../../../Objects/LinkedData.js';
 import { FormattedTableData } from '../../../Objects/FormattedTableData.js';
@@ -202,6 +204,8 @@ export class DxfObjectsSectionReader extends DxfSectionReaderBase {
         return this.readObjectCodes(new CadMaterialTemplate(), this._readMaterial.bind(this), Material);
       case DxfFileToken.objectScale:
         return this.readObjectCodes(new CadNonGraphicalObjectTemplate(new Scale()), this._readScale.bind(this), Scale);
+      case DxfFileToken.objectCellStyleMap:
+        return this.readObjectCodes(new CadCellStyleMapTemplate(), this._readCellStyleMap.bind(this), CellStyleMap);
       case DxfFileToken.objectTableContent:
         return this.readObjectCodes(new CadTableContentTemplate(), this._readTableContent.bind(this), TableContent);
       case DxfFileToken.objectVisualStyle:
@@ -1265,8 +1269,11 @@ export class DxfObjectsSectionReader extends DxfSectionReaderBase {
     this._reader.readNext();
 
     let end = false;
-    while (this._reader.code !== 1) {
+    while (this._reader.dxfCode !== DxfCode.Start) {
       switch (this._reader.code as number) {
+        case 90: template.cellStyle.id = this._reader.valueAsInt; break;
+        case 91: template.cellStyle.styleClass = this._reader.valueAsInt; break;
+        case 300: template.cellStyle.name = this._reader.valueAsString; break;
         case 309:
           end = this._reader.valueAsString.toUpperCase() === 'CELLSTYLE_END';
           break;
@@ -1280,6 +1287,26 @@ export class DxfObjectsSectionReader extends DxfSectionReaderBase {
       }
 
       this._reader.readNext();
+    }
+  }
+
+  private _readCellStyleMap(template: CadTemplate, map: DxfMap): boolean {
+    const tmp = template as CadCellStyleMapTemplate;
+    switch (this._reader.code as number) {
+      case 90: return true; // Entry count; the CELLSTYLE records own the entries.
+      case 300:
+        if (this._reader.valueAsString === 'CELLSTYLE') { tmp.addEntry(); return true; }
+        return false;
+      case 1:
+        if (!tmp.currentEntry) return false;
+        if (this._reader.valueAsString === 'TABLEFORMAT_BEGIN') {
+          this._readStyleOverride(tmp.styles[tmp.styles.length - 1]); return true;
+        }
+        if (this._reader.valueAsString === 'CELLSTYLE_BEGIN') {
+          this._readCellStyle(tmp.styles[tmp.styles.length - 1]); return true;
+        }
+        return false;
+      default: return this.tryAssignCurrentValue(tmp.cadObject, map);
     }
   }
 
@@ -1429,7 +1456,7 @@ export class DxfObjectsSectionReader extends DxfSectionReaderBase {
 
   private _readContentFormat(template: CadTableCellContentFormatTemplate): void {
     const format = template.format;
-    const map = DxfClassMap.create(format.constructor, 'CONTENTFORMAT_BEGIN');
+    const map = DxfClassMap.create(ContentFormat, 'CONTENTFORMAT_BEGIN');
 
     this._reader.readNext();
 
@@ -1493,6 +1520,7 @@ export class DxfObjectsSectionReader extends DxfSectionReaderBase {
 
   private _readStyleOverride(template: CadCellStyleTemplate): void {
     const style = template.format as CellStyle;
+    style.hasData = true;
     const mapstyle = DxfClassMap.create(style.constructor, 'TABLEFORMAT_STYLE');
     const mapformat = DxfClassMap.create(ContentFormat, 'TABLEFORMAT_BEGIN');
 
@@ -1502,6 +1530,9 @@ export class DxfObjectsSectionReader extends DxfSectionReaderBase {
     let currBorder: CellEdgeFlags = CellEdgeFlags.Unknown;
     while (this._reader.dxfCode !== DxfCode.Start) {
       switch (this._reader.code as number) {
+        case 93:
+        case 94:
+          break; // Content-format and grid-format counts; records are read below.
         case 95:
           currBorder = this._reader.valueAsInt as CellEdgeFlags;
           break;
@@ -1509,7 +1540,7 @@ export class DxfObjectsSectionReader extends DxfSectionReaderBase {
           break;
         case 300:
           if (this._reader.valueAsString.toUpperCase() === 'CONTENTFORMAT') {
-            this._readContentFormat(new CadTableCellContentFormatTemplate(new ContentFormat()));
+            this._readContentFormat(template);
           }
           break;
         case 301:

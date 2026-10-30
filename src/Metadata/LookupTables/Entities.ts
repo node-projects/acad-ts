@@ -1,6 +1,7 @@
 import { ClassMetadata } from '../MetadataTypes.js';
 
 export const metadataLookupEntities: readonly ClassMetadata[] = [
+{"typeName":"ModelerGeometry","baseTypeName":"Entity","properties":[],"systemVariables":[],"dxfSubClassName":"AcDbModelerGeometry"},
 {"typeName":"Surface","baseTypeName":"ModelerGeometry","properties":[{"propertyName":"uIsolines","valueCodes":[71],"referenceType":0},{"propertyName":"vIsolines","valueCodes":[72],"referenceType":0}],"systemVariables":[],"dxfName":"SURFACE","dxfSubClassName":"AcDbSurface"},
 {"typeName":"ExtrudedSurface","baseTypeName":"Surface","properties":[],"systemVariables":[],"dxfName":"EXTRUDEDSURFACE","dxfSubClassName":"AcDbExtrudedSurface"},
 {"typeName":"LoftedSurface","baseTypeName":"Surface","properties":[],"systemVariables":[],"dxfName":"LOFTEDSURFACE","dxfSubClassName":"AcDbLoftedSurface"},
@@ -1122,6 +1123,7 @@ export const metadataLookupEntities: readonly ClassMetadata[] = [
     "typeName": "Leader",
     "baseTypeName": "Entity",
     "properties": [
+      { "propertyName": "byBlockColor", "valueCodes": [77], "referenceType": 0 },
       {
         "propertyName": "annotationOffset",
         "valueCodes": [
@@ -1951,6 +1953,7 @@ export const metadataLookupEntities: readonly ClassMetadata[] = [
     "typeName": "PolyfaceMesh",
     "baseTypeName": "Polyline",
     "properties": [
+      { "propertyName": "vertices", "valueCodes": [71], "referenceType": 4 },
       {
         "propertyName": "faces",
         "valueCodes": [

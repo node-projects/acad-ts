@@ -25,6 +25,15 @@ function define(definition: Omit<DxfClassDefinition, 'applicationName' | 'wasZom
 }
 
 define({
+	cppClassName: DxfSubclassMarker.cellStyleMap,
+	dwgVersion: ACadVersion.AC1021,
+	dxfName: DxfFileToken.objectCellStyleMap,
+	itemClassId: 499,
+	maintenanceVersion: 25,
+	proxyFlags: ProxyFlags.CloningAllowed | ProxyFlags.DisablesProxyWarningDialog,
+});
+
+define({
 	cppClassName: DxfSubclassMarker.dictionaryWithDefault,
 	dwgVersion: 22 as ACadVersion,
 	dxfName: DxfFileToken.objectDictionaryWithDefault,

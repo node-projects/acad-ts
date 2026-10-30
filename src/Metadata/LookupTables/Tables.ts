@@ -986,6 +986,7 @@ export const metadataLookupTables: readonly ClassMetadata[] = [
     "typeName": "VPort",
     "baseTypeName": "TableEntry",
     "properties": [
+      { "propertyName": "viewHeight", "valueCodes": [40], "referenceType": 0 },
       {
         "propertyName": "bottomLeft",
         "valueCodes": [

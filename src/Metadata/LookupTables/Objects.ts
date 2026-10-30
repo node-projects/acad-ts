@@ -1,6 +1,32 @@
 import { ClassMetadata } from '../MetadataTypes.js';
 
 export const metadataLookupObjects: readonly ClassMetadata[] = [
+  { "typeName": "CellStyleMap", "baseTypeName": "NonGraphicalObject", "properties": [], "systemVariables": [], "dxfName": "CELLSTYLEMAP", "dxfSubClassName": "AcDbCellStyleMap" },
+  { "typeName": "ContentFormat", "properties": [
+    { "propertyName": "alignment", "valueCodes": [94], "referenceType": 0 },
+    { "propertyName": "color", "valueCodes": [62], "referenceType": 0 },
+    { "propertyName": "hasData", "valueCodes": [170], "referenceType": 0 },
+    { "propertyName": "propertyFlags", "valueCodes": [90], "referenceType": 0 },
+    { "propertyName": "propertyOverrideFlags", "valueCodes": [91], "referenceType": 0 },
+    { "propertyName": "rotation", "valueCodes": [40], "referenceType": 32 },
+    { "propertyName": "scale", "valueCodes": [144], "referenceType": 0 },
+    { "propertyName": "textHeight", "valueCodes": [140], "referenceType": 0 },
+    { "propertyName": "valueDataType", "valueCodes": [92], "referenceType": 0 },
+    { "propertyName": "valueUnitType", "valueCodes": [93], "referenceType": 0 },
+    { "propertyName": "valueFormatString", "valueCodes": [300], "referenceType": 0 }
+  ], "systemVariables": [] },
+  { "typeName": "CellStyle", "baseTypeName": "ContentFormat", "properties": [
+    { "propertyName": "backgroundColor", "valueCodes": [63], "referenceType": 0 },
+    { "propertyName": "cellAlignment", "valueCodes": [170], "referenceType": 0 },
+    { "propertyName": "contentColor", "valueCodes": [64], "referenceType": 0 },
+    { "propertyName": "isFillColorOn", "valueCodes": [283], "referenceType": 0 },
+    { "propertyName": "marginOverrideFlags", "valueCodes": [171], "referenceType": 0 },
+    { "propertyName": "name", "valueCodes": [300], "referenceType": 0 },
+    { "propertyName": "styleClass", "valueCodes": [91], "referenceType": 0 },
+    { "propertyName": "tableCellStylePropertyFlags", "valueCodes": [92], "referenceType": 0 },
+    { "propertyName": "textColor", "valueCodes": [62], "referenceType": 0 },
+    { "propertyName": "cellStyleType", "valueCodes": [90], "referenceType": 0 }
+  ], "systemVariables": [] },
   {
     "typeName": "AcdbPlaceHolder",
     "baseTypeName": "NonGraphicalObject",
@@ -1340,6 +1366,7 @@ export const metadataLookupObjects: readonly ClassMetadata[] = [
     "typeName": "Material",
     "baseTypeName": "NonGraphicalObject",
     "properties": [
+      { "propertyName": "name", "valueCodes": [1], "referenceType": 0 },
       {
         "propertyName": "ambientColor",
         "valueCodes": [
@@ -2912,6 +2939,7 @@ export const metadataLookupObjects: readonly ClassMetadata[] = [
     "typeName": "Scale",
     "baseTypeName": "NonGraphicalObject",
     "properties": [
+      { "propertyName": "name", "valueCodes": [300], "referenceType": 0 },
       {
         "propertyName": "paperUnits",
         "valueCodes": [

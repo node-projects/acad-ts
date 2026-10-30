@@ -83,6 +83,7 @@ export abstract class DxfPropertyBase {
 				case 62:
 				case 63:
 				case 70:
+				case 77:
 				case 176:
 				case 177:
 				case 178:
@@ -221,6 +222,7 @@ export abstract class DxfPropertyBase {
 				case 62:
 				case 63:
 				case 70:
+				case 77:
 				case 176:
 				case 177:
 				case 178:

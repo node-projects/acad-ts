@@ -220,8 +220,8 @@ export abstract class DxfSectionReaderBase {
           break;
         case 102: {
           const groups = this._readDefinedGroupsRaw();
-          result.xdictHandle = groups.xdictHandle;
-          result.reactors = groups.reactors;
+          if (groups.xdictHandle !== null) result.xdictHandle = groups.xdictHandle;
+          for (const reactor of groups.reactors) result.reactors.add(reactor);
           break;
         }
         case 330:

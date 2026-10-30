@@ -865,7 +865,7 @@ export abstract class DxfSectionWriterBase {
       this._writer.writeVector(10, v);
     }
 
-    this._writer.write(77, leader.color ? 1 : 0, subclass);
+    this._writer.write(77, leader.byBlockColor.index, subclass);
     this._writer.writeHandle(340, leader.associatedAnnotation);
     this._writer.writeVector(210, leader.normal, subclass);
     this._writer.writeVector(211, leader.horizontalDirection, subclass);

@@ -12,6 +12,8 @@ import { Ellipse } from '../../Entities/Ellipse.js';
 import { Hatch } from '../../Entities/Hatch.js';
 import { Insert } from '../../Entities/Insert.js';
 import { Line } from '../../Entities/Line.js';
+import { Leader } from '../../Entities/Leader.js';
+import { LeaderPathType } from '../../Entities/LeaderPathType.js';
 import { MText, AttachmentPointType } from '../../Entities/MText.js';
 import { Point } from '../../Entities/Point.js';
 import { Solid } from '../../Entities/Solid.js';
@@ -257,6 +259,8 @@ export class SvgXmlWriter {
       this._writeDimension(entity as Dimension, transform);
     } else if (entity instanceof Line) {
       this._writeLine(entity as Line, transform);
+    } else if (entity instanceof Leader) {
+      this._writeLeader(entity, transform);
     } else if (entity instanceof Point) {
       this._writePoint(entity as Point, transform);
     } else if (entity instanceof Circle) {
@@ -773,6 +777,31 @@ export class SvgXmlWriter {
     this.writeAttributeString('x2', SvgConverter.toSvgWithUnits(line.endPoint.x, this.units));
     this.writeAttributeString('y2', SvgConverter.toSvgWithUnits(line.endPoint.y, this.units));
 
+    this.writeEndElement();
+  }
+
+  private _writeLeader(leader: Leader, transform: Transform): void {
+    if (leader.vertices.length < 2) return;
+    this.writeStartElement('polyline');
+    this._writeEntityHeader(leader, transform);
+    const spline = new Spline();
+    spline.fitPoints = leader.vertices;
+    const points = leader.pathType === LeaderPathType.Spline ? spline.polygonalVertexes(this.configuration.arcPoints) : leader.vertices;
+    this.writeAttributeString('points', this._svgPoints(points, transform));
+    this.writeAttributeString('fill', 'none');
+    this.writeEndElement();
+    if (!leader.arrowHeadEnabled) return;
+    const tip = leader.vertices[0];
+    const next = leader.vertices.find(point => point.x !== tip.x || point.y !== tip.y);
+    if (!next) return;
+    const length = Math.hypot(next.x - tip.x, next.y - tip.y);
+    const size = leader.style.arrowSize * leader.style.scaleFactor;
+    const dx = (next.x - tip.x) / length * size, dy = (next.y - tip.y) / length * size;
+    const corners = [tip, new XYZ(tip.x + dx - dy / 3, tip.y + dy + dx / 3), new XYZ(tip.x + dx + dy / 3, tip.y + dy - dx / 3)];
+    this.writeStartElement('polygon');
+    this._writeEntityHeader(leader, transform, false);
+    this.writeAttributeString('points', this._svgPoints(corners, transform));
+    this.writeAttributeString('fill', this._colorSvg(leader.getActiveColor()));
     this.writeEndElement();
   }
 

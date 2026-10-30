@@ -150,7 +150,7 @@ export abstract class CadTemplate<T extends CadObject = CadObject> implements IC
 			return byHandle;
 		}
 
-		const byName = builder.tryGetTableEntry<TableEntry>(name);
+		const byName = builder.tryGetTableEntry(name, entryType);
 		if (byName instanceof entryType) {
 			return byName;
 		}

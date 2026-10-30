@@ -499,6 +499,7 @@ export { WipeoutVariables } from './Objects/WipeoutVariables.js';
 export { ResolutionUnit } from './Objects/ResolutionUnit.js';
 export { RotatedDimensionType } from './Objects/RotatedDimensionType.js';
 export { Scale } from './Objects/Scale.js';
+export { CellStyleMap } from './Objects/CellStyleMap.js';
 export { ScaleEstimationType } from './Objects/ScaleEstimationType.js';
 export { ShadePlotMode } from './Objects/ShadePlotMode.js';
 export { ShadePlotResolutionMode } from './Objects/ShadePlotResolutionMode.js';

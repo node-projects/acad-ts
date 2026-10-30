@@ -11,8 +11,10 @@ import { HookLineDirection } from './HookLineDirection.js';
 import { BoundingBox } from '../Math/BoundingBox.js';
 import { CollectionChangedEventArgs } from '../CollectionChangedEventArgs.js';
 import { XYZ } from '../Math/XYZ.js';
+import { Color } from '../Color.js';
 
 export class Leader extends Entity {
+	byBlockColor: Color = Color.byBlock;
 	annotationOffset: XYZ = new XYZ(0, 0, 0);
 
 	arrowHeadEnabled: boolean = false;

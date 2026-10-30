@@ -203,7 +203,7 @@ export abstract class CadDocumentBuilder {
 		return null;
 	}
 
-	tryGetTableEntry<T extends TableEntry>(name: string): T | null {
+	tryGetTableEntry<T extends TableEntry>(name: string, entryType?: abstract new (...args: any[]) => T): T | null {
 		if (!name || name.length === 0) {
 			return null;
 		}
@@ -223,7 +223,7 @@ export abstract class CadDocumentBuilder {
 
 		for (const t of tables) {
 			const entry = t.tryGetValue(name);
-			if (entry) {
+			if (entry && (!entryType || entry instanceof entryType)) {
 				return entry as unknown as T;
 			}
 		}

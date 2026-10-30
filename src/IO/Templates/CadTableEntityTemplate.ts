@@ -81,7 +81,7 @@ export class CadTableCellContentFormatTemplate implements ICadTemplate {
 
 	build(builder: CadDocumentBuilder): void {
 		this.format.textStyle = builder.tryGetCadObject<TextStyle>(this.textStyleHandle)
-			?? (this.textStyleName ? builder.tryGetTableEntry<TextStyle>(this.textStyleName) : null);
+			?? (this.textStyleName ? builder.tryGetTableEntry(this.textStyleName, TextStyle) : null);
 	}
 }
 
