@@ -41,6 +41,23 @@ function isSupportedVersion(version: ACadVersion): boolean {
 }
 
 describe('DwgWriterTests', () => {
+  it.each([ACadVersion.AC1021, ACadVersion.AC1024])('stops inline SAB at its binary terminator and reads following wireframe/material data in %s', version => {
+    const document = new CadDocument(version);
+    const solid = new Solid3D();
+    const header = new TextEncoder().encode('ACIS BinaryFile test ');
+    const end = new Uint8Array([0x45, 0x6e, 0x64, 0x0e, 0x02, 0x6f, 0x66, 0x0e, 0x04, 0x41, 0x43, 0x49, 0x53, 0x0d, 0x04, 0x64, 0x61, 0x74, 0x61]);
+    solid.acisData = new Uint8Array([...header, ...end]);
+    solid.point = new XYZ(12, 34, 56);
+    solid.materialMappings.push({ arrayIndex: 3, absoluteReference: 4, materialHandle: 0 });
+    document.entities.add(solid);
+    const output = DwgWriter.writeToBuffer(document);
+    const restored = new DwgReader(output.buffer.slice(output.byteOffset, output.byteOffset + output.byteLength)).read();
+    const entity = [...restored.entities][0] as Solid3D;
+    expect(entity).toBeInstanceOf(Solid3D);
+    expect(entity.acisData).toEqual(solid.acisData);
+    expect(entity.point).toEqual(solid.point);
+    expect(entity.materialMappings).toEqual(solid.materialMappings);
+  });
   it.each([ACadVersion.AC1021, ACadVersion.AC1027])('retains nonempty modeler material mappings and following entities in %s', version => {
     const document = new CadDocument(version);
     const solid = new Solid3D();
