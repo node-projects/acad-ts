@@ -1,9 +1,9 @@
 # ACadSharp upstream synchronization
 
 - Original port baseline: [3010994939c1bc21df0c9e2931e9baee4564815a](https://github.com/DomCR/ACadSharp/commit/3010994939c1bc21df0c9e2931e9baee4564815a)
-- Last commit reviewed: [c6710a43ed693c36876ef0a381a132df2ca306ab](https://github.com/DomCR/ACadSharp/commit/c6710a43ed693c36876ef0a381a132df2ca306ab)
-- Review order: chronological/topological, 790 commits, inclusive of all commits after the original baseline.
-- Review date: 2026-10-28
+- Last commit reviewed: [25b534813c1e5beb19ce78dd8f671781fd4d052f](https://github.com/DomCR/ACadSharp/commit/25b534813c1e5beb19ce78dd8f671781fd4d052f)
+- Review order: chronological/topological, 801 commits, inclusive of all commits after the original baseline.
+- Review date: 2026-10-30
 
 ## Result
 
@@ -32,6 +32,8 @@ The 2026-10-26 review checked 38 additional commits through upstream v3.8.30. Co
 `DxfWriterConfiguration.writeACISData` defaults to `true`. Setting it to `false` omits R2013+ DXF ACDSDATA while retaining modeler entity records; as upstream, this option does not disable pre-R2013 inline SAT or change DWG serialization. At the 2026-10-26 review, DWG AcDs storage writing was unsupported; subsequent local storage-writing work remains preserved. This review does not claim native ACIS regeneration.
 
 The 2026-10-28 review checked 24 additional commits through upstream v3.8.34. Converted changes include gradient field ordering, version and pattern filtering, indexed/true-color output, derived-boundary pixel size, empty gradient names, missing-SAT warnings, planar SOLID dispatch and omission of default DXF entity properties. Regression tests confirm existing short anonymous-name handling and nonempty modeler material lists. Concrete surface dispatch and table-writer structure were already represented. The large fidelity commit merges previously audited changes rather than introducing them again. Recent local FIELD ownership/handle preparation, geometry fidelity, native R12/R2007 and DWG AcDs output are preserved. CI remains on Node.js 22 and 24.
+
+The 2026-10-30 review checked 11 additional commits through upstream v3.8.36. Converted lazy XData/reactor/default-reference allocation, clone/detach behavior that leaves unused collections unallocated, safe reactor mutation, zero INSERT scales and malformed MTEXT background transparency handling. DXF and pre-R2000 DWG retain zero scales; R2000+ DWG substitutes 1 only in its serialized output. Existing SAB payload-boundary seeking and reused text-stream state reset already cover the upstream stream fixes, with targeted regression coverage. Recent local SVG projection/bounds/colors and DXF metadata/cell-style/leader changes remain preserved. Node.js 20 remains excluded from CI.
 
 ## Commit-by-commit audit
 
@@ -827,3 +829,14 @@ The 2026-10-28 review checked 24 additional commits through upstream v3.8.34. Co
 | 788 | [8e2f3118](https://github.com/DomCR/ACadSharp/commit/8e2f31189433bea38075a46ca5f9d19e2b451c88) | 2026-10-28 | Format DxfTablesSectionWriter consistently | Reviewed — table-writer formatting and relocation only; existing entry validation and writer structure retained. |
 | 789 | [a05387ef](https://github.com/DomCR/ACadSharp/commit/a05387efff5f86938d5775323d1886761c05a2f1) | 2026-10-28 | Merge pull request #1347 from DomCR/issue/1083_dxfwriter-optional-fields-optimization | Reviewed — integration only; no independent TypeScript feature. |
 | 790 | [c6710a43](https://github.com/DomCR/ACadSharp/commit/c6710a43ed693c36876ef0a381a132df2ca306ab) | 2026-10-28 | #1347 v3.8.34 | Reviewed — C# release version only; no TypeScript package-version change. |
+| 791 | [b41feca1](https://github.com/DomCR/ACadSharp/commit/b41feca142631be5520c26b4455c00f49006675c) | 2026-10-28 | Refactor DWG stream readers and writers | Already represented — inline SAB parsing rewinds to the exact terminator before wireframe/material data; added binary-terminator R2007/R2010 regression tests. C# stream namespace/method relocation needs no TypeScript change. |
+| 792 | [7c5ed1bf](https://github.com/DomCR/ACadSharp/commit/7c5ed1bfc0f20fd7dbb7f40c37e393fce765c3b8) | 2026-10-28 | Merge pull request #1348 from DomCR/read-ACIS-version-2 | Reviewed — integration only; no independent TypeScript feature. |
+| 793 | [90c6f871](https://github.com/DomCR/ACadSharp/commit/90c6f871ff6f37a66170316ebd7a736c1b1ca828) | 2026-10-28 | #1348 v3.8.35 | Reviewed — C# release version only; no TypeScript package-version change. |
+| 794 | [6270fad6](https://github.com/DomCR/ACadSharp/commit/6270fad6347b6b79ea6b6c98b963110decac0746) | 2026-10-28 | Optimize lazy CAD object state initialization | Converted — lazily allocate XData, reactors and entity layer/linetype defaults; document attachment avoids creating unused XData and safely registers references. |
+| 795 | [ccb8699a](https://github.com/DomCR/ACadSharp/commit/ccb8699ad43a9500cc6f3ef8b2709a544080bf17) | 2026-10-28 | Optimize cloning and DWG stream positioning | Converted — clone/detach leave unused collections unallocated and removal is null-safe. Text-stream isEmpty reset already exists and is regression-tested. |
+| 796 | [b908392c](https://github.com/DomCR/ACadSharp/commit/b908392c7fc049031e0c02538ec3573e71bd5073) | 2026-10-28 | Preserve zero insert scales safely | Converted — allow zero INSERT scales, retain them in DXF/legacy DWG, substitute 1 only during R2000+ DWG serialization without mutating the source, and ignore invalid MTEXT background transparency. |
+| 797 | [e28a2802](https://github.com/DomCR/ACadSharp/commit/e28a2802bf44979cdb25f745f9d9b9a402b79372) | 2026-10-28 | Safely initialize reactor collection | Converted with the safe initial lazy-state port — addReactor initializes its backing list, while cleaning/removing untouched reactors remains allocation-free. |
+| 798 | [4938fea9](https://github.com/DomCR/ACadSharp/commit/4938fea98a79283b2782050994bf29b2d712bbc3) | 2026-10-28 | Remove ScaleRange test from InsertTest | Reviewed — removes the obsolete C# zero-scale rejection test; TypeScript now tests zero-scale preservation and versioned DWG substitution. |
+| 799 | [6a52aaa6](https://github.com/DomCR/ACadSharp/commit/6a52aaa6b7b142de97aa5c3038e0852cb2484fa3) | 2026-10-28 | Preserve unset entity and layer references | Converted — cloning/detaching do not materialize unset entity/layer references; populated references remain deep-cloned and layer linetype defaults lazily to Continuous. Existing nullable layer setter compatibility retained. |
+| 800 | [16489a59](https://github.com/DomCR/ACadSharp/commit/16489a592c9e45ccf78292fb94378903f02462d0) | 2026-10-28 | Merge pull request #1352 from DomCR/issue/1341_memory-improvement | Reviewed — integration only; no independent TypeScript feature. |
+| 801 | [25b53481](https://github.com/DomCR/ACadSharp/commit/25b534813c1e5beb19ce78dd8f671781fd4d052f) | 2026-10-28 | #1352 v3.8.36 | Reviewed — C# release version only; no TypeScript package-version change. |
