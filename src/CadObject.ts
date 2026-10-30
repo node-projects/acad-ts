@@ -20,7 +20,10 @@ interface CadObjectTable<T extends CadObject> {
 
 export abstract class CadObject implements IHandledCadObject, IDxfClassDefined {
 	public document: CadDocument | null = null;
-	public extendedData!: ExtendedDataDictionary;
+	public get extendedData(): ExtendedDataDictionary {
+		return this._extendedData ??= new ExtendedDataDictionary(this);
+	}
+	public set extendedData(value: ExtendedDataDictionary) { this._extendedData = value; }
 	public handle: number = 0;
 	public get hasDynamicSubclass(): boolean { return false; }
 	public get objectName(): string { return ""; }
@@ -28,7 +31,7 @@ export abstract class CadObject implements IHandledCadObject, IDxfClassDefined {
 	public owner: IHandledCadObject | null = null;
 
 	public get reactors(): CadObject[] {
-		return this._reactors;
+		return this._reactors ??= [];
 	}
 
 	public abstract get subclassMarker(): string;
@@ -43,18 +46,18 @@ export abstract class CadObject implements IHandledCadObject, IDxfClassDefined {
 		}
 	}
 
-	private _reactors: CadObject[] = [];
+	private _extendedData: ExtendedDataDictionary | null = null;
+	private _reactors: CadObject[] | null = null;
 	private _xdictionary: CadDictionary | null = null;
 
-	constructor() {
-		this.extendedData = new ExtendedDataDictionary(this);
-	}
+	constructor() {}
 
 	public addReactor(reactor: CadObject): void {
-		this._reactors.push(reactor);
+		(this._reactors ??= []).push(reactor);
 	}
 
 	public cleanReactors(): void {
+		if (!this._reactors) return;
 		const reactors = [...this._reactors];
 		for (const reactor of reactors) {
 			if (reactor.document !== this.document) {
@@ -88,6 +91,7 @@ export abstract class CadObject implements IHandledCadObject, IDxfClassDefined {
 	}
 
 	public removeReactor(reactor: CadObject): boolean {
+		if (!this._reactors) return false;
 		const idx = this._reactors.indexOf(reactor);
 		if (idx >= 0) {
 			this._reactors.splice(idx, 1);
@@ -122,7 +126,7 @@ export abstract class CadObject implements IHandledCadObject, IDxfClassDefined {
 		if (this.xDictionary != null) {
 			doc.registerCollection(this.xDictionary);
 		}
-		if (this.extendedData.size > 0) {
+		if (this._extendedData && this._extendedData.size > 0) {
 			const entries = [...this.extendedData.entries()];
 			this.extendedData.clear();
 			for (const [key, value] of entries) {
@@ -138,7 +142,7 @@ export abstract class CadObject implements IHandledCadObject, IDxfClassDefined {
 		}
 		this.handle = 0;
 		this.document = null;
-		if (this.extendedData.size > 0) {
+		if (this._extendedData && this._extendedData.size > 0) {
 			const entries = [...this.extendedData.entries()];
 			this.extendedData.clear();
 			for (const [key, value] of entries) {
