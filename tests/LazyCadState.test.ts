@@ -27,3 +27,21 @@ it('registers lazy defaults with a document without allocating unused extended d
   expect(line.lineType).toBe(document.lineTypes.tryGetValue('ByLayer'));
   expect(Reflect.get(line, '_extendedData')).toBeNull();
 });
+
+it('clones and detaches unused collections without allocating or sharing them', () => {
+  const line = new Line();
+  line.extendedData.addByName('EXAMPLE');
+  line.addReactor(new Line());
+  const clone = line.clone() as Line;
+  expect(Reflect.get(clone, '_extendedData')).toBeNull();
+  expect(Reflect.get(clone, '_reactors')).toBeNull();
+  expect(clone.extendedData.owner).toBe(clone);
+  expect(clone.extendedData.size).toBe(0);
+  clone.addReactor(new Line());
+  expect(clone.reactors).not.toBe(line.reactors);
+  expect(line.extendedData.size).toBe(1);
+  const untouched = new Line();
+  untouched.unassignDocument();
+  expect(Reflect.get(untouched, '_extendedData')).toBeNull();
+  expect(Reflect.get(untouched, '_reactors')).toBeNull();
+});

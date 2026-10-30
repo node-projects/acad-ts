@@ -75,8 +75,8 @@ export abstract class CadObject implements IHandledCadObject, IDxfClassDefined {
 		clone.handle = 0;
 		clone.document = null;
 		clone.owner = null;
-		clone._reactors = [];
-		clone.extendedData = new ExtendedDataDictionary(clone);
+		clone._reactors = null;
+		clone._extendedData = null;
 		clone.xDictionary = this._xdictionary?.clone() ?? null;
 
 		return clone;
@@ -149,7 +149,7 @@ export abstract class CadObject implements IHandledCadObject, IDxfClassDefined {
 				this.extendedData.add(key, value);
 			}
 		}
-		this._reactors = [];
+		if (this._reactors) this._reactors.length = 0;
 	}
 
 	protected static updateCollection<T extends CadObject>(entry: T | null, table: CadObjectTable<T> | null): T | null {
