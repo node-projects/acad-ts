@@ -2,8 +2,11 @@ import { CadWriterConfiguration } from '../CadWriterConfiguration.js';
 import { LineWeightType } from '../../Types/LineWeightType.js';
 import { LineWeightTypeExtensions } from '../../Extensions/LineWeightTypeExtensions.js';
 import { UnitsType } from '../../Types/Units/UnitsType.js';
+import { Color } from '../../Color.js';
 
 export class SvgConfiguration extends CadWriterConfiguration {
+  /** Resolves adaptive ACI 7 colors for a display background; SVG remains transparent. */
+  backgroundColor: Color | null = null;
   lineWeightRatio: number = 100;
 
   defaultLineWeight: number = 0.01;

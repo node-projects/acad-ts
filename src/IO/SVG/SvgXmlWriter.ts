@@ -30,6 +30,7 @@ import { UnitExtensions } from '../../Extensions/UnitExtensions.js';
 import { FontFlags } from '../../Tables/FontFlags.js';
 import { XYZ } from '../../Math/XYZ.js';
 import { XY } from '../../Math/XY.js';
+import { LayerFlags } from '../../Tables/LayerFlags.js';
 
 interface BoundingBox { min: XYZ; max: XYZ; width: number; height: number; }
 type BoundingBoxLike = {
@@ -247,7 +248,18 @@ export class SvgXmlWriter {
   }
 
   protected writeEntity(entity: Entity, transform?: Transform): void {
+    if (!this._isVisible(entity)) return;
     if (!transform) {
+      transform = new Transform();
+    }
+
+    const ocs = entity instanceof Circle ? this._circleOcs(entity) : null;
+    if (ocs) {
+      this.writeStartElement('g');
+      this._writeTransformObj(transform);
+      const z = SvgConverter.toPixelSize(entity instanceof Circle ? entity.center.z : 0, this.units);
+      this.writeStartElement('g');
+      this.writeAttributeString('transform', `matrix(${ocs.x.x},${ocs.x.y},${ocs.y.x},${ocs.y.y},${ocs.z.x * z},${ocs.z.y * z})`);
       transform = new Transform();
     }
 
@@ -280,6 +292,7 @@ export class SvgXmlWriter {
     } else {
       this.notify(`[${entity.objectName}] Entity not implemented.`, NotificationType.NotImplemented);
     }
+    if (ocs) { this.writeEndElement(); this.writeEndElement(); }
   }
 
   // ========== Private helper methods ==========
@@ -305,10 +318,35 @@ export class SvgXmlWriter {
   }
 
   private _colorSvg(color: Color): string {
-    if (this.layout !== null && color.equals(Color.default)) {
+    const background = this.configuration.backgroundColor;
+    if (color.index === 7 && background) {
+      color = .2126 * background.r + .7152 * background.g + .0722 * background.b > 127 ? Color.black : Color.default;
+    } else if (this.layout !== null && color.equals(Color.default)) {
       color = Color.black;
     }
     return `rgb(${color.r},${color.g},${color.b})`;
+  }
+
+  private _isVisible(entity: Entity): boolean {
+    return !entity.isInvisible && entity.layer.isOn && !(entity.layer.layerFlags & LayerFlags.Frozen)
+      && !(entity instanceof TextEntity && !entity.value.trim()) && !(entity instanceof MText && !entity.plainText.trim());
+  }
+
+  private _circleOcs(circle: Circle): { x: XYZ; y: XYZ; z: XYZ } | null {
+    const z = circle.normal.getLength() ? circle.normal.normalize() : XYZ.axisZ;
+    if (z.x === 0 && z.y === 0 && z.z === 1) return null;
+    // DXF arbitrary-axis algorithm: https://help.autodesk.com/cloudhelp/2020/ENU/AutoCAD-DXF/files/GUID-E19E5B42-0CC7-4EBA-B29F-5E1D595149EE.htm
+    const x = (Math.abs(z.x) < 1 / 64 && Math.abs(z.y) < 1 / 64 ? XYZ.axisY : XYZ.axisZ).cross(z).normalize();
+    return { x, y: z.cross(x).normalize(), z };
+  }
+
+  private _circleWorldPoints(circle: Circle): XYZ[] {
+    const frame = this._circleOcs(circle);
+    const points = circle.polygonalVertexes(this.configuration.arcPoints);
+    return !frame ? points : points.map(p => new XYZ(
+      frame.x.x * p.x + frame.y.x * p.y + frame.z.x * p.z,
+      frame.x.y * p.x + frame.y.y * p.y + frame.z.y * p.z,
+      frame.x.z * p.x + frame.y.z * p.y + frame.z.z * p.z));
   }
 
   private _getBlockBoundingBox(record: BlockRecord): BoundingBox {
@@ -320,11 +358,15 @@ export class SvgXmlWriter {
     let maxZ = -Infinity;
 
     for (const item of record.entities) {
-      if (!(item instanceof Entity)) {
+      if (!(item instanceof Entity) || !this._isVisible(item)) {
         continue;
       }
 
-      const box = this._normalizeBoundingBox(item.getBoundingBox());
+      const points = item instanceof Circle ? this._circleWorldPoints(item) : null;
+      const box = points?.length ? {
+        min: new XYZ(Math.min(...points.map(p => p.x)), Math.min(...points.map(p => p.y)), Math.min(...points.map(p => p.z))),
+        max: new XYZ(Math.max(...points.map(p => p.x)), Math.max(...points.map(p => p.y)), Math.max(...points.map(p => p.z)))
+      } : this._normalizeBoundingBox(item.getBoundingBox());
       if (!box) {
         continue;
       }
@@ -491,8 +533,9 @@ export class SvgXmlWriter {
     const vertices = arc.getEndVertices();
     const start = vertices.start;
     const end = vertices.end;
-    const sweep = arc.endAngle - arc.startAngle;
-    const largeArc = Math.abs(sweep) > Math.PI ? 1 : 0;
+    let sweep = arc.endAngle - arc.startAngle;
+    if (sweep < 0) sweep += Math.PI * 2;
+    const largeArc = sweep > Math.PI ? 1 : 0;
 
     let sb = '';
     sb += `M ${SvgConverter.vectorToSvg(SvgConverter.vectorToPixelSize(start, this.units))}`;
@@ -520,7 +563,7 @@ export class SvgXmlWriter {
   }
 
   private _writeCircle(circle: Circle, transform: Transform): void {
-    const loc = transform.applyTransform(circle.center);
+    const loc = circle.center;
 
     this.writeStartElement('circle');
 
