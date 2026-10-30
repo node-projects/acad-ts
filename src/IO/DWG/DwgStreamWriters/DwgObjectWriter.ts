@@ -1830,20 +1830,24 @@ export class DwgObjectWriter extends DwgSectionIO {
 		}
 
 		if (this.r2000Plus) {
-			if (insert.xScale === 1.0 && insert.yScale === 1.0 && insert.zScale === 1.0) {
+			// Zero scales are legal in DXF; normalize only the R2000+ DWG encoding.
+			const x = insert.xScale === 0 ? 1 : insert.xScale;
+			const y = insert.yScale === 0 ? 1 : insert.yScale;
+			const z = insert.zScale === 0 ? 1 : insert.zScale;
+			if (x === 1.0 && y === 1.0 && z === 1.0) {
 				this._writer.write2Bits(3);
-			} else if (insert.xScale === insert.yScale && insert.xScale === insert.zScale) {
+			} else if (x === y && x === z) {
 				this._writer.write2Bits(2);
-				this._writer.writeRawDouble(insert.xScale);
-			} else if (insert.xScale === 1.0) {
+				this._writer.writeRawDouble(x);
+			} else if (x === 1.0) {
 				this._writer.write2Bits(1);
-				this._writer.writeBitDoubleWithDefault(insert.yScale, 1.0);
-				this._writer.writeBitDoubleWithDefault(insert.zScale, 1.0);
+				this._writer.writeBitDoubleWithDefault(y, 1.0);
+				this._writer.writeBitDoubleWithDefault(z, 1.0);
 			} else {
 				this._writer.write2Bits(0);
-				this._writer.writeRawDouble(insert.xScale);
-				this._writer.writeBitDoubleWithDefault(insert.yScale, insert.xScale);
-				this._writer.writeBitDoubleWithDefault(insert.zScale, insert.xScale);
+				this._writer.writeRawDouble(x);
+				this._writer.writeBitDoubleWithDefault(y, x);
+				this._writer.writeBitDoubleWithDefault(z, x);
 			}
 		}
 

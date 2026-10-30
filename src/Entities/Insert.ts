@@ -65,9 +65,6 @@ export class Insert extends Entity {
 		return this._xscale;
 	}
 	set xScale(value: number) {
-		if (value === 0) {
-			throw new Error('XScale value must be non-zero.');
-		}
 		this._xscale = value;
 	}
 
@@ -75,9 +72,6 @@ export class Insert extends Entity {
 		return this._yscale;
 	}
 	set yScale(value: number) {
-		if (value === 0) {
-			throw new Error('YScale value must be non-zero.');
-		}
 		this._yscale = value;
 	}
 
@@ -85,9 +79,6 @@ export class Insert extends Entity {
 		return this._zscale;
 	}
 	set zScale(value: number) {
-		if (value === 0) {
-			throw new Error('ZScale value must be non-zero.');
-		}
 		this._zscale = value;
 	}
 

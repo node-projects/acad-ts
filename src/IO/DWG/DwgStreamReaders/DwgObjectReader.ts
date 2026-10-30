@@ -2106,7 +2106,10 @@ export class DwgObjectReader extends DwgSectionIO {
       if ((mtext.backgroundFillFlags & BackgroundFillFlags.UseBackgroundFillColor) !== 0) {
         mtext.backgroundScale = this._objectReader.readBitDouble();
         mtext.backgroundColor = this._mergedReaders.readCmColor();
-        mtext.backgroundTransparency = this._objectReader.readBitLong();
+        const backgroundTransparency = (this._objectReader.readBitLong() << 16) >> 16;
+        if (backgroundTransparency >= 0 && backgroundTransparency <= 90) {
+          mtext.backgroundTransparency = backgroundTransparency;
+        }
       }
     }
     if (!this.r2018Plus) return template;
