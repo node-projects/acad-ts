@@ -2,6 +2,37 @@ import { expect, it } from 'vitest';
 import { Line } from '../src/Entities/Line.js';
 import { Layer } from '../src/Tables/Layer.js';
 import { CadDocument } from '../src/CadDocument.js';
+import { LineType } from '../src/Tables/LineType.js';
+
+it('keeps unset entity and layer references unset through clone and detach', () => {
+  const line = new Line();
+  const clone = line.clone() as Line;
+  const layer = new Layer('example');
+  const clonedLayer = layer.clone() as Layer;
+  line.unassignDocument();
+  layer.unassignDocument();
+  for (const entity of [line, clone]) {
+    expect(Reflect.get(entity, '_layer')).toBeNull();
+    expect(Reflect.get(entity, '_lineType')).toBeNull();
+    expect(entity.layer.name).toBe('0');
+    expect(entity.lineType.name).toBe('ByLayer');
+  }
+  for (const item of [layer, clonedLayer]) {
+    expect(Reflect.get(item, '_lineType')).toBeNull();
+    expect(item.lineType.name).toBe('Continuous');
+  }
+});
+
+it('deep-clones populated references without changing the source', () => {
+  const line = new Line();
+  line.layer = new Layer('custom');
+  line.lineType = LineType.byBlock;
+  const clone = line.clone() as Line;
+  expect(clone.layer).not.toBe(line.layer);
+  expect(clone.layer.name).toBe('custom');
+  expect(clone.lineType).not.toBe(line.lineType);
+  expect(clone.lineType.name).toBe('ByBlock');
+});
 
 it('initializes extended data, reactors and default references only on demand', () => {
   const line = new Line();

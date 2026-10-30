@@ -42,7 +42,7 @@ export class Layer extends TableEntry {
 
 	public isOn: boolean = true;
 
-	public get lineType(): LineType | null { return this._lineType; }
+	public get lineType(): LineType { return this._lineType ??= LineType.continuous; }
 	public set lineType(value: LineType | null) {
 		this._lineType = this.updateTableEntry(value, lineType => this._lineType = lineType, this.document?.lineTypes ?? null);
 	}
@@ -88,7 +88,7 @@ export class Layer extends TableEntry {
 
 	public override clone(): CadObject {
 		const clone = super.clone() as Layer;
-		clone._lineType = this.lineType?.clone() as LineType | null ?? null;
+		clone._lineType = this._lineType?.clone() as LineType | null ?? null;
 		clone.material = this.material?.clone() as Material | null ?? null;
 		return clone;
 	}
@@ -96,15 +96,15 @@ export class Layer extends TableEntry {
 	/** @internal */
 	assignDocument(doc: CadDocument): void {
 		super.assignDocument(doc);
-		this._lineType = this.updateTableEntry(this.lineType ?? LineType.continuous, lineType => this._lineType = lineType, doc.lineTypes);
+		this._lineType = this.updateTableEntry(this._lineType ?? LineType.continuous, lineType => this._lineType = lineType, doc.lineTypes);
 		this.material = CadObject.updateCollection(this.material, doc.materials);
 	}
 
 	/** @internal */
 	unassignDocument(): void {
-		this.document?.lineTypes?.removeReference(this.lineType?.name, this);
+		if (this._lineType) this.document?.lineTypes?.removeReference(this._lineType.name, this);
 		super.unassignDocument();
-		this._lineType = this.lineType?.clone() as LineType | null ?? LineType.continuous;
+		this._lineType = this._lineType?.clone() as LineType | null ?? null;
 		this.material = this.material?.clone() as Material | null ?? null;
 	}
 }

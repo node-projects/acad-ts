@@ -96,9 +96,9 @@ export abstract class Entity extends CadObject implements IEntity {
 	override clone(): CadObject {
 		const clone = super.clone() as Entity;
 
-		clone._layer = this.layer.clone() as Layer;
-		clone._lineType = this.lineType.clone() as LineType;
-		clone.material = this.material?.clone?.() as Material | null ?? null;
+		clone._layer = this._layer?.clone() as Layer | null ?? null;
+		clone._lineType = this._lineType?.clone() as LineType | null ?? null;
+		clone._material = this._material?.clone() as Material | null ?? null;
 		clone.proxyGeometries = this.proxyGeometries.map(geometry => cloneProxyGeometry(geometry));
 
 		return clone;
@@ -181,12 +181,12 @@ export abstract class Entity extends CadObject implements IEntity {
 	unassignDocument(): void {
 		this.document?.colors?.removeReference(this._bookColor?.name, this);
 		this.document?.materials?.removeReference(this._material?.name, this);
-		this.document?.layers?.removeReference(this.layer.name, this);
-		this.document?.lineTypes?.removeReference(this.lineType.name, this);
+		if (this._layer) this.document?.layers?.removeReference(this._layer.name, this);
+		if (this._lineType) this.document?.lineTypes?.removeReference(this._lineType.name, this);
 		super.unassignDocument();
 
-		this._layer = this.layer.clone() as Layer;
-		this._lineType = this.lineType.clone() as LineType;
+		this._layer = this._layer?.clone() as Layer | null ?? null;
+		this._lineType = this._lineType?.clone() as LineType | null ?? null;
 		this._bookColor = this._bookColor?.clone() as BookColor | null ?? null;
 		this._material = this._material?.clone() as Material | null ?? null;
 	}
