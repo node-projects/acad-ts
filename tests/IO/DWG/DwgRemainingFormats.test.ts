@@ -91,6 +91,11 @@ describe('R2007 DWG', () => {
 		const text = new TextEntity(); text.value = 'Unicode 日本語 €'; document.entities.add(text);
 		for (let i = 0; i < 2500; i++) document.entities.add(new Line(new XYZ(i, 2, 3), new XYZ(i + 1, 5, 6)));
 		const bytes = DwgWriter.writeToBuffer(document), restored = read(bytes);
+		const header = new DwgReader(bytes.buffer.slice(bytes.byteOffset, bytes.byteOffset + bytes.byteLength)).readFileHeader();
+		expect([...header.descriptors.values()].some(section => section.localSections.some(page => page.compressedSize < page.decompressedSize))).toBe(true);
+		const reader = new DwgReader(bytes.buffer.slice(bytes.byteOffset, bytes.byteOffset + bytes.byteLength));
+		const history = Reflect.apply(Reflect.get(reader, '_getSectionBuffer21'), reader, [header, 'AcDb:RevHistory']) as Uint8Array;
+		expect([...new Uint32Array(history.buffer, history.byteOffset, history.length / 4)]).toEqual([0, 0, 1, 0]);
 		expect([...restored.entities]).toHaveLength(2501);
 		expect(([...restored.entities][0] as TextEntity).value).toBe(text.value);
 		expect(restored.summaryInfo.title).toBe(document.summaryInfo.title);

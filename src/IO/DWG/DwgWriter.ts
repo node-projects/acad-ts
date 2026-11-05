@@ -227,11 +227,12 @@ export class DwgWriter extends CadWriterBase<DwgWriterConfiguration> {
 	private _writeRevHistory(): void {
 		if (this._fileHeader.acadVersion < ACadVersion.AC1018) return;
 
-		const data = new Uint8Array(12);
+		const data = new Uint8Array(16);
 		const view = new DataView(data.buffer);
 		view.setUint32(0, 0, true);
 		view.setUint32(4, 0, true);
-		view.setUint32(8, 0, true);
+		view.setUint32(8, 1, true);
+		view.setUint32(12, 0, true);
 
 		this._fileHeaderWriter.addSection(DwgSectionDefinition.revHistory, data, true);
 	}

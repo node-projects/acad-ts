@@ -1,11 +1,12 @@
 import { CadDocument } from '../../../CadDocument.js';
 import { DwgFileHeaderAC21 } from '../FileHeaders/DwgFileHeaderAC21.js';
 import { DwgFileHeaderWriterBase } from './DwgFileHeaderWriterBase.js';
+import { DwgLZ77AC21Compressor } from './DwgLZ77AC21Compressor.js';
 import { R2007Random, r2007Checksum, r2007Crc, r2007ReedSolomon, r2007Rotate, r2007Seed, r2007Words } from '../DwgR2007Encoding.js';
 
 const align = (n: number, boundary: number) => Math.ceil(n / boundary) * boundary;
 interface Page { id: number; bytes: Uint8Array; }
-interface Section { name: string; data: Uint8Array; pages: { page: Page; offset: number; data: Uint8Array }[]; }
+interface Section { name: string; data: Uint8Array; compressed: boolean; pages: { page: Page; offset: number; data: Uint8Array; stored: Uint8Array }[]; }
 
 /** R2007 uses its own RS-protected container, unlike R2004 and R2010. */
 export class DwgFileHeaderWriterAC21 extends DwgFileHeaderWriterBase<DwgFileHeaderAC21> {
@@ -15,8 +16,8 @@ export class DwgFileHeaderWriterAC21 extends DwgFileHeaderWriterBase<DwgFileHead
 	constructor(stream: Uint8Array, encoding: string, document: CadDocument) {
 		super(stream, encoding, document, new DwgFileHeaderAC21(document.header.version));
 	}
-	override addSection(name: string, data: Uint8Array, _compressed: boolean): void {
-		this.sections.push({ name, data, pages: [] });
+	override addSection(name: string, data: Uint8Array, compressed: boolean): void {
+		this.sections.push({ name, data, compressed, pages: [] });
 	}
 	override writeFile(): void {
 		const pages: Page[] = [];
@@ -35,13 +36,20 @@ export class DwgFileHeaderWriterAC21 extends DwgFileHeaderWriterBase<DwgFileHead
 		const count = this.sections.reduce((n, s) => n + Math.ceil(s.data.length / 0xf800), 0) + 4;
 		const placeholder = system(new Uint8Array(count * 16));
 		const map1 = add(placeholder.bytes), map2 = add(placeholder.bytes);
+		const compressor = new DwgLZ77AC21Compressor();
 		for (const section of this.sections) {
 			for (let offset = 0; offset < section.data.length; offset += 0xf800) {
 				const data = section.data.slice(offset, offset + 0xf800);
-				const padded = new Uint8Array(align(data.length, 8)); padded.set(data);
+				let stored = data;
+				if (section.compressed) {
+					const compressed: number[] = [];
+					compressor.compress(data, 0, data.length, compressed);
+					if (compressed.length < data.length) stored = Uint8Array.from(compressed);
+				}
+				const padded = new Uint8Array(align(stored.length, 8)); padded.set(stored);
 				const encoded = r2007ReedSolomon(padded, 251);
 				const bytes = new Uint8Array(align(encoded.length, 32)); bytes.set(encoded);
-				section.pages.push({ page: add(bytes), offset, data });
+				section.pages.push({ page: add(bytes), offset, data, stored });
 			}
 		}
 		const hashes: Record<string, number> = {
@@ -55,9 +63,9 @@ export class DwgFileHeaderWriterAC21 extends DwgFileHeaderWriterBase<DwgFileHead
 			const name = new Uint8Array((section.name.length + 1) * 2), view = new DataView(name.buffer);
 			for (let i = 0; i < section.name.length; i++) view.setUint16(i * 2, section.name.charCodeAt(i), true);
 			chunks.push(r2007Words([section.data.length, 0xf800, 0, hashes[section.name] ?? 0, name.length, 0, 4, section.pages.length]), name);
-			for (const { page, offset, data } of section.pages) {
-				chunks.push(r2007Words([offset, page.bytes.length, page.id, data.length, data.length,
-					r2007Checksum(data), r2007Crc(data, r2007Seed(data.length), true)]));
+			for (const { page, offset, data, stored } of section.pages) {
+				chunks.push(r2007Words([offset, page.bytes.length, page.id, data.length, stored.length,
+					r2007Checksum(data), r2007Crc(stored, r2007Seed(stored.length), true)]));
 			}
 		}
 		const sectionData = new Uint8Array(chunks.reduce((n, c) => n + c.length, 0));
