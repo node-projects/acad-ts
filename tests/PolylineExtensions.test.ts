@@ -10,6 +10,31 @@ import { XYZ } from '../src/Math/XYZ.js';
 import { PolylineExtensions } from '../src/Extensions/PolylineExtensions.js';
 
 describe('PolylineExtensionsTests', () => {
+	it.each(['lightweight', '2D', '3D'])('ignores zero-length bulged segments without losing %s polyline geometry', kind => {
+		const locations = [new XYZ(0, 0, 5), new XYZ(10, 0, 5), new XYZ(10, 0, 5), new XYZ(10, 8, 5)];
+		const polyline = kind === 'lightweight' ? new LwPolyline(locations.map(p => new LwPolylineVertex(new XY(p.x, p.y))))
+			: kind === '2D' ? new Polyline2D(locations.map(p => new Vertex2D(p))) : new Polyline3D(locations);
+		polyline.elevation = 5;
+		polyline.vertices[1].bulge = 0.5;
+		const bounds = polyline.getBoundingBox();
+		expect(bounds.min).toEqual(new XYZ(0, 0, 5));
+		expect(bounds.max).toEqual(new XYZ(10, 8, 5));
+		const segments = PolylineExtensions.explode(polyline);
+		expect(segments).toHaveLength(2);
+		expect(segments.every(segment => segment instanceof Line)).toBe(true);
+		expect(PolylineExtensions.getPoints(polyline, 8).every(point => Number.isFinite(point.x) && Number.isFinite(point.y))).toBe(true);
+		polyline.isClosed = true;
+		expect(PolylineExtensions.explode(polyline)).toHaveLength(3);
+	});
+
+	it('keeps an initial or closing repeated bulged vertex at its original elevation', () => {
+		const vertices = [new LwPolylineVertex(new XY(2, 3)), new LwPolylineVertex(new XY(2, 3))];
+		vertices[0].bulge = 1;
+		const polyline = new LwPolyline(vertices);
+		polyline.elevation = 7;
+		expect(PolylineExtensions.explode(polyline)).toEqual([]);
+		expect(polyline.getPoints(4)).toEqual([new XYZ(2, 3, 7), new XYZ(2, 3, 7)]);
+	});
 	it('GetsPointsForBulgedLwPolylines', () => {
 		const first = new LwPolylineVertex(new XY(0, 0));
 		const second = new LwPolylineVertex(new XY(2, 0));

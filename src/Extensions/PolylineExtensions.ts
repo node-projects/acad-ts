@@ -81,7 +81,10 @@ export class PolylineExtensions {
 			return line;
 		}
 
-		const arc = Arc.createFromBulge(this._toXY(current.location), this._toXY(next.location), bulge);
+		const startXY = this._toXY(current.location);
+		const endXY = this._toXY(next.location);
+		if (startXY.x === endXY.x && startXY.y === endXY.y) return null;
+		const arc = Arc.createFromBulge(startXY, endXY, bulge);
 		arc.center.z = elevation;
 		arc.normal = polyline.normal;
 		arc.thickness = polyline.thickness;
@@ -103,6 +106,7 @@ export class PolylineExtensions {
 
 		const startXY = this._toXY(current.location);
 		const endXY = this._toXY(next.location);
+		if (startXY.x === endXY.x && startXY.y === endXY.y) return [start, end];
 		const { center, radius } = Arc.getCenter(startXY, endXY, bulge);
 		const startAngle = Math.atan2(startXY.y - center.y, startXY.x - center.x);
 		let endAngle = Math.atan2(endXY.y - center.y, endXY.x - center.x);
