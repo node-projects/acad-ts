@@ -4,7 +4,7 @@ Issue [#11](https://github.com/node-projects/acad-ts/issues/11) reports ODA reco
 
 The regression coverage now checks legacy EED string bytes against the ODA specification (chapter 28), TABLESTYLE row and cell layouts, and full consumption of VisualStyle data from the original R2010â€“R2018 samples. The writer also emits typed references for table styles, evaluation expressions and image reactors, and queues evaluation expressions for writing.
 
-AC1021 (R2007) output now uses the native R2007 container: duplicated file headers and maps, normal and mirrored CRC64 checksums, and interleaved RS(255,239)/RS(255,251) protection. Uncompressed pages are emitted with equal compressed/uncompressed sizes. This avoids a runtime converter dependency, at the cost of larger files. The earlier R2004-container compatibility fallback is not used for this output.
+AC1021 (R2007) output uses the native R2007 container: duplicated file headers and maps, normal and mirrored CRC64 checksums, and interleaved RS(255,239)/RS(255,251) protection. Eligible data pages use AC21 LZ77 when compression reduces their size; other pages retain equal stored/uncompressed sizes. System maps and header metadata retain their supported raw representation. No runtime converter dependency is required. The earlier R2004-container compatibility fallback is not used for this output.
 
 To verify with an installed ODA File Converter:
 
