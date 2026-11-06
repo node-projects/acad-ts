@@ -260,3 +260,7 @@ See the [docs](./docs/) folder for detailed documentation on specific topics:
 ## License
 
 [MIT](LICENSE)
+
+CAD SVG previews render solid hatches directly, without viewport-sized paint patterns. Pattern IDs are unique within each output, and text emits valid font-family, font-size, and weight attributes, including common Windows symbol-font filenames. DWG AC18+ writers serialize true-color channels in BGR byte order, and DXF readers decode standard `\U+XXXX` Unicode escapes.
+
+Repeated explicit-color solid blocks share SVG definitions and use references, with insertion scale, rotation and base point retained. Their bounds are measured once per preview.

@@ -11,8 +11,51 @@ import { Arc } from '../src/Entities/Arc.js';
 import { Circle } from '../src/Entities/Circle.js';
 import { MText } from '../src/Entities/MText.js';
 import { Layer } from '../src/Tables/Layer.js';
+import { Hatch, HatchBoundaryPath, HatchBoundaryPathPolyline, HatchPattern, TextEntity, TextStyle, FontFlags, Insert } from '../src/index.js';
 
 describe('SvgLayoutTests', () => {
+  it('reuses explicit solid blocks and applies insertion scale and rotation', () => {
+    const symbol = new BlockRecord('Icon');
+    const hatch = new Hatch(); hatch.isSolid = true; hatch.pattern = HatchPattern.solid; hatch.color = new Color(220, 40, 15);
+    const edge = new HatchBoundaryPathPolyline(); edge.isClosed = true;
+    edge.vertices = [new XYZ(0, 0), new XYZ(1, 0), new XYZ(1, 1), new XYZ(0, 1)];
+    hatch.paths.push(new HatchBoundaryPath([edge])); symbol.entities.add(hatch);
+    const model = BlockRecord.modelSpace;
+    for (const x of [10, 40]) {
+      const insert = new Insert(); insert.block = symbol; insert.insertPoint = new XYZ(x, 20);
+      insert.xScale = 2; insert.yScale = 3; insert.rotation = Math.PI / 2; model.entities.add(insert);
+    }
+    const writer = new SvgXmlWriter(new ArrayBuffer(0), new SvgConfiguration()); writer.writeBlock(model);
+    const svg = writer.getOutput();
+    expect((svg.match(/<defs>/g) ?? []).length).toBe(1);
+    expect((svg.match(/<use\b/g) ?? []).length).toBe(2);
+    expect((svg.match(/<path\b/g) ?? []).length).toBe(1);
+    const matrices = [...svg.matchAll(/matrix\(([^)]+)\)/g)].map(match => match[1].split(',').map(Number));
+    expect(matrices).toHaveLength(2);
+    for (const [i, matrix] of matrices.entries()) {
+      expect(matrix[0]).toBeCloseTo(0); expect(matrix[1]).toBeCloseTo(2);
+      expect(matrix[2]).toBeCloseTo(-3); expect(matrix[3]).toBeCloseTo(0);
+      expect(matrix.slice(4)).toEqual([i ? 40 : 10, 20]);
+    }
+  });
+  it('renders separate solid hatch colors and valid symbol-font attributes', () => {
+    const record = BlockRecord.modelSpace;
+    for (const [i, color] of [new Color(255, 255, 255), new Color(220, 40, 15)].entries()) {
+      const hatch = new Hatch(); hatch.isSolid = true; hatch.pattern = HatchPattern.solid; hatch.color = color;
+      const edge = new HatchBoundaryPathPolyline(); edge.isClosed = true;
+      edge.vertices = [new XYZ(i * 20, 0), new XYZ(i * 20 + 10, 0), new XYZ(i * 20 + 10, 10), new XYZ(i * 20, 10)];
+      hatch.paths.push(new HatchBoundaryPath([edge])); record.entities.add(hatch);
+    }
+    const text = new TextEntity('å'); text.height = 12; text.style = new TextStyle('Symbols');
+    text.style.filename = 'wingding.ttf'; text.style.trueType = FontFlags.Bold;
+    record.entities.add(text);
+    const writer = new SvgXmlWriter(new ArrayBuffer(0), new SvgConfiguration()); writer.writeBlock(record);
+    const svg = writer.getOutput();
+    const ids = [...svg.matchAll(/<pattern[^>]*id="([^"]+)"/g)].map(match => match[1]);
+    expect(ids).toHaveLength(0);
+    expect(svg).toContain('rgb(255,255,255)'); expect(svg).toContain('rgb(220,40,15)');
+    expect(svg).toContain('font-family="Wingdings"'); expect(svg).toContain('font-size="12px"'); expect(svg).toContain('font-weight="bold"');
+  });
   it('projects reversed-normal arcs into world coordinates for rendering and bounds', () => {
     const record = BlockRecord.modelSpace;
     const arc = new Arc(new XYZ(-10, 20), 5, 0, Math.PI / 2); arc.normal = new XYZ(0, 0, -1);

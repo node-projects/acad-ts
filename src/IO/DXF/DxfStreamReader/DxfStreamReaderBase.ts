@@ -4,10 +4,12 @@ import { DxfFileToken } from '../../../DxfFileToken.js';
 import { GroupCodeValue, GroupCodeValueType } from '../../../GroupCodeValue.js';
 import { DxfException } from '../../../Exceptions/DxfException.js';
 import { MathHelper } from '../../../Math/MathHelper.js';
-import { decodeCadString, getDecoderEncodingLabel } from '../../TextEncoding.js';
+import { getDecoderEncodingLabel } from '../../TextEncoding.js';
 
 export abstract class DxfStreamReaderBase implements IDxfStreamReader {
   public encoding: string = getDecoderEncodingLabel('ANSI_1252');
+  private _decoder?: TextDecoder;
+  private _decoderEncoding?: string;
 
   public dxfCode: DxfCode = DxfCode.Invalid;
 
@@ -131,7 +133,13 @@ export abstract class DxfStreamReaderBase implements IDxfStreamReader {
   protected abstract lineAsBool(): boolean;
 
   protected decodeString(bytes: Uint8Array): string {
-    return decodeCadString(bytes, this.encoding);
+    // A large DXF has hundreds of thousands of short code/value lines.
+    // Reuse the decoder, resetting it only when the header changes code page.
+    if (!this._decoder || this._decoderEncoding !== this.encoding) {
+      this._decoder = new TextDecoder(getDecoderEncodingLabel(this.encoding));
+      this._decoderEncoding = this.encoding;
+    }
+    return this._decoder.decode(bytes);
   }
 
   private _transformValue(code: GroupCodeValueType): unknown {
@@ -139,7 +147,7 @@ export abstract class DxfStreamReaderBase implements IDxfStreamReader {
       case GroupCodeValueType.String:
       case GroupCodeValueType.Comment:
       case GroupCodeValueType.ExtendedDataString:
-        return this.readStringLine();
+        return this.readStringLine().replace(/\\U\+([0-9a-f]{4})/gi, (_escape, code: string) => String.fromCharCode(parseInt(code, 16)));
       case GroupCodeValueType.Point3D:
       case GroupCodeValueType.Double:
       case GroupCodeValueType.ExtendedDataDouble:

@@ -15,9 +15,9 @@ export class DwgStreamWriterAC18 extends DwgStreamWriterAC15 {
 		const arr = new Uint8Array(4);
 
 		if (value.isTrueColor) {
-			arr[0] = value.r;
+			arr[0] = value.b;
 			arr[1] = value.g;
-			arr[2] = value.b;
+			arr[2] = value.r;
 			arr[3] = 0b11000010;
 		} else if (value.isByLayer) {
 			arr[3] = 0b11000000;
@@ -62,7 +62,7 @@ export class DwgStreamWriterAC18 extends DwgStreamWriterAC15 {
 		super.writeBitShort(size & 0xFFFF);
 
 		if (color.isTrueColor) {
-			const arr = new Uint8Array([color.r, color.g, color.b, 0b11000010]);
+			const arr = new Uint8Array([color.b, color.g, color.r, 0b11000010]);
 			const view = new DataView(arr.buffer);
 			const rgb = view.getUint32(0, true);
 			super.writeBitLong(rgb | 0);
@@ -107,7 +107,7 @@ export class DwgStreamWriterAC18 extends DwgStreamWriterAC15 {
 		super.writeBitShort(size & 0xFFFF);
 
 		if (color.isTrueColor) {
-			const arr = new Uint8Array([color.r, color.g, color.b, 0b11000010]);
+			const arr = new Uint8Array([color.b, color.g, color.r, 0b11000010]);
 			const view = new DataView(arr.buffer);
 			const rgb = view.getUint32(0, true);
 			super.writeBitLong(rgb | 0);

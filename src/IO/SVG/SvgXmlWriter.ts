@@ -31,6 +31,7 @@ import { FontFlags } from '../../Tables/FontFlags.js';
 import { XYZ } from '../../Math/XYZ.js';
 import { XY } from '../../Math/XY.js';
 import { LayerFlags } from '../../Tables/LayerFlags.js';
+import { BoundingBox as CadBoundingBox } from '../../Math/BoundingBox.js';
 
 interface BoundingBox { min: XYZ; max: XYZ; width: number; height: number; }
 type BoundingBoxLike = {
@@ -77,6 +78,9 @@ export class SvgXmlWriter {
   formatting: string = 'Indented';
 
   private _output: string = '';
+  private _patternId = 0;
+  private _blockSymbols = new Map<BlockRecord, string>();
+  private _blockBounds = new Map<BlockRecord, BoundingBox>();
   private _indent: number = 0;
   private _elementStack: string[] = [];
   private _inAttribute: boolean = false;
@@ -102,6 +106,7 @@ export class SvgXmlWriter {
   writeBlock(record: BlockRecord): void {
     this.units = record.units;
 
+    this._blockBounds.clear();
     const box = this._getBlockBoundingBox(record);
 
     this._startDocument(box, box, this.units);
@@ -366,7 +371,7 @@ export class SvgXmlWriter {
       const box = points?.length ? {
         min: new XYZ(Math.min(...points.map(p => p.x)), Math.min(...points.map(p => p.y)), Math.min(...points.map(p => p.z))),
         max: new XYZ(Math.max(...points.map(p => p.x)), Math.max(...points.map(p => p.y)), Math.max(...points.map(p => p.z)))
-      } : this._normalizeBoundingBox(item.getBoundingBox());
+      } : this._normalizeBoundingBox(item instanceof Insert ? this._getInsertBoundingBox(item) : item.getBoundingBox());
       if (!box) {
         continue;
       }
@@ -386,6 +391,22 @@ export class SvgXmlWriter {
     const min = new XYZ(minX, minY, minZ);
     const max = new XYZ(maxX, maxY, maxZ);
     return { min: min, max: max, width: max.x - min.x, height: max.y - min.y };
+  }
+
+  private _getInsertBoundingBox(insert: Insert): BoundingBox | null {
+    if (!insert.block || insert.attributes.length) return insert.getBoundingBox();
+    let bounds = this._blockBounds.get(insert.block);
+    if (!bounds) {
+      bounds = insert.block.getBoundingBox();
+      if (!bounds) return null;
+      this._blockBounds.set(insert.block, bounds);
+    }
+    const transform = insert.getTransform();
+    const points: XYZ[] = [];
+    for (const x of [bounds.min.x, bounds.max.x]) for (const y of [bounds.min.y, bounds.max.y]) for (const z of [bounds.min.z, bounds.max.z]) {
+      points.push(transform.applyTransform(new XYZ(x, y, z)));
+    }
+    return CadBoundingBox.fromPoints(points);
   }
 
   private _normalizeBoundingBox(box: unknown): BoundingBox | null {
@@ -477,6 +498,8 @@ export class SvgXmlWriter {
   }
 
   private _startDocument(box: BoundingBox, viewBox: BoundingBox | null, units: UnitsType): void {
+    this._blockSymbols.clear();
+    this._patternId = 0;
     this.writeStartDocument();
 
     this.writeStartElement('svg');
@@ -663,7 +686,9 @@ export class SvgXmlWriter {
   private _writeHatch(hatch: Hatch, transform: Transform): void {
     this.writeStartElement('g');
 
-    const patternId = this._writePattern(hatch);
+    // A solid hatch is a direct fill. A viewport-sized pattern for every solid
+    // hatch creates huge intermediate surfaces in large drawing previews.
+    const patternId = hatch.isSolid ? null : this._writePattern(hatch);
 
     const plines: IPolyline[] = [];
     for (const path of hatch.paths) {
@@ -678,7 +703,7 @@ export class SvgXmlWriter {
 
     this.writeAttributeString('d', this._createPath(...plines));
 
-    this.writeAttributeString('fill', `url(#${patternId})`);
+    this.writeAttributeString('fill', patternId === null ? this._colorSvg(hatch.getActiveColor()) : `url(#${patternId})`);
 
     this.writeEndElement();
 
@@ -686,7 +711,7 @@ export class SvgXmlWriter {
   }
 
   private _writePatternHeader(hatch: Hatch): string {
-    const id = `${hatch.pattern.name}_pattern`;
+    const id = `hatch_${this._patternId++}_pattern`;
 
     this.writeStartElement('pattern');
 
@@ -724,7 +749,7 @@ export class SvgXmlWriter {
 
     const patterns = new Map<string, BoundingBox>();
     for (const [index, item] of hatch.pattern.lines.entries()) {
-      const i = `${hatch.pattern.name}_${index}_line`;
+      const i = `hatch_${this._patternId++}_${index}_line`;
       patterns.set(i, {
         min: new XYZ(0, 0, 0),
         max: new XYZ(item.lineOffset, item.lineOffset, 0),
@@ -794,20 +819,29 @@ export class SvgXmlWriter {
   }
 
   private _writeInsert(insert: Insert, transform: Transform): void {
-    const insertTransform = insert.getTransform ? insert.getTransform() : new Transform();
-    // Merge transforms
-    const merged = new Transform(
-      new XYZ(transform.translation.x + insertTransform.translation.x, transform.translation.y + insertTransform.translation.y, transform.translation.z + insertTransform.translation.z,)
-    );
-
+    if (!insert.block) return;
+    const matrix = insert.getTransform().matrix;
+    this.writeStartElement('g'); this._writeTransformObj(transform);
     this.writeStartElement('g');
-    this._writeTransformObj(merged);
-
-    for (const e of insert.block.entities) {
-      this.writeEntity(e as Entity);
+    this.writeAttributeString('transform', 'matrix(' + [matrix.m00, matrix.m10, matrix.m01, matrix.m11,
+      SvgConverter.toPixelSize(matrix.m03, this.units), SvgConverter.toPixelSize(matrix.m13, this.units)].join(',') + ')');
+    // Explicit-color solid symbols are independent of insertion-layer styling.
+    // Reuse their geometry rather than expanding every repeated bitmap icon.
+    const reusable = Array.from(insert.block.entities).every(e => e instanceof Hatch && e.isSolid && e.color.isTrueColor);
+    if (reusable) {
+      let id = this._blockSymbols.get(insert.block);
+      if (!id) {
+        id = 'cad_block_' + this._blockSymbols.size;
+        this._blockSymbols.set(insert.block, id);
+        this.writeStartElement('defs'); this.writeStartElement('g'); this.writeAttributeString('id', id);
+        for (const entity of insert.block.entities) this.writeEntity(entity);
+        this.writeEndElement(); this.writeEndElement();
+      }
+      this.writeStartElement('use'); this.writeAttributeString('href', '#' + id); this.writeEndElement();
+    } else {
+      for (const entity of insert.block.entities) this.writeEntity(entity);
     }
-
-    this.writeEndElement();
+    this.writeEndElement(); this.writeEndElement();
   }
 
   private _writeLine(line: Line, transform: Transform): void {
@@ -905,31 +939,29 @@ export class SvgXmlWriter {
       text.rotation !== 0 ? text.rotation : undefined
     );
 
-    this.writeAttributeString('fill', this._colorSvg(text.color ?? Color.default));
+    this.writeAttributeString('fill', this._colorSvg(text.getActiveColor()));
 
-    let style = 'font:';
-    style += SvgConverter.toSvgWithUnits(text.height, this.units);
+    let fontSize = SvgConverter.toSvgWithUnits(text.height, this.units);
     if (this.units === UnitsType.Unitless) {
-      style += 'px';
+      fontSize += 'px';
     }
+    this.writeAttributeString('font-size', fontSize);
 
     if (text.style?.trueType !== undefined) {
       if (text.style.trueType & FontFlags.Bold) {
-        style += 'bold';
+        this.writeAttributeString('font-weight', 'bold');
       }
       if (text.style.trueType & FontFlags.Italic) {
-        style += 'italic';
+        this.writeAttributeString('font-style', 'italic');
       }
     }
 
-    style += ' ';
     if (text.style?.filename) {
-      const filename = text.style.filename;
+      const filename = text.style.filename.replace(/^.*[\\/]/, '');
       const nameWithoutExt = filename.replace(/\.[^/.]+$/, '');
-      style += nameWithoutExt;
+      const families: Record<string, string> = { wingding: 'Wingdings', segoeui: 'Segoe UI', seguisym: 'Segoe UI Symbol', arialmt: 'Arial' };
+      this.writeAttributeString('font-family', families[nameWithoutExt.toLowerCase()] ?? nameWithoutExt);
     }
-
-    this.writeAttributeString('style', style);
 
     if (text instanceof MText) {
       const mtext = text as MText;
