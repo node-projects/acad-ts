@@ -2045,7 +2045,7 @@ export class DwgObjectReader extends DwgSectionIO {
     }
     if (this.r2007Plus) {
       this._handleReference();
-      this._handleReference();
+      template.visualStyleHandle = this._handleReference();
       this._handleReference();
       this._handleReference();
     }
