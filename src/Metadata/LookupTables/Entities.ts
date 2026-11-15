@@ -694,6 +694,7 @@ export const metadataLookupEntities: readonly ClassMetadata[] = [
     "typeName": "Entity",
     "baseTypeName": "CadObject",
     "properties": [
+      { "propertyName": "plotStyle", "valueCodes": [380], "referenceType": 0 },
       {
         "propertyName": "bookColor",
         "valueCodes": [

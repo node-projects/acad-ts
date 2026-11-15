@@ -59,6 +59,7 @@ export { DimensionType } from './Entities/DimensionType.js';
 export { DrawingDirectionType } from './Entities/DrawingDirectionType.js';
 export { Ellipse } from './Entities/Ellipse.js';
 export { Entity } from './Entities/Entity.js';
+export { PlotStyleType } from './Entities/PlotStyleType.js';
 export { Face3D } from './Entities/Face3D.js';
 export { GradientColor } from './Entities/GradientColor.js';
 export { EdgeType, HatchBoundaryPathEdge, HatchBoundaryPathArc, HatchBoundaryPathEllipse, HatchBoundaryPathLine, HatchBoundaryPathPolyline, HatchBoundaryPathSpline, HatchBoundaryPath, Hatch } from './Entities/Hatch.js';

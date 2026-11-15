@@ -17,6 +17,7 @@ import { XY } from '../Math/XY.js';
 import { Transform } from '../Math/Transform.js';
 import type { IProxyGeometry } from './ProxyGraphics.js';
 import { cloneProxyGeometry } from './ProxyGraphics.js';
+import { PlotStyleType } from './PlotStyleType.js';
 
 function isBlockRecordOwner(value: unknown): value is BlockRecord {
 	return value != null && typeof value === 'object' && 'blockEntity' in value;
@@ -29,6 +30,7 @@ export abstract class Entity extends CadObject implements IEntity {
 	}
 
 	color: Color = Color.byLayer;
+	plotStyle: PlotStyleType = PlotStyleType.ByLayer;
 
 	isInvisible: boolean = false;
 

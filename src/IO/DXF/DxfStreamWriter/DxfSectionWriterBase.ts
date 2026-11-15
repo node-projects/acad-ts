@@ -295,6 +295,7 @@ export abstract class DxfSectionWriterBase {
 
     if (this.version >= ACadVersion.AC1015) {
       this._writer.writeIfNotDefault(370, entity.lineWeight, LineWeightType.ByLayer, map);
+      this._writer.writeIfNotDefault(380, entity.plotStyle, 0, map);
     }
   }
 
