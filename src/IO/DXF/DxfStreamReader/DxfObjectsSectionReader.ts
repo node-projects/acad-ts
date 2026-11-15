@@ -1722,12 +1722,21 @@ export class DxfObjectsSectionReader extends DxfSectionReaderBase {
 
   private _readVisualStyle(template: CadTemplate, map: DxfMap): boolean {
     switch (this._reader.code as number) {
+      case 2: {
+        const style = template.cadObject as VisualStyle;
+        style.description = this._reader.valueAsString;
+        this._reader.readNext();
+        if (this._reader.code === 70) style.type = this._reader.valueAsInt;
+        else this.lockPointer = true;
+        return true;
+      }
+      case 70:
       case 176:
       case 177:
       case 420:
         return true;
       default:
-        return true;
+        return this.tryAssignCurrentValue(template.cadObject, map.subClasses.get(DxfSubclassMarker.visualStyle)!);
     }
   }
 
