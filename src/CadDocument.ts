@@ -177,6 +177,8 @@ export class CadDocument implements IHandledCadObject {
 		if (this.vPorts && typeof this.vPorts.createDefaultEntries === 'function') {
 			this.vPorts.createDefaultEntries();
 		}
+		const tableStyles = this.rootDictionary?.getEntry<CadDictionary>(CadDictionary.acadTableStyle);
+		this.tableStyles = tableStyles ? new TableStyleCollection(tableStyles) : null;
 	}
 
 	/** @internal Enumerate registered objects without exposing the handle map. */
@@ -264,6 +266,8 @@ export class CadDocument implements IHandledCadObject {
 		} else {
 			this.mLineStyles = null;
 		}
+		const tableStyles = this._updateCollectionDict(CadDictionary.acadTableStyle, createDictionaries);
+		this.tableStyles = tableStyles.success && tableStyles.dictionary ? new TableStyleCollection(tableStyles.dictionary) : null;
 	}
 
 	public updateDxfClasses(reset: boolean): void {
