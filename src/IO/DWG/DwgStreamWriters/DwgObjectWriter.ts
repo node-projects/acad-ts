@@ -217,6 +217,7 @@ export class DwgObjectWriter extends DwgSectionIO {
 	/** Key: handle, Value: Offset */
 	map: Map<number, number> = new Map();
 
+	writeLegacyAsmData: boolean = false;
 	writeXRecords: boolean;
 	writeXData: boolean;
 	writeShapes: boolean = true;
@@ -1470,7 +1471,7 @@ export class DwgObjectWriter extends DwgSectionIO {
 		}
 
 		if (this.r2013Plus) {
-			this._writer.writeBit(cadObject instanceof ModelerGeometry && cadObject.binaryData.length > 0);
+			this._writer.writeBit(cadObject instanceof ModelerGeometry && cadObject.binaryData.length > 0 && cadObject.isBinaryAcisData);
 		}
 
 		if (!noDictionary) {
@@ -2822,30 +2823,27 @@ export class DwgObjectWriter extends DwgSectionIO {
 	}
 
 	private _writeModelerGeometry(geometry: ModelerGeometry): void {
-		const data = geometry.binaryData;
-		const storedInAcDs = this.r2013Plus && data.length > 0;
-		const version = storedInAcDs || geometry.isBinaryAcisData ? 2 : 1;
+		const compatible = (data: Uint8Array, secondary = false): Uint8Array => {
+			if (!ModelerGeometry.isBinaryPayload(data)) return data;
+			const asm = ModelerGeometry.isAsmPayload(data);
+			if (!this.r2004Plus || (!this.r2013Plus && asm && !this.writeLegacyAsmData)) {
+				this.notify(`${secondary ? 'Secondary binary' : 'Binary'} modeler data for ${geometry.objectName} (handle ${geometry.handle.toString(16).toUpperCase()}) is not supported by this writer in ${this._version}; the ${secondary ? 'secondary ' : ''}modeler payload will be written empty.`, NotificationType.Warning);
+				return new Uint8Array(0);
+			}
+			if (asm && !this.r2013Plus) this.notify(`ASM data for ${geometry.objectName} (handle ${geometry.handle.toString(16).toUpperCase()}) will be preserved unchanged in ${this._version}. Compatibility depends on the target application's modeling kernel; no kernel conversion is performed.`, NotificationType.Warning);
+			return data;
+		};
+		const data = compatible(geometry.binaryData);
+		const secondaryData = compatible(geometry.secondaryAcisData, true);
+		const storedInAcDs = this.r2013Plus && data.length > 0 && geometry.isBinaryAcisData;
+		const version = data.length > 0 && geometry.isBinaryAcisData ? 2 : 1;
 		if (!storedInAcDs) this._writer.writeBit(data.length === 0);
 		if (data.length > 0 && !storedInAcDs) {
-			this._writer.writeBit(geometry.modelerDataFlag ?? version === 1);
-			this._writer.writeBitShort(version);
-			if (version === 2) {
-				this._writer.writeBytes(data);
-			} else {
-				for (let offset = 0; offset < data.length; offset += 4096) {
-					const block = data.slice(offset, offset + 4096);
-					for (let i = 0; i < block.length; i++) {
-						if (block[i] > 0x20 && block[i] < 0x9f) block[i] = 0x9f - block[i];
-					}
-					this._writer.writeBitLong(block.length);
-					this._writer.writeBytes(block);
-				}
-				this._writer.writeBitLong(0);
-			}
+			this._writeModelerGeometryData(data, version, version === 1 || geometry.modelerDataFlag === true);
 		}
 
 		const hasPoint = geometry.point.x !== 0 || geometry.point.y !== 0 || geometry.point.z !== 0;
-		const hasWireframe = hasPoint || geometry.wires.length > 0 || geometry.silhouettes.length > 0;
+		const hasWireframe = hasPoint || geometry.wires.length > 0 || geometry.silhouettes.length > 0 || secondaryData.length > 0;
 		this._writer.writeBit(hasWireframe);
 		if (hasWireframe) {
 			this._writer.writeBit(hasPoint);
@@ -2858,7 +2856,8 @@ export class DwgObjectWriter extends DwgSectionIO {
 			}
 			this._writer.writeBitLong(geometry.silhouettes.length);
 			for (const silhouette of geometry.silhouettes) {
-				this._writer.writeBitLongLong(silhouette.viewportId);
+				if (this.r2010Plus) this._writer.writeBitLongLong(silhouette.viewportId);
+				else this._writer.writeBitLong(silhouette.viewportId);
 				this._writer.write3BitDouble(silhouette.viewportTarget);
 				this._writer.write3BitDouble(silhouette.viewportDirectionFromTarget);
 				this._writer.write3BitDouble(silhouette.viewportUpDirection);
@@ -2869,11 +2868,14 @@ export class DwgObjectWriter extends DwgSectionIO {
 					for (const wire of silhouette.wires) this._writeModelerGeometryWire(wire);
 				}
 			}
+			this._writer.writeBit(secondaryData.length === 0);
+			if (secondaryData.length > 0) {
+				const secondaryVersion = geometry.secondaryModelerFormatVersion ?? (ModelerGeometry.isBinaryPayload(secondaryData) ? 2 : 1);
+				this._writeModelerGeometryData(secondaryData, secondaryVersion, geometry.secondaryModelerDataFlag ?? secondaryVersion === 1);
+			}
 		}
 
-		this._writer.writeBit(true);
-
-		if (this.r2007Plus && version > 1) {
+		if (this.r2007Plus) {
 			this._writer.writeBitLong(geometry.materialMappings.length);
 			for (const material of geometry.materialMappings) {
 				this._writer.writeBitLong(material.arrayIndex);
@@ -2889,6 +2891,24 @@ export class DwgObjectWriter extends DwgSectionIO {
 			this._writer.writeBytes(geometry.revisionBytes);
 			this._writer.writeBitLong(geometry.revisionEndMarker);
 		}
+	}
+
+	private _writeModelerGeometryData(data: Uint8Array, version: number, flag: boolean): void {
+		this._writer.writeBit(flag);
+		this._writer.writeBitShort(version);
+		if (version === 2) {
+			this._writer.writeBytes(data);
+			return;
+		}
+		for (let offset = 0; offset < data.length; offset += 4096) {
+			const block = data.slice(offset, offset + 4096);
+			for (let i = 0; i < block.length; i++) {
+				if (block[i] > 0x20 && block[i] < 0x9f) block[i] = 0x9f - block[i];
+			}
+			this._writer.writeBitLong(block.length);
+			this._writer.writeBytes(block);
+		}
+		this._writer.writeBitLong(0);
 	}
 
 	private _writeModelerGeometryWire(wire: ModelerGeometryWire): void {

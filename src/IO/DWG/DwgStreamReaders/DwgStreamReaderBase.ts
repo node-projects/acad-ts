@@ -237,7 +237,7 @@ export abstract class DwgStreamReaderBase implements IDwgStreamReader {
 
 		for (let i = 0; i < size; ++i) {
 			const b = this.readByte();
-			value += b << (i << 3);
+			value += b * 2 ** (i * 8);
 		}
 
 		return value;

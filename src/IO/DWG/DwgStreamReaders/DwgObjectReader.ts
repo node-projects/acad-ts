@@ -2288,7 +2288,10 @@ export class DwgObjectReader extends DwgSectionIO {
 		if (template.hasDsBinaryData) {
 			geometry.modelerFormatVersion = 2;
 		} else if (!this._mergedReaders.readBit()) {
-			this._readModelerGeometryData(template);
+			const payload = this._readModelerGeometryData(geometry.objectName);
+			geometry.binaryData = payload.data;
+			geometry.modelerDataFlag = payload.flag;
+			geometry.modelerFormatVersion = payload.version;
 		}
     const isWireframe = this._mergedReaders.readBit();
     if (isWireframe) {
@@ -2306,7 +2309,7 @@ export class DwgObjectReader extends DwgSectionIO {
       const nSilhouettes = this._mergedReaders.readBitLong();
       for (let i = 0; i < nSilhouettes; i++) {
         const silhouette = new ModelerGeometrySilhouette();
-        silhouette.viewportId = this._mergedReaders.readBitLongLong();
+        silhouette.viewportId = this.r2010Plus ? this._mergedReaders.readBitLongLong() : this._mergedReaders.readBitLong();
         silhouette.viewportTarget = this._mergedReaders.read3BitDouble();
         silhouette.viewportDirectionFromTarget = this._mergedReaders.read3BitDouble();
         silhouette.viewportUpDirection = this._mergedReaders.read3BitDouble();
@@ -2321,9 +2324,14 @@ export class DwgObjectReader extends DwgSectionIO {
         }
         geometry.silhouettes.push(silhouette);
       }
+      if (!this._mergedReaders.readBit()) {
+        const payload = this._readModelerGeometryData(geometry.objectName);
+        geometry.secondaryAcisData = payload.data;
+        geometry.secondaryModelerDataFlag = payload.flag;
+        geometry.secondaryModelerFormatVersion = payload.version;
+      }
     }
-    if (!this._mergedReaders.readBit()) this._readModelerGeometryData(template);
-    if (this.r2007Plus && geometry.modelerFormatVersion > 1) {
+    if (this.r2007Plus) {
       const materials = this._mergedReaders.readBitLong();
       for (let i = 0; i < materials; i++) {
         geometry.materialMappings.push({
@@ -2344,12 +2352,9 @@ export class DwgObjectReader extends DwgSectionIO {
     return template;
   }
 
-  private _readModelerGeometryData(template: CadEntityTemplate): void {
-		const geometry = template.cadObject as ModelerGeometry;
-		geometry.modelerDataFlag = this._mergedReaders.readBit();
+  private _readModelerGeometryData(objectName: string): { data: Uint8Array; flag: boolean; version: number } {
+		const flag = this._mergedReaders.readBit();
     const version = this._mergedReaders.readBitShort();
-		geometry.modelerFormatVersion = version;
-		if (template.hasDsBinaryData) return;
 		if (version === 1) {
 			const chunks: Uint8Array[] = [];
 			for (;;) {
@@ -2363,8 +2368,7 @@ export class DwgObjectReader extends DwgSectionIO {
 				}
 				chunks.push(encoded);
 			}
-			geometry.binaryData = DwgObjectReader._concatBytes(chunks);
-			return;
+			return { data: DwgObjectReader._concatBytes(chunks), flag, version };
 		}
 		if (version === 2) {
 			const start = this._objectReader.positionInBits();
@@ -2373,11 +2377,12 @@ export class DwgObjectReader extends DwgSectionIO {
 			this._objectReader.setPositionInBits(start);
 			const length = DwgObjectReader._modelerPayloadLength(preview);
 			if (length > 0) {
-				geometry.binaryData = this._mergedReaders.readBytes(length);
-				return;
+				return { data: this._mergedReaders.readBytes(length), flag, version };
 			}
 		}
-		this.notify(`Unable to preserve version ${version} stream data for ${template.cadObject.objectName}`, NotificationType.NotImplemented);
+		if (version === 2) throw new Error('Missing ACIS payload end marker.');
+		this.notify(`Unable to preserve version ${version} stream data for ${objectName}`, NotificationType.Warning);
+		return { data: new Uint8Array(0), flag, version };
   }
 
   private _readDimArc(): CadTemplate {
@@ -2412,11 +2417,12 @@ export class DwgObjectReader extends DwgSectionIO {
 		const encodedAsmEnd = new Uint8Array([0x45, 0x6e, 0x64, 0x0e, 0x02, 0x6f, 0x66, 0x0e, 0x03, 0x41, 0x53, 0x4d, 0x0d, 0x04, 0x64, 0x61, 0x74, 0x61]);
 		const plainEnds = [new TextEncoder().encode('End-of-ACIS-data'), new TextEncoder().encode('End-of-ASM-data')];
 		if (!DwgObjectReader._startsWith(data, binaryHeader) && !DwgObjectReader._startsWith(data, asmHeader)) return 0;
+		let end = 0;
 		for (const marker of [encodedAcisEnd, encodedAsmEnd, ...plainEnds]) {
 			const index = DwgObjectReader._indexOfBytes(data, marker);
-			if (index >= 0) return index + marker.length;
+			if (index >= 0 && (end === 0 || index + marker.length < end)) end = index + marker.length;
 		}
-		return 0;
+		return end;
 	}
 
 	private static _startsWith(data: Uint8Array, prefix: Uint8Array): boolean {

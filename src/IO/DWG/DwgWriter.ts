@@ -249,6 +249,7 @@ export class DwgWriter extends CadWriterBase<DwgWriterConfiguration> {
 			this.configuration.writeDynamicBlockData,
 		);
 		writer.onNotification = (sender, e) => this.triggerNotification(sender, e);
+		writer.writeLegacyAsmData = this.configuration.writeLegacyAsmData;
 		writer.write();
 
 		this._handlesMap = writer.map;
@@ -258,7 +259,7 @@ export class DwgWriter extends CadWriterBase<DwgWriterConfiguration> {
 			const geometry: ModelerGeometry[] = [];
 			for (const handle of writer.map.keys()) {
 				const object = this._document.getCadObject(handle);
-				if (object instanceof ModelerGeometry && object.binaryData.length > 0) geometry.push(object);
+				if (object instanceof ModelerGeometry && object.binaryData.length > 0 && object.isBinaryAcisData) geometry.push(object);
 			}
 			if (geometry.length > 0) this._fileHeaderWriter.addSection(DwgSectionDefinition.acDsPrototype, DwgPrototype1bWriter.write(geometry), true);
 		}

@@ -10,6 +10,7 @@ import { MText } from '../../../src/Entities/MText.js';
 import { TableStyle } from '../../../src/Objects/TableStyle.js';
 import { DwgReader } from '../../../src/IO/DWG/DwgReader.js';
 import { DwgWriter } from '../../../src/IO/DWG/DwgWriter.js';
+import { DwgWriterConfiguration } from '../../../src/IO/DWG/DwgWriterConfiguration.js';
 import { DwgObjectReader } from '../../../src/IO/DWG/DwgStreamReaders/DwgObjectReader.js';
 import { DwgObjectWriter } from '../../../src/IO/DWG/DwgStreamWriters/DwgObjectWriter.js';
 import { IDwgStreamReader } from '../../../src/IO/DWG/DwgStreamReaders/IDwgStreamReader.js';
@@ -28,7 +29,9 @@ describe('DWG interoperability follow-up to #11', () => {
       expect(geometry).toHaveLength(3);
       for (const entity of geometry) expect(entity.isBinaryAcisData).toBe(true);
       document.header.version = target;
-      const bytes = DwgWriter.writeToBuffer(document);
+      const configuration = new DwgWriterConfiguration();
+      configuration.writeLegacyAsmData = true;
+      const bytes = DwgWriter.writeToBuffer(document, configuration);
       const reread = new DwgReader(bytes.buffer.slice(bytes.byteOffset, bytes.byteOffset + bytes.byteLength)).read();
       const actual = [...reread.entities].filter((entity): entity is ModelerGeometry => entity instanceof ModelerGeometry);
       const summary = (entity: ModelerGeometry) => ({ handle: entity.handle, payload: createHash('sha256').update(entity.binaryData).digest('hex') });

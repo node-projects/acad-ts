@@ -66,6 +66,11 @@ export abstract class ModelerGeometry extends Entity {
 	}
 	/** @internal */ acisTextEncoded: boolean | null = null;
 
+	/** Auxiliary DWG edge/silhouette stream, independent of the primary body. */
+	secondaryAcisData: Uint8Array = new Uint8Array(0);
+	secondaryModelerDataFlag: boolean | null = null;
+	secondaryModelerFormatVersion: number | null = null;
+
 	modelerFormatVersion: number = 1;
 	get hasWireframeData(): boolean { return this.wires.length > 0 || this.silhouettes.length > 0; }
 	/** Undocumented bit preceding the inline ACIS version; retain it when rewriting. */
@@ -78,16 +83,22 @@ export abstract class ModelerGeometry extends Entity {
 	revisionBytes: Uint8Array = new Uint8Array(8);
 	revisionEndMarker: number = 0;
 
-	/** Raw SAT/SAB modeler payload when it is stored inline in the entity. */
+	/** Raw primary SAT/SAB/ASM modeler payload. */
 	binaryData: Uint8Array = new Uint8Array(0);
 
 	get acisData(): Uint8Array { return this.binaryData; }
 	set acisData(value: Uint8Array) { this.binaryData = value; }
 
-	get isBinaryAcisData(): boolean {
+	get isBinaryAcisData(): boolean { return ModelerGeometry.isBinaryPayload(this.binaryData); }
+
+	static isAsmPayload(data: Uint8Array): boolean {
+		return new TextDecoder().decode(data.subarray(0, 14)) === 'ASM BinaryFile';
+	}
+
+	static isBinaryPayload(data: Uint8Array): boolean {
 		return ['ACIS BinaryFile', 'ASM BinaryFile'].some(signature =>
-			this.binaryData.length >= signature.length &&
-			[...signature].every((character, i) => this.binaryData[i] === character.charCodeAt(0)));
+			data.length >= signature.length &&
+			[...signature].every((character, i) => data[i] === character.charCodeAt(0)));
 	}
 
 	getAcisText(): string | null {

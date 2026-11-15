@@ -45,6 +45,16 @@ Table-style attachment also initializes the document collection, defers registra
 
 Validation on 2026-11-15: 792 tests passed and 8 skipped using one reused Vitest worker and a 120-second timeout; lint, typecheck, build and whitespace checks passed. The optional `SampleRoundtripComparison` C# suite was excluded from the final run after its initial build failed because the installed .NET SDK could not be resolved. No test or CI configuration was weakened to bypass that environment failure.
 
+## Additional PR review: modeler preservation (#1350)
+
+On 2026-11-15, ported [PR #1350](https://github.com/DomCR/ACadSharp/pull/1350) at head `cc7a5dcde19f923bbf8ff0ba422a02ca13695429`, separately from the master-branch audit. Existing storage/blob writing, revision GUIDs, material mappings, null-owner handling and legacy linetype handling were retained. Added independent secondary ACIS payloads and metadata, earliest-terminator detection, version-aware silhouette viewport IDs (BL through 2007, BLL from 2010), correct SAT flags/inline storage/material trailers, AcDs schema metadata and previous-save index, original record ordering with nearest-offset bounds, and the empty class-section maximum of 499. The TypeScript BLL reader also now preserves values above 32 bits within JavaScript's safe integer range.
+
+`DwgWriterConfiguration.writeLegacyAsmData` defaults to `false`. Unsupported SAB export before DWG 2004 and ASM export before 2013 warns and writes an empty payload without modifying the source. Enabling the option preserves original ASM bytes inline in DWG 2004–2010, with a compatibility warning; it performs no modeling-kernel conversion. Secondary payloads remain DWG-specific and are not serialized to DXF.
+
+Regression coverage includes the public `samples/modeler/silhouette_sab_AC1021.dwg` reproducer from ilCosmico, retained from the pinned PR head, repeated primary/secondary rewrites, direct SAT and silhouette field checks, mixed-schema reordered inline/blob records, and unsupported-version fallback. Local validation establishes storage integrity, not native geometry rendering or external application acceptance.
+
+Validation: the complete default Vitest run passed with 845 tests and 8 skipped; lint, typecheck, build and `git diff --check` also passed.
+
 ## Commit-by-commit audit
 
 | # | Commit | Date | Upstream subject | Disposition |
