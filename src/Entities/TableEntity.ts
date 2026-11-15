@@ -256,6 +256,12 @@ export class CellRange {
 }
 
 export class ContentFormat {
+	protected _owner: CadObject | null = null;
+	get owner(): CadObject | null { return this._owner; }
+	set owner(value: CadObject | null) {
+		this._owner = value;
+		if (!value) this._textStyle = this._textStyle?.clone() as TextStyle | null ?? null;
+	}
 	alignment: number = 0;
 	color: Color = Color.byBlock;
 	hasData: boolean = false;
@@ -264,7 +270,21 @@ export class ContentFormat {
 	rotation: number = 0;
 	scale: number = 0;
 	textHeight: number = 0;
-	textStyle: TextStyle | null = null;
+	private _textStyle: TextStyle | null = null;
+	get textStyle(): TextStyle | null {
+		if (this._textStyle && this.owner?.document?.textStyles) {
+			this._textStyle = this.owner.document.textStyles.tryAdd(this._textStyle);
+		}
+		return this._textStyle;
+	}
+	set textStyle(value: TextStyle | null) {
+		this._textStyle = value && this.owner?.document?.textStyles ? this.owner.document.textStyles.tryAdd(value) : value;
+	}
+	clone(): this {
+		const clone = Object.assign(Object.create(Object.getPrototypeOf(this)), this) as this;
+		clone.owner = null;
+		return clone;
+	}
 	valueDataType: number = 0;
 	valueFormatString: string = '';
 	valueUnitType: number = 0;
@@ -286,6 +306,9 @@ export class CellBorder {
 }
 
 export class CellContent {
+	private _owner: CadObject | null = null;
+	get owner(): CadObject | null { return this._owner; }
+	set owner(value: CadObject | null) { this._owner = value; this.format.owner = value; }
 	attributes: TableAttribute[] = [];
 	blockRecord: BlockRecord | null = null;
 	contentType: TableCellContentType = TableCellContentType.Unknown;
@@ -321,7 +344,32 @@ export class CellStyle extends ContentFormat {
 	id: number = 0;
 }
 
+export class TableComponent {
+	protected _owner: CadObject | null = null;
+	get owner(): CadObject | null { return this._owner; }
+	set owner(value: CadObject | null) {
+		this._owner = value;
+		if (this.cellStyle) this.cellStyle.owner = value;
+		this.cellStyleOverride.owner = value;
+		for (const cell of this.cells) cell.owner = value;
+	}
+	cellStyle: CellStyle | null = null;
+	private _cellStyleOverride = new CellStyle();
+	get cellStyleOverride(): CellStyle { return this._cellStyleOverride; }
+	set cellStyleOverride(value: CellStyle) { this._cellStyleOverride = value; value.owner = this.owner; }
+	cells: TableEntityCell[] = [];
+	customData: number = 0;
+	customDataCollection: CustomDataEntry[] = [];
+}
+
 export class TableEntityCell {
+	private _owner: CadObject | null = null;
+	get owner(): CadObject | null { return this._owner; }
+	set owner(value: CadObject | null) {
+		this._owner = value;
+		this.styleOverride.owner = value;
+		for (const content of this.contents) content.owner = value;
+	}
 	styleId: number = 0;
 	dataLink: CadObject | null = null;
 	linkedRowCount: number = 0;
@@ -366,22 +414,15 @@ export class TableEntityCell {
 	virtualEdgeFlag: number = 0;
 }
 
-export class TableEntityColumn {
+export class TableEntityColumn extends TableComponent {
 	styleId: number = 0;
 	name: string = '';
 	width: number = 0;
-	customData: number = 0;
-	cellStyleOverride: CellStyle = new CellStyle();
-	customDataCollection: CustomDataEntry[] = [];
 }
 
-export class TableEntityRow {
+export class TableEntityRow extends TableComponent {
 	styleId: number = 0;
 	height: number = 0;
-	customData: number = 0;
-	cellStyleOverride: CellStyle = new CellStyle();
-	cells: TableEntityCell[] = [];
-	customDataCollection: CustomDataEntry[] = [];
 }
 
 export class BreakHeight {
