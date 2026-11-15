@@ -1084,7 +1084,8 @@ export class DwgObjectReader extends DwgSectionIO {
     ellipse.center = this._objectReader.read3BitDouble();
     ellipse.majorAxisEndPoint = this._objectReader.read3BitDouble();
     ellipse.normal = this._objectReader.read3BitDouble();
-    ellipse.radiusRatio = this._objectReader.readBitDouble();
+    const ratio = this._objectReader.readBitDouble();
+    ellipse.radiusRatio = ratio <= 0 ? MathHelper.epsilon : Math.min(ratio, 1);
     ellipse.startParameter = this._objectReader.readBitDouble();
     ellipse.endParameter = this._objectReader.readBitDouble();
     return template;

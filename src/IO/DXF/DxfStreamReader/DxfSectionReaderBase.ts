@@ -301,7 +301,7 @@ export abstract class DxfSectionReaderBase {
       case DxfFileToken.entity3DFace:
         return this.readEntityCodes(new CadEntityTemplate(new Face3D()), this._readEntitySubclassMap.bind(this), Face3D);
       case DxfFileToken.entityEllipse:
-        return this.readEntityCodes(new CadEntityTemplate(new Ellipse()), this._readEntitySubclassMap.bind(this), Ellipse);
+        return this.readEntityCodes(new CadEntityTemplate(new Ellipse()), this._readEllipse.bind(this), Ellipse);
       case DxfFileToken.entityLeader:
         return this.readEntityCodes(new CadLeaderTemplate(), this._readLeader.bind(this), Leader);
       case DxfFileToken.entityLine:
@@ -479,6 +479,15 @@ export abstract class DxfSectionReaderBase {
     } else {
       return func(template, map, subclass);
     }
+  }
+
+  private _readEllipse(template: CadEntityTemplate, map: DxfMap): boolean {
+    if (this._reader.code === 40) {
+      const ratio = this._reader.valueAsDouble;
+      (template.cadObject as Ellipse).radiusRatio = ratio <= 0 ? MathHelper.epsilon : Math.min(ratio, 1);
+      return true;
+    }
+    return this.tryAssignCurrentValue(template.cadObject, map.subClasses.get(DxfSubclassMarker.ellipse));
   }
 
   private _readCircle(template: CadEntityTemplate, map: DxfMap, subclass?: string): boolean {
