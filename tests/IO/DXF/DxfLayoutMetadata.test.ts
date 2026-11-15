@@ -9,6 +9,7 @@ import { Leader } from '../../../src/Entities/Leader.js';
 import { Color } from '../../../src/Color.js';
 import { TextStyle } from '../../../src/Tables/TextStyle.js';
 import { XYZ } from '../../../src/Math/XYZ.js';
+import { Material } from '../../../src/Objects/Material.js';
 
 function dxf(sections: string): Uint8Array {
   const tables = ['APPID', 'STYLE', 'LTYPE', 'LAYER', 'UCS', 'VIEW', 'BLOCK_RECORD', 'DIMSTYLE', 'VPORT']
@@ -20,6 +21,15 @@ function dxf(sections: string): Uint8Array {
 }
 
 describe('Layout metadata DXF reading', () => {
+  it('preserves fields and matrices following a material matrix', () => {
+    const first = Array.from({ length: 16 }, (_, i) => `43\n${i + 1}\n`).join('');
+    const second = Array.from({ length: 16 }, (_, i) => `47\n${i + 21}\n`).join('');
+    const doc = DxfReader.readFromStream(dxf('0\nSECTION\n2\nOBJECTS\n0\nDICTIONARY\n5\n10\n330\n0\n100\nAcDbDictionary\n3\nMaterial\n350\n11\n0\nMATERIAL\n5\n11\n330\n10\n100\nAcDbMaterial\n1\nExample\n' + first + '40\n0.75\n' + second + '40\n0.25\n0\nENDSEC\n'));
+    const material = doc.rootDictionary!.get('Example') as Material;
+    expect(material.diffuseMatrix).toEqual(Array.from({ length: 16 }, (_, i) => i + 1));
+    expect(material.specularMatrix).toEqual(Array.from({ length: 16 }, (_, i) => i + 21));
+    expect(material.ambientColorFactor).toBe(.25);
+  });
   it('resolves text and dimension styles with the same name and preserves leader color overrides', () => {
     const doc = new CadDocument();
     doc.modelSpace!.entities.add(new TextEntity('Conveyor'));
