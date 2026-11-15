@@ -2,6 +2,31 @@ import { expect, it } from 'vitest';
 import { TableEntity, TableEntityRow, TableEntityColumn, TableEntityCell, CellContent, BreakHeight, CellStyle } from '../src/Entities/TableEntity.js';
 import { CadValue } from '../src/CadValue.js';
 import { Line } from '../src/Entities/Line.js';
+import { TableStyle } from '../src/Objects/TableStyle.js';
+import { CadDocument } from '../src/CadDocument.js';
+import { TextStyle } from '../src/Tables/TextStyle.js';
+import { LineType } from '../src/Tables/LineType.js';
+
+it('owns and independently clones default and custom table cell styles', () => {
+  const style = new TableStyle('Custom');
+  const custom = new CellStyle(); custom.name = 'Special';
+  custom.textStyle = TextStyle.default;
+  custom.topBorder.lineType = LineType.byLayer;
+  style.cellStyles.push(custom);
+  expect(custom.owner).toBe(style);
+  expect(style.titleCellStyle.owner).toBe(style);
+  const doc = new CadDocument();
+  style.assignDocument(doc);
+  expect(custom.textStyle).toBe(doc.textStyles.get('Standard'));
+  expect(custom.topBorder.lineType).toBe(doc.lineTypes.get('ByLayer'));
+  const clone = style.clone() as TableStyle;
+  expect(clone.document).toBeNull();
+  expect(clone.cellStyles[0].owner).toBe(clone);
+  expect(clone.titleCellStyle.owner).toBe(clone);
+  clone.cellStyles[0].topBorder.isInvisible = true;
+  expect(custom.topBorder.isInvisible).toBe(false);
+  expect(clone.cellStyles[0].textStyle).not.toBe(custom.textStyle);
+});
 
 it('deep-clones table components and clears handled CAD values', () => {
   const table = new TableEntity(), row = new TableEntityRow(), cell = new TableEntityCell(), content = new CellContent();

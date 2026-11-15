@@ -269,6 +269,7 @@ export class ContentFormat {
 	set owner(value: CadObject | null) {
 		this._owner = value;
 		if (!value) this._textStyle = this._textStyle?.clone() as TextStyle | null ?? null;
+		else if (value.document && this._textStyle) this.textStyle = this._textStyle;
 	}
 	alignment: number = 0;
 	color: Color = Color.byBlock;
@@ -309,6 +310,7 @@ export class CellBorder {
 	set owner(value: CadObject | null) {
 		this._owner = value;
 		if (!value) this._lineType = this._lineType?.clone() as LineType | null ?? null;
+		else if (value.document && this._lineType) this.lineType = this._lineType;
 	}
 	color: Color = Color.byBlock;
 	doubleLineSpacing: number = 0;
