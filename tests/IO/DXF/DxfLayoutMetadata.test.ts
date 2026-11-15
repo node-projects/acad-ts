@@ -10,6 +10,7 @@ import { Color } from '../../../src/Color.js';
 import { TextStyle } from '../../../src/Tables/TextStyle.js';
 import { XYZ } from '../../../src/Math/XYZ.js';
 import { Material } from '../../../src/Objects/Material.js';
+import { VisualStyle } from '../../../src/Objects/VisualStyle.js';
 
 function dxf(sections: string): Uint8Array {
   const tables = ['APPID', 'STYLE', 'LTYPE', 'LAYER', 'UCS', 'VIEW', 'BLOCK_RECORD', 'DIMSTYLE', 'VPORT']
@@ -21,6 +22,13 @@ function dxf(sections: string): Uint8Array {
 }
 
 describe('Layout metadata DXF reading', () => {
+  it('maps visual style values without overwriting the initial type', () => {
+    const doc = DxfReader.readFromStream(dxf('0\nSECTION\n2\nOBJECTS\n0\nDICTIONARY\n5\n10\n330\n0\n100\nAcDbDictionary\n3\nStyle\n350\n11\n0\nVISUALSTYLE\n5\n11\n330\n10\n100\nAcDbVisualStyle\n2\nExample\n70\n4\n44\n0.75\n70\n99\n93\n5\n0\nENDSEC\n'));
+    const style = doc.getCadObject(0x11) as VisualStyle;
+    expect(style).toBeInstanceOf(VisualStyle);
+    expect(style.description).toBe('Example'); expect(style.type).toBe(4);
+    expect(style.brightness).toBe(.75); expect(style.displaySettings).toBe(5);
+  });
   it('preserves fields and matrices following a material matrix', () => {
     const first = Array.from({ length: 16 }, (_, i) => `43\n${i + 1}\n`).join('');
     const second = Array.from({ length: 16 }, (_, i) => `47\n${i + 21}\n`).join('');
