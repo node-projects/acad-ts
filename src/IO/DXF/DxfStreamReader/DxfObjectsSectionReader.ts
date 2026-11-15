@@ -719,7 +719,8 @@ export class DxfObjectsSectionReader extends DxfSectionReaderBase {
         this._reader.readNext();
       }
       assignFn(arr);
-      return this.checkObjectEnd(template, map, this._readMaterial.bind(this));
+      this.lockPointer = true;
+      return true;
     };
 
     switch (this._reader.code as number) {
