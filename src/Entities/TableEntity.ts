@@ -630,7 +630,8 @@ export class TableContent extends CadObject {
 	private _style: TableStyle | null = TableStyle.default_;
 	get style(): TableStyle | null { return this._style; }
 	set style(value: TableStyle | null) {
-		this._style = this.updateCollectionEntry(value, style => this._style = style, this.document?.tableStyles ?? null);
+		// Legacy readers temporarily store unnamed per-table overrides here.
+		this._style = value && !value.name ? value : this.updateCollectionEntry(value, style => this._style = style, this.document?.tableStyles ?? null);
 	}
 	override assignDocument(document: CadDocument): void {
 		super.assignDocument(document);

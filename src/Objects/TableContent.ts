@@ -20,7 +20,7 @@ export class TableContent extends FormattedTableData {
 	private _style: TableStyle | null = TableStyle.default_;
 	get style(): TableStyle | null { return this._style; }
 	set style(value: TableStyle | null) {
-		this._style = this.updateCollectionEntry(value, style => this._style = style, this.document?.tableStyles ?? null);
+		this._style = value && !value.name ? value : this.updateCollectionEntry(value, style => this._style = style, this.document?.tableStyles ?? null);
 	}
 	override assignDocument(document: CadDocument): void { super.assignDocument(document); this.style = this._style; }
 	override unassignDocument(): void { super.unassignDocument(); this._style = this._style?.clone() as TableStyle | null ?? null; }
