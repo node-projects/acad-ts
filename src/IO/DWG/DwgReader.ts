@@ -216,13 +216,14 @@ export class DwgReader extends CadReaderBase<DwgReaderConfiguration> {
 	}
 
 	private _readTemplate(): void {
-		if (this._fileHeader.acadVersion < ACadVersion.AC1018) return;
-
 		const reader = this._getSectionStream(DwgSectionDefinition.template);
-		if (!reader || reader.stream.length - reader.position < 4) return;
+		if (!reader) return;
+		const sectionSize = this._fileHeader instanceof DwgFileHeaderAC15
+			? this._fileHeader.records.get(4)?.size ?? 0 : reader.stream.length - reader.position;
+		if (sectionSize < 4) return;
 
-		const descriptionLength = reader.readShort();
-		if (descriptionLength < 0 || reader.stream.length - reader.position < descriptionLength + 2) return;
+		const descriptionLength = reader.readShort() * (this._fileHeader.acadVersion >= ACadVersion.AC1021 ? 2 : 1);
+		if (descriptionLength < 0 || sectionSize < descriptionLength + 4) return;
 
 		if (descriptionLength > 0) reader.readBytes(descriptionLength);
 		this._document.header.measurementUnits = reader.readShort();
@@ -633,6 +634,16 @@ export class DwgReader extends CadReaderBase<DwgReaderConfiguration> {
 				decompressedSizeCounter += localmap.decompressedSize;
 			}
 
+			// A section may end in implicit zero pages with no physical records.
+			if (descriptor.decompressedSize <= 0) throw new Error('Invalid DWG section page size');
+			while (decompressedSizeCounter < descriptor.compressedSize) {
+				const emptyPage = new DwgLocalSectionMap();
+				emptyPage.isEmpty = true;
+				emptyPage.offset = decompressedSizeCounter;
+				emptyPage.decompressedSize = descriptor.decompressedSize;
+				descriptor.localSections.push(emptyPage);
+				decompressedSizeCounter += descriptor.decompressedSize;
+			}
 			// Get the final size for the local section
 			const sizeLeft = descriptor.compressedSize % descriptor.decompressedSize;
 			if (sizeLeft > 0 && descriptor.localSections.length > 0) {
