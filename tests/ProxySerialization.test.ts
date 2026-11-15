@@ -20,7 +20,8 @@ describe('Proxy serialization', () => {
 		new DxfWriter({ write: (value: string) => chunks.push(value), flush() {}, close() {} } as any, doc, false).write();
 		const graphics = ProxyGeometryWriter.writeGeometries([circle]);
 		const hex = Array.from(graphics, byte => byte.toString(16).padStart(2, '0')).join('');
-		const input = chunks.join('').replace(/100\r?\nAcDbLine/, `92\n${graphics.length}\n310\n${hex}\n100\nAcDbLine`);
+		const input = chunks.join('').replace(/100\r?\nAcDbLine(?=\r?\n)/, `92\n${graphics.length}\n310\n${hex}\n100\nAcDbLine`);
+		expect(input).toContain(hex);
 		const reader = new DxfReader(new TextEncoder().encode(input)); reader.configuration.ignoreProxyGraphics = false;
 		const decoded = [...reader.read().entities][0] as Line;
 		expect(decoded.proxyGeometries).toEqual([circle]); expect(decoded.endPoint.x).toBe(17);
