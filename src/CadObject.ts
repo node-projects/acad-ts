@@ -110,6 +110,7 @@ export abstract class CadObject implements IHandledCadObject, IDxfClassDefined {
 
 	public validate(_format: CadFileFormat, _version: ACadVersion): string[] {
 		const errors: string[] = [];
+		if (this.document != null && this.owner == null) errors.push('owner cannot be null.');
 		if (isOrientable(this) && this.normal.getLength() <= Number.EPSILON) {
 			errors.push('normal vector cannot be zero.');
 		}

@@ -3,6 +3,17 @@ import { Line } from '../src/Entities/Line.js';
 import { Layer } from '../src/Tables/Layer.js';
 import { CadDocument } from '../src/CadDocument.js';
 import { LineType } from '../src/Tables/LineType.js';
+import { CadFileFormat } from '../src/IO/CadFileFormat.js';
+import { ACadVersion } from '../src/ACadVersion.js';
+
+it('requires an owner only for document-attached objects', () => {
+  const line = new Line();
+  expect(line.validate(CadFileFormat.DXF, ACadVersion.AC1032)).not.toContain('owner cannot be null.');
+  const document = new CadDocument();
+  document.entities.add(line);
+  line.owner = null;
+  expect(line.validate(CadFileFormat.DXF, ACadVersion.AC1032)).toContain('owner cannot be null.');
+});
 
 it('keeps unset entity and layer references unset through clone and detach', () => {
   const line = new Line();
