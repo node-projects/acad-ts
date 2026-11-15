@@ -248,7 +248,9 @@ export const metadataLookupObjects: readonly ClassMetadata[] = [
           1071
         ],
         "referenceType": 0
-      }
+      },
+      { "propertyName": "value98", "valueCodes": [98], "referenceType": 0 },
+      { "propertyName": "value99", "valueCodes": [99], "referenceType": 0 }
     ],
     "systemVariables": [],
     "dxfSubClassName": "AcDbBlockElement"
