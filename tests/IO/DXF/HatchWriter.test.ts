@@ -8,6 +8,22 @@ import { HatchPattern, HatchPatternLine } from '../../../src/Entities/HatchPatte
 import { XY } from '../../../src/Math/XY.js';
 import { XYZ } from '../../../src/Math/XYZ.js';
 import { MathHelper } from '../../../src/Math/MathHelper.js';
+import { HatchBoundaryPathSpline } from '../../../src/Entities/Hatch.js';
+import { ACadVersion } from '../../../src/ACadVersion.js';
+
+it.each([ACadVersion.AC1015, ACadVersion.AC1024])('writes hatch spline fit data only from R2010 (%s)', version => {
+  const edge = new HatchBoundaryPathSpline();
+  edge.controlPoints.push(new XYZ(0, 0, 1), new XYZ(2, 3, 1));
+  edge.knots.push(0, 0, 1, 1); edge.degree = 1;
+  edge.fitPoints.push(new XY(1, 2));
+  const hatch = new Hatch(); hatch.isSolid = true; hatch.paths.push(new HatchBoundaryPath([edge]));
+  const doc = new CadDocument(version); doc.entities.add(hatch);
+  const output = new InMemoryAsciiStream(); new DxfWriter(output, doc, false).write();
+  const result = [...new DxfReader(new TextEncoder().encode(output.toString())).read().entities][0] as Hatch;
+  const decoded = result.paths[0].edges[0] as HatchBoundaryPathSpline;
+  expect(decoded.controlPoints).toHaveLength(2);
+  expect(decoded.fitPoints).toHaveLength(version >= ACadVersion.AC1024 ? 1 : 0);
+});
 
 interface DxfPair {
   code: number;

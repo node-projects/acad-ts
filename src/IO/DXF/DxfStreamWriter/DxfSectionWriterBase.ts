@@ -807,8 +807,9 @@ export abstract class DxfSectionWriterBase {
           this._writer.write(42, cp.z);
         }
       }
+      if (this.version < ACadVersion.AC1024) return;
+      this._writer.write(97, edge.fitPoints.length);
       if (edge.fitPoints.length > 0) {
-        this._writer.write(97, edge.fitPoints.length);
         for (const fp of edge.fitPoints) {
           this._writer.write(11, fp.x);
           this._writer.write(21, fp.y);
