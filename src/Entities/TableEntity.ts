@@ -292,12 +292,25 @@ export class ContentFormat {
 }
 
 export class CellBorder {
+	private _owner: CadObject | null = null;
+	get owner(): CadObject | null { return this._owner; }
+	set owner(value: CadObject | null) {
+		this._owner = value;
+		if (!value) this._lineType = this._lineType?.clone() as LineType | null ?? null;
+	}
 	color: Color = Color.byBlock;
 	doubleLineSpacing: number = 0;
 	readonly edgeFlags: CellEdgeFlags;
 	isInvisible: boolean = false;
 	lineWeight: LineWeightType = LineWeightType.Default;
-	lineType: LineType | null = null;
+	private _lineType: LineType | null = null;
+	get lineType(): LineType | null {
+		if (this._lineType && this.owner?.document?.lineTypes) this._lineType = this.owner.document.lineTypes.tryAdd(this._lineType);
+		return this._lineType;
+	}
+	set lineType(value: LineType | null) {
+		this._lineType = value && this.owner?.document?.lineTypes ? this.owner.document.lineTypes.tryAdd(value) : value;
+	}
 	propertyOverrideFlags: TableBorderPropertyFlags = 0;
 	type: TableEntityBorderType = TableEntityBorderType.Single;
 
@@ -319,6 +332,11 @@ export class CellContent {
 }
 
 export class CellStyle extends ContentFormat {
+	override get owner(): CadObject | null { return super.owner; }
+	override set owner(value: CadObject | null) {
+		super.owner = value;
+		for (const border of [this.topBorder, this.rightBorder, this.bottomBorder, this.leftBorder, this.horizontalInsideBorder, this.verticalInsideBorder]) border.owner = value;
+	}
 	backgroundColor: Color = Color.byBlock;
 	bottomBorder: CellBorder = new CellBorder(CellEdgeFlags.Bottom);
 	bottomMargin: number = 0;
