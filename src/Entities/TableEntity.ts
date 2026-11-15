@@ -14,6 +14,7 @@ import type { AttributeDefinition } from './AttributeDefinition.js';
 import type { BlockRecord } from '../Tables/BlockRecord.js';
 import type { Field } from '../Objects/Field.js';
 import type { LineType } from '../Tables/LineType.js';
+import { tableOwnedList } from './TableOwnedList.js';
 
 // === Enums ===
 
@@ -357,7 +358,12 @@ export class TableComponent {
 	private _cellStyleOverride = new CellStyle();
 	get cellStyleOverride(): CellStyle { return this._cellStyleOverride; }
 	set cellStyleOverride(value: CellStyle) { this._cellStyleOverride = value; value.owner = this.owner; }
-	cells: TableEntityCell[] = [];
+	private _cells: TableEntityCell[] = tableOwnedList(() => this.owner);
+	get cells(): TableEntityCell[] { return this._cells; }
+	set cells(value: TableEntityCell[]) {
+		if (value === this._cells) return;
+		this._cells.length = 0; this._cells.push(...value);
+	}
 	customData: number = 0;
 	customDataCollection: CustomDataEntry[] = [];
 }
@@ -393,7 +399,12 @@ export class TableEntityCell {
 		return this.contents.length > 0 ? this.contents[0] : null;
 	}
 
-	contents: CellContent[] = [];
+	private _contents: CellContent[] = tableOwnedList(() => this.owner);
+	get contents(): CellContent[] { return this._contents; }
+	set contents(value: CellContent[]) {
+		if (value === this._contents) return;
+		this._contents.length = 0; this._contents.push(...value);
+	}
 	customData: number = 0;
 	customDataCollection: CustomDataEntry[] = [];
 	edgeFlags: number = 0;
@@ -513,12 +524,15 @@ export class TableEntity extends Insert {
 	}
 }
 
-export class TableContent {
+export class TableContent extends CadObject {
+	override get objectType(): ObjectType { return ObjectType.UNLISTED; }
+	override get objectName(): string { return DxfFileToken.objectTableContent; }
+	override get subclassMarker(): string { return DxfSubclassMarker.tableContent; }
 	name: string = '';
 	description: string = '';
 	fieldReferences: CadObject[] = [];
-	columns: TableEntityColumn[] = [];
-	rows: TableEntityRow[] = [];
+	columns: TableEntityColumn[] = tableOwnedList(() => this);
+	rows: TableEntityRow[] = tableOwnedList(() => this);
 	style: TableStyle | null = null;
 	cellStyleOverride: CellStyle = new CellStyle();
 	mergedCellRanges: CellRange[] = [];
