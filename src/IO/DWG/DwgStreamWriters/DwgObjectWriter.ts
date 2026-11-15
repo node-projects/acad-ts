@@ -77,6 +77,7 @@ import { UnknownEntity } from '../../../Entities/UnknownEntity.js';
 import { Wall } from '../../../Entities/AecEntities/Wall.js';
 import { ProxyEntity } from '../../../Entities/ProxyEntity.js';
 import { TableEntity, TableEntityCell, CellType, CellBorder, CellStyle, CellEdgeFlags, ContentFormat, MarginFlags, TableCellContentType, CustomDataEntry } from '../../../Entities/TableEntity.js';
+import { CellStyleMap } from '../../../Objects/CellStyleMap.js';
 import { CadBody } from '../../../Entities/CadBody.js';
 import { Region } from '../../../Entities/Region.js';
 import { IPolyline } from '../../../Entities/IPolyline.js';
@@ -3343,6 +3344,8 @@ export class DwgObjectWriter extends DwgSectionIO {
 	}
 
 	private _skipEntry(entry: CadObject): { skip: boolean; notify: boolean } {
+		// DXF cell-style maps are embedded in native DWG TABLESTYLE records below.
+		if (entry instanceof CellStyleMap && entry.owner instanceof CadDictionary && entry.owner.owner instanceof TableStyle) return { skip: true, notify: false };
 		if (entry instanceof XRecord && !this.writeXRecords) return { skip: true, notify: false };
 		if (this.r2007Plus && entry instanceof XRecord
 			&& entry.entries.filter(item => item.code === 102).length === 1
@@ -3700,6 +3703,13 @@ export class DwgObjectWriter extends DwgSectionIO {
 	}
 
 	private _writeTableStyle(tableStyle: TableStyle): void {
+		const mapped = [...(tableStyle.xDictionary ?? [])].find((entry): entry is CellStyleMap => entry instanceof CellStyleMap)?.cellStyles ?? [];
+		const mappedStyle = (name: string, id: number, fallback: CellStyle): CellStyle =>
+			mapped.find(style => style.name.toLowerCase() === name) ?? mapped.find(style => !style.name && style.id === id) ?? fallback;
+		const title = mappedStyle('_title', 1, tableStyle.titleCellStyle);
+		const header = mappedStyle('_header', 2, tableStyle.headerCellStyle);
+		const data = mappedStyle('_data', 3, tableStyle.dataCellStyle);
+		const table = mappedStyle('table', 4, tableStyle.tableCellStyle);
 		if (this.r2007Plus) {
 			const legacy = tableStyle.xDictionary?.getEntry<XRecord>('ACAD_XREC_ROUNDTRIP');
 			if (legacy instanceof XRecord && legacy.entries.some(entry => entry.code === 102 && entry.value === 'ACAD_ROUNDTRIP_PRE2007_TABLESTYLE')) {
@@ -3716,18 +3726,18 @@ export class DwgObjectWriter extends DwgSectionIO {
 		// R2007 still uses row styles; the cell-style layout starts in R2010.
 		if (this.r2010Plus) {
 			const cellStyles = [...new Set([
-				tableStyle.titleCellStyle, tableStyle.headerCellStyle, tableStyle.dataCellStyle,
-				...tableStyle.cellStyles,
+				title, header, data,
+				...tableStyle.cellStyles, ...mapped.filter(style => ![title, header, data, table].includes(style)),
 			])];
 			this._writer.writeByte(0);
 			this._writer.writeVariableText(tableStyle.description);
 			this._writer.writeBitLong(0);
 			this._writer.writeBitLong(0);
 			this._writer.handleReferenceTyped(DwgReferenceType.HardOwnership, null);
-			this._writeCellStyle(tableStyle.tableCellStyle);
-			this._writer.writeBitLong(tableStyle.tableCellStyle.id);
-			this._writer.writeBitLong(tableStyle.tableCellStyle.styleClass);
-			this._writer.writeVariableText(tableStyle.tableCellStyle.name);
+			this._writeCellStyle(table);
+			this._writer.writeBitLong(table.id);
+			this._writer.writeBitLong(table.styleClass);
+			this._writer.writeVariableText(table.name);
 			this._writer.writeBitLong(cellStyles.length);
 			for (let i = 0; i < cellStyles.length; i++) {
 				const cellStyle = cellStyles[i];
@@ -3747,9 +3757,9 @@ export class DwgObjectWriter extends DwgSectionIO {
 		this._writer.writeBitDouble(tableStyle.verticalCellMargin);
 		this._writer.writeBit(tableStyle.suppressTitle);
 		this._writer.writeBit(tableStyle.suppressHeaderRow);
-		this._writeRowCellStyle(tableStyle.dataCellStyle);
-		this._writeRowCellStyle(tableStyle.titleCellStyle);
-		this._writeRowCellStyle(tableStyle.headerCellStyle);
+		this._writeRowCellStyle(data);
+		this._writeRowCellStyle(title);
+		this._writeRowCellStyle(header);
 	}
 
 	private _writeTableStyleColor(color: Color): void {
