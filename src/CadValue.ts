@@ -50,6 +50,16 @@ export class CadValue {
 	public toString(): string {
 		return `${this.valueType}:${this.value}`;
 	}
+
+	public clone(): CadValue {
+		const copy = Object.assign(new CadValue(), this);
+		if (this.value && typeof this.value === 'object' && 'handle' in this.value) copy.value = null;
+		else if (this.value instanceof Uint8Array) copy.value = this.value.slice();
+		else if (this.value instanceof Date) copy.value = new Date(this.value);
+		else if (this.value && typeof this.value === 'object' && (this.valueType === CadValueType.Point2D || this.valueType === CadValueType.Point3D)) copy.value = Object.assign(Object.create(Object.getPrototypeOf(this.value)), this.value);
+		else if (this.value && typeof this.value === 'object' && 'clone' in this.value && typeof this.value.clone === 'function') copy.value = this.value.clone();
+		return copy;
+	}
 }
 
 export { CadValueUnitType } from './CadValueUnitType.js';

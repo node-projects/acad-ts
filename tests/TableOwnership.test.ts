@@ -1,5 +1,23 @@
 import { expect, it } from 'vitest';
-import { TableEntity, TableEntityRow, TableEntityColumn, TableEntityCell, CellContent } from '../src/Entities/TableEntity.js';
+import { TableEntity, TableEntityRow, TableEntityColumn, TableEntityCell, CellContent, BreakHeight, CellStyle } from '../src/Entities/TableEntity.js';
+import { CadValue } from '../src/CadValue.js';
+import { Line } from '../src/Entities/Line.js';
+
+it('deep-clones table components and clears handled CAD values', () => {
+  const table = new TableEntity(), row = new TableEntityRow(), cell = new TableEntityCell(), content = new CellContent();
+  content.cadValue.value = new Uint8Array([1, 2]);
+  cell.contents.push(content); row.cells.push(cell); table.rows.push(row);
+  const clone = row.clone();
+  expect(clone.owner).toBeNull();
+  expect(clone.cells[0]).not.toBe(cell);
+  expect(clone.cells[0].contents[0].cadValue.value).toEqual(content.cadValue.value);
+  (clone.cells[0].contents[0].cadValue.value as Uint8Array)[0] = 7;
+  expect((content.cadValue.value as Uint8Array)[0]).toBe(1);
+  clone.cells[0].styleOverride.topBorder.isInvisible = true;
+  expect(cell.styleOverride.topBorder.isInvisible).toBe(false);
+  const value = new CadValue(); value.value = new Line();
+  expect(value.clone().value).toBeNull();
+});
 
 it('propagates table ownership and rejects shared rows, cells and contents', () => {
   const table = new TableEntity(), other = new TableEntity();

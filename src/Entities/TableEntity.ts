@@ -16,6 +16,8 @@ import type { Field } from '../Objects/Field.js';
 import type { LineType } from '../Tables/LineType.js';
 import { tableOwnedList } from './TableOwnedList.js';
 
+function copyTablePoint(point: XYZ): XYZ { return new XYZ(point.x, point.y, point.z); }
+
 // === Enums ===
 
 export enum TableEntityBorderType {
@@ -229,17 +231,20 @@ export enum CellOverrideFlags {
 // === Data Classes ===
 
 export class TableAttribute {
+	clone(): TableAttribute { return Object.assign(new TableAttribute(), this, { attributeDefinition: this.attributeDefinition?.clone() ?? null }); }
 	attributeDefinition: AttributeDefinition | null = null;
 	value: string = '';
 	index: number = 1;
 }
 
 export class CustomDataEntry {
+	clone(): CustomDataEntry { return Object.assign(new CustomDataEntry(), this, { value: this.value.clone() }); }
 	name: string = '';
 	value: CadValue = new CadValue();
 }
 
 export class CellContentGeometry {
+	clone(): CellContentGeometry { return Object.assign(new CellContentGeometry(), this, { distanceTopLeft: copyTablePoint(this.distanceTopLeft), distanceCenter: copyTablePoint(this.distanceCenter) }); }
 	distanceTopLeft: XYZ = new XYZ(0, 0, 0);
 	distanceCenter: XYZ = new XYZ(0, 0, 0);
 	contentWidth: number = 0;
@@ -250,6 +255,7 @@ export class CellContentGeometry {
 }
 
 export class CellRange {
+	clone(): CellRange { return Object.assign(new CellRange(), this); }
 	bottomRowIndex: number = 0;
 	leftColumnIndex: number = 0;
 	rightColumnIndex: number = 0;
@@ -292,6 +298,11 @@ export class ContentFormat {
 }
 
 export class CellBorder {
+	clone(): CellBorder {
+		const copy = Object.assign(new CellBorder(this.edgeFlags), this);
+		copy.owner = null;
+		return copy;
+	}
 	private _owner: CadObject | null = null;
 	get owner(): CadObject | null { return this._owner; }
 	set owner(value: CadObject | null) {
@@ -320,6 +331,14 @@ export class CellBorder {
 }
 
 export class CellContent {
+	clone(): CellContent {
+		const copy = new CellContent();
+		copy.contentType = this.contentType;
+		copy.cadValue = this.cadValue.clone();
+		copy.format = this.format.clone();
+		copy.attributes = this.attributes.map(attribute => attribute.clone());
+		return copy;
+	}
 	private _owner: CadObject | null = null;
 	get owner(): CadObject | null { return this._owner; }
 	set owner(value: CadObject | null) { this._owner = value; this.format.owner = value; }
@@ -332,6 +351,12 @@ export class CellContent {
 }
 
 export class CellStyle extends ContentFormat {
+	override clone(): this {
+		const copy = Object.assign(Object.create(Object.getPrototypeOf(this)), this) as this;
+		for (const key of ['topBorder', 'rightBorder', 'bottomBorder', 'leftBorder', 'horizontalInsideBorder', 'verticalInsideBorder'] as const) copy[key] = this[key].clone();
+		copy.owner = null;
+		return copy;
+	}
 	override get owner(): CadObject | null { return super.owner; }
 	override set owner(value: CadObject | null) {
 		super.owner = value;
@@ -364,6 +389,16 @@ export class CellStyle extends ContentFormat {
 }
 
 export class TableComponent {
+	clone(): this {
+		const copy = Object.assign(Object.create(Object.getPrototypeOf(this)), this) as this;
+		copy._owner = null;
+		copy._cells = tableOwnedList(() => copy.owner);
+		copy._cellStyleOverride = this.cellStyleOverride.clone();
+		copy.cellStyle = this.cellStyle?.clone() ?? null;
+		copy.customDataCollection = this.customDataCollection.map(item => item.clone());
+		copy.cells.push(...this.cells.map(cell => cell.clone()));
+		return copy;
+	}
 	protected _owner: CadObject | null = null;
 	get owner(): CadObject | null { return this._owner; }
 	set owner(value: CadObject | null) {
@@ -387,6 +422,19 @@ export class TableComponent {
 }
 
 export class TableEntityCell {
+	clone(): TableEntityCell {
+		const copy = Object.assign(new TableEntityCell(), this);
+		copy._owner = null;
+		copy._contents = tableOwnedList(() => copy.owner);
+		copy.styleOverride = this.styleOverride.clone();
+		copy.attributes = this.attributes.map(item => item.clone());
+		copy.customDataCollection = this.customDataCollection.map(item => item.clone());
+		copy.geometry = this.geometry?.clone() ?? null;
+		copy.geometryCollection = this.geometryCollection.map(item => item.clone());
+		copy.value = null; copy.dataLink = null; copy.geometryReference = null;
+		copy.contents.push(...this.contents.map(item => item.clone()));
+		return copy;
+	}
 	private _owner: CadObject | null = null;
 	get owner(): CadObject | null { return this._owner; }
 	set owner(value: CadObject | null) {
@@ -455,11 +503,13 @@ export class TableEntityRow extends TableComponent {
 }
 
 export class BreakHeight {
+	clone(): BreakHeight { return Object.assign(new BreakHeight(), this, { position: copyTablePoint(this.position) }); }
 	position: XYZ = new XYZ(0, 0, 0);
 	height: number = 0;
 }
 
 export class BreakData {
+	clone(): BreakData { return Object.assign(new BreakData(), this, { heights: this.heights.map(item => item.clone()) }); }
 	flags: BreakOptionFlags = BreakOptionFlags.None;
 	flowDirection: BreakFlowDirection = BreakFlowDirection.Right;
 	breakSpacing: number = 0;
@@ -467,6 +517,7 @@ export class BreakData {
 }
 
 export class BreakRowRange {
+	clone(): BreakRowRange { return Object.assign(new BreakRowRange(), this, { position: copyTablePoint(this.position) }); }
 	position: XYZ = new XYZ(0, 0, 0);
 	startRowIndex: number = 0;
 	endRowIndex: number = 0;
