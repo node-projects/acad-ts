@@ -6,7 +6,7 @@ TypeScript library to read and write AutoCAD DWG and DXF files. Ported from the 
 
 Based on commit: https://github.com/DomCR/ACadSharp/commit/3010994939c1bc21df0c9e2931e9baee4564815a
 
-Last compared upstream commit: https://github.com/DomCR/ACadSharp/commit/d9f3de8c9910b602d392aa1acc72b62c095ec40e (see [commit-by-commit audit](docs/acadsharp-upstream-sync.md)).
+Last compared upstream commit: https://github.com/DomCR/ACadSharp/commit/0acbe974b865afb5ff3b256d5e13a6862574c438 (see [commit-by-commit audit](docs/acadsharp-upstream-sync.md)).
 
 ## Features
 
