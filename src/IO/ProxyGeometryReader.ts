@@ -81,7 +81,9 @@ export class ProxyGeometryReader {
 				for (let i = 0; i < vertexCount; i++) item.vertices.push(reader.point());
 				const faceListSize = reader.int32(); const faceEnd = reader.position + faceListSize * 4;
 				while (reader.position < faceEnd && reader.remaining >= 4) {
-					const faceCount = Math.abs(reader.int32()); const face: number[] = [];
+					const signedCount = reader.int32();
+					if (signedCount < 0) item.holes.push(item.faces.length);
+					const faceCount = Math.abs(signedCount); const face: number[] = [];
 					for (let i = 0; i < faceCount && reader.remaining >= 4; i++) face.push(reader.int32());
 					item.faces.push(face);
 				}

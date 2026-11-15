@@ -80,6 +80,8 @@ export class ProxyMesh implements IProxyGeometry {
 export class ProxyShell implements IProxyGeometry {
 	readonly graphicsType = GraphicsType.Shell;
 	vertices: XYZ[] = []; faces: number[][] = [];
+	/** Indices in faces whose signed vertex count identifies a hole. */
+	holes: number[] = [];
 	traitsData: Uint8Array = new Uint8Array();
 }
 

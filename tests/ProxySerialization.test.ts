@@ -4,7 +4,7 @@ import { ACadVersion } from '../src/ACadVersion.js';
 import { DxfClass } from '../src/Classes/DxfClass.js';
 import { ProxyEntity } from '../src/Entities/ProxyEntity.js';
 import { Line } from '../src/Entities/Line.js';
-import { ProxyCircle, ProxyRawGeometry, GraphicsType } from '../src/Entities/ProxyGraphics.js';
+import { ProxyCircle, ProxyRawGeometry, ProxyShell, cloneProxyGeometry, GraphicsType } from '../src/Entities/ProxyGraphics.js';
 import { ProxyGeometryWriter } from '../src/IO/ProxyGeometryWriter.js';
 import { ProxyGeometryReader } from '../src/IO/ProxyGeometryReader.js';
 import { DxfWriter } from '../src/IO/DXF/DxfWriter.js';
@@ -13,6 +13,14 @@ import { DwgWriter } from '../src/IO/DWG/DwgWriter.js';
 import { DwgReader } from '../src/IO/DWG/DwgReader.js';
 
 describe('Proxy serialization', () => {
+	it('retains signed shell holes and opaque trait data independently when cloning', () => {
+		const shell = new ProxyShell(); shell.faces = [[0, 1, 2], [3, 4, 5]]; shell.holes = [1];
+		shell.traitsData = new Uint8Array([1, 0, 0, 0, 25, 0, 0, 0]);
+		const decoded = ProxyGeometryReader.readGeometries(ProxyGeometryWriter.writeGeometries([shell]))[0] as ProxyShell;
+		expect(decoded).toEqual(shell);
+		const clone = cloneProxyGeometry(decoded); clone.holes.push(0);
+		expect(decoded.holes).toEqual([1]);
+	});
 	it('writes typed and opaque geometry records from a one-shot iterable', () => {
 		const circle = new ProxyCircle();
 		circle.radius = 12;

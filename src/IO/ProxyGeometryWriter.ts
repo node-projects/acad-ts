@@ -49,7 +49,7 @@ export class ProxyGeometryWriter {
 		} else if (geometry instanceof G.ProxyShell) {
 			writer.points(geometry.vertices);
 			writer.int(geometry.faces.reduce((sum, face) => sum + face.length + 1, 0));
-			for (const face of geometry.faces) { writer.int(face.length); for (const index of face) writer.int(index); }
+			for (const [faceIndex, face] of geometry.faces.entries()) { writer.int(geometry.holes.includes(faceIndex) ? -face.length : face.length); for (const index of face) writer.int(index); }
 			writer.bytes(geometry.traitsData.length ? geometry.traitsData : new Uint8Array(12));
 		} else if (geometry instanceof G.ProxyScalarGeometry) {
 			if (geometry.graphicsType === G.GraphicsType.SubentLineTypeScale || geometry.graphicsType === G.GraphicsType.SubentThickness) writer.double(geometry.value);
