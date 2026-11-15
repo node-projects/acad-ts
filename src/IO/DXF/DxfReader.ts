@@ -211,7 +211,7 @@ export class DxfReader extends CadReaderBase<DxfReaderConfiguration> {
       try {
         header.setValue(currVar, parameters);
 
-        if (currVar === '$DWGCODEPAGE') {
+        if (currVar === '$DWGCODEPAGE' && this._version < ACadVersion.AC1021) {
           this._encoding = getDecoderEncodingLabel(header.codePage);
           this._reader.encoding = this._encoding;
         }
@@ -421,6 +421,11 @@ export class DxfReader extends CadReaderBase<DxfReaderConfiguration> {
 
     if (this._version === ACadVersion.Unknown) {
       this.triggerNotification('Dxf version not found, using a generic reader.', NotificationType.Warning);
+    }
+
+    // R2007+ DXF strings are UTF-8 regardless of DWGCODEPAGE or header order.
+    if (this._version >= ACadVersion.AC1021) {
+      this._encoding = 'utf-8';
     }
 
     return this._createReader(isBinary, isAC1009Format);

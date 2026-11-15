@@ -12,7 +12,7 @@ Last compared upstream commit: https://github.com/DomCR/ACadSharp/commit/d9f3de8
 
 - Read/Write DXF files (ASCII and binary)
 - Read/Write DWG files
-- Honor `$DWGCODEPAGE` when reading DXF ASCII/binary strings and when writing legacy-codepage text
+- Use UTF-8 for R2007+ DXF ASCII/binary strings and honor `$DWGCODEPAGE` for older DXF versions
 - Extract and modify geometric entities (lines, arcs, circles, polylines, dimensions, etc.)
 - Manage table entries (blocks, layers, line types, text styles, dimension styles)
 - Convert CAD documents to SVG

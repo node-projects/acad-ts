@@ -293,7 +293,10 @@ describe('DxfWriterTests', () => {
       const writer = new DxfWriter(output, doc, false);
       writer.write();
 
-      expect(containsByteSequence(output, [0x6C, 0x61, 0x79, 0x65, 0x72, 0x2D, 0x73, 0xE4, 0xF6, 0xFC])).toBe(true);
+      const expected = version >= ACadVersion.AC1021
+        ? new TextEncoder().encode('layer-säöü')
+        : [0x6C, 0x61, 0x79, 0x65, 0x72, 0x2D, 0x73, 0xE4, 0xF6, 0xFC];
+      expect(containsByteSequence(output, Array.from(expected))).toBe(true);
     });
 
     it('WriteBinaryAnsi1252SpecialChars', () => {
@@ -312,7 +315,10 @@ describe('DxfWriterTests', () => {
       writer.write();
       const data = stream.toUint8Array();
 
-      expect(containsByteSequence(data, [0x6C, 0x61, 0x79, 0x65, 0x72, 0x2D, 0x73, 0xE4, 0xF6, 0xFC])).toBe(true);
+      const expected = version >= ACadVersion.AC1021
+        ? new TextEncoder().encode('layer-säöü')
+        : [0x6C, 0x61, 0x79, 0x65, 0x72, 0x2D, 0x73, 0xE4, 0xF6, 0xFC];
+      expect(containsByteSequence(data, Array.from(expected))).toBe(true);
     });
 
     it('WriteAsciiLongTextEntityRoundtrip', () => {

@@ -218,6 +218,11 @@ export class DxfWriter extends CadWriterBase<DxfWriterConfiguration, DxfWriteTar
   }
 
   private _createStreamWriter(): void {
+    // R2007+ DXF uses UTF-8 without a BOM, even with ANSI_1252 in the header.
+    if (this._document.header.version >= ACadVersion.AC1021) {
+      this._encoding = 'utf-8';
+    }
+
     if (this.isBinary) {
       this._writer = new DxfBinaryWriter(this._createBinaryTarget(), this._encoding);
     } else {
