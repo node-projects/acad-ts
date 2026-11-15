@@ -9,7 +9,7 @@ export class INamedCadObjectExtensions {
 			return false;
 		}
 
-		if (version <= ACadVersion.AC1015 && namedCadObject.name.length > 31) {
+		if (version < ACadVersion.AC1015 && namedCadObject.name.length > 31) {
 			return false;
 		} else if (namedCadObject.name.length > 255) {
 			return false;
