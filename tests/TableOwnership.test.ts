@@ -46,3 +46,17 @@ it('handles indexed replacement and column removal atomically', () => {
   expect(table.columns.splice(0, 1)).toEqual([second]);
   expect(second.owner).toBeNull();
 });
+
+it('deep-clones a complete table without sharing cells, values or break data', () => {
+  const table = new TableEntity(), row = new TableEntityRow(), cell = new TableEntityCell();
+  row.cells.push(cell); table.rows.push(row);
+  const height = new BreakHeight(); height.position.x = 12;
+  table.tableBreakData.heights.push(height);
+  const clone = table.clone() as TableEntity;
+  clone.rows[0].cells[0].styleOverride.topBorder.isInvisible = true;
+  clone.tableBreakData.heights[0].position.x = 99;
+  expect(cell.styleOverride.topBorder.isInvisible).toBe(false);
+  expect(height.position.x).toBe(12);
+  expect(clone.rows[0].owner).toBe(clone.content);
+  expect(table.rows[0].owner).toBe(table.content);
+});

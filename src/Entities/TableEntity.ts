@@ -8,7 +8,8 @@ import { ObjectType } from '../Types/ObjectType.js';
 import { LineWeightType } from '../Types/LineWeightType.js';
 import { XYZ } from '../Math/XYZ.js';
 import type { BoundingBox } from '../Math/BoundingBox.js';
-import type { TableStyle } from '../Objects/TableStyle.js';
+import { TableStyle } from '../Objects/TableStyle.js';
+import type { CadDocument } from '../CadDocument.js';
 import type { TextStyle } from '../Tables/TextStyle.js';
 import type { AttributeDefinition } from './AttributeDefinition.js';
 import type { BlockRecord } from '../Tables/BlockRecord.js';
@@ -526,6 +527,9 @@ export class BreakRowRange {
 // === Main Class ===
 
 export class TableEntity extends Insert {
+	constructor(block?: BlockRecord) { super(block); this._content.owner = this; this._content.cellStyleOverride.owner = this._content; }
+	override assignDocument(document: CadDocument): void { super.assignDocument(document); this._content.assignDocument(document); }
+	override unassignDocument(): void { this._content.unassignDocument(); super.unassignDocument(); }
 	get columns(): TableEntityColumn[] {
 		return this._content.columns;
 	}
@@ -581,7 +585,13 @@ export class TableEntity extends Insert {
 	private _content: TableContent = new TableContent();
 
 	override clone(): CadObject {
-		return super.clone();
+		const copy = super.clone() as TableEntity;
+		copy._content = this._content.clone();
+		copy._content.owner = copy;
+		copy.tableBreakData = this.tableBreakData.clone();
+		copy.breakRowRanges = this.breakRowRanges.map(item => item.clone());
+		copy.horizontalDirection = copyTablePoint(this.horizontalDirection);
+		return copy;
 	}
 
 	override getBoundingBox(): BoundingBox | null {
@@ -594,6 +604,19 @@ export class TableEntity extends Insert {
 }
 
 export class TableContent extends CadObject {
+	override clone(): this {
+		const copy = super.clone() as this;
+		copy.columns = tableOwnedList(() => copy);
+		copy.rows = tableOwnedList(() => copy);
+		copy.columns.push(...this.columns.map(item => item.clone()));
+		copy.rows.push(...this.rows.map(item => item.clone()));
+		copy.cellStyleOverride = this.cellStyleOverride.clone();
+		copy.cellStyleOverride.owner = copy;
+		copy.mergedCellRanges = this.mergedCellRanges.map(item => item.clone());
+		copy.fieldReferences = [];
+		copy.style = this.style?.clone() as TableStyle | null ?? null;
+		return copy;
+	}
 	override get objectType(): ObjectType { return ObjectType.UNLISTED; }
 	override get objectName(): string { return DxfFileToken.objectTableContent; }
 	override get subclassMarker(): string { return DxfSubclassMarker.tableContent; }
@@ -602,7 +625,22 @@ export class TableContent extends CadObject {
 	fieldReferences: CadObject[] = [];
 	columns: TableEntityColumn[] = tableOwnedList(() => this);
 	rows: TableEntityRow[] = tableOwnedList(() => this);
-	style: TableStyle | null = null;
+	private _style: TableStyle | null = TableStyle.default_;
+	get style(): TableStyle | null { return this._style; }
+	set style(value: TableStyle | null) {
+		this._style = this.updateCollectionEntry(value, style => this._style = style, this.document?.tableStyles ?? null);
+	}
+	override assignDocument(document: CadDocument): void {
+		super.assignDocument(document);
+		this.style = this._style;
+		this.cellStyleOverride.owner = this;
+	}
+	override unassignDocument(): void {
+		super.unassignDocument();
+		this._style = this._style?.clone() as TableStyle | null ?? null;
+		for (const component of [...this.rows, ...this.columns]) { component.owner = null; component.owner = this; }
+		this.cellStyleOverride.owner = null; this.cellStyleOverride.owner = this;
+	}
 	cellStyleOverride: CellStyle = new CellStyle();
 	mergedCellRanges: CellRange[] = [];
 }
