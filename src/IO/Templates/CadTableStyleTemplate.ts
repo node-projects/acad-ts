@@ -26,10 +26,11 @@ export class CadTableStyleTemplate extends CadTemplate<TableStyle> {
 
 		for (const item of this.cellStyleTemplates) {
 			item.build(builder);
-			switch (item.cellStyle.id) {
-				case 1: tableStyle.titleCellStyle = item.cellStyle; break;
-				case 2: tableStyle.headerCellStyle = item.cellStyle; break;
-				case 3: tableStyle.dataCellStyle = item.cellStyle; break;
+			const name = item.cellStyle.name?.toLowerCase();
+			switch (name || item.cellStyle.id) {
+				case '_title': case 1: tableStyle.titleCellStyle = item.cellStyle; continue;
+				case '_header': case 2: tableStyle.headerCellStyle = item.cellStyle; continue;
+				case '_data': case 3: tableStyle.dataCellStyle = item.cellStyle; continue;
 			}
 			if (!tableStyle.cellStyles.includes(item.cellStyle)) {
 				tableStyle.cellStyles.push(item.cellStyle);
