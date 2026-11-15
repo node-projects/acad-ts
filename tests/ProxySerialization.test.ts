@@ -13,6 +13,18 @@ import { DwgWriter } from '../src/IO/DWG/DwgWriter.js';
 import { DwgReader } from '../src/IO/DWG/DwgReader.js';
 
 describe('Proxy serialization', () => {
+	it('reads common DXF proxy graphics before the entity subclass without skipping geometry', () => {
+		const doc = new CadDocument(); const line = new Line(); line.endPoint.x = 17;
+		const circle = new ProxyCircle(); circle.radius = 9; line.proxyGeometries = [circle]; doc.entities.add(line);
+		const chunks: string[] = [];
+		new DxfWriter({ write: (value: string) => chunks.push(value), flush() {}, close() {} } as any, doc, false).write();
+		const graphics = ProxyGeometryWriter.writeGeometries([circle]);
+		const hex = Array.from(graphics, byte => byte.toString(16).padStart(2, '0')).join('');
+		const input = chunks.join('').replace(/100\r?\nAcDbLine/, `92\n${graphics.length}\n310\n${hex}\n100\nAcDbLine`);
+		const reader = new DxfReader(new TextEncoder().encode(input)); reader.configuration.ignoreProxyGraphics = false;
+		const decoded = [...reader.read().entities][0] as Line;
+		expect(decoded.proxyGeometries).toEqual([circle]); expect(decoded.endPoint.x).toBe(17);
+	});
 	it('retains signed shell holes and opaque trait data independently when cloning', () => {
 		const shell = new ProxyShell(); shell.faces = [[0, 1, 2], [3, 4, 5]]; shell.holes = [1];
 		shell.traitsData = new Uint8Array([1, 0, 0, 0, 25, 0, 0, 0]);

@@ -410,7 +410,9 @@ export abstract class DxfSectionReaderBase {
     const map = DxfMap.create(typeof entityType === 'string' ? entityType : entityType.name);
 
     while (this._reader.dxfCode !== DxfCode.Start) {
-      if (!readEntity(template, map)) {
+      if (this._reader.dxfCode === DxfCode.Subclass) this.currentSubclass = this._reader.valueAsString;
+      const commonSubclass = this.currentSubclass === DxfSubclassMarker.entity && this._reader.dxfCode !== DxfCode.Subclass;
+      if (commonSubclass || !readEntity(template, map)) {
         const isExtendedData = { value: false };
         this.readCommonEntityCodes(template, isExtendedData, map);
         if (isExtendedData.value) {
@@ -444,6 +446,8 @@ export abstract class DxfSectionReaderBase {
         break;
       case 92:
       case 160:
+        template.proxyGraphics = this._readProxyBytes(310);
+        break;
       case 310:
         break;
       case 347:
