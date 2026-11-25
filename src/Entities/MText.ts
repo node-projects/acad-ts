@@ -21,7 +21,7 @@ import { TextProcessor } from '../Text/TextProcessor.js';
 
 export class TextColumnData {
 	columnType: ColumnType = ColumnType.NoColumns;
-	columnCount: number = 0;
+	get columnCount(): number { return this.heights.length; }
 	flowReversed: boolean = false;
 	autoHeight: boolean = false;
 	width: number = 0;
@@ -31,7 +31,6 @@ export class TextColumnData {
 	clone(): TextColumnData {
 		const c = new TextColumnData();
 		c.columnType = this.columnType;
-		c.columnCount = this.columnCount;
 		c.flowReversed = this.flowReversed;
 		c.autoHeight = this.autoHeight;
 		c.width = this.width;

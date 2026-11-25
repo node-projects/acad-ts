@@ -798,7 +798,6 @@ export abstract class DxfSectionReaderBase {
           mtext.columnData.columnType = this._reader.valueAsShort as ColumnType;
           break;
         case 72:
-          mtext.columnData.columnCount = this._reader.valueAsInt;
           break;
         case 10:
         case 20:
