@@ -64,6 +64,11 @@ import { Wipeout } from '../../../Entities/Wipeout.js';
 import { Seqend } from '../../../Entities/Seqend.js';
 import { ModelerGeometry } from '../../../Entities/ModelerGeometry.js';
 import { Surface } from '../../../Entities/Surface.js';
+import { ExtrudedSurface } from '../../../Entities/ExtrudedSurface.js';
+import { LoftedSurface } from '../../../Entities/LoftedSurface.js';
+import { RevolvedSurface } from '../../../Entities/RevolvedSurface.js';
+import { SweptSurface } from '../../../Entities/SweptSurface.js';
+import { writeDxfSurfaceData } from '../../SurfaceData.js';
 import { ProxyEntity } from '../../../Entities/ProxyEntity.js';
 import { ProxyGeometryWriter } from '../../ProxyGeometryWriter.js';
 import { Region } from '../../../Entities/Region.js';
@@ -401,6 +406,9 @@ export abstract class DxfSectionWriterBase {
       this._writeShape(entity, map);
     } else if (entity instanceof ProxyEntity) {
       this._writeProxyEntity(entity);
+    } else if (entity instanceof ExtrudedSurface || entity instanceof LoftedSurface || entity instanceof RevolvedSurface || entity instanceof SweptSurface) {
+      this._writeModelerGeometry(entity);
+      writeDxfSurfaceData(this._writer, entity);
     } else if (entity instanceof Region || entity instanceof Solid3D || entity instanceof CadBody) {
       this._writeModelerGeometry(entity);
     } else if (entity instanceof Solid) {
@@ -437,7 +445,7 @@ export abstract class DxfSectionWriterBase {
       this.notify(`Entity ${entity.objectName} is not supported by R12 DXF.`, NotificationType.NotImplemented);
       return false;
     }
-    if (entity instanceof Surface) return false;
+    if (entity instanceof Surface && !(entity instanceof ExtrudedSurface || entity instanceof LoftedSurface || entity instanceof RevolvedSurface || entity instanceof SweptSurface)) return false;
     if (entity instanceof UnknownEntity) {
       return false;
     }

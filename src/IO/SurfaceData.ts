@@ -86,7 +86,8 @@ export function readDxfSurfaceData(reader: IDxfStreamReader, surface: Surface): 
 }
 
 function writeDxfProfile(writer: IDxfStreamWriter, code: number, id: number, data: Uint8Array): void {
-  writer.write(code,id); writer.write(90,data.length); if (data.length) writer.write(310,data);
+  writer.write(code,id); writer.write(90,data.length);
+  for (let offset=0;offset<data.length;offset+=127) writer.write(310,data.subarray(offset,offset+127));
 }
 export function writeDxfSurfaceData(writer: IDxfStreamWriter, surface: Surface): void {
   writer.write(100,'AcDbSurface'); writer.write(71,surface.uIsolines); writer.write(72,surface.vIsolines);
