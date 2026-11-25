@@ -147,8 +147,10 @@ export abstract class DxfSectionWriterBase {
   }
 
   protected writeCadValue(value: CadValue): void {
-    this._writer.write(93, value.flags);
+    const empty = value.isEmpty || value.value == null;
+    this._writer.write(93, empty ? value.flags | 1 : value.flags);
     this._writer.write(90, value.valueType as number);
+    if (empty) { this._writer.write(304, DxfFileToken.valueEnd); return; }
 
     switch (value.valueType) {
       case CadValueType.Unknown:

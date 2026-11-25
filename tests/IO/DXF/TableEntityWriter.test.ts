@@ -7,6 +7,20 @@ import { BlockRecord } from '../../../src/Tables/BlockRecord.js';
 import { DxfReader } from '../../../src/IO/DXF/DxfReader.js';
 import { DxfWriter } from '../../../src/IO/DXF/DxfWriter.js';
 
+it('preserves an empty typed point without modifying the source value', () => {
+  const doc = new CadDocument(), block = new BlockRecord('Empty cell graphics'); doc.blockRecords.add(block);
+  const table = new TableEntity(block), cell = new TableEntityCell(), row = new TableEntityRow(), content = new CellContent();
+  content.cadValue.valueType = CadValueType.Point3D; cell.contents.push(content); row.cells.push(cell); table.rows.push(row); table.columns.push(new TableEntityColumn()); doc.entities.add(table);
+  for (const binary of [false,true]) {
+    const bytes = new Uint8Array(1024*1024); new DxfWriter(bytes,doc,binary).write();
+    const restored = [...new DxfReader(bytes).read().entities][0] as TableEntity;
+    expect(restored.rows[0].cells[0].content?.cadValue.valueType).toBe(CadValueType.Point3D);
+    expect(restored.rows[0].cells[0].content?.cadValue.value).toBeNull();
+    expect(restored.rows[0].cells[0].content?.cadValue.isEmpty).toBe(true);
+  }
+  expect(content.cadValue.flags).toBe(0);
+});
+
 it.each([ACadVersion.AC1018,ACadVersion.AC1032])('round-trips DXF table dimensions, long text, rotation and overrides (%s)', version => {
   const doc = new CadDocument(version), block = new BlockRecord('Table graphics'); doc.blockRecords.add(block);
   const table = new TableEntity(block), column = new TableEntityColumn(), row = new TableEntityRow(), cell = new TableEntityCell();
