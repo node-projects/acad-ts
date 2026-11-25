@@ -23,12 +23,14 @@ export class AcisTextCodec {
 
 	static trimAtAcisEnd(data: Uint8Array): Uint8Array {
 		const markers = ['End-of-ACIS-data', 'End-of-ASM-data'].map(marker => new TextEncoder().encode(marker));
+		for (const kernel of ['ACIS','ASM']) markers.push(new Uint8Array([14,3,69,110,100,14,2,111,102,14,kernel.length,...new TextEncoder().encode(kernel),13,4,100,97,116,97]));
+		let end = data.length;
 		for (const marker of markers) {
 			outer: for (let i = 0; i <= data.length - marker.length; i++) {
 				for (let j = 0; j < marker.length; j++) if (data[i + j] !== marker[j]) continue outer;
-				return data.slice(0, i + marker.length);
+				end = Math.min(end, i + marker.length); break;
 			}
 		}
-		return data;
+		return end === data.length ? data : data.slice(0, end);
 	}
 }

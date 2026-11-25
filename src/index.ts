@@ -177,6 +177,7 @@ export { IHandledCadObject } from './IHandledCadObject.js';
 export { INamedCadObject } from './INamedCadObject.js';
 export { CadDocumentBuilder } from './IO/CadDocumentBuilder.js';
 export { AcisTextCodec } from './IO/AcisTextCodec.js';
+export { AcisEncryption } from './IO/AcisEncryption.js';
 export { CadReaderBase } from './IO/CadReaderBase.js';
 export { CadFileFormat, CadReader } from './IO/CadReader.js';
 export { IOrientable, isOrientable } from './IOrientable.js';
