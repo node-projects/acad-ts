@@ -1107,11 +1107,11 @@ export abstract class DxfSectionWriterBase {
     this._writer.write(DxfCode.Subclass, DxfSubclassMarker.underlay);
     this._writer.writeHandle(340, underlay.definition, subclass);
     this._writer.writeVector(10, underlay.insertPoint, subclass);
-    this._writer.write(41, underlay.xScale, subclass);
-    this._writer.write(42, underlay.yScale, subclass);
-    this._writer.write(43, underlay.zScale, subclass);
-    this._writer.write(50, underlay.rotation, subclass);
-    this._writer.write(280, underlay.flags, subclass);
+    this._writer.writeIfNotDefault(41, underlay.xScale, 1, subclass);
+    this._writer.writeIfNotDefault(42, underlay.yScale, 1, subclass);
+    this._writer.writeIfNotDefault(43, underlay.zScale, 1, subclass);
+    this._writer.writeIfNotDefault(50, underlay.rotation, 0, subclass);
+    this._writer.writeIfNotDefault(280, underlay.flags, 0xB, subclass);
     this._writer.write(281, underlay.contrast, subclass);
     this._writer.write(282, underlay.fade, subclass);
   }
