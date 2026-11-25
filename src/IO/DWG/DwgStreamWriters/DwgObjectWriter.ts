@@ -54,6 +54,7 @@ import { Solid3D } from '../../../Entities/Solid3D.js';
 import { ModelerGeometry, ModelerGeometryWire } from '../../../Entities/ModelerGeometry.js';
 import { Surface } from '../../../Entities/Surface.js';
 import { ExtrudedSurface } from '../../../Entities/ExtrudedSurface.js';
+import { LoftedSurface } from '../../../Entities/LoftedSurface.js';
 import { writeDwgSurfaceData } from '../../SurfaceData.js';
 import { ProxyGeometryWriter } from '../../ProxyGeometryWriter.js';
 import { Spline, SplineFlags, SplineFlags1, KnotParametrization } from '../../../Entities/Spline.js';
@@ -443,7 +444,7 @@ export class DwgObjectWriter extends DwgSectionIO {
 	}
 
 	private _isEntitySupported(entity: Entity): boolean {
-		if (entity instanceof Surface && !(entity instanceof ExtrudedSurface)) return false;
+		if (entity instanceof Surface && !(entity instanceof ExtrudedSurface || entity instanceof LoftedSurface)) return false;
 		if (entity instanceof Seqend) return false;
 		if (entity instanceof UnknownEntity) return false;
 		if (entity instanceof Shape) return this.writeShapes;
@@ -1590,7 +1591,7 @@ export class DwgObjectWriter extends DwgSectionIO {
 			this._writeShape(entity);
 		} else if (entity instanceof Solid) {
 			this._writeSolid(entity);
-		} else if (entity instanceof ExtrudedSurface) {
+		} else if (entity instanceof ExtrudedSurface || entity instanceof LoftedSurface) {
 			this._writeModelerGeometry(entity);
 			writeDwgSurfaceData(this._writer, entity);
 		} else if (entity instanceof Solid3D) {
