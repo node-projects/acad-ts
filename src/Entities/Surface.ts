@@ -5,8 +5,19 @@ import { DxfClass } from '../Classes/DxfClass.js';
 import { ACadVersion } from '../ACadVersion.js';
 import { ProxyFlags } from '../Classes/ProxyFlags.js';
 import { ObjectType } from '../Types/ObjectType.js';
+import { Matrix4 } from '../Math/Matrix4.js';
+import { XYZ } from '../Math/XYZ.js';
 
 export class Surface extends ModelerGeometry {
+	override clone(): Surface {
+		const copy = super.clone() as Surface;
+		for (const [key, value] of Object.entries(this)) {
+			if (value instanceof Matrix4) Reflect.set(copy, key, new Matrix4(Array.from({ length: 16 }, (_, i) => value.get(Math.floor(i / 4), i % 4))));
+			else if (value instanceof XYZ) Reflect.set(copy, key, new XYZ(value.x, value.y, value.z));
+			else if (value instanceof Uint8Array) Reflect.set(copy, key, value.slice());
+		}
+		return copy;
+	}
 	override getDxfClass(): DxfClass {
 		const definition = new DxfClass();
 		definition.cppClassName = this.subclassMarker;
