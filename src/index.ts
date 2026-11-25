@@ -516,6 +516,8 @@ export { TilingMethod } from './Objects/TilingMethod.js';
 export { UnderlayDefinition } from './Objects/UnderlayDefinition.js';
 export { UnknownNonGraphicalObject } from './Objects/UnknownNonGraphicalObject.js';
 export { VisualStyle } from './Objects/VisualStyle.js';
+export { VisualStyleLineType } from './Objects/VisualStyleLineType.js';
+export { WiggleAmount } from './Objects/WiggleAmount.js';
 export { XRecordEntry, XRecord } from './Objects/XRecrod.js';
 export { OnNameChangedArgs } from './OnNameChangedArgs.js';
 export { PropertyExpression } from './PropertyReflection.js';
