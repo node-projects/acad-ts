@@ -440,6 +440,7 @@ export abstract class DxfSectionWriterBase {
   }
 
   private _isEntitySupported(entity: Entity): boolean {
+    if (entity instanceof TableEntity && this.version <= ACadVersion.AC1018 && !this.configuration.writeShapes) return false;
     if (this.version < ACadVersion.AC1014 &&
       (entity instanceof CadBody || entity instanceof Region || entity instanceof Solid3D)) return false;
     if (this.version <= ACadVersion.AC1009 &&
