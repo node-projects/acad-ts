@@ -161,6 +161,7 @@ export class CadTableCellTemplate implements ICadTemplate {
 
 	build(builder: CadDocumentBuilder): void {
 		this.cell.value = builder.tryGetCadObject<CadObject>(this.valueHandle);
+		if (this.cell.type === CellType.Block && this.cell.value instanceof BlockRecord && !this.cell.contents.some(content => content.blockRecord === this.cell.value)) this.cell.contents.push(new CellContent(this.cell.value));
 		for (const contentTemplate of this.contentTemplates) {
 			contentTemplate.build(builder);
 		}

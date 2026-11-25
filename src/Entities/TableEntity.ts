@@ -1,7 +1,7 @@
 import { Insert } from './Insert.js';
 import { CadObject } from '../CadObject.js';
 import { Color } from '../Color.js';
-import { CadValue } from '../CadValue.js';
+import { CadValue, CadValueType } from '../CadValue.js';
 import { DxfFileToken } from '../DxfFileToken.js';
 import { DxfSubclassMarker } from '../DxfSubclassMarker.js';
 import { ObjectType } from '../Types/ObjectType.js';
@@ -334,6 +334,9 @@ export class CellBorder {
 }
 
 export class CellContent {
+	constructor(block?: BlockRecord) {
+		if (block) { this.blockRecord = block; this.contentType = TableCellContentType.Block; this.cadValue.setValue(block, CadValueType.Handle); }
+	}
 	clone(): CellContent {
 		const copy = new CellContent();
 		copy.contentType = this.contentType;

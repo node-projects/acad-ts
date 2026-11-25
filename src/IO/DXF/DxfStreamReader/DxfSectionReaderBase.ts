@@ -651,7 +651,8 @@ export abstract class DxfSectionReaderBase {
       }
       case 144:
         if (tmp.currentCellTemplate != null) {
-          tmp.currentCellTemplate.formatTextHeight = this._reader.valueAsDouble;
+          if (tmp.currentCell.type === CellType.Block) tmp.currentCell.blockScale = this._reader.valueAsDouble;
+          else tmp.currentCellTemplate.formatTextHeight = this._reader.valueAsDouble;
         }
         return true;
       case 145:
