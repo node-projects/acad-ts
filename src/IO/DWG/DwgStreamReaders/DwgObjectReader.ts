@@ -911,7 +911,7 @@ export class DwgObjectReader extends DwgSectionIO {
       case DxfFileToken.entityLoftedSurface: template = this._readSurfaceEntity(new LoftedSurface()); break;
       case DxfFileToken.entityNurbSurface: template = this._readModelerGeometry(new CadEntityTemplate(new NurbSurface())); break;
       case DxfFileToken.entityPlaneSurface: template = this._readModelerGeometry(new CadEntityTemplate(new PlaneSurface())); break;
-      case DxfFileToken.entityRevolvedSurface: template = this._readModelerGeometry(new CadEntityTemplate(new RevolvedSurface())); break;
+      case DxfFileToken.entityRevolvedSurface: template = this._readSurfaceEntity(new RevolvedSurface()); break;
       case DxfFileToken.entitySweptSurface: template = this._readModelerGeometry(new CadEntityTemplate(new SweptSurface())); break;
       case 'RASTERVARIABLES': template = this._readRasterVariables(); break;
       case DxfFileToken.objectWipeoutVariables: template = this._readWipeoutVariables(); break;
