@@ -14,6 +14,7 @@ import { DimensionAngular2Line } from '../../../Entities/DimensionAngular2Line.j
 import { DimensionAngular3Pt } from '../../../Entities/DimensionAngular3Pt.js';
 import { DimensionArc } from '../../../Entities/DimensionArc.js';
 import { AcisTextCodec } from '../../AcisTextCodec.js';
+import { readDxfSurfaceData } from '../../SurfaceData.js';
 import { DimensionRadius } from '../../../Entities/DimensionRadius.js';
 import { DimensionOrdinate } from '../../../Entities/DimensionOrdinate.js';
 import { DimensionType } from '../../../Entities/DimensionType.js';
@@ -1744,8 +1745,15 @@ export abstract class DxfSectionReaderBase {
 
   private _readSurface(template: CadEntityTemplate, map: DxfMap): boolean {
     const surface = template.cadObject as Surface;
-    if (this._reader.code === 71) { surface.uIsolines = this._reader.valueAsShort; return true; }
-    if (this._reader.code === 72) { surface.vIsolines = this._reader.valueAsShort; return true; }
+    if (this.currentSubclass === surface.subclassMarker && surface.subclassMarker !== DxfSubclassMarker.surface) {
+      const advanced = readDxfSurfaceData(this._reader, surface);
+      if (advanced !== null) { this.lockPointer ||= advanced; return true; }
+      return false;
+    }
+    if (this.currentSubclass === DxfSubclassMarker.surface) {
+      if (this._reader.code === 71) { surface.uIsolines = this._reader.valueAsShort; return true; }
+      if (this._reader.code === 72) { surface.vIsolines = this._reader.valueAsShort; return true; }
+    }
     return this._readModelerGeometry(template, map, DxfSubclassMarker.modelerGeometry);
   }
 
