@@ -1,6 +1,11 @@
 import { expect, it } from 'vitest';
 import { AcisTextCodec } from '../src/IO/AcisTextCodec.js';
 import { AcisEncryption } from '../src/IO/AcisEncryption.js';
+import { Solid3D } from '../src/Entities/Solid3D.js';
+it('recognizes wireframe-only ACIS data through both compatible property names', () => {
+  const solid = new Solid3D(); expect(solid.hasWireframeData).toBe(false);
+  solid.wireframeAcisData = new Uint8Array([1,2]); expect(solid.secondaryAcisData).toBe(solid.wireframeAcisData); expect(solid.hasWireframeData).toBe(true);
+});
 it('exposes byte-based encoding and trims at the earliest text or binary terminator', () => {
   const bytes = Uint8Array.from({length:256},(_,i)=>i);
   expect(AcisEncryption.decode(AcisEncryption.encode(bytes))).toEqual(bytes);

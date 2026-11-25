@@ -68,11 +68,13 @@ export abstract class ModelerGeometry extends Entity {
 
 	/** Auxiliary DWG edge/silhouette stream, independent of the primary body. */
 	secondaryAcisData: Uint8Array = new Uint8Array(0);
+	get wireframeAcisData(): Uint8Array { return this.secondaryAcisData; }
+	set wireframeAcisData(value: Uint8Array) { this.secondaryAcisData = value; }
 	secondaryModelerDataFlag: boolean | null = null;
 	secondaryModelerFormatVersion: number | null = null;
 
 	modelerFormatVersion: number = 1;
-	get hasWireframeData(): boolean { return this.wires.length > 0 || this.silhouettes.length > 0; }
+	get hasWireframeData(): boolean { return this.wires.length > 0 || this.silhouettes.length > 0 || this.secondaryAcisData.length > 0; }
 	/** Undocumented bit preceding the inline ACIS version; retain it when rewriting. */
 	modelerDataFlag: boolean | null = null;
 	materialMappings: { arrayIndex: number; absoluteReference: number; materialHandle: number }[] = [];
