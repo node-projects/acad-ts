@@ -848,7 +848,7 @@ export abstract class DxfSectionWriterBase {
   private _writeTableCell(cell: TableEntityCell): void {
     const writer = this._writer;
     for (const [code,value] of [[171,cell.type],[172,cell.edgeFlags],[173,cell.mergedValue ? 1 : 0],[174,cell.autoFit ? 1 : 0],[175,cell.borderWidth],[176,cell.borderHeight]]) writer.write(code,value);
-    writer.write(this.version > ACadVersion.AC1018 ? 91 : 177,cell.styleOverride.overrideFlags);
+    writer.write(this.version > ACadVersion.AC1018 ? 91 : 177,this.version > ACadVersion.AC1018 ? cell.styleOverride.overrideFlags : cell.styleOverride.overrideFlags & 0xFFFF);
     writer.write(178,cell.virtualEdgeFlag); writer.write(145,MathHelper.radToDeg(cell.rotation));
     if (cell.type === CellType.Text && this.version <= ACadVersion.AC1018) this.writeLongTextValue(1,2,String(cell.content?.cadValue.value ?? ''));
     else if (cell.type === CellType.Block) {
