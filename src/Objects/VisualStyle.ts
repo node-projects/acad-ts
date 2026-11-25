@@ -9,6 +9,7 @@ import { FaceLightingModelType } from './FaceLightingModelType.js';
 import { FaceLightingQualityType } from './FaceLightingQualityType.js';
 import { FaceModifierType } from './FaceModifierType.js';
 import { WiggleAmount } from './WiggleAmount.js';
+import { VisualStyleLineType } from './VisualStyleLineType.js';
 
 export class VisualStyle extends NonGraphicalObject {
 	constructor(name?: string) {
@@ -27,12 +28,12 @@ export class VisualStyle extends NonGraphicalObject {
 	set edgeColorValue(value: Color) { this._edgeColorValue = value; }
 	edgeCreaseAngle: number = 0;
 	edgeIntersectionColor: Color = Color.byLayer;
-	edgeIntersectionLineType: number = 0;
+	edgeIntersectionLineType: VisualStyleLineType = 0 as VisualStyleLineType;
 	edgeIsolineCount: number = 0;
 	edgeJitter: number = 0;
 	edgeModifiers: number = 0;
 	edgeObscuredColor: Color = Color.byLayer;
-	edgeObscuredLineType: number = 0;
+	edgeObscuredLineType: VisualStyleLineType = 0 as VisualStyleLineType;
 	edgeOverhang: number = 0;
 	edgeSilhouetteColor: Color = Color.byLayer;
 	edgeSilhouetteWidth: number = 0;
