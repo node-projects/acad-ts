@@ -528,7 +528,7 @@ export class DwgHeaderReader extends DwgSectionIO {
 			this._header.displayLineWeight = (flags & 0x200) === 1;
 			this._header.xEdit = (flags & 0x400) === 1;
 			this._header.extendedNames = (flags & 0x800) === 1;
-			this._header.plotStyleMode = flags & 0x2000;
+			this._header.plotStyleMode = (flags & 0x2000) !== 0 ? 1 : 0;
 			this._header.loadOLEObject = (flags & 0x4000) === 1;
 
 			this._header.insUnits = this._reader.readBitShort() as UnitsType;

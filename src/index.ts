@@ -158,6 +158,7 @@ export { GroupCodeValue } from './GroupCodeValue.js';
 export { GroupCodeValueType } from './GroupCodeValueType.js';
 export { AttributeVisibilityMode } from './Header/AttributeVisibilityMode.js';
 export { CadHeader } from './Header/CadHeader.js';
+export { PlotStyleMode } from './Header/PlotStyleMode.js';
 export { DimensionAssociation } from './Header/DimensionAssociation.js';
 export { EntityPlotStyleType } from './Header/EntityPlotStyleType.js';
 export { IndexCreationFlags } from './Header/IndexCreationFlags.js';

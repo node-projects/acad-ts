@@ -671,7 +671,7 @@ export class CadHeader {
 	dimensionAltMzs: string = "";
 	dimensionMzs: string = "";
 	styleSheetName: string = "";
-	plotStyleMode: number = 0;
+plotStyleMode: import('./PlotStyleMode.js').PlotStyleMode = 0;
 	projectName: string = "";
 	stepSize: number = 0;
 	solidsRetainHistory: boolean = false;
