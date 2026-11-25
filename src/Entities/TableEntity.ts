@@ -354,6 +354,7 @@ export class CellContent {
 }
 
 export class CellStyle extends ContentFormat {
+	overrideFlags: CellOverrideFlags = 0;
 	override clone(): this {
 		const copy = Object.assign(Object.create(Object.getPrototypeOf(this)), this) as this;
 		for (const key of ['topBorder', 'rightBorder', 'bottomBorder', 'leftBorder', 'horizontalInsideBorder', 'verticalInsideBorder'] as const) copy[key] = this[key].clone();

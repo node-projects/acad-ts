@@ -64,6 +64,7 @@ import { Wipeout } from '../../../Entities/Wipeout.js';
 import { Seqend } from '../../../Entities/Seqend.js';
 import { ModelerGeometry } from '../../../Entities/ModelerGeometry.js';
 import { Surface } from '../../../Entities/Surface.js';
+import { TableEntity, TableEntityCell, CellType } from '../../../Entities/TableEntity.js';
 import { ExtrudedSurface } from '../../../Entities/ExtrudedSurface.js';
 import { LoftedSurface } from '../../../Entities/LoftedSurface.js';
 import { RevolvedSurface } from '../../../Entities/RevolvedSurface.js';
@@ -370,6 +371,8 @@ export abstract class DxfSectionWriterBase {
       this._writeFace3D(entity, map);
     } else if (entity instanceof Hatch) {
       this._writeHatch(entity, map);
+    } else if (entity instanceof TableEntity) {
+      this._writeTableEntity(entity);
     } else if (entity instanceof Insert) {
       this._writeInsert(entity, map);
     } else if (entity instanceof Leader) {
@@ -828,6 +831,36 @@ export abstract class DxfSectionWriterBase {
       this._writer.write(22, edge.startTangent.y);
       this._writer.write(13, edge.endTangent.x);
       this._writer.write(23, edge.endTangent.y);
+    }
+  }
+
+  private _writeTableEntity(table: TableEntity): void {
+    const writer = this._writer;
+    writer.write(100, DxfSubclassMarker.insert); writer.writeName(2, table.block); writer.writeVector(10, table.insertPoint);
+    writer.write(100, DxfSubclassMarker.tableEntity);
+    writer.write(280,table.version); writer.writeHandle(342,table.style); writer.writeHandle(343,table.block); writer.writeVector(11,table.horizontalDirection);
+    for (const [code,value] of [[90,table.valueFlag],[91,table.rows.length],[92,table.columns.length],[93,Number(table.overrideFlag)],[94,Number(table.overrideBorderColor)],[95,Number(table.overrideBorderLineWeight)],[96,Number(table.overrideBorderVisibility)]]) writer.write(code,value);
+    for (const row of table.rows) writer.write(141,row.height);
+    for (const column of table.columns) writer.write(142,column.width);
+    for (const row of table.rows) for (const cell of row.cells) this._writeTableCell(cell);
+  }
+
+  private _writeTableCell(cell: TableEntityCell): void {
+    const writer = this._writer;
+    for (const [code,value] of [[171,cell.type],[172,cell.edgeFlags],[173,cell.mergedValue ? 1 : 0],[174,cell.autoFit ? 1 : 0],[175,cell.borderWidth],[176,cell.borderHeight]]) writer.write(code,value);
+    writer.write(this.version > ACadVersion.AC1018 ? 91 : 177,cell.styleOverride.overrideFlags);
+    writer.write(178,cell.virtualEdgeFlag); writer.write(145,MathHelper.radToDeg(cell.rotation));
+    if (cell.type === CellType.Text && this.version <= ACadVersion.AC1018) this.writeLongTextValue(1,2,String(cell.content?.cadValue.value ?? ''));
+    else if (cell.type === CellType.Block) {
+      const block = cell.content?.blockRecord ?? (cell.content?.cadValue.value instanceof BlockRecord ? cell.content.cadValue.value : null);
+      if (block) { writer.writeHandle(340,block); writer.write(144,cell.blockScale); }
+      writer.write(179,0);
+    }
+    if (this.version <= ACadVersion.AC1018) return;
+    writer.write(92,0);
+    for (const content of cell.contents) {
+      if (content.cadValue.value instanceof BlockRecord) continue;
+      writer.write(301,'CELL_VALUE'); this.writeCadValue(content.cadValue);
     }
   }
 

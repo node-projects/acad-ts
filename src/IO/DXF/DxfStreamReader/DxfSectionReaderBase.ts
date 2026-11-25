@@ -570,7 +570,8 @@ export abstract class DxfSectionReaderBase {
       }
       case 2: {
         if (this.currentSubclass !== null && this.currentSubclass.toUpperCase() === DxfSubclassMarker.tableEntity.toUpperCase()) {
-          const content = tmp.currentCell.content!;
+          const content = tmp.currentCell.content ?? new CellContent();
+          if (!tmp.currentCell.content) { content.cadValue.valueType = CadValueType.String; tmp.currentCell.contents.push(content); }
           if (content.cadValue.value === null) {
             content.cadValue.setValue(this._reader.valueAsString, CadValueType.String);
           } else {
@@ -584,6 +585,10 @@ export abstract class DxfSectionReaderBase {
         return true;
       }
       case 177:
+        tmp.currentCell.styleOverride.overrideFlags = this._reader.valueAsInt & 0xFFFF;
+        return true;
+      case 91:
+        if (tmp.currentCellTemplate) tmp.currentCell.styleOverride.overrideFlags = this._reader.valueAsInt;
         return true;
       case 279:
         tmp.currentCell.styleOverride.topBorder.lineWeight = this._reader.valueAsShort as LineWeightType;
@@ -650,7 +655,7 @@ export abstract class DxfSectionReaderBase {
         }
         return true;
       case 145:
-        tmp.currentCell.rotation = this._reader.valueAsDouble;
+        tmp.currentCell.rotation = this._reader.valueAsAngle;
         return true;
       case 170:
         return true;
@@ -683,6 +688,7 @@ export abstract class DxfSectionReaderBase {
         tmp.currentCell.contents.push(content);
         const valTemplate = this.readCadValue(content.cadValue);
         contentTemplate.cadValueTemplate = valTemplate;
+        tmp.currentCellTemplate.contentTemplates.push(contentTemplate);
         return true;
       }
       case 340:
@@ -705,10 +711,10 @@ export abstract class DxfSectionReaderBase {
     while (this._reader.code !== 304) {
       switch (this._reader.code as number) {
         case 1:
-          value.setValue(this._reader.valueAsString);
+          value.setValue((typeof value.value === 'string' ? value.value : '') + this._reader.valueAsString);
           break;
         case 2:
-          value.setValue((value.value as string) + this._reader.valueAsString);
+          value.setValue((typeof value.value === 'string' ? value.value : '') + this._reader.valueAsString);
           break;
         case 11: {
           const xyz = new XYZ();
