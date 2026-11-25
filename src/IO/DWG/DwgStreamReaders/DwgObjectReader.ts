@@ -145,6 +145,7 @@ import { PdfUnderlay } from '../../../Entities/PdfUnderlay.js';
 import { ModelerGeometry , ModelerGeometryWire, ModelerGeometrySilhouette} from '../../../Entities/ModelerGeometry.js';
 import { Region } from '../../../Entities/Region.js';
 import { Surface } from '../../../Entities/Surface.js';
+import { readDwgSurfaceData } from '../../SurfaceData.js';
 import { ExtrudedSurface } from '../../../Entities/ExtrudedSurface.js';
 import { LoftedSurface } from '../../../Entities/LoftedSurface.js';
 import { NurbSurface } from '../../../Entities/NurbSurface.js';
@@ -906,7 +907,7 @@ export class DwgObjectReader extends DwgSectionIO {
       case 'SCALE': template = this._readScale(); break;
       case 'SORTENTSTABLE': template = this._readSortentsTable(); break;
       case DxfFileToken.entitySurface: template = this._readModelerGeometry(new CadEntityTemplate(new Surface())); break;
-      case DxfFileToken.entityExtrudedSurface: template = this._readModelerGeometry(new CadEntityTemplate(new ExtrudedSurface())); break;
+      case DxfFileToken.entityExtrudedSurface: template = this._readSurfaceEntity(new ExtrudedSurface()); break;
       case DxfFileToken.entityLoftedSurface: template = this._readModelerGeometry(new CadEntityTemplate(new LoftedSurface())); break;
       case DxfFileToken.entityNurbSurface: template = this._readModelerGeometry(new CadEntityTemplate(new NurbSurface())); break;
       case DxfFileToken.entityPlaneSurface: template = this._readModelerGeometry(new CadEntityTemplate(new PlaneSurface())); break;
@@ -1074,6 +1075,12 @@ export class DwgObjectReader extends DwgSectionIO {
     pt.thickness = this._objectReader.readBitThickness();
     pt.normal = this._objectReader.readBitExtrusion();
     pt.rotation = this._objectReader.readBitDouble();
+    return template;
+  }
+
+  private _readSurfaceEntity(surface: Surface): CadTemplate {
+    const template = this._readModelerGeometry(new CadEntityTemplate(surface));
+    readDwgSurfaceData(this._mergedReaders, surface);
     return template;
   }
 
