@@ -2370,7 +2370,7 @@ export class DwgObjectReader extends DwgSectionIO {
 				if (length < 0 || length > 0x10000000) throw new Error(`Invalid SAT block length ${length}`);
 				const encoded = this._mergedReaders.readBytes(length);
 				for (let index = 0; index < encoded.length; index++) {
-					if (encoded[index]! > 0x20 && encoded[index]! < 0x9f) encoded[index] = 0x9f - encoded[index]!;
+					if (encoded[index]! > 0x20 && encoded[index]! < 0x7f) encoded[index] = 0x9f - encoded[index]!;
 					else if (encoded[index] === 0x09) encoded[index] = 0x20;
 				}
 				chunks.push(encoded);

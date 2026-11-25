@@ -2912,7 +2912,7 @@ export class DwgObjectWriter extends DwgSectionIO {
 		for (let offset = 0; offset < data.length; offset += 4096) {
 			const block = data.slice(offset, offset + 4096);
 			for (let i = 0; i < block.length; i++) {
-				if (block[i] > 0x20 && block[i] < 0x9f) block[i] = 0x9f - block[i];
+				if (block[i] > 0x20 && block[i] < 0x7f) block[i] = 0x9f - block[i];
 			}
 			this._writer.writeBitLong(block.length);
 			this._writer.writeBytes(block);

@@ -5,11 +5,11 @@ export class AcisTextCodec {
 		if (typeof value === 'string') {
 			return [...value].map(char => {
 				const code = char.charCodeAt(0);
-				return code > 0x20 && code < 0x9f ? String.fromCharCode(0x9f - code) : char;
+				return code > 0x20 && code < 0x7f ? String.fromCharCode(0x9f - code) : char;
 			}).join('');
 		}
 		const result = new Uint8Array(value.length);
-		for (let i = 0; i < value.length; i++) result[i] = value[i] > 0x20 && value[i] < 0x9f ? 0x9f - value[i] : value[i];
+		for (let i = 0; i < value.length; i++) result[i] = value[i] > 0x20 && value[i] < 0x7f ? 0x9f - value[i] : value[i];
 		return result;
 	}
 
