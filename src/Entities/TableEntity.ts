@@ -641,6 +641,7 @@ export class TableContent extends CadObject {
 		super.assignDocument(document);
 		this.style = this._style;
 		this.cellStyleOverride.owner = this;
+		for (const component of [...this.rows, ...this.columns]) component.owner = this;
 	}
 	override unassignDocument(): void {
 		super.unassignDocument();

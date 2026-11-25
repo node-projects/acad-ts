@@ -83,6 +83,7 @@ import { Wall } from '../../../Entities/AecEntities/Wall.js';
 import { ProxyEntity } from '../../../Entities/ProxyEntity.js';
 import { TableEntity, TableEntityCell, CellType, CellBorder, CellStyle, CellEdgeFlags, ContentFormat, MarginFlags, TableCellContentType, CustomDataEntry } from '../../../Entities/TableEntity.js';
 import { CellStyleMap } from '../../../Objects/CellStyleMap.js';
+import { CellOverrideFlags } from '../../../Entities/TableEntity.js';
 import { CadBody } from '../../../Entities/CadBody.js';
 import { Region } from '../../../Entities/Region.js';
 import { IPolyline } from '../../../Entities/IPolyline.js';
@@ -2953,7 +2954,9 @@ export class DwgObjectWriter extends DwgSectionIO {
 		this._writer.writeBitLong(cell.borderHeight);
 		this._writer.writeBitDouble(cell.rotation);
 
-		this._writer.handleReferenceTyped(DwgReferenceType.HardPointer, cell.type === CellType.Block ? cell.content?.blockRecord : cell.value);
+		const blockContent = cell.contents.find(content => content.blockRecord || content.cadValue.value instanceof BlockRecord);
+		const block = blockContent?.blockRecord ?? (blockContent?.cadValue.value instanceof BlockRecord ? blockContent.cadValue.value : null);
+		this._writer.handleReferenceTyped(DwgReferenceType.HardPointer, cell.type === CellType.Block ? block : cell.value);
 		if (cell.type === CellType.Text && cell.value == null && !this.r2007Plus) {
 			const value = cell.content?.cadValue.value;
 			this._writer.writeVariableText(typeof value === 'string' ? value : value == null ? '' : String(value));
@@ -2962,11 +2965,33 @@ export class DwgObjectWriter extends DwgSectionIO {
 			this._writer.writeBit(false);
 		}
 
-		this._writer.writeBit(false);
+		const style = cell.styleOverride, flags = style.overrideFlags;
+		this._writer.writeBit(flags !== 0);
+		if (flags !== 0) {
+			this._writer.writeBitLong(flags); this._writer.writeByte(cell.virtualEdgeFlag);
+			if (flags & CellOverrideFlags.CellAlignment) this._writer.writeBitShort(style.cellAlignment);
+			if (flags & CellOverrideFlags.BackgroundFillNone) this._writer.writeBit(style.isFillColorOn);
+			if (flags & CellOverrideFlags.BackgroundColor) this._writeTableStyleColor(style.backgroundColor);
+			if (flags & CellOverrideFlags.ContentColor) this._writeTableStyleColor(style.contentColor);
+			if (flags & CellOverrideFlags.TextStyle) this._writer.handleReferenceTyped(DwgReferenceType.HardPointer,style.textStyle);
+			if (flags & CellOverrideFlags.TextHeight) this._writer.writeBitDouble(style.textHeight);
+			for (const [border,color,weight,visible] of [
+				[style.topBorder,CellOverrideFlags.TopGridColor,CellOverrideFlags.TopGridLineWeight,CellOverrideFlags.TopVisibility],
+				[style.rightBorder,CellOverrideFlags.RightGridColor,CellOverrideFlags.RightGridLineWeight,CellOverrideFlags.RightVisibility],
+				[style.bottomBorder,CellOverrideFlags.BottomGridColor,CellOverrideFlags.BottomGridLineWeight,CellOverrideFlags.BottomVisibility],
+				[style.leftBorder,CellOverrideFlags.LeftGridColor,CellOverrideFlags.LeftGridLineWeight,CellOverrideFlags.LeftVisibility],
+			] as const) {
+				if (flags & color) this._writeTableStyleColor(border.color);
+				if (flags & weight) this._writer.writeBitShort(border.lineWeight);
+				if (flags & visible) this._writer.writeBitShort(border.isInvisible ? 0 : 1);
+			}
+		}
 
 		if (this.r2007Plus) {
 			this._writer.writeBitLong(0);
-			this._writeCadValue(cell.content?.cadValue ?? { ...new CadValue(), valueType: 4, value: '' } as CadValue);
+			const value = cell.contents.find(content => !(content.cadValue.value instanceof BlockRecord))?.cadValue ?? new CadValue();
+			if (value.value === null) { const empty = value.clone(); empty.isEmpty = true; this._writeCadValue(empty); }
+			else this._writeCadValue(value);
 		}
 	}
 
