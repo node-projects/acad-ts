@@ -6,7 +6,7 @@ TypeScript library to read and write AutoCAD DWG and DXF files. Ported from the 
 
 Based on commit: https://github.com/DomCR/ACadSharp/commit/3010994939c1bc21df0c9e2931e9baee4564815a
 
-Last compared upstream commit: https://github.com/DomCR/ACadSharp/commit/0acbe974b865afb5ff3b256d5e13a6862574c438 (see [commit-by-commit audit](docs/acadsharp-upstream-sync.md)).
+Last compared upstream commit: https://github.com/DomCR/ACadSharp/commit/4ef6c6af817bc2e02bbeb74d4c4df4a0ed3c78f5 (see [commit-by-commit audit](docs/acadsharp-upstream-sync.md)).
 
 ## Features
 
@@ -15,6 +15,7 @@ Last compared upstream commit: https://github.com/DomCR/ACadSharp/commit/0acbe97
 - Use UTF-8 for R2007+ DXF ASCII/binary strings and honor `$DWGCODEPAGE` for older DXF versions
 - Extract and modify geometric entities (lines, arcs, circles, polylines, dimensions, etc.)
 - Manage table entries (blocks, layers, line types, text styles, dimension styles)
+- Read and write table cells and parametric surface definitions (extruded, lofted, revolved and swept)
 - Convert CAD documents to SVG
 - Full TypeScript type definitions
 
@@ -33,8 +34,8 @@ Last compared upstream commit: https://github.com/DomCR/ACadSharp/commit/0acbe97
 | AC1032 | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: |
 
 R2007 (AC1021) DWG writing uses its native page container, CRC64 checksums and
-Reed–Solomon protection. Pages are currently stored without LZ compression, so
-files can be larger than AutoCAD output. See [DWG interoperability validation](docs/dwg-interoperability.md).
+Reed–Solomon protection. Eligible data pages use LZ77 compression with raw-page
+fallback. See [DWG interoperability validation](docs/dwg-interoperability.md).
 
 R11/R12 (AC1009) DXF writing supports ASCII and binary output, including legacy
 polylines, meshes, blocks and extended data. Lightweight polylines are exported
@@ -54,6 +55,11 @@ unsupported entity types are reported (or rejected with `failsafe = false`).
 Dimension/view/UCS table customization, extended entity data and overflow
 records are not fully supported. The version table describes file-format
 availability, not complete coverage of every AutoCAD object or property.
+
+Surface serialization preserves parameters, profile data and existing ACIS payloads;
+changing parameters does not regenerate ACIS geometry. Generic, NURB and plane
+surface writing remains unsupported. See the [upstream audit](docs/acadsharp-upstream-sync.md)
+for table and surface coverage and validation limits.
 
 ## Installation
 
